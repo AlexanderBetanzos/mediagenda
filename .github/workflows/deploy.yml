@@ -30,5 +30,4 @@ jobs:
             **/.claude/**
             **/.DS_Store
             **/*.md
-            config/config.php
-            config/config.sample.php
+            config/secrets.php

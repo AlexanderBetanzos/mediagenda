@@ -1,5 +1,6 @@
-# --- Secretos / configuración local (NO subir credenciales) ---
-config/config.php
+# --- Secretos (NO subir credenciales) ---
+# config/config.php SÍ se versiona (no contiene secretos).
+config/secrets.php
 
 # --- Herramientas locales ---
 .claude/

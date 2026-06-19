@@ -98,9 +98,12 @@ Cada `git push` a la rama `main` despliega el sitio al hosting mediante
 1. **En el servidor (cPanel):**
    - Crea la base de datos e importa, en orden: `sql/schema.sql`,
      `sql/modulos.sql`, `sql/configuracion.sql`.
-   - Copia `config/config.sample.php` como `config/config.php` y rellena las
-     credenciales reales de MySQL. Este archivo **no** se versiona ni se
-     sobrescribe en los despliegues (está en `.gitignore`).
+   - Crea el archivo de **secretos** `mediagenda_secrets.php` en la carpeta que
+     **contiene** a `public_html` (un nivel arriba), con el contenido de
+     `config/secrets.sample.php` y tus credenciales reales de MySQL.
+   - Este archivo vive **fuera del webroot**: ningún despliegue lo borra ni lo
+     sobrescribe, y no es accesible por web. `config/config.php` **sí** se
+     versiona (no contiene secretos) y lo carga automáticamente.
 
 2. **En GitHub** (repo → *Settings* → *Secrets and variables* → *Actions*),
    crea estos *secrets*:
@@ -125,7 +128,9 @@ Cada `git push` a la rama `main` despliega el sitio al hosting mediante
 
 ## Notas de seguridad
 
-- `config/config.php` está en `.gitignore`: las credenciales nunca llegan al repo.
+- Las credenciales viven en `mediagenda_secrets.php` **fuera de public_html**:
+  nunca llegan al repo ni se exponen por web (`config/secrets.php` local está
+  en `.gitignore`).
 - Cambia las contraseñas de las cuentas demo antes de usar en producción.
 - En producción, desactiva `display_errors` en `config/config.php` y usa
   un usuario de MySQL con contraseña (no `root`).
