@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     guardar_cfg([
         // Marca
-        'marca_nombre'  => trim($_POST['marca_nombre'] ?? '') ?: 'Consultorios',
+        'marca_nombre'  => trim($_POST['marca_nombre'] ?? '') ?: 'MediAgenda',
         'marca_lema'    => trim($_POST['marca_lema'] ?? ''),
         'marca_logo'    => trim($_POST['marca_logo'] ?? ''),
         // Apariencia
@@ -91,7 +91,7 @@ include __DIR__ . '/../includes/header.php';
         <div class="card-body row g-3">
             <div class="col-md-6">
                 <label class="form-label">Nombre del consultorio</label>
-                <input type="text" name="marca_nombre" class="form-control" value="<?= e(cfg('marca_nombre', 'Consultorios')) ?>" maxlength="60">
+                <input type="text" name="marca_nombre" class="form-control" value="<?= e(cfg('marca_nombre', 'MediAgenda')) ?>" maxlength="60">
             </div>
             <div class="col-md-6">
                 <label class="form-label">Lema / descripción</label>

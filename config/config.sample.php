@@ -20,7 +20,7 @@ define('DB_CHARSET', 'utf8mb4');
 // Si el sistema vive en la raíz del dominio, usa '' ; si está en una subcarpeta,
 // usa p. ej. '/consultorios'.
 define('BASE_URL', '');
-define('APP_NAME', 'Consultorios Médicos y Dentales');
+define('APP_NAME', 'MediAgenda');
 define('MONEDA', 'MXN');
 
 // --- Zona horaria ---
