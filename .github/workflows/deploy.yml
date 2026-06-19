@@ -1,0 +1,34 @@
+name: Deploy a hosting (FTP)
+
+# Se ejecuta en cada push a main. Sube los archivos al hosting por FTP/FTPS.
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:        # permite lanzarlo manualmente desde la pestaña Actions
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      - name: Subir por FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server:     ${{ secrets.FTP_SERVER }}      # host FTP (ej. ftp.midominio.com)
+          username:   ${{ secrets.FTP_USERNAME }}    # usuario FTP de cPanel
+          password:   ${{ secrets.FTP_PASSWORD }}    # contraseña FTP
+          protocol:   ftps                            # TLS; si tu host no lo soporta, cambia a: ftp
+          port:       21
+          server-dir: ${{ secrets.FTP_SERVER_DIR }}  # carpeta destino, ej. /public_html/ o /public_html/consultorios/
+          # Archivos que NO se suben al servidor:
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/.github/**
+            **/.claude/**
+            **/.DS_Store
+            **/*.md
+            config/config.php
+            config/config.sample.php

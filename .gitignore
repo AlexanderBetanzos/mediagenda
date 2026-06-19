@@ -1,0 +1,18 @@
+# --- Secretos / configuración local (NO subir credenciales) ---
+config/config.php
+
+# --- Herramientas locales ---
+.claude/
+.vscode/
+.idea/
+
+# --- Sistema operativo ---
+.DS_Store
+Thumbs.db
+
+# --- Estado del deploy por FTP ---
+.ftp-deploy-sync-state.json
+
+# --- Logs / temporales ---
+*.log
+*.tmp
