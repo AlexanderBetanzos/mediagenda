@@ -81,7 +81,7 @@ include __DIR__ . '/includes/header.php';
 
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
     <div>
-        <h1 class="h3 mb-1 text-white">Panel Principal</h1>
+        <h1 class="h3 mb-1">Hola, <?= e(explode(' ', trim($u['nombre']))[0]) ?> 👋</h1>
         <p class="text-muted mb-0 text-capitalize"><?= e(fecha_hoy_larga()) ?></p>
     </div>
     <a href="<?= BASE_URL ?>/citas/create.php" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Nueva Cita</a>
@@ -91,38 +91,42 @@ include __DIR__ . '/includes/header.php';
 <div class="row g-3 mb-4">
     <div class="col-sm-6 col-xl-3">
         <div class="card stat-card h-100"><div class="card-body">
-            <div class="d-flex justify-content-between align-items-start">
-                <div class="stat-label">Citas Hoy</div>
-                <span class="delta delta-up">+<?= $citasConfHoy ?> conf.</span>
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="stat-label">Citas hoy</div>
+                <div class="stat-icon" style="background:color-mix(in srgb,var(--brand) 14%,transparent);color:var(--brand)"><i class="bi bi-calendar-check"></i></div>
             </div>
-            <div class="stat-num mt-2"><?= $citasHoy ?></div>
+            <div class="stat-num"><?= $citasHoy ?></div>
+            <span class="delta <?= $citasConfHoy ? 'delta-up' : 'delta-flat' ?> mt-1 d-inline-block"><i class="bi bi-check2-circle"></i> <?= $citasConfHoy ?> confirmadas</span>
         </div></div>
     </div>
     <div class="col-sm-6 col-xl-3">
         <div class="card stat-card h-100"><div class="card-body">
-            <div class="d-flex justify-content-between align-items-start">
+            <div class="d-flex justify-content-between align-items-start mb-2">
                 <div class="stat-label">Pacientes</div>
-                <span class="delta <?= $pacientesMes ? 'delta-up' : 'delta-flat' ?>">+<?= $pacientesMes ?> mes</span>
+                <div class="stat-icon" style="background:rgba(20,184,166,.14);color:#0d9488"><i class="bi bi-people"></i></div>
             </div>
-            <div class="stat-num mt-2"><?= $totPacientes ?></div>
+            <div class="stat-num"><?= $totPacientes ?></div>
+            <span class="delta <?= $pacientesMes ? 'delta-up' : 'delta-flat' ?> mt-1 d-inline-block"><i class="bi bi-person-plus"></i> <?= $pacientesMes ?> este mes</span>
         </div></div>
     </div>
     <div class="col-sm-6 col-xl-3">
         <div class="card stat-card h-100"><div class="card-body">
-            <div class="d-flex justify-content-between align-items-start">
-                <div class="stat-label">Recetas emitidas (mes)</div>
-                <span class="delta delta-flat">recetas</span>
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="stat-label">Recetas (mes)</div>
+                <div class="stat-icon" style="background:rgba(99,102,241,.14);color:#6366f1"><i class="bi bi-capsule"></i></div>
             </div>
-            <div class="stat-num mt-2"><?= $recetasMes ?></div>
+            <div class="stat-num"><?= $recetasMes ?></div>
+            <span class="delta delta-flat mt-1 d-inline-block"><i class="bi bi-file-medical"></i> <?= $consultasMes ?> consultas</span>
         </div></div>
     </div>
     <div class="col-sm-6 col-xl-3">
         <div class="card stat-card h-100"><div class="card-body">
-            <div class="d-flex justify-content-between align-items-start">
+            <div class="d-flex justify-content-between align-items-start mb-2">
                 <div class="stat-label">Ingresos (<?= e(moneda()) ?>)</div>
-                <span class="delta delta-up">mes</span>
+                <div class="stat-icon" style="background:rgba(34,197,94,.14);color:#16a34a"><i class="bi bi-cash-coin"></i></div>
             </div>
-            <div class="stat-num mt-2" style="font-size:1.5rem"><?= fmt_money($ingresosMes) ?></div>
+            <div class="stat-num" style="font-size:1.6rem"><?= fmt_money($ingresosMes) ?></div>
+            <span class="delta delta-up mt-1 d-inline-block"><i class="bi bi-graph-up-arrow"></i> facturado este mes</span>
         </div></div>
     </div>
 </div>
@@ -131,7 +135,7 @@ include __DIR__ . '/includes/header.php';
     <!-- Gráfica: citas por semana -->
     <div class="col-lg-8">
         <div class="card h-100"><div class="card-body">
-            <h2 class="h6 mb-3"><i class="bi bi-bar-chart-fill text-info"></i> Citas por Semana</h2>
+            <h2 class="h6 mb-3"><i class="bi bi-bar-chart-fill text-brand"></i> Citas por Semana</h2>
             <canvas id="chartSemana" height="110"></canvas>
         </div></div>
     </div>
@@ -139,7 +143,7 @@ include __DIR__ . '/includes/header.php';
     <div class="col-lg-4">
         <div class="card h-100">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <span class="fw-semibold"><i class="bi bi-calendar-day text-info"></i> Agenda de Hoy</span>
+                <span class="fw-semibold"><i class="bi bi-calendar-day text-brand"></i> Agenda de Hoy</span>
                 <a href="<?= BASE_URL ?>/citas/index.php" class="small">Ver completa →</a>
             </div>
             <div class="card-body p-0">
@@ -150,7 +154,7 @@ include __DIR__ . '/includes/header.php';
                     <?php foreach ($agendaHoy as $c): ?>
                         <li class="list-group-item d-flex align-items-center justify-content-between px-3">
                             <span>
-                                <span class="text-info fw-semibold me-2"><?= fmt_hora($c['hora']) ?></span>
+                                <span class="text-brand fw-semibold me-2"><?= fmt_hora($c['hora']) ?></span>
                                 <?= e($c['apellidos'] . ', ' . $c['nombre']) ?>
                             </span>
                             <span class="dot-estado dot-<?= e($c['estado']) ?>" title="<?= estado_label($c['estado']) ?>"></span>
@@ -165,7 +169,7 @@ include __DIR__ . '/includes/header.php';
 
 <!-- Últimos expedientes -->
 <div class="card">
-    <div class="card-header fw-semibold"><i class="bi bi-folder2-open text-info"></i> Últimos Expedientes</div>
+    <div class="card-header fw-semibold"><i class="bi bi-folder2-open text-brand"></i> Últimos Expedientes</div>
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
             <thead><tr><th>Paciente</th><th>Última visita</th><th>Diagnóstico</th><th class="text-end">Estado</th></tr></thead>
@@ -198,9 +202,29 @@ include __DIR__ . '/includes/header.php';
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
 const ctx = document.getElementById('chartSemana');
+const css = getComputedStyle(document.documentElement);
+const brand = (css.getPropertyValue('--brand').trim() || '#0b6fb8');
+const isLight = document.documentElement.classList.contains('app-light');
+const tickColor = isLight ? '#6b7c93' : '#93a6c4';
+const gridColor = isLight ? 'rgba(15,39,71,.07)' : 'rgba(148,170,200,.12)';
+
+// Convierte un color (#rgb / #rrggbb) a rgba con la opacidad indicada.
+function fade(c, a) {
+    c = c.trim();
+    if (c[0] === '#') {
+        let h = c.slice(1);
+        if (h.length === 3) h = h.split('').map(x => x + x).join('');
+        const n = parseInt(h, 16);
+        return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
+    }
+    return c;
+}
+
+// Degradado vertical con el color de marca (se desvanece hacia abajo).
 const grad = ctx.getContext('2d').createLinearGradient(0, 0, 0, 220);
-grad.addColorStop(0, 'rgba(43,196,221,.95)');
-grad.addColorStop(1, 'rgba(34,197,94,.55)');
+grad.addColorStop(0, fade(brand, 1));
+grad.addColorStop(1, fade(brand, .28));
+
 new Chart(ctx, {
     type: 'bar',
     data: {
@@ -209,16 +233,20 @@ new Chart(ctx, {
             label: 'Citas',
             data: <?= json_encode($chartData) ?>,
             backgroundColor: grad,
-            borderRadius: 6,
-            maxBarThickness: 38
+            hoverBackgroundColor: brand,
+            borderRadius: 8,
+            maxBarThickness: 40
         }]
     },
     options: {
-        plugins: { legend: { display: false } },
+        plugins: {
+            legend: { display: false },
+            tooltip: { backgroundColor: '#0f2747', padding: 10, cornerRadius: 8, displayColors: false }
+        },
         scales: {
-            x: { grid: { display: false }, ticks: { color: '#93a6c4' } },
-            y: { beginAtZero: true, ticks: { color: '#93a6c4', precision: 0 },
-                 grid: { color: 'rgba(148,170,200,.12)' } }
+            x: { grid: { display: false }, border: { display: false }, ticks: { color: tickColor, font: { weight: '500' } } },
+            y: { beginAtZero: true, ticks: { color: tickColor, precision: 0, stepSize: 1 },
+                 grid: { color: gridColor }, border: { display: false } }
         }
     }
 });

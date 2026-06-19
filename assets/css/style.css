@@ -217,6 +217,7 @@ html.app-light .stat-card {
 html.app-light .stat-card .stat-num { color: var(--ink); }
 html.app-light .stat-label { color: var(--muted); }
 html.app-light .delta-flat { background: #eef2f7; color: var(--muted); }
+html.app-light .delta-up { background: rgba(34,197,94,.12); color: #15803d; }
 
 /* ---- Tablas ---- */
 html.app-light .table thead th {

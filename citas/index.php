@@ -28,6 +28,10 @@ $stmt = db()->prepare($sql);
 $stmt->execute($params);
 $citas = $stmt->fetchAll();
 
+// Resumen por estado de los resultados filtrados (sin consultas extra).
+$resumen = ['programada'=>0,'confirmada'=>0,'atendida'=>0,'no_asistio'=>0,'cancelada'=>0];
+foreach ($citas as $c) { $resumen[$c['estado']] = ($resumen[$c['estado']] ?? 0) + 1; }
+
 // Médicos para el filtro
 $medicos = db()->query("SELECT id, nombre FROM usuarios WHERE rol='medico' AND activo=1 ORDER BY nombre")->fetchAll();
 
@@ -72,6 +76,15 @@ include __DIR__ . '/../includes/header.php';
         <a href="<?= BASE_URL ?>/citas/index.php" class="btn btn-link">Limpiar</a>
     </div>
 </form>
+
+<?php if ($citas): ?>
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+    <span class="text-muted small me-1"><?= count($citas) ?> cita<?= count($citas) === 1 ? '' : 's' ?>:</span>
+    <?php foreach ($resumen as $es => $n): if ($n): ?>
+        <span class="badge rounded-pill bg-<?= estado_badge($es) ?>"><?= estado_label($es) ?> · <?= $n ?></span>
+    <?php endif; endforeach; ?>
+</div>
+<?php endif; ?>
 
 <div class="card">
     <div class="table-responsive">
