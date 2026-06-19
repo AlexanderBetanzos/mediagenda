@@ -88,43 +88,30 @@ consultorios/
 └── sql/schema.sql       Esquema + datos de ejemplo
 ```
 
-## Despliegue automático (GitHub → hosting por FTP)
+## Despliegue (GitHub → Hostinger con Git)
 
-Cada `git push` a la rama `main` despliega el sitio al hosting mediante
-**GitHub Actions** (`.github/workflows/deploy.yml`).
+El despliegue usa el **Git integrado de Hostinger** (hPanel → *Avanzado → Git*):
+se conecta el repositorio y Hostinger publica el contenido en `public_html` al
+hacer *Deploy* (o automáticamente con un webhook).
 
 ### Configuración inicial (una sola vez)
 
-1. **En el servidor (cPanel):**
-   - Crea la base de datos e importa, en orden: `sql/schema.sql`,
-     `sql/modulos.sql`, `sql/configuracion.sql`.
-   - Crea el archivo de **secretos** `mediagenda_secrets.php` en la carpeta que
-     **contiene** a `public_html` (un nivel arriba), con el contenido de
-     `config/secrets.sample.php` y tus credenciales reales de MySQL.
-   - Este archivo vive **fuera del webroot**: ningún despliegue lo borra ni lo
-     sobrescribe, y no es accesible por web. `config/config.php` **sí** se
-     versiona (no contiene secretos) y lo carga automáticamente.
+1. **Base de datos** (hPanel → phpMyAdmin): crea la BD e importa, en orden:
+   `sql/schema.sql`, `sql/modulos.sql`, `sql/configuracion.sql`.
 
-2. **En GitHub** (repo → *Settings* → *Secrets and variables* → *Actions*),
-   crea estos *secrets*:
+2. **Archivo de secretos** (credenciales): crea `mediagenda_secrets.php` en la
+   carpeta que **contiene** a `public_html` (un nivel arriba), con el contenido
+   de `config/secrets.sample.php` y tus credenciales reales de MySQL.
+   - Vive **fuera del webroot**: ningún despliegue lo borra y no es accesible por
+     web. `config/config.php` **sí** se versiona (sin secretos) y lo carga solo,
+     buscándolo en varios niveles por encima de `public_html`.
 
-   | Secret           | Valor                                             |
-   |------------------|---------------------------------------------------|
-   | `FTP_SERVER`     | host FTP, ej. `ftp.midominio.com`                 |
-   | `FTP_USERNAME`   | usuario FTP de cPanel                             |
-   | `FTP_PASSWORD`   | contraseña FTP                                    |
-   | `FTP_SERVER_DIR` | carpeta destino, ej. `/public_html/`             |
+3. **Git en Hostinger** (hPanel → *Git*): añade el repositorio
+   `https://github.com/AlexanderBetanzos/mediagenda.git`, rama `main`,
+   directorio `public_html`. Para auto-deploy en cada push, copia la **URL del
+   webhook** que da Hostinger y pégala en GitHub → *Settings → Webhooks*.
 
-   Desde la terminal también puedes hacerlo con:
-   ```bash
-   gh secret set FTP_SERVER
-   gh secret set FTP_USERNAME
-   gh secret set FTP_PASSWORD
-   gh secret set FTP_SERVER_DIR
-   ```
-
-> Si tu hosting no soporta FTPS, cambia `protocol: ftps` por `protocol: ftp`
-> en `.github/workflows/deploy.yml`.
+> Tras cada push, pulsa **Deploy** en hPanel (o deja que el webhook lo haga).
 
 ## Notas de seguridad
 
@@ -132,5 +119,5 @@ Cada `git push` a la rama `main` despliega el sitio al hosting mediante
   nunca llegan al repo ni se exponen por web (`config/secrets.php` local está
   en `.gitignore`).
 - Cambia las contraseñas de las cuentas demo antes de usar en producción.
-- En producción, desactiva `display_errors` en `config/config.php` y usa
-  un usuario de MySQL con contraseña (no `root`).
+- `display_errors` se desactiva solo en producción (se activa únicamente en
+  `localhost`/CLI o con `APP_DEBUG=1`).

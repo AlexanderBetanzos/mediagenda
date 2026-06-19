@@ -12,16 +12,25 @@
  */
 
 // 1) Cargar credenciales desde el archivo de secretos (el primero que exista).
-$__candidatos = array_filter([
-    getenv('MEDIAGENDA_SECRETS') ?: null,                                  // ruta explícita por entorno
-    !empty($_SERVER['DOCUMENT_ROOT'])
-        ? dirname($_SERVER['DOCUMENT_ROOT']) . '/mediagenda_secrets.php'    // un nivel arriba de public_html
-        : null,
-    __DIR__ . '/secrets.php',                                              // local (en .gitignore) para desarrollo
-]);
-foreach ($__candidatos as $__f) {
-    if (is_file($__f)) { require $__f; break; }
+//    Se busca en varios niveles por encima de public_html para tolerar la
+//    estructura de carpetas de distintos hostings.
+$__candidatos = [];
+if ($__env = getenv('MEDIAGENDA_SECRETS')) {
+    $__candidatos[] = $__env;                                              // ruta explícita por entorno
 }
+if (!empty($_SERVER['DOCUMENT_ROOT'])) {
+    $__dr = rtrim($_SERVER['DOCUMENT_ROOT'], '/');
+    $__candidatos[] = dirname($__dr)     . '/mediagenda_secrets.php';      // carpeta que contiene public_html
+    $__candidatos[] = dirname($__dr, 2)  . '/mediagenda_secrets.php';      // dos niveles arriba
+    $__candidatos[] = dirname($__dr, 3)  . '/mediagenda_secrets.php';      // home en Hostinger (/home/USUARIO)
+}
+$__candidatos[] = __DIR__ . '/secrets.php';                               // local (en .gitignore) para desarrollo
+
+$__secretLoaded = false;
+foreach ($__candidatos as $__f) {
+    if ($__f && is_file($__f)) { require $__f; $__secretLoaded = true; break; }
+}
+define('SECRETS_LOADED', $__secretLoaded);
 
 // 2) Valores por defecto (desarrollo XAMPP) si el archivo de secretos no los definió.
 defined('DB_HOST')    || define('DB_HOST',    getenv('DB_HOST') ?: '127.0.0.1');
@@ -60,8 +69,11 @@ function db(): PDO
                 PDO::ATTR_EMULATE_PREPARES   => false,
             ]);
         } catch (PDOException $e) {
-            die('Error de conexión a la base de datos. Revisa el archivo de secretos '
-                . '(credenciales MySQL) fuera de public_html.');
+            $hint = SECRETS_LOADED
+                ? 'Se encontró el archivo de secretos, pero las credenciales MySQL no son válidas '
+                  . '(revisa DB_USER / DB_PASS / DB_NAME).'
+                : 'NO se encontró mediagenda_secrets.php fuera de public_html (revisa su ubicación).';
+            die('Error de conexión a la base de datos. ' . $hint);
         }
     }
     return $pdo;
