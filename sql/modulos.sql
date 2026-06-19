@@ -1,8 +1,7 @@
 -- =====================================================================
 --  Módulos adicionales: Recetas y Facturación
---  Ejecutar DESPUÉS de schema.sql
+--  Ejecutar DESPUÉS de schema.sql, dentro de la BD ya seleccionada.
 -- =====================================================================
-USE consultorios_db;
 
 DROP TABLE IF EXISTS receta_items;
 DROP TABLE IF EXISTS recetas;

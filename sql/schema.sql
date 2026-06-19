@@ -1,12 +1,11 @@
 -- =====================================================================
---  Consultorios Médicos y Dentales  -  Esquema de base de datos
+--  MediAgenda  -  Esquema de base de datos
 --  Motor: MariaDB / MySQL  -  Codificación: utf8mb4
 -- =====================================================================
-
-CREATE DATABASE IF NOT EXISTS consultorios_db
-  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
-USE consultorios_db;
+--  Importa este archivo DENTRO de la base de datos ya seleccionada.
+--  - Local (XAMPP): mysql -u root consultorios_db < sql/schema.sql
+--  - Hosting compartido: en phpMyAdmin, selecciona tu BD y usa "Importar".
+-- =====================================================================
 
 -- Limpieza (orden inverso por las claves foráneas)
 DROP TABLE IF EXISTS consultas;

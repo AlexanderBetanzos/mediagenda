@@ -19,13 +19,20 @@ Construido con **PHP 8 + MariaDB + Bootstrap 5** sobre XAMPP.
 
 1. Copia la carpeta `consultorios/` en `htdocs/` de XAMPP (ya está ahí).
 2. Inicia **Apache** y **MySQL** desde el panel de XAMPP.
-3. Importa la base de datos (crea `consultorios_db` con datos de ejemplo):
+3. Crea la base de datos e importa los tres archivos **en orden**
+   (`schema` → `modulos` → `configuracion`):
 
    ```bash
-   /Applications/XAMPP/xamppfiles/bin/mysql -u root < sql/schema.sql
+   MYSQL=/Applications/XAMPP/xamppfiles/bin/mysql
+   $MYSQL -u root -e "CREATE DATABASE IF NOT EXISTS consultorios_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
+   $MYSQL -u root consultorios_db < sql/schema.sql
+   $MYSQL -u root consultorios_db < sql/modulos.sql
+   $MYSQL -u root consultorios_db < sql/configuracion.sql
    ```
 
-   O bien desde **phpMyAdmin** → *Importar* → selecciona `sql/schema.sql`.
+   O desde **phpMyAdmin** → selecciona la BD → *Importar* (un archivo a la vez,
+   en ese orden). Los `.sql` ya no incluyen `CREATE DATABASE`, así que se importan
+   en la BD que tengas seleccionada (compatible con hosting compartido).
 
 4. Abre el sitio en el navegador:
 
