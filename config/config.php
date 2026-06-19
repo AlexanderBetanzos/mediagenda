@@ -32,6 +32,19 @@ foreach ($__candidatos as $__f) {
 }
 define('SECRETS_LOADED', $__secretLoaded);
 
+// Diagnóstico temporal: visita la web con ?diag=1 para ver dónde se busca el
+// archivo de secretos. (Quitar este bloque cuando todo funcione.)
+if (isset($_GET['diag'])) {
+    header('Content-Type: text/plain; charset=utf-8');
+    echo "DOCUMENT_ROOT: " . ($_SERVER['DOCUMENT_ROOT'] ?? '(vacío)') . "\n\n";
+    echo "Se busca 'mediagenda_secrets.php' en estas rutas (la primera que exista gana):\n";
+    foreach ($__candidatos as $__c) {
+        echo (is_file($__c) ? "  [ENCONTRADO] " : "  [no existe]  ") . $__c . "\n";
+    }
+    echo "\nSECRETS_LOADED: " . ($__secretLoaded ? 'sí' : 'no') . "\n";
+    exit;
+}
+
 // 2) Valores por defecto (desarrollo XAMPP) si el archivo de secretos no los definió.
 defined('DB_HOST')    || define('DB_HOST',    getenv('DB_HOST') ?: '127.0.0.1');
 defined('DB_NAME')    || define('DB_NAME',    getenv('DB_NAME') ?: 'consultorios_db');
