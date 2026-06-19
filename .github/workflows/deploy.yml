@@ -19,7 +19,7 @@ jobs:
           server:     ${{ secrets.FTP_SERVER }}      # host FTP (ej. ftp.midominio.com)
           username:   ${{ secrets.FTP_USERNAME }}    # usuario FTP de cPanel
           password:   ${{ secrets.FTP_PASSWORD }}    # contraseña FTP
-          protocol:   ftps                            # TLS; si tu host no lo soporta, cambia a: ftp
+          protocol:   ftp                             # Hostinger por IP: FTP simple. (FTPS por IP suele fallar por el certificado)
           port:       21
           server-dir: ${{ secrets.FTP_SERVER_DIR }}  # carpeta destino, ej. /public_html/ o /public_html/consultorios/
           # Archivos que NO se suben al servidor:
