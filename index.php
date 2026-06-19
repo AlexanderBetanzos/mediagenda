@@ -28,13 +28,16 @@ $logged = is_logged_in();
                 <li class="nav-item"><a class="nav-link" href="#funciones">Funciones</a></li>
                 <li class="nav-item"><a class="nav-link" href="#beneficios">Beneficios</a></li>
                 <li class="nav-item"><a class="nav-link" href="#planes">Planes</a></li>
+                <?php if ($logged): ?>
                 <li class="nav-item">
-                    <?php if ($logged): ?>
-                        <a class="btn btn-primary px-3" href="<?= BASE_URL ?>/dashboard.php"><i class="bi bi-speedometer2"></i> Ir al panel</a>
-                    <?php else: ?>
-                        <a class="btn btn-primary px-3" href="<?= BASE_URL ?>/auth/login.php"><i class="bi bi-box-arrow-in-right"></i> Iniciar sesión</a>
-                    <?php endif; ?>
+                    <a class="btn btn-primary px-3" href="<?= BASE_URL ?>/dashboard.php"><i class="bi bi-speedometer2"></i> Ir al panel</a>
                 </li>
+                <?php else: ?>
+                <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>/auth/login.php">Iniciar sesión</a></li>
+                <li class="nav-item">
+                    <a class="btn btn-primary px-3" href="<?= BASE_URL ?>/auth/registro.php"><i class="bi bi-rocket-takeoff"></i> Prueba gratis</a>
+                </li>
+                <?php endif; ?>
             </ul>
         </div>
     </div>
@@ -49,10 +52,10 @@ $logged = is_logged_in();
                 <h1 class="display-5 mb-3">Expediente clínico, agenda y recordatorios en un solo lugar</h1>
                 <p class="lead mb-4">Digitaliza tu consultorio: administra pacientes, agenda citas y lleva el historial clínico de forma simple, segura y desde cualquier dispositivo.</p>
                 <div class="d-flex flex-wrap gap-2">
-                    <a href="<?= BASE_URL ?>/auth/login.php" class="btn btn-light btn-lg px-4 text-brand fw-semibold">Comenzar ahora</a>
+                    <a href="<?= BASE_URL ?>/auth/registro.php" class="btn btn-light btn-lg px-4 text-brand fw-semibold">Prueba gratis 15 días</a>
                     <a href="#funciones" class="btn btn-outline-light btn-lg px-4">Ver funciones</a>
                 </div>
-                <p class="small mt-3 mb-0"><i class="bi bi-shield-check"></i> Datos protegidos · Acceso por roles</p>
+                <p class="small mt-3 mb-0"><i class="bi bi-shield-check"></i> Sin tarjeta · 15 días gratis · Acceso por roles</p>
             </div>
             <div class="col-lg-6">
                 <div class="card shadow-lg border-0">
@@ -167,7 +170,7 @@ $logged = is_logged_in();
                                 <li class="mb-2"><i class="bi bi-check2 text-success me-2"></i><?= e($it) ?></li>
                             <?php endforeach; ?>
                         </ul>
-                        <a href="<?= BASE_URL ?>/auth/login.php" class="btn <?= $feat ? 'btn-primary' : 'btn-outline-primary' ?> w-100">Elegir plan</a>
+                        <a href="<?= BASE_URL ?>/auth/registro.php" class="btn <?= $feat ? 'btn-primary' : 'btn-outline-primary' ?> w-100">Probar 15 días gratis</a>
                     </div>
                 </div>
             </div>
