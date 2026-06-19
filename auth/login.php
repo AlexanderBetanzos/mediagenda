@@ -21,10 +21,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Regenerar id de sesión para evitar fijación.
         session_regenerate_id(true);
         $_SESSION['usuario'] = [
-            'id'     => (int) $user['id'],
-            'nombre' => $user['nombre'],
-            'email'  => $user['email'],
-            'rol'    => $user['rol'],
+            'id'             => (int) $user['id'],
+            'nombre'         => $user['nombre'],
+            'email'          => $user['email'],
+            'rol'            => $user['rol'],
+            'consultorio_id' => (int) $user['consultorio_id'],
         ];
         flash('¡Bienvenido(a), ' . $user['nombre'] . '!');
         redirect('/dashboard.php');
