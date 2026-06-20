@@ -127,10 +127,18 @@ function mp_sincronizar(array $pre): ?int
     $estado = $pre['status'] ?? '';
     $pdo = db();
 
+    // Estado anterior (para detectar una activación NUEVA y no duplicar correos).
+    $prev = $pdo->prepare("SELECT estado FROM consultorios WHERE id=?");
+    $prev->execute([$cid]);
+    $estadoPrevio = $prev->fetchColumn();
+
     if ($estado === 'authorized') {
         $prox = !empty($pre['next_payment_date']) ? date('Y-m-d', strtotime($pre['next_payment_date'])) : null;
         $pdo->prepare("UPDATE consultorios SET estado='activa', plan=?, mp_suscripcion_id=?, mp_estado=?, proximo_cobro=? WHERE id=?")
             ->execute([$plan, $pre['id'] ?? null, $estado, $prox, $cid]);
+        if ($estadoPrevio !== 'activa') {
+            mp_notificar_activacion($cid, $plan, $prox);
+        }
     } elseif (in_array($estado, ['paused', 'cancelled'], true)) {
         // No bloquea de inmediato: el acceso sigue hasta proximo_cobro (fin del periodo pagado).
         $pdo->prepare("UPDATE consultorios SET mp_estado=? WHERE id=?")->execute([$estado, $cid]);
@@ -147,6 +155,18 @@ function mp_sincronizar(array $pre): ?int
     } catch (Throwable $e) { /* tabla pagos_log aún no creada */ }
 
     return $cid;
+}
+
+/** Envía el correo de confirmación al admin del consultorio recién activado. */
+function mp_notificar_activacion(int $cid, string $plan, ?string $proximo): void
+{
+    require_once __DIR__ . '/correo.php';
+    $st = db()->prepare("SELECT nombre, email FROM usuarios WHERE consultorio_id=? AND rol='admin' ORDER BY id LIMIT 1");
+    $st->execute([$cid]);
+    if ($a = $st->fetch()) {
+        $planNombre = planes_mp()[$plan]['nombre'] ?? $plan;
+        @correo_suscripcion_activa($a['email'], $a['nombre'], $planNombre, $proximo);
+    }
 }
 
 /** Construye una URL absoluta del sitio (Mercado Pago exige back/notification URL completas). */

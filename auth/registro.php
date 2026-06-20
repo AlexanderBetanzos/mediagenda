@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/mercadopago.php';
+require_once __DIR__ . '/../includes/correo.php';
 
 // Si ya hay sesión, al panel.
 if (is_logged_in()) {
@@ -106,6 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     // Plan de pago: directo a Mercado Pago, sin prueba.
                     redirect('/pagos/suscribir.php?plan=' . $plan);
                 }
+                @correo_bienvenida_trial($f['email'], $f['nombre'], TRIAL_DIAS);
                 flash('¡Tu consultorio fue creado! Tienes ' . TRIAL_DIAS . ' días de prueba gratis.');
                 redirect('/dashboard.php');
             } catch (Throwable $e) {

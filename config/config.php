@@ -45,6 +45,10 @@ defined('BASE_URL')   || define('BASE_URL',   getenv('BASE_URL') ?: '/consultori
 defined('MP_ACCESS_TOKEN') || define('MP_ACCESS_TOKEN', getenv('MP_ACCESS_TOKEN') ?: '');
 defined('MP_PUBLIC_KEY')   || define('MP_PUBLIC_KEY',   getenv('MP_PUBLIC_KEY')   ?: '');
 
+// Remitente de los correos (debe ser del dominio del sitio para buena entrega).
+defined('CORREO_FROM')      || define('CORREO_FROM',      getenv('CORREO_FROM') ?: 'no-reply@mediagenda.com.mx');
+defined('CORREO_FROM_NAME') || define('CORREO_FROM_NAME', 'MediAgenda');
+
 // 3) Configuración de la aplicación (no secreta).
 define('APP_NAME', 'MediAgenda');
 define('MONEDA', 'MXN');
