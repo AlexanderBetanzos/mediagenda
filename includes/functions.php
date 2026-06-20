@@ -59,13 +59,19 @@ function pertenece_al_tenant(string $tabla, int $id): bool
     return (bool) $st->fetchColumn();
 }
 
-/** ¿El consultorio está bloqueado (prueba vencida o suspendido)? */
+/** ¿El consultorio está bloqueado (prueba vencida, suspendido o suscripción terminada)? */
 function tenant_bloqueado(): bool
 {
     $t = tenant();
     if (!$t) return false;
     if (in_array($t['estado'], ['suspendida', 'expirada'], true)) return true;
     if ($t['estado'] === 'trial' && (trial_dias_restantes() ?? 0) < 0) return true;
+    // Suscripción cancelada/pausada: acceso hasta el fin del periodo ya pagado.
+    if (in_array($t['mp_estado'] ?? '', ['cancelled', 'paused'], true)
+        && !empty($t['proximo_cobro'])
+        && strtotime($t['proximo_cobro']) < strtotime('today')) {
+        return true;
+    }
     return false;
 }
 

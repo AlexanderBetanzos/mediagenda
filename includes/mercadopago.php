@@ -106,6 +106,12 @@ function mp_obtener_suscripcion(string $id): array
     return mp_request('GET', '/preapproval/' . urlencode($id));
 }
 
+/** Cancela una suscripción (no se vuelve a cobrar). */
+function mp_cancelar_suscripcion(string $id): array
+{
+    return mp_request('PUT', '/preapproval/' . urlencode($id), ['status' => 'cancelled']);
+}
+
 /**
  * Aplica el estado de una suscripción (preapproval) al consultorio:
  *  - authorized  -> cuenta activa con el plan contratado
@@ -126,8 +132,8 @@ function mp_sincronizar(array $pre): ?int
         $pdo->prepare("UPDATE consultorios SET estado='activa', plan=?, mp_suscripcion_id=?, mp_estado=?, proximo_cobro=? WHERE id=?")
             ->execute([$plan, $pre['id'] ?? null, $estado, $prox, $cid]);
     } elseif (in_array($estado, ['paused', 'cancelled'], true)) {
-        $pdo->prepare("UPDATE consultorios SET estado='suspendida', mp_estado=? WHERE id=?")
-            ->execute([$estado, $cid]);
+        // No bloquea de inmediato: el acceso sigue hasta proximo_cobro (fin del periodo pagado).
+        $pdo->prepare("UPDATE consultorios SET mp_estado=? WHERE id=?")->execute([$estado, $cid]);
     } else {
         $pdo->prepare("UPDATE consultorios SET mp_suscripcion_id=?, mp_estado=? WHERE id=?")
             ->execute([$pre['id'] ?? null, $estado, $cid]);
