@@ -2,6 +2,7 @@
 define('ALLOW_INACTIVE', true);   // esta página es accesible aunque la cuenta esté inactiva
 require_once __DIR__ . '/../includes/functions.php';
 require_login();
+require_once __DIR__ . '/../includes/mercadopago.php';
 
 $t = tenant();
 $estado = $t['estado'] ?? 'trial';
@@ -29,9 +30,11 @@ $resumen = [
 $totalDatos = array_sum(array_column($resumen, 1));
 
 $planes = [
-    ['Estándar', '$299', 'Consultorio en crecimiento', ['Hasta 5 médicos', 'Recordatorios', 'Reportes', 'Soporte por correo'], true],
-    ['Premium',  '$599', 'Clínicas y equipos',         ['Médicos ilimitados', 'Roles avanzados', 'Respaldo diario', 'Soporte prioritario'], false],
+    ['estandar', 'Estándar', 'Consultorio en crecimiento', ['Hasta 5 médicos', 'Recordatorios', 'Reportes', 'Soporte por correo'], true],
+    ['premium',  'Premium',  'Clínicas y equipos',         ['Médicos ilimitados', 'Roles avanzados', 'Respaldo diario', 'Soporte prioritario'], false],
 ];
+$precios = planes_mp();
+$conPago = mp_configurado();
 ?>
 <!doctype html>
 <html lang="es" class="app-light" data-bs-theme="light">
@@ -72,7 +75,8 @@ $planes = [
     <?php endif; ?>
 
     <div class="row g-3 justify-content-center mb-4">
-        <?php foreach ($planes as [$nombre, $precio, $desc, $items, $feat]): ?>
+        <?php foreach ($planes as [$key, $nombre, $desc, $items, $feat]):
+            $precio = '$' . number_format($precios[$key]['precio'] ?? 0, 0); ?>
         <div class="col-md-5">
             <div class="card h-100 <?= $feat ? 'border-primary shadow' : '' ?>">
                 <div class="card-body text-center p-4">
@@ -85,10 +89,17 @@ $planes = [
                             <li class="mb-2"><i class="bi bi-check2 text-success me-2"></i><?= e($it) ?></li>
                         <?php endforeach; ?>
                     </ul>
+                    <?php if ($conPago): ?>
+                    <a href="<?= BASE_URL ?>/pagos/suscribir.php?plan=<?= e($key) ?>"
+                       class="btn <?= $feat ? 'btn-primary' : 'btn-outline-primary' ?> w-100">
+                        <i class="bi bi-credit-card"></i> Suscribirme
+                    </a>
+                    <?php else: ?>
                     <a href="mailto:<?= e($soporte) ?>?subject=<?= rawurlencode('Activar plan ' . $nombre . ' — ' . marca_nombre()) ?>"
                        class="btn <?= $feat ? 'btn-primary' : 'btn-outline-primary' ?> w-100">
                         <i class="bi bi-envelope"></i> Activar <?= e($nombre) ?>
                     </a>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>

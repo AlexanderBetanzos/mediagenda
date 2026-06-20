@@ -16,3 +16,9 @@ define('DB_NAME', 'u840714983_mediagenda');      // nombre de tu BD
 define('DB_USER', 'u840714983_mediagenda');      // usuario MySQL
 define('DB_PASS', 'TU_CONTRASEÑA_DE_LA_BD');     // contraseña MySQL
 define('BASE_URL', '');                          // '' si el sitio va en la raíz del dominio
+
+// --- Mercado Pago (opcional; vacío = pagos deshabilitados) ---
+// Pruebas: usa las credenciales de PRUEBA (Access Token que empieza con TEST-).
+// Producción: las credenciales productivas. Panel: https://www.mercadopago.com.mx/developers
+define('MP_ACCESS_TOKEN', '');                   // TEST-xxxx (sandbox) o APP_USR-xxxx (prod)
+define('MP_PUBLIC_KEY',   '');                   // TEST-xxxx o APP_USR-xxxx

@@ -40,6 +40,11 @@ defined('DB_PASS')    || define('DB_PASS',    getenv('DB_PASS') ?: '');
 defined('DB_CHARSET') || define('DB_CHARSET', 'utf8mb4');
 defined('BASE_URL')   || define('BASE_URL',   getenv('BASE_URL') ?: '/consultorios');
 
+// Credenciales de Mercado Pago (desde el archivo de secretos o variables de
+// entorno). Vacías = pagos deshabilitados (el sistema funciona igual).
+defined('MP_ACCESS_TOKEN') || define('MP_ACCESS_TOKEN', getenv('MP_ACCESS_TOKEN') ?: '');
+defined('MP_PUBLIC_KEY')   || define('MP_PUBLIC_KEY',   getenv('MP_PUBLIC_KEY')   ?: '');
+
 // 3) Configuración de la aplicación (no secreta).
 define('APP_NAME', 'MediAgenda');
 define('MONEDA', 'MXN');
