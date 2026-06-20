@@ -15,7 +15,7 @@ $marca  = marca_nombre();
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link href="<?= BASE_URL ?>/assets/css/style.css" rel="stylesheet">
+    <link href="<?= asset('assets/css/style.css') ?>" rel="stylesheet">
 </head>
 <body class="lp">
 
@@ -51,11 +51,11 @@ $marca  = marca_nombre();
     </div>
 </nav>
 
-<!-- Hero -->
-<header class="hero lp-hero">
-    <div class="container py-5">
-        <div class="row align-items-center g-5">
-            <div class="col-lg-6">
+<!-- Hero (banner con foto de fondo) -->
+<header class="lp-hero" style="background-image:url('https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=1600&q=80&auto=format&fit=crop')">
+    <div class="container">
+        <div class="row align-items-center g-4 lp-hero-row">
+            <div class="col-lg-6 lp-hero-text">
                 <span class="lp-pill mb-3"><i class="bi bi-patch-check-fill"></i> Software médico y dental</span>
                 <h1 class="display-4 fw-bold mb-3">La forma simple de gestionar tu consultorio</h1>
                 <p class="lead mb-4">Agenda, expediente clínico, recetas y facturación en un solo lugar. Empieza en minutos, desde cualquier dispositivo.</p>
@@ -70,16 +70,27 @@ $marca  = marca_nombre();
                 </div>
             </div>
             <div class="col-lg-6">
-                <div class="lp-hero-visual">
-                    <img src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=900&h=1125&q=80&auto=format&fit=crop&crop=faces"
-                         alt="Profesional médico usando <?= e($marca) ?>" class="lp-hero-photo" width="900" height="1125">
-                    <div class="lp-float lp-float-a">
-                        <span class="lp-float-dot" style="background:#22c55e"></span>
-                        <div><div class="fw-semibold">Cita confirmada</div><div class="lp-float-sub">09:00 · María García</div></div>
-                    </div>
-                    <div class="lp-float lp-float-b">
-                        <i class="bi bi-graph-up-arrow text-success fs-5"></i>
-                        <div><div class="lp-float-sub">Ingresos del mes</div><div class="fw-bold">$48,200</div></div>
+                <div class="lp-dash card border-0 shadow-lg">
+                    <div class="card-body p-3 p-sm-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="fw-semibold text-brand"><i class="bi bi-grid-1x2-fill"></i> Panel del consultorio</span>
+                            <span class="badge bg-success">En vivo</span>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <?php foreach ([['Citas hoy','14','#0b6fb8'],['Pacientes','231','#14b8a6'],['Ingresos','$48k','#16a34a']] as [$l,$n,$c]): ?>
+                            <div class="col-4"><div class="lp-tile">
+                                <div class="lp-tile-n" style="color:<?= $c ?>"><?= $n ?></div>
+                                <div class="lp-tile-l"><?= $l ?></div>
+                            </div></div>
+                            <?php endforeach; ?>
+                        </div>
+                        <div class="small fw-semibold text-muted mb-2">Agenda de hoy</div>
+                        <?php foreach ([['09:00','Martínez García','Confirmada','info'],['10:30','López Pérez','Programada','secondary'],['11:15','Rodríguez Cruz','Atendida','success']] as [$h,$p,$e,$col]): ?>
+                        <div class="lp-ag d-flex justify-content-between align-items-center">
+                            <span><span class="lp-ag-h"><?= $h ?></span> <?= $p ?></span>
+                            <span class="badge bg-<?= $col ?>"><?= $e ?></span>
+                        </div>
+                        <?php endforeach; ?>
                     </div>
                 </div>
             </div>

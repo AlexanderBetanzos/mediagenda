@@ -164,6 +164,14 @@ function e(?string $v): string
     return htmlspecialchars((string) $v, ENT_QUOTES, 'UTF-8');
 }
 
+/** URL de un asset con cache-busting (?v=fecha de modificación). */
+function asset(string $rel): string
+{
+    $rel = ltrim($rel, '/');
+    $v   = @filemtime(__DIR__ . '/../' . $rel) ?: 1;
+    return BASE_URL . '/' . $rel . '?v=' . $v;
+}
+
 /** Redirige a una ruta relativa a BASE_URL y termina. */
 function redirect(string $path): void
 {
