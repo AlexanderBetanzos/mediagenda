@@ -92,9 +92,8 @@ function mp_crear_suscripcion(array $consultorio, string $planKey, string $payer
     ];
 
     $r = mp_request('POST', '/preapproval', $payload);
-    $init = (mp_es_sandbox() && !empty($r['sandbox_init_point']))
-        ? $r['sandbox_init_point']
-        : ($r['init_point'] ?? '');
+    // El init_point ya corresponde al entorno del token (prueba o producción).
+    $init = $r['init_point'] ?? ($r['sandbox_init_point'] ?? '');
     if (empty($r['id']) || $init === '') {
         throw new MpException('Mercado Pago no devolvió el enlace de pago.');
     }
