@@ -1,0 +1,206 @@
+# Backlog & Roadmap — MediAgenda
+
+> Documento maestro de producto. Organiza **todo** lo que vamos a construir, en
+> qué **fase**, a qué **plan** pertenece y de qué **depende técnicamente**.
+> Se edita en cada sesión. Estado: `✅ hecho` · `🟡 parcial` · `⬜ pendiente`.
+
+Visión: pasar de "citas + expediente" a ser el **centro operativo** del
+consultorio/clínica (estilo DrChrono / SimplePractice → Athenahealth → Epic),
+vendido como SaaS multi-tenant white-label, por **capas/planes**.
+
+---
+
+## 1. Estado actual (lo que ya corre)
+
+| Área | Estado | Notas |
+|---|---|---|
+| Auth + roles (admin/médico/recepción) + superadmin | ✅ | `require_role`, `has_role` |
+| SaaS multi-tenant (aislamiento por `consultorio_id`) | ✅ | `tenant_id()`, anti cross-tenant |
+| Registro + prueba 15 días + gating de suscripción | ✅ | `tenant_bloqueado()` |
+| Pagos recurrentes (Mercado Pago) | ✅ | `planes_mp()`, webhook |
+| Dashboard | 🟡 | Básico, sin KPIs configurables |
+| Configuración white-label (marca, color, tema, regional) | ✅ | tabla `configuracion` vía `cfg()` |
+| Modo oscuro / claro / auto | ✅ | `tema_actual()` |
+| Pacientes (alta/edición/listado) | ✅ | |
+| Agenda y citas | 🟡 | CRUD + estados; **falta** drag&drop, recurrentes, vista calendario |
+| Expediente clínico + archivos adjuntos | ✅ | consultas, signos vitales, archivos seguros |
+| Recetas | 🟡 | Cabecera + ítems; **falta** catálogo, firma, QR |
+| Facturación | 🟡 | Folio interno; **falta** CFDI/SAT real |
+| Reportes | 🟡 | Solo `index`, sin BI |
+| Usuarios (gestión de personal) | ✅ | |
+
+**Brechas estructurales que bloquean el resto del roadmap** → ver §3.
+
+---
+
+## 2. Modelo de planes (base para los cobros)
+
+3 niveles. Precios *propuestos* (MXN/mes, ajustables). Hoy existen 2 planes
+hardcodeados en `planes_mp()` (Estándar $299 / Premium $599); esto los reemplaza.
+
+| Plan | Precio aprox. | Para quién | Incluye (resumen) |
+|---|---|---|---|
+| **Básico** | $299 | Médico solo / consultorio chico | Núcleo: citas, expediente, recetas, facturación simple, recordatorios por correo |
+| **Profesional** | $599 | Consultorio en crecimiento | Todo Básico + WhatsApp, portal del paciente, telemedicina básica, reportes, plantillas por especialidad |
+| **Clínica** | $1,199 | Clínica / multi-médico / multi-sucursal | Todo Profesional + farmacia/POS, laboratorio, multi-sucursal, IA clínica, RH, CFDI/SAT, integraciones avanzadas |
+
+> Regla de oro: **cada función nueva nace etiquetada con su plan** (columna
+> "Plan" en las tablas de fases). Sin la infraestructura de entitlements (§3.1)
+> el gating no es real, así que ese es el primer entregable.
+
+Códigos usados abajo: **B** = Básico · **P** = Profesional · **C** = Clínica
+· **Add-on** = se puede vender suelto.
+
+---
+
+## 3. Cimientos técnicos (PRIMERO — habilitan todo lo demás)
+
+### 3.1 Entitlements / módulos por plan ⬜ — *prioridad máxima*
+Hoy el plan solo bloquea/desbloquea el acceso completo. Necesitamos gatear
+**módulo por módulo** según el plan contratado.
+
+Diseño propuesto (alineado a la convención `cfg()` / `tenant_id()`):
+
+```
+planes              (clave, nombre, precio, mp_plan_id, orden)
+modulos             (clave, nombre, fase, descripcion)
+plan_modulos        (plan_clave, modulo_clave)            -- qué incluye cada plan
+consultorio_modulos (consultorio_id, modulo_clave, activo) -- overrides/add-ons puntuales
+```
+
+Helper objetivo:
+```php
+modulo_activo('telemedicina'): bool   // ¿el tenant actual tiene el módulo?
+require_modulo('farmacia');           // aborta/redirige si no está en su plan
+```
+El nav (`includes/header.php`) y cada controlador consultan `modulo_activo()`.
+Con esto, subir de plan = activar módulos sin tocar código.
+
+### 3.2 Seguridad y cumplimiento (México) ⬜
+- **Auditoría / logs de actividad**: tabla `auditoria` (quién, qué, cuándo, IP).
+  Requisito real para expediente clínico y para vender a clínicas.
+- **2FA** (TOTP) para admin/médico.
+- **Cifrado** de datos sensibles en reposo + respaldos automáticos.
+- **NOM-024-SSA3-2012** (expediente clínico electrónico): estructura mínima,
+  firma, integridad. Marca el diseño del expediente "inteligente" (Fase 1+).
+- **LFPDPPP**: aviso de privacidad, consentimiento, derechos ARCO.
+- **CFDI 4.0 / SAT** y **COFEPRIS** (recetas de controlados) para sus módulos.
+
+### 3.3 Plataforma transversal ⬜
+- Servicio de **notificaciones** unificado (correo ✅ / WhatsApp / SMS) con cola.
+- **Plantillas** reutilizables (consulta, mensajes, documentos).
+- **Generador de PDF** con membrete del tenant (recetas, certificados, facturas).
+- **API interna / webhooks** para portal paciente, app móvil e integraciones.
+- **Internacionalización (i18n)**: extraer textos para multi-idioma.
+
+---
+
+## 4. Fase 1 — MVP comercial (vender rápido)
+
+Objetivo: que un consultorio pague hoy. Completa el núcleo + comunicación.
+
+| Módulo | Qué incluye | Plan | Depende de | Estado |
+|---|---|---|---|---|
+| Agenda pro | Vista día/semana/mes, calendario tipo Google, **drag&drop**, reagendar, citas recurrentes, bloqueo de horarios, horarios por médico, duración por consulta | B | — | 🟡 |
+| Flujo de sala | Estados (esperando/en consulta/finalizada/cancelada/no asistió), check-in, QR de llegada, turnos, tiempo de espera | P | Agenda pro | ⬜ |
+| Recordatorios | Correo ✅ / WhatsApp / SMS, confirmación, lista de espera automática | B (correo) / P (WhatsApp/SMS) | 3.3 notificaciones | 🟡 |
+| Expediente inteligente | Datos fiscales/ID (CURP, INE, RFC), contactos emergencia, antecedentes (familiares/médicos/cirugías), alergias, vacunas, crónicas, hábitos, medicamentos actuales, IMC automático, signos vitales, fotos/PDF/estudios | B | 3.2 NOM-024 | 🟡 |
+| Consulta avanzada | Plantillas por especialidad, notas rápidas, diagnósticos/tratamientos, órdenes médicas, interconsultas | B | Expediente | ⬜ |
+| Recetas electrónicas | Catálogo de medicamentos, recetas favoritas, dosis automáticas, firma electrónica, QR, reimpresión, historial | B (básico) / P (firma+QR) | 3.3 PDF | 🟡 |
+| Facturación + caja | Métodos de pago, caja, cortes, pagos parciales, cuentas por cobrar; **CFDI/SAT** | B (simple) / C (CFDI) | 3.2 SAT | 🟡 |
+| Portal del paciente | Cuenta, ver/reagendar citas, descargar recetas/estudios, ver historial, pagos | P | 3.3 API | ⬜ |
+| Dashboard | KPIs configurables, agenda del día, pendientes, ingresos | B | — | 🟡 |
+
+---
+
+## 5. Fase 2 — Crecer
+
+| Módulo | Qué incluye | Plan | Depende de | Estado |
+|---|---|---|---|---|
+| Telemedicina | Videollamada, sala de espera virtual, chat en vivo, compartir estudios/pantalla, grabación | P (básica) / C (grabación) | Portal, integración Zoom/WebRTC | ⬜ |
+| Farmacia | Inventario, lotes, caducidades, entradas/salidas, **POS**, código de barras, alertas, compras, proveedores, transferencias entre sucursales | C | Multi-sucursal, Inventario | ⬜ |
+| Inventario general | Material médico, insumos, alertas, compras, proveedores | P | — | ⬜ |
+| Reportes / BI | Ventas, pacientes nuevos/recurrentes, no-show, consultas por médico, horas pico, enfermedades frecuentes, ingresos/gastos, KPIs | P | — | 🟡 |
+| App móvil paciente | Agenda, historial, estudios, chat, videollamada, notificaciones, ubicación | P | Portal + API | ⬜ |
+| App móvil médico | Agenda, consultas, expedientes, dictado por voz, firmar recetas, estadísticas | C | API + firma | ⬜ |
+| CRM médico | Seguimiento, embudos, campañas, WhatsApp masivo, correos automáticos, cumpleaños, recordatorio de revisiones, encuestas | P | Notificaciones | ⬜ |
+| Especialidades | Módulos propios: pediatría (curvas/percentiles/vacunas), ginecología (prenatal/FUM/USG), odontología (odontograma), psicología (sesiones/escalas), nutrición (planes/calorías), dermatología (comparativa fotos), cardiología (ECG), oftalmología (graduaciones) | P (paquete) / Add-on | Consulta avanzada + plantillas | ⬜ |
+
+---
+
+## 6. Fase 3 — Diferenciarte (IA)
+
+| Módulo | Qué incluye | Plan | Depende de | Estado |
+|---|---|---|---|---|
+| Transcripción y resumen | Dictado voz→texto, resumen automático, generación de notas de consulta | C / Add-on | Consulta avanzada | ⬜ |
+| Asistente clínico IA | Sugerencia de diagnósticos, detección de riesgos, recomendaciones, chat con el expediente ("pacientes con diabetes e hipertensión") | C / Add-on | Expediente estructurado + IA | ⬜ |
+| OCR | Leer INE/CURP, recetas externas, estudios; escaneo con cámara | P / Add-on | — | ⬜ |
+| Analítica predictiva | Predicción de ausencias (no-show), pacientes en riesgo, estimación de retrasos | C | BI + histórico | ⬜ |
+| Automatizaciones | Seguimiento postconsulta, recordatorio de medicamentos, encuestas automáticas, certificados/incapacidades automáticos | P/C | CRM + plantillas | ⬜ |
+
+> Nota IA: usar los modelos Claude más recientes (Opus/Sonnet) vía API, con el
+> expediente como contexto. Cuidar **privacidad** (datos clínicos) y trazabilidad.
+
+---
+
+## 7. Fase 4 — Nivel hospital / ERP médico
+
+| Módulo | Qué incluye | Plan | Depende de | Estado |
+|---|---|---|---|---|
+| Laboratorio | Solicitud de estudios, resultados PDF, valores automáticos, rangos, comparación histórica, integración con equipos | C | Expediente | ⬜ |
+| Radiología / DICOM | Subir DICOM, **visor DICOM**, comparación histórica, reportes | C / Add-on | Almacenamiento grande | ⬜ |
+| Multi-sucursal | Sucursales dentro de un mismo tenant, transferencias, consolidado | C | Entitlements + modelo de datos | ⬜ |
+| Recursos Humanos | Médicos, enfermería, recepción, horarios, **nómina**, comisiones, asistencias | C | — | ⬜ |
+| ERP médico | Cuentas por pagar, compras, proveedores, membresías/suscripciones/paquetes, comisiones, reembolsos | C | Facturación + inventario | ⬜ |
+| Integraciones | WhatsApp, Zoom, Google Calendar, Outlook, Stripe, PayPal, Mercado Pago ✅, Twilio, SAT, Apple Health, Google Fit, wearables | varía | API + 3.3 | 🟡 |
+
+---
+
+## 8. Funciones "wow" (oportunistas, encajan donde toque)
+
+Kiosco de auto check-in · reconocimiento facial/huella de pacientes · mapa del
+consultorio · pantallas en sala de espera · sistema de turnos tipo banco · firma
+en tablet · historial familiar conectado · generación automática de certificados
+e incapacidades · OCR de INE/CURP. → la mayoría cuelgan de **Flujo de sala**
+(Fase 1) o **IA/OCR** (Fase 3).
+
+---
+
+## 9. Mapa módulo → plan (matriz resumida)
+
+| Módulo | Básico | Profesional | Clínica |
+|---|:--:|:--:|:--:|
+| Citas + agenda pro | ✓ | ✓ | ✓ |
+| Expediente + recetas | ✓ | ✓ | ✓ |
+| Facturación simple | ✓ | ✓ | ✓ |
+| Recordatorios correo | ✓ | ✓ | ✓ |
+| WhatsApp/SMS | — | ✓ | ✓ |
+| Portal paciente | — | ✓ | ✓ |
+| Telemedicina | — | ✓ | ✓ |
+| Reportes/BI | — | ✓ | ✓ |
+| Especialidades | — | ✓ | ✓ |
+| App móvil | — | paciente | + médico |
+| Farmacia/POS | — | — | ✓ |
+| Laboratorio | — | — | ✓ |
+| IA clínica | — | — | ✓ |
+| Multi-sucursal / RH / ERP | — | — | ✓ |
+| CFDI/SAT | — | — | ✓ |
+| OCR / DICOM / IA avanzada | — | add-on | ✓ |
+
+---
+
+## 10. Orden de ejecución sugerido
+
+1. **§3.1 Entitlements** (planes/módulos/gating) + migrar `planes_mp()` a 3 planes.
+2. **§3.2 Auditoría + 2FA** (mínimos de seguridad para vender).
+3. **Fase 1**: agenda pro (drag&drop, recurrentes) → expediente inteligente →
+   recetas con firma/QR → recordatorios WhatsApp → portal paciente → dashboard KPIs.
+4. Ajustar **precios de planes** una vez Fase 1 tenga valor diferenciado por plan.
+5. **Fase 2** en adelante según demanda comercial.
+
+> Cada módulo que arranquemos: rama `feat/<modulo>`, migración SQL idempotente en
+> `sql/`, gating con `modulo_activo()`, y se marca su estado en este doc.
+
+---
+
+_Última actualización: 2026-06-20._
