@@ -107,8 +107,10 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
                     <small class="text-muted"><?= e(rol_label($u['rol'])) ?></small>
                 </li>
                 <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="<?= BASE_URL ?>/auth/seguridad"><i class="bi bi-shield-lock me-2"></i>Seguridad</a></li>
                 <?php if (has_role('admin')): ?>
                 <li><a class="dropdown-item" href="<?= BASE_URL ?>/configuracion/index"><i class="bi bi-gear me-2"></i>Configuración</a></li>
+                <li><a class="dropdown-item" href="<?= BASE_URL ?>/admin/auditoria"><i class="bi bi-clipboard-data me-2"></i>Auditoría</a></li>
                 <?php endif; ?>
                 <li><a class="dropdown-item" href="<?= BASE_URL ?>/auth/logout"><i class="bi bi-box-arrow-right"></i> Cerrar sesión</a></li>
             </ul>

@@ -32,6 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             trim($p['alergias'] ?? '') ?: null, trim($p['antecedentes'] ?? '') ?: null,
             trim($p['notas'] ?? '') ?: null, $id, tenant_id(),
         ]);
+        auditar('editar', 'paciente', $id, trim(($p['nombre'] ?? '') . ' ' . ($p['apellidos'] ?? '')));
         flash('Datos del paciente actualizados.');
         redirect('/pacientes/ver?id=' . $id);
     }

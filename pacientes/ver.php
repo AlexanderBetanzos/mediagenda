@@ -35,6 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'consu
         trim($_POST['notas'] ?? '') ?: null,
     ]);
     $consulta_id = (int) db()->lastInsertId();
+    auditar('crear', 'consulta', $consulta_id, 'Paciente #' . $id);
 
     // Adjunto opcional ligado a esta consulta.
     $r = guardar_archivo_expediente($_FILES['archivo'] ?? null, $id, $u['id'], $_POST['descripcion'] ?? '', $consulta_id);
@@ -55,6 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'subir
     if ($r['estado'] === 'vacio') {
         flash('Selecciona un archivo para subir.', 'warning');
     } else {
+        if ($r['estado'] === 'ok') { auditar('subir', 'archivo', $id, $_FILES['archivo']['name'] ?? null); }
         flash($r['mensaje'], $r['estado'] === 'ok' ? 'success' : 'danger');
     }
     redirect('/pacientes/ver?id=' . $id);
@@ -73,6 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'borra
         if (is_file($ruta)) { @unlink($ruta); }
         db()->prepare('DELETE FROM archivos WHERE id = ? AND consultorio_id = ?')
             ->execute([$aid, tenant_id()]);
+        auditar('borrar', 'archivo', $aid, $a['nombre_original'] ?? null);
         flash('Archivo eliminado.');
     }
     redirect('/pacientes/ver?id=' . $id);

@@ -243,6 +243,53 @@ function redirect(string $path): void
 }
 
 /* --------------------------------------------------------------------
+ *  Auditoría (bitácora de actividad)
+ * ------------------------------------------------------------------ */
+
+/** IP del cliente (considera proxies comunes; valida el formato). */
+function client_ip(): ?string
+{
+    foreach (['HTTP_CF_CONNECTING_IP', 'HTTP_X_FORWARDED_FOR', 'REMOTE_ADDR'] as $k) {
+        $v = $_SERVER[$k] ?? '';
+        if ($v) {
+            $ip = trim(explode(',', $v)[0]); // primer salto en X-Forwarded-For
+            if (filter_var($ip, FILTER_VALIDATE_IP)) return $ip;
+        }
+    }
+    return null;
+}
+
+/**
+ * Registra un evento en la bitácora. Nunca interrumpe la aplicación: si la
+ * tabla no existe o falla, lo ignora en silencio.
+ *
+ * @param int|null $tenant_id  Consultorio; por defecto el de la sesión.
+ * @param array{id?:int,nombre?:string}|null $actor  Usuario; por defecto el de la sesión.
+ */
+function auditar(string $accion, ?string $entidad = null, ?int $entidad_id = null,
+                 ?string $detalle = null, ?int $tenant_id = null, ?array $actor = null): void
+{
+    try {
+        $u = $actor ?? current_user();
+        db()->prepare(
+            'INSERT INTO auditoria
+             (consultorio_id, usuario_id, usuario_nombre, accion, entidad, entidad_id, detalle, ip, user_agent)
+             VALUES (?,?,?,?,?,?,?,?,?)'
+        )->execute([
+            $tenant_id ?? tenant_id(),
+            isset($u['id']) ? (int) $u['id'] : null,
+            $u['nombre'] ?? null,
+            $accion,
+            $entidad,
+            $entidad_id,
+            $detalle !== null ? mb_substr($detalle, 0, 255) : null,
+            client_ip(),
+            mb_substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 255) ?: null,
+        ]);
+    } catch (Throwable $e) { /* la tabla aún no existe o no se pudo registrar */ }
+}
+
+/* --------------------------------------------------------------------
  *  Mensajes flash
  * ------------------------------------------------------------------ */
 

@@ -18,9 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $user = $stmt->fetch();
 
     if ($user && password_verify($pass, $user['password_hash'])) {
-        // Regenerar id de sesión para evitar fijación.
-        session_regenerate_id(true);
-        $_SESSION['usuario'] = [
+        $datos = [
             'id'             => (int) $user['id'],
             'nombre'         => $user['nombre'],
             'email'          => $user['email'],
@@ -28,9 +26,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'consultorio_id' => (int) $user['consultorio_id'],
             'es_superadmin'  => (int) ($user['es_superadmin'] ?? 0),
         ];
+
+        // Si el usuario tiene 2FA activo, exigimos el código antes de abrir
+        // la sesión completa (queda "a medias" en pre_2fa).
+        if (!empty($user['twofa_activo']) && !empty($user['twofa_secret'])) {
+            session_regenerate_id(true);
+            $_SESSION['pre_2fa'] = $datos + ['twofa_secret' => $user['twofa_secret']];
+            redirect('/auth/2fa');
+        }
+
+        // Regenerar id de sesión para evitar fijación.
+        session_regenerate_id(true);
+        $_SESSION['usuario'] = $datos;
+        auditar('login', null, null, null, $datos['consultorio_id'], $datos);
         flash('¡Bienvenido(a), ' . $user['nombre'] . '!');
         redirect('/dashboard');
     }
+    auditar('login_fallido', null, null, 'email: ' . mb_substr($email, 0, 120),
+            $user ? (int) $user['consultorio_id'] : null,
+            $user ? ['id' => (int) $user['id'], 'nombre' => $user['nombre']] : ['nombre' => $email]);
     $error = 'Correo o contraseña incorrectos.';
 }
 ?>

@@ -84,11 +84,16 @@ Pendiente (siguiente iteración): pantalla de súper-admin para asignar plan y
 add-ons por consultorio; aplicar `require_modulo()` dentro de cada controlador
 nuevo (hoy solo se gatea el menú).
 
-### 3.2 Seguridad y cumplimiento (México) ⬜
-- **Auditoría / logs de actividad**: tabla `auditoria` (quién, qué, cuándo, IP).
-  Requisito real para expediente clínico y para vender a clínicas.
-- **2FA** (TOTP) para admin/médico.
-- **Cifrado** de datos sensibles en reposo + respaldos automáticos.
+### 3.2 Seguridad y cumplimiento (México) 🟡
+- ✅ **Auditoría / logs de actividad**: tabla `auditoria` + helper `auditar()`.
+  Registra login/logout/login_fallido, 2FA y altas/ediciones/borrados de
+  paciente, consulta y archivos. Pantalla `admin/auditoria.php` (admin ve su
+  consultorio; súper-admin, todos) con filtros y paginación.
+- ✅ **2FA (TOTP)**: `includes/totp.php` (RFC 6238, sin librerías), pantalla
+  `auth/seguridad.php` (activar con QR / desactivar con contraseña) y reto
+  `auth/2fa.php` en el login. Compatible con Google Authenticator/Authy.
+- ⬜ Falta: auditar recetas/facturas; recuperación de 2FA (reset por admin);
+  **cifrado** de datos sensibles en reposo + respaldos automáticos.
 - **NOM-024-SSA3-2012** (expediente clínico electrónico): estructura mínima,
   firma, integridad. Marca el diseño del expediente "inteligente" (Fase 1+).
 - **LFPDPPP**: aviso de privacidad, consentimiento, derechos ARCO.
@@ -200,7 +205,7 @@ e incapacidades · OCR de INE/CURP. → la mayoría cuelgan de **Flujo de sala**
 ## 10. Orden de ejecución sugerido
 
 1. ✅ **§3.1 Entitlements** (planes/módulos/gating) + `planes_mp()` migrado a 3 planes.
-2. **§3.2 Auditoría + 2FA** (mínimos de seguridad para vender). ← *siguiente*
+2. ✅ **§3.2 Auditoría + 2FA** (bitácora + doble factor TOTP).
 3. **Fase 1**: agenda pro (drag&drop, recurrentes) → expediente inteligente →
    recetas con firma/QR → recordatorios WhatsApp → portal paciente → dashboard KPIs.
 4. Ajustar **precios de planes** una vez Fase 1 tenga valor diferenciado por plan.

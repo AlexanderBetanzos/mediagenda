@@ -27,8 +27,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             trim($p['alergias'] ?? '') ?: null, trim($p['antecedentes'] ?? '') ?: null,
             trim($p['notas'] ?? '') ?: null,
         ]);
+        $nuevoId = (int) db()->lastInsertId();
+        auditar('crear', 'paciente', $nuevoId, trim(($p['nombre'] ?? '') . ' ' . ($p['apellidos'] ?? '')));
         flash('Paciente registrado correctamente.');
-        redirect('/pacientes/ver?id=' . db()->lastInsertId());
+        redirect('/pacientes/ver?id=' . $nuevoId);
     }
 }
 
