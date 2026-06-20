@@ -118,7 +118,7 @@ Objetivo: que un consultorio pague hoy. Completa el núcleo + comunicación.
 
 | Módulo | Qué incluye | Plan | Depende de | Estado |
 |---|---|---|---|---|
-| Agenda pro | Vista día/semana/mes, calendario tipo Google, **drag&drop**, reagendar, citas recurrentes, bloqueo de horarios, horarios por médico, duración por consulta | B | — | 🟡 |
+| Agenda pro | ✅ Vista día/semana/mes (FullCalendar) + **drag&drop** para reagendar (`citas/calendario.php`, feed `citas/feed.php`, `citas/mover.php`). ⬜ Falta: citas recurrentes, bloqueo de horarios, horarios por médico, duración por consulta | B | — | 🟡 |
 | Flujo de sala | Estados (esperando/en consulta/finalizada/cancelada/no asistió), check-in, QR de llegada, turnos, tiempo de espera | P | Agenda pro | ⬜ |
 | Recordatorios | Correo ✅ / WhatsApp / SMS, confirmación, lista de espera automática | B (correo) / P (WhatsApp/SMS) | 3.3 notificaciones | 🟡 |
 | Expediente inteligente | Datos fiscales/ID (CURP, INE, RFC), contactos emergencia, antecedentes (familiares/médicos/cirugías), alergias, vacunas, crónicas, hábitos, medicamentos actuales, IMC automático, signos vitales, fotos/PDF/estudios | B | 3.2 NOM-024 | 🟡 |

@@ -43,7 +43,10 @@ include __DIR__ . '/../includes/header.php';
 ?>
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h1 class="h3 mb-0"><i class="bi bi-calendar-check text-brand"></i> Agenda de citas</h1>
-    <a href="<?= BASE_URL ?>/citas/create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Nueva cita</a>
+    <div class="d-flex gap-2">
+        <a href="<?= BASE_URL ?>/citas/calendario" class="btn btn-outline-secondary"><i class="bi bi-calendar3"></i> Calendario</a>
+        <a href="<?= BASE_URL ?>/citas/create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Nueva cita</a>
+    </div>
 </div>
 
 <form class="row g-2 mb-3 align-items-end" method="get">
