@@ -9,7 +9,7 @@ if (is_logged_in()) {
 const TRIAL_DIAS = 15;
 
 $error = '';
-$f = ['consultorio' => '', 'nombre' => '', 'email' => ''];
+$f = ['consultorio' => '', 'nombre' => '', 'email' => '', 'telefono' => ''];
 
 /** Genera un slug único para el consultorio. */
 function slug_unico(PDO $pdo, string $texto): string
@@ -33,14 +33,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $f['consultorio'] = trim($_POST['consultorio'] ?? '');
     $f['nombre']      = trim($_POST['nombre'] ?? '');
     $f['email']       = trim($_POST['email'] ?? '');
+    $f['telefono']    = trim($_POST['telefono'] ?? '');
     $pass             = $_POST['password'] ?? '';
     $pass2            = $_POST['password2'] ?? '';
 
     // Validaciones
-    if ($f['consultorio'] === '' || $f['nombre'] === '' || $f['email'] === '') {
+    if ($f['consultorio'] === '' || $f['nombre'] === '' || $f['email'] === '' || $f['telefono'] === '') {
         $error = 'Completa todos los campos.';
     } elseif (!filter_var($f['email'], FILTER_VALIDATE_EMAIL)) {
         $error = 'El correo no es válido.';
+    } elseif (strlen(preg_replace('/\D/', '', $f['telefono'])) < 7) {
+        $error = 'El teléfono no es válido.';
     } elseif (strlen($pass) < 8) {
         $error = 'La contraseña debe tener al menos 8 caracteres.';
     } elseif ($pass !== $pass2) {
@@ -56,15 +59,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $pdo->beginTransaction();
                 $slug = slug_unico($pdo, $f['consultorio']);
                 $pdo->prepare(
-                    "INSERT INTO consultorios (nombre, slug, email, plan, estado, trial_inicio, trial_fin)
-                     VALUES (?, ?, ?, 'trial', 'trial', CURDATE(), DATE_ADD(CURDATE(), INTERVAL ? DAY))"
-                )->execute([$f['consultorio'], $slug, $f['email'], TRIAL_DIAS]);
+                    "INSERT INTO consultorios (nombre, slug, email, telefono, plan, estado, trial_inicio, trial_fin)
+                     VALUES (?, ?, ?, ?, 'trial', 'trial', CURDATE(), DATE_ADD(CURDATE(), INTERVAL ? DAY))"
+                )->execute([$f['consultorio'], $slug, $f['email'], $f['telefono'], TRIAL_DIAS]);
                 $cid = (int) $pdo->lastInsertId();
 
                 $pdo->prepare(
-                    "INSERT INTO usuarios (consultorio_id, nombre, email, password_hash, rol, activo)
-                     VALUES (?, ?, ?, ?, 'admin', 1)"
-                )->execute([$cid, $f['nombre'], $f['email'], password_hash($pass, PASSWORD_BCRYPT)]);
+                    "INSERT INTO usuarios (consultorio_id, nombre, email, password_hash, rol, telefono, activo)
+                     VALUES (?, ?, ?, ?, 'admin', ?, 1)"
+                )->execute([$cid, $f['nombre'], $f['email'], password_hash($pass, PASSWORD_BCRYPT), $f['telefono']]);
                 $uid = (int) $pdo->lastInsertId();
 
                 $pdo->commit();
@@ -153,6 +156,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <input type="email" name="email" class="form-control" required maxlength="150"
                                value="<?= e($f['email']) ?>" placeholder="correo@consultorio.com">
                     </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Teléfono</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                        <input type="tel" name="telefono" class="form-control" required maxlength="40"
+                               value="<?= e($f['telefono']) ?>" placeholder="Ej. 55 1234 5678">
+                    </div>
+                    <div class="form-text">Lo usamos para contactarte sobre tu cuenta y tu plan.</div>
                 </div>
                 <div class="row g-2 mb-4">
                     <div class="col-sm-6">

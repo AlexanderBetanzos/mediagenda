@@ -81,11 +81,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <button class="btn btn-primary w-100 py-2"><i class="bi bi-box-arrow-in-right"></i> Entrar</button>
             </form>
 
-            <div class="alert alert-light border mt-4 mb-0 small">
-                <strong>Cuentas de prueba</strong> (contraseña: <code>password</code>)<br>
-                Admin: <code>admin@consultorio.com</code><br>
-                Médico: <code>laura@consultorio.com</code><br>
-                Recepción: <code>recepcion@consultorio.com</code>
+            <div class="text-center mt-4 pt-3 border-top">
+                <p class="mb-2 small text-muted">¿Aún no tienes cuenta?</p>
+                <a href="<?= BASE_URL ?>/auth/registro.php" class="btn btn-outline-primary w-100">
+                    <i class="bi bi-rocket-takeoff"></i> Crear consultorio — 15 días gratis
+                </a>
             </div>
             <div class="text-center mt-3">
                 <a href="<?= BASE_URL ?>/index.php" class="small text-muted">&larr; Volver al sitio</a>

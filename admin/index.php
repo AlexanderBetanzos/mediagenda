@@ -94,7 +94,12 @@ include __DIR__ . '/../includes/header.php';
                 <tr>
                     <td>
                         <div class="fw-semibold"><?= e($c['nombre']) ?><?php if ($c['id'] == 1): ?> <span class="badge bg-light text-dark border">principal</span><?php endif; ?></div>
-                        <div class="small text-muted"><?= e($c['email']) ?></div>
+                        <div class="small text-muted">
+                            <i class="bi bi-envelope"></i> <?= e($c['email']) ?>
+                            <?php if (!empty($c['telefono'])): ?>
+                                · <i class="bi bi-telephone"></i> <a href="tel:<?= e(preg_replace('/[^0-9+]/', '', $c['telefono'])) ?>"><?= e($c['telefono']) ?></a>
+                            <?php endif; ?>
+                        </div>
                     </td>
                     <td><span class="badge bg-<?= $badge[$c['estado']] ?? 'secondary' ?>"><?= ucfirst($c['estado']) ?></span></td>
                     <td class="small">

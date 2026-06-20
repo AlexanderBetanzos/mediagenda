@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS consultorios (
   nombre        VARCHAR(120) NOT NULL,
   slug          VARCHAR(60)  NOT NULL UNIQUE,        -- identificador legible
   email         VARCHAR(150) NOT NULL,               -- contacto del consultorio
+  telefono      VARCHAR(40)  DEFAULT NULL,           -- teléfono de contacto
   plan          VARCHAR(20)  NOT NULL DEFAULT 'trial',
   estado        ENUM('trial','activa','suspendida','expirada') NOT NULL DEFAULT 'trial',
   trial_inicio  DATE NOT NULL,
