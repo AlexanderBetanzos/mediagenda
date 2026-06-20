@@ -8,12 +8,40 @@ require_once __DIR__ . '/../config/config.php';
 
 class MpException extends RuntimeException {}
 
-/** Planes de membresía (MXN/mes). La clave se usa en URLs y external_reference. */
+/**
+ * Planes de membresía (MXN/mes). La clave se usa en URLs y external_reference.
+ * Fuente de verdad: tabla `planes` (sql/planes.sql). Si aún no existe, cae a
+ * los 3 planes por defecto para no romper el registro ni los pagos.
+ * Cada plan: nombre, precio, descripcion, items[], destacado, mp_plan_id.
+ */
 function planes_mp(): array
 {
-    return [
-        'estandar' => ['nombre' => 'Estándar', 'precio' => 299.0],
-        'premium'  => ['nombre' => 'Premium',  'precio' => 599.0],
+    static $cache = null;
+    if ($cache !== null) return $cache;
+
+    try {
+        $rows = db()->query(
+            'SELECT clave, nombre, precio, descripcion, items, destacado, mp_plan_id
+             FROM planes WHERE activo = 1 ORDER BY orden, precio'
+        )->fetchAll();
+        $out = [];
+        foreach ($rows as $r) {
+            $out[$r['clave']] = [
+                'nombre'      => $r['nombre'],
+                'precio'      => (float) $r['precio'],
+                'descripcion' => $r['descripcion'] ?? '',
+                'items'       => $r['items'] ? (json_decode($r['items'], true) ?: []) : [],
+                'destacado'   => (bool) $r['destacado'],
+                'mp_plan_id'  => $r['mp_plan_id'] ?? null,
+            ];
+        }
+        if ($out) return $cache = $out;
+    } catch (Throwable $e) { /* tabla planes aún no creada */ }
+
+    return $cache = [
+        'basico'      => ['nombre' => 'Básico',      'precio' => 299.0,  'descripcion' => 'Médico o consultorio pequeño', 'items' => [], 'destacado' => false, 'mp_plan_id' => null],
+        'profesional' => ['nombre' => 'Profesional', 'precio' => 599.0,  'descripcion' => 'Consultorio en crecimiento',    'items' => [], 'destacado' => true,  'mp_plan_id' => null],
+        'clinica'     => ['nombre' => 'Clínica',     'precio' => 1199.0, 'descripcion' => 'Clínica / multi-sucursal',      'items' => [], 'destacado' => false, 'mp_plan_id' => null],
     ];
 }
 

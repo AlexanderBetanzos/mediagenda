@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/includes/functions.php';
+require_once __DIR__ . '/includes/mercadopago.php';
 $logged = is_logged_in();
 $marca  = marca_nombre();
 ?>
@@ -295,11 +296,13 @@ $marca  = marca_nombre();
         </div>
         <div class="row g-4 justify-content-center">
             <?php
+            // Tarjeta de prueba + los planes definidos en la tabla `planes`.
             $planes = [
                 ['Prueba gratis','$0','15 días con acceso completo', ['Todas las funciones','Pacientes y citas','Expediente clínico','Sin tarjeta'], false, ''],
-                ['Estándar','$299','Consultorio en crecimiento', ['Hasta 5 médicos','Recordatorios','Reportes básicos','Soporte por correo'], true, 'estandar'],
-                ['Premium','$599','Clínicas y equipos', ['Médicos ilimitados','Roles avanzados','Respaldo diario','Soporte prioritario'], false, 'premium'],
             ];
+            foreach (planes_mp() as $planKey => $pl) {
+                $planes[] = [$pl['nombre'], '$' . number_format($pl['precio'], 0), $pl['descripcion'], $pl['items'], $pl['destacado'], $planKey];
+            }
             foreach ($planes as [$nombre,$precio,$desc,$items,$feat,$planKey]):
                 $href = BASE_URL . '/auth/registro.php' . ($planKey ? '?plan=' . $planKey : '');
                 $btn  = $planKey ? 'Contratar ahora' : 'Probar 15 días gratis'; ?>

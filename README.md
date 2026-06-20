@@ -30,6 +30,7 @@ Construido con **PHP 8 + MariaDB + Bootstrap 5** sobre XAMPP.
    $MYSQL -u root consultorios_db < sql/configuracion.sql
    $MYSQL -u root consultorios_db < sql/multitenant.sql
    $MYSQL -u root consultorios_db < sql/archivos.sql
+   $MYSQL -u root consultorios_db < sql/planes.sql
    ```
 
    O desde **phpMyAdmin** → selecciona la BD → *Importar* (un archivo a la vez,

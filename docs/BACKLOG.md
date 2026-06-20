@@ -55,26 +55,34 @@ Códigos usados abajo: **B** = Básico · **P** = Profesional · **C** = Clínic
 
 ## 3. Cimientos técnicos (PRIMERO — habilitan todo lo demás)
 
-### 3.1 Entitlements / módulos por plan ⬜ — *prioridad máxima*
-Hoy el plan solo bloquea/desbloquea el acceso completo. Necesitamos gatear
-**módulo por módulo** según el plan contratado.
+### 3.1 Entitlements / módulos por plan ✅ — *cimiento listo*
+Implementado en `sql/planes.sql` + helpers en `functions.php`. El plan ahora
+gatea **módulo por módulo** (antes solo bloqueaba el acceso completo).
 
-Diseño propuesto (alineado a la convención `cfg()` / `tenant_id()`):
-
+Tablas:
 ```
-planes              (clave, nombre, precio, mp_plan_id, orden)
-modulos             (clave, nombre, fase, descripcion)
+planes              (clave, nombre, precio, descripcion, items, destacado, mp_plan_id, orden, activo)
+modulos             (clave, nombre, fase, orden)
 plan_modulos        (plan_clave, modulo_clave)            -- qué incluye cada plan
 consultorio_modulos (consultorio_id, modulo_clave, activo) -- overrides/add-ons puntuales
 ```
 
-Helper objetivo:
+Helpers (en uso):
 ```php
 modulo_activo('telemedicina'): bool   // ¿el tenant actual tiene el módulo?
-require_modulo('farmacia');           // aborta/redirige si no está en su plan
+require_modulo('farmacia');           // redirige a /pagos/index si no está en su plan
+modulos_activos();                    // lista (o ['*'] = acceso total)
 ```
-El nav (`includes/header.php`) y cada controlador consultan `modulo_activo()`.
-Con esto, subir de plan = activar módulos sin tocar código.
+`planes_mp()` es ahora la única fuente de verdad de precios (lee de `planes`);
+el landing, registro, suscripción y pagos consumen de ahí. El nav
+(`includes/header.php`) oculta los módulos no contratados.
+
+**Fail-open**: súper-admin, prueba vigente, plan sin mapeo o tablas ausentes →
+acceso total, para no bloquear a nadie por accidente.
+
+Pendiente (siguiente iteración): pantalla de súper-admin para asignar plan y
+add-ons por consultorio; aplicar `require_modulo()` dentro de cada controlador
+nuevo (hoy solo se gatea el menú).
 
 ### 3.2 Seguridad y cumplimiento (México) ⬜
 - **Auditoría / logs de actividad**: tabla `auditoria` (quién, qué, cuándo, IP).
@@ -191,8 +199,8 @@ e incapacidades · OCR de INE/CURP. → la mayoría cuelgan de **Flujo de sala**
 
 ## 10. Orden de ejecución sugerido
 
-1. **§3.1 Entitlements** (planes/módulos/gating) + migrar `planes_mp()` a 3 planes.
-2. **§3.2 Auditoría + 2FA** (mínimos de seguridad para vender).
+1. ✅ **§3.1 Entitlements** (planes/módulos/gating) + `planes_mp()` migrado a 3 planes.
+2. **§3.2 Auditoría + 2FA** (mínimos de seguridad para vender). ← *siguiente*
 3. **Fase 1**: agenda pro (drag&drop, recurrentes) → expediente inteligente →
    recetas con firma/QR → recordatorios WhatsApp → portal paciente → dashboard KPIs.
 4. Ajustar **precios de planes** una vez Fase 1 tenga valor diferenciado por plan.

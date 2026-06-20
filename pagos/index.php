@@ -87,12 +87,11 @@ include __DIR__ . '/../includes/header.php';
         <div class="card">
             <div class="card-header fw-semibold">Planes</div>
             <div class="card-body d-grid gap-3">
-                <?php foreach (['estandar' => 'Crecimiento', 'premium' => 'Clínicas y equipos'] as $key => $desc):
-                    $p = $planes[$key]; ?>
+                <?php foreach ($planes as $key => $p): ?>
                 <div class="d-flex align-items-center justify-content-between border rounded p-3">
                     <div>
                         <div class="fw-semibold"><?= e($p['nombre']) ?> <span class="text-brand">$<?= number_format($p['precio'], 0) ?></span><span class="text-muted small">/mes</span></div>
-                        <div class="small text-muted"><?= e($desc) ?></div>
+                        <div class="small text-muted"><?= e($p['descripcion']) ?></div>
                     </div>
                     <?php if (mp_configurado()): ?>
                         <a href="<?= BASE_URL ?>/pagos/suscribir?plan=<?= $key ?>" class="btn btn-sm btn-primary">Suscribirme</a>

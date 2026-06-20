@@ -29,11 +29,11 @@ $resumen = [
 ];
 $totalDatos = array_sum(array_column($resumen, 1));
 
-$planes = [
-    ['estandar', 'Estándar', 'Consultorio en crecimiento', ['Hasta 5 médicos', 'Recordatorios', 'Reportes', 'Soporte por correo'], true],
-    ['premium',  'Premium',  'Clínicas y equipos',         ['Médicos ilimitados', 'Roles avanzados', 'Respaldo diario', 'Soporte prioritario'], false],
-];
 $precios = planes_mp();
+$planes  = [];
+foreach ($precios as $key => $pl) {
+    $planes[] = [$key, $pl['nombre'], $pl['descripcion'], $pl['items'], $pl['destacado']];
+}
 $conPago = mp_configurado();
 ?>
 <!doctype html>
@@ -77,7 +77,7 @@ $conPago = mp_configurado();
     <div class="row g-3 justify-content-center mb-4">
         <?php foreach ($planes as [$key, $nombre, $desc, $items, $feat]):
             $precio = '$' . number_format($precios[$key]['precio'] ?? 0, 0); ?>
-        <div class="col-md-5">
+        <div class="col-md-4">
             <div class="card h-100 <?= $feat ? 'border-primary shadow' : '' ?>">
                 <div class="card-body text-center p-4">
                     <?php if ($feat): ?><span class="badge bg-primary mb-2">Recomendado</span><?php endif; ?>

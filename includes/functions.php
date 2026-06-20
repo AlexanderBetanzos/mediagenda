@@ -76,6 +76,69 @@ function tenant_bloqueado(): bool
 }
 
 /* --------------------------------------------------------------------
+ *  Entitlements: módulos activos según el plan del consultorio
+ * ------------------------------------------------------------------ */
+
+/**
+ * Módulos activos para el consultorio en sesión.
+ * Devuelve ['*'] cuando aplica acceso total (fail-open): súper-admin, sin
+ * tenant, en prueba vigente, plan sin mapeo, o tablas aún no creadas. Así
+ * ninguna función desaparece por accidente; el gating real solo recorta
+ * cuando el plan define explícitamente su lista de módulos.
+ */
+function modulos_activos(bool $reset = false): array
+{
+    static $cache = [];
+    if ($reset) { $cache = []; return ['*']; }
+    if (es_superadmin()) return ['*'];
+
+    $tid = tenant_id();
+    if (isset($cache[$tid])) return $cache[$tid];
+
+    $t = tenant();
+    // Sin tenant o en prueba vigente: acceso completo para evaluar.
+    if (!$t || ($t['estado'] === 'trial' && (trial_dias_restantes() ?? 1) >= 0)) {
+        return $cache[$tid] = ['*'];
+    }
+
+    try {
+        $st = db()->prepare('SELECT modulo_clave FROM plan_modulos WHERE plan_clave = ?');
+        $st->execute([$t['plan'] ?? '']);
+        $mods = $st->fetchAll(PDO::FETCH_COLUMN);
+
+        // Overrides por consultorio (add-ons activan, activo=0 desactiva).
+        $ov = db()->prepare('SELECT modulo_clave, activo FROM consultorio_modulos WHERE consultorio_id = ?');
+        $ov->execute([$tid]);
+        $overrides = $ov->fetchAll(PDO::FETCH_KEY_PAIR);
+        foreach ($overrides as $clave => $on) {
+            if ($on) { $mods[] = $clave; } else { $mods = array_diff($mods, [$clave]); }
+        }
+
+        // Plan sin mapeo y sin overrides: fail-open (no bloquear).
+        if (!$mods && !$overrides) return $cache[$tid] = ['*'];
+        return $cache[$tid] = array_values(array_unique($mods));
+    } catch (Throwable $e) {
+        return $cache[$tid] = ['*']; // tablas de planes aún no creadas
+    }
+}
+
+/** ¿El consultorio activo tiene contratado el módulo $clave? */
+function modulo_activo(string $clave): bool
+{
+    $m = modulos_activos();
+    return in_array('*', $m, true) || in_array($clave, $m, true);
+}
+
+/** Exige que el módulo esté activo; si no, redirige a la página de planes. */
+function require_modulo(string $clave): void
+{
+    if (!modulo_activo($clave)) {
+        flash('Esa función no está incluida en tu plan. Mejora tu plan para activarla.', 'warning');
+        redirect('/pagos/index');
+    }
+}
+
+/* --------------------------------------------------------------------
  *  Configuración del consultorio (clave-valor, POR consultorio)
  * ------------------------------------------------------------------ */
 
