@@ -85,7 +85,7 @@ include __DIR__ . '/includes/header.php';
         <h1 class="h3 mb-1">Hola, <?= e(explode(' ', trim($u['nombre']))[0]) ?> 👋</h1>
         <p class="text-muted mb-0 text-capitalize"><?= e(fecha_hoy_larga()) ?></p>
     </div>
-    <a href="<?= BASE_URL ?>/citas/create.php" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Nueva Cita</a>
+    <a href="<?= BASE_URL ?>/citas/create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Nueva Cita</a>
 </div>
 
 <!-- Tarjetas de estadísticas -->
@@ -145,7 +145,7 @@ include __DIR__ . '/includes/header.php';
         <div class="card h-100">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <span class="fw-semibold"><i class="bi bi-calendar-day text-brand"></i> Agenda de Hoy</span>
-                <a href="<?= BASE_URL ?>/citas/index.php" class="small">Ver completa →</a>
+                <a href="<?= BASE_URL ?>/citas/index" class="small">Ver completa →</a>
             </div>
             <div class="card-body p-0">
                 <?php if (!$agendaHoy): ?>
@@ -180,7 +180,7 @@ include __DIR__ . '/includes/header.php';
             <?php else: foreach ($ultimos as $r): ?>
                 <tr>
                     <td>
-                        <a href="<?= BASE_URL ?>/pacientes/ver.php?id=<?= $r['pid'] ?>" class="fw-semibold text-decoration-none">
+                        <a href="<?= BASE_URL ?>/pacientes/ver?id=<?= $r['pid'] ?>" class="fw-semibold text-decoration-none">
                             <?= e($r['nombre'] . ' ' . $r['apellidos']) ?>
                         </a>
                     </td>

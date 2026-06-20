@@ -3,7 +3,7 @@ require_once __DIR__ . '/../includes/functions.php';
 
 // Si ya hay sesión, al panel.
 if (is_logged_in()) {
-    redirect('/dashboard.php');
+    redirect('/dashboard');
 }
 
 $error = '';
@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'es_superadmin'  => (int) ($user['es_superadmin'] ?? 0),
         ];
         flash('¡Bienvenido(a), ' . $user['nombre'] . '!');
-        redirect('/dashboard.php');
+        redirect('/dashboard');
     }
     $error = 'Correo o contraseña incorrectos.';
 }
@@ -83,12 +83,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <div class="text-center mt-4 pt-3 border-top">
                 <p class="mb-2 small text-muted">¿Aún no tienes cuenta?</p>
-                <a href="<?= BASE_URL ?>/auth/registro.php" class="btn btn-outline-primary w-100">
+                <a href="<?= BASE_URL ?>/auth/registro" class="btn btn-outline-primary w-100">
                     <i class="bi bi-rocket-takeoff"></i> Crear consultorio — 15 días gratis
                 </a>
             </div>
             <div class="text-center mt-3">
-                <a href="<?= BASE_URL ?>/index.php" class="small text-muted">&larr; Volver al sitio</a>
+                <a href="<?= BASE_URL ?>/index" class="small text-muted">&larr; Volver al sitio</a>
             </div>
         </div>
     </div>

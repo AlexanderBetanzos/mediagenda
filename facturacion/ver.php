@@ -30,12 +30,12 @@ include __DIR__ . '/../includes/header.php';
 </style>
 <div class="d-flex justify-content-between align-items-center mb-3 no-print">
     <nav aria-label="breadcrumb" class="mb-0"><ol class="breadcrumb mb-0">
-        <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/facturacion/index.php">Facturación</a></li>
+        <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/facturacion/index">Facturación</a></li>
         <li class="breadcrumb-item active"><?= e($f['folio']) ?></li>
     </ol></nav>
     <div>
         <?php if ($f['estado'] === 'pendiente'): ?>
-        <form action="<?= BASE_URL ?>/facturacion/estado.php" method="post" class="d-inline">
+        <form action="<?= BASE_URL ?>/facturacion/estado" method="post" class="d-inline">
             <?= csrf_field() ?><input type="hidden" name="id" value="<?= $id ?>"><input type="hidden" name="estado" value="pagada">
             <button class="btn btn-success"><i class="bi bi-cash-coin"></i> Marcar pagada</button>
         </form>

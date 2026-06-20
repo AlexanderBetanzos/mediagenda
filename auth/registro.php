@@ -5,7 +5,7 @@ require_once __DIR__ . '/../includes/correo.php';
 
 // Si ya hay sesión, al panel.
 if (is_logged_in()) {
-    redirect('/dashboard.php');
+    redirect('/dashboard');
 }
 
 const TRIAL_DIAS = 15;
@@ -107,11 +107,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 if ($pagar) {
                     // Plan de pago: directo a Mercado Pago, sin prueba.
-                    redirect('/pagos/suscribir.php?plan=' . $plan);
+                    redirect('/pagos/suscribir?plan=' . $plan);
                 }
                 @correo_bienvenida_trial($f['email'], $f['nombre'], TRIAL_DIAS);
                 flash('¡Tu consultorio fue creado! Tienes ' . TRIAL_DIAS . ' días de prueba gratis.');
-                redirect('/dashboard.php');
+                redirect('/dashboard');
             } catch (Throwable $e) {
                 if ($pdo->inTransaction()) $pdo->rollBack();
                 $error = 'No se pudo crear la cuenta. Inténtalo de nuevo.';
@@ -211,8 +211,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </form>
 
             <div class="text-center mt-3 small text-muted">
-                ¿Ya tienes cuenta? <a href="<?= BASE_URL ?>/auth/login.php">Inicia sesión</a>
-                &middot; <a href="<?= BASE_URL ?>/index.php" class="text-muted">Volver al sitio</a>
+                ¿Ya tienes cuenta? <a href="<?= BASE_URL ?>/auth/login">Inicia sesión</a>
+                &middot; <a href="<?= BASE_URL ?>/index" class="text-muted">Volver al sitio</a>
             </div>
         </div>
     </div>

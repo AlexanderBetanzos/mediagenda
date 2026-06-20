@@ -43,7 +43,7 @@ include __DIR__ . '/../includes/header.php';
 ?>
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h1 class="h3 mb-0"><i class="bi bi-calendar-check text-brand"></i> Agenda de citas</h1>
-    <a href="<?= BASE_URL ?>/citas/create.php" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Nueva cita</a>
+    <a href="<?= BASE_URL ?>/citas/create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Nueva cita</a>
 </div>
 
 <form class="row g-2 mb-3 align-items-end" method="get">
@@ -75,7 +75,7 @@ include __DIR__ . '/../includes/header.php';
     </div>
     <div class="col-md-3">
         <button class="btn btn-outline-secondary"><i class="bi bi-funnel"></i> Filtrar</button>
-        <a href="<?= BASE_URL ?>/citas/index.php" class="btn btn-link">Limpiar</a>
+        <a href="<?= BASE_URL ?>/citas/index" class="btn btn-link">Limpiar</a>
     </div>
 </form>
 
@@ -101,7 +101,7 @@ include __DIR__ . '/../includes/header.php';
                 <tr>
                     <td><?= fmt_fecha($c['fecha']) ?><?= $c['fecha']===date('Y-m-d') ? ' <span class="badge bg-success">Hoy</span>' : '' ?></td>
                     <td><?= fmt_hora($c['hora']) ?></td>
-                    <td><a href="<?= BASE_URL ?>/pacientes/ver.php?id=<?= $c['paciente_id'] ?>"><?= e($c['pac_nombre'].' '.$c['pac_ape']) ?></a></td>
+                    <td><a href="<?= BASE_URL ?>/pacientes/ver?id=<?= $c['paciente_id'] ?>"><?= e($c['pac_nombre'].' '.$c['pac_ape']) ?></a></td>
                     <td class="small"><?= e($c['med_nombre']) ?></td>
                     <td><span class="badge bg-<?= $c['tipo']==='dental'?'info':'primary' ?>"><?= $c['tipo']==='dental'?'Dental':'Médica' ?></span></td>
                     <td><?= e($c['motivo'] ?: '—') ?></td>
@@ -113,7 +113,7 @@ include __DIR__ . '/../includes/header.php';
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <?php foreach (['confirmada','atendida','cancelada','no_asistio','programada'] as $es): ?>
                                 <li>
-                                    <form action="<?= BASE_URL ?>/citas/estado.php" method="post">
+                                    <form action="<?= BASE_URL ?>/citas/estado" method="post">
                                         <?= csrf_field() ?>
                                         <input type="hidden" name="id" value="<?= $c['id'] ?>">
                                         <input type="hidden" name="estado" value="<?= $es ?>">
@@ -123,7 +123,7 @@ include __DIR__ . '/../includes/header.php';
                                 <?php endforeach; ?>
                             </ul>
                         </div>
-                        <a href="<?= BASE_URL ?>/citas/edit.php?id=<?= $c['id'] ?>" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
+                        <a href="<?= BASE_URL ?>/citas/edit?id=<?= $c['id'] ?>" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
                     </td>
                 </tr>
             <?php endforeach; endif; ?>

@@ -8,4 +8,4 @@ if ($id) {
     db()->prepare('DELETE FROM recetas WHERE id = ? AND consultorio_id = ?')->execute([$id, tenant_id()]);
     flash('Receta eliminada.');
 }
-redirect('/recetas/index.php');
+redirect('/recetas/index');

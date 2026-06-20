@@ -23,7 +23,7 @@ $marca  = marca_nombre();
 <div class="lp-announce">
     <div class="container">
         <i class="bi bi-stars"></i> Prueba <strong><?= e($marca) ?></strong> 15 días gratis — acceso completo, sin tarjeta.
-        <a href="<?= BASE_URL ?>/auth/registro.php">Empezar ahora <i class="bi bi-arrow-right"></i></a>
+        <a href="<?= BASE_URL ?>/auth/registro">Empezar ahora <i class="bi bi-arrow-right"></i></a>
     </div>
 </div>
 
@@ -41,10 +41,10 @@ $marca  = marca_nombre();
             </ul>
             <ul class="navbar-nav align-items-lg-center gap-lg-2">
                 <?php if ($logged): ?>
-                <li class="nav-item"><a class="btn btn-primary px-3" href="<?= BASE_URL ?>/dashboard.php"><i class="bi bi-speedometer2"></i> Ir al panel</a></li>
+                <li class="nav-item"><a class="btn btn-primary px-3" href="<?= BASE_URL ?>/dashboard"><i class="bi bi-speedometer2"></i> Ir al panel</a></li>
                 <?php else: ?>
-                <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>/auth/login.php">Iniciar sesión</a></li>
-                <li class="nav-item"><a class="btn btn-primary px-3" href="<?= BASE_URL ?>/auth/registro.php"><i class="bi bi-rocket-takeoff"></i> Prueba gratis</a></li>
+                <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>/auth/login">Iniciar sesión</a></li>
+                <li class="nav-item"><a class="btn btn-primary px-3" href="<?= BASE_URL ?>/auth/registro"><i class="bi bi-rocket-takeoff"></i> Prueba gratis</a></li>
                 <?php endif; ?>
             </ul>
         </div>
@@ -60,7 +60,7 @@ $marca  = marca_nombre();
                 <h1 class="display-4 fw-bold mb-3">La forma simple de gestionar tu consultorio</h1>
                 <p class="lead mb-4">Agenda, expediente clínico, recetas y facturación en un solo lugar. Empieza en minutos, desde cualquier dispositivo.</p>
                 <div class="d-flex flex-wrap gap-2">
-                    <a href="<?= BASE_URL ?>/auth/registro.php" class="btn btn-light btn-lg px-4 text-brand fw-semibold"><i class="bi bi-rocket-takeoff"></i> Prueba gratis 15 días</a>
+                    <a href="<?= BASE_URL ?>/auth/registro" class="btn btn-light btn-lg px-4 text-brand fw-semibold"><i class="bi bi-rocket-takeoff"></i> Prueba gratis 15 días</a>
                     <a href="#funciones" class="btn btn-outline-light btn-lg px-4">Ver cómo funciona</a>
                 </div>
                 <div class="d-flex flex-wrap gap-4 mt-4 small">
@@ -164,7 +164,7 @@ $marca  = marca_nombre();
                     <li><i class="bi bi-check2-circle"></i> Filtros por médico, fecha y tipo</li>
                     <li><i class="bi bi-check2-circle"></i> Panel de próximas citas del día</li>
                 </ul>
-                <a href="<?= BASE_URL ?>/auth/registro.php" class="btn btn-primary mt-2">Probar gratis <i class="bi bi-arrow-right"></i></a>
+                <a href="<?= BASE_URL ?>/auth/registro" class="btn btn-primary mt-2">Probar gratis <i class="bi bi-arrow-right"></i></a>
             </div>
             <div class="col-lg-6">
                 <div class="card shadow-sm border-0 lp-shot">
@@ -200,7 +200,7 @@ $marca  = marca_nombre();
                     <li><i class="bi bi-check2-circle"></i> Recetas e indicaciones imprimibles</li>
                     <li><i class="bi bi-check2-circle"></i> Facturación y control de ingresos</li>
                 </ul>
-                <a href="<?= BASE_URL ?>/auth/registro.php" class="btn btn-primary mt-2">Probar gratis <i class="bi bi-arrow-right"></i></a>
+                <a href="<?= BASE_URL ?>/auth/registro" class="btn btn-primary mt-2">Probar gratis <i class="bi bi-arrow-right"></i></a>
             </div>
             <div class="col-lg-6">
                 <div class="row g-3 lp-shot">
@@ -357,7 +357,7 @@ $marca  = marca_nombre();
     <div class="container text-center">
         <h2 class="display-6 fw-bold mb-3">Empieza a digitalizar tu consultorio hoy</h2>
         <p class="lead mb-4">15 días gratis con acceso completo. Sin tarjeta, sin compromiso.</p>
-        <a href="<?= BASE_URL ?>/auth/registro.php" class="btn btn-light btn-lg px-5 text-brand fw-semibold"><i class="bi bi-rocket-takeoff"></i> Crear mi cuenta gratis</a>
+        <a href="<?= BASE_URL ?>/auth/registro" class="btn btn-light btn-lg px-5 text-brand fw-semibold"><i class="bi bi-rocket-takeoff"></i> Crear mi cuenta gratis</a>
     </div>
 </section>
 
@@ -377,12 +377,12 @@ $marca  = marca_nombre();
             </div>
             <div class="col-6 col-lg-2">
                 <div class="fw-semibold mb-2">Cuenta</div>
-                <a class="lp-foot-link" href="<?= BASE_URL ?>/auth/registro.php">Prueba gratis</a>
-                <a class="lp-foot-link" href="<?= BASE_URL ?>/auth/login.php">Iniciar sesión</a>
+                <a class="lp-foot-link" href="<?= BASE_URL ?>/auth/registro">Prueba gratis</a>
+                <a class="lp-foot-link" href="<?= BASE_URL ?>/auth/login">Iniciar sesión</a>
             </div>
             <div class="col-lg-4">
                 <div class="fw-semibold mb-2">¿Listo para empezar?</div>
-                <a href="<?= BASE_URL ?>/auth/registro.php" class="btn btn-primary"><i class="bi bi-rocket-takeoff"></i> Crear cuenta gratis</a>
+                <a href="<?= BASE_URL ?>/auth/registro" class="btn btn-primary"><i class="bi bi-rocket-takeoff"></i> Crear cuenta gratis</a>
             </div>
         </div>
         <hr class="border-secondary my-4">

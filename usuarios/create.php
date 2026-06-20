@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             trim($usr['telefono'] ?? '') ?: null,
         ]);
         flash('Usuario creado correctamente.');
-        redirect('/usuarios/index.php');
+        redirect('/usuarios/index');
     }
 }
 
@@ -45,7 +45,7 @@ include __DIR__ . '/../includes/header.php';
 ?>
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/usuarios/index.php">Personal</a></li>
+        <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/usuarios/index">Personal</a></li>
         <li class="breadcrumb-item active">Nuevo</li>
     </ol>
 </nav>
@@ -75,7 +75,7 @@ include __DIR__ . '/../includes/header.php';
         </div>
     </div>
     <div class="card-footer bg-white text-end">
-        <a href="<?= BASE_URL ?>/usuarios/index.php" class="btn btn-light">Cancelar</a>
+        <a href="<?= BASE_URL ?>/usuarios/index" class="btn btn-light">Cancelar</a>
         <button class="btn btn-primary"><i class="bi bi-check-lg"></i> Crear usuario</button>
     </div>
 </form>

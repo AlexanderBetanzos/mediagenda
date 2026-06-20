@@ -9,4 +9,4 @@ if ($id && $id !== current_user()['id']) {
     db()->prepare('UPDATE usuarios SET activo = 1 - activo WHERE id = ? AND consultorio_id = ?')->execute([$id, tenant_id()]);
     flash('Estado del usuario actualizado.');
 }
-redirect('/usuarios/index.php');
+redirect('/usuarios/index');

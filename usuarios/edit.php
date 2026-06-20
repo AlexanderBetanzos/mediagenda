@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 trim($usr['especialidad'] ?? '') ?: null, trim($usr['telefono'] ?? '') ?: null, $id, tenant_id()]);
         }
         flash('Usuario actualizado.');
-        redirect('/usuarios/index.php');
+        redirect('/usuarios/index');
     }
 }
 
@@ -47,7 +47,7 @@ include __DIR__ . '/../includes/header.php';
 ?>
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/usuarios/index.php">Personal</a></li>
+        <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/usuarios/index">Personal</a></li>
         <li class="breadcrumb-item active">Editar</li>
     </ol>
 </nav>
@@ -78,7 +78,7 @@ include __DIR__ . '/../includes/header.php';
         </div>
     </div>
     <div class="card-footer bg-white text-end">
-        <a href="<?= BASE_URL ?>/usuarios/index.php" class="btn btn-light">Cancelar</a>
+        <a href="<?= BASE_URL ?>/usuarios/index" class="btn btn-light">Cancelar</a>
         <button class="btn btn-primary"><i class="bi bi-check-lg"></i> Guardar cambios</button>
     </div>
 </form>

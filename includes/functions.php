@@ -245,13 +245,13 @@ function require_login(): void
 {
     if (!is_logged_in()) {
         flash('Debes iniciar sesión.', 'warning');
-        redirect('/auth/login.php');
+        redirect('/auth/login');
     }
     // Gating de suscripción: si la prueba venció o el consultorio está suspendido,
     // se bloquea el acceso (salvo páginas que declaran ALLOW_INACTIVE, p. ej.
     // la pantalla de suscripción o el cierre de sesión).
     if (!defined('ALLOW_INACTIVE') && !es_superadmin() && tenant_bloqueado()) {
-        redirect('/auth/suscripcion.php');
+        redirect('/auth/suscripcion');
     }
 }
 

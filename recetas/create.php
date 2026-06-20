@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $pdo->commit();
         flash('Receta creada correctamente.');
-        redirect('/recetas/ver.php?id=' . $rid);
+        redirect('/recetas/ver?id=' . $rid);
     }
 }
 
@@ -61,7 +61,7 @@ $activo = 'recetas';
 include __DIR__ . '/../includes/header.php';
 ?>
 <nav aria-label="breadcrumb"><ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/recetas/index.php">Recetas</a></li>
+    <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/recetas/index">Recetas</a></li>
     <li class="breadcrumb-item active">Nueva</li>
 </ol></nav>
 <h1 class="h3 mb-3">Nueva receta</h1>
@@ -120,7 +120,7 @@ include __DIR__ . '/../includes/header.php';
         </div>
     </div>
     <div class="card-footer text-end">
-        <a href="<?= BASE_URL ?>/recetas/index.php" class="btn btn-light">Cancelar</a>
+        <a href="<?= BASE_URL ?>/recetas/index" class="btn btn-light">Cancelar</a>
         <button class="btn btn-primary"><i class="bi bi-check-lg"></i> Guardar receta</button>
     </div>
 </form>

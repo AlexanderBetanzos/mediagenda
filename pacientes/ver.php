@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'consu
         trim($_POST['notas'] ?? '') ?: null,
     ]);
     flash('Consulta agregada al expediente.');
-    redirect('/pacientes/ver.php?id=' . $id);
+    redirect('/pacientes/ver?id=' . $id);
 }
 
 // Citas del paciente
@@ -62,7 +62,7 @@ include __DIR__ . '/../includes/header.php';
 ?>
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/pacientes/index.php">Pacientes</a></li>
+        <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/pacientes/index">Pacientes</a></li>
         <li class="breadcrumb-item active"><?= e($p['nombre'].' '.$p['apellidos']) ?></li>
     </ol>
 </nav>
@@ -81,12 +81,12 @@ include __DIR__ . '/../includes/header.php';
         </span>
     </div>
     <div class="text-nowrap">
-        <a href="<?= BASE_URL ?>/citas/create.php?paciente_id=<?= $id ?>" class="btn btn-outline-primary"><i class="bi bi-calendar-plus"></i> Cita</a>
+        <a href="<?= BASE_URL ?>/citas/create?paciente_id=<?= $id ?>" class="btn btn-outline-primary"><i class="bi bi-calendar-plus"></i> Cita</a>
         <?php if (has_role('medico', 'admin')): ?>
-        <a href="<?= BASE_URL ?>/recetas/create.php?paciente_id=<?= $id ?>" class="btn btn-outline-primary"><i class="bi bi-capsule"></i> Receta</a>
+        <a href="<?= BASE_URL ?>/recetas/create?paciente_id=<?= $id ?>" class="btn btn-outline-primary"><i class="bi bi-capsule"></i> Receta</a>
         <?php endif; ?>
-        <a href="<?= BASE_URL ?>/facturacion/create.php?paciente_id=<?= $id ?>" class="btn btn-outline-primary"><i class="bi bi-receipt"></i> Factura</a>
-        <a href="<?= BASE_URL ?>/pacientes/edit.php?id=<?= $id ?>" class="btn btn-outline-secondary"><i class="bi bi-pencil"></i> Editar</a>
+        <a href="<?= BASE_URL ?>/facturacion/create?paciente_id=<?= $id ?>" class="btn btn-outline-primary"><i class="bi bi-receipt"></i> Factura</a>
+        <a href="<?= BASE_URL ?>/pacientes/edit?id=<?= $id ?>" class="btn btn-outline-secondary"><i class="bi bi-pencil"></i> Editar</a>
     </div>
 </div>
 

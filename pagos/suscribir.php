@@ -9,11 +9,11 @@ $planes = planes_mp();
 
 if (!mp_configurado()) {
     flash('Los pagos en línea aún no están disponibles. Contáctanos para activar tu plan.', 'warning');
-    redirect('/auth/suscripcion.php');
+    redirect('/auth/suscripcion');
 }
 if (!isset($planes[$plan])) {
     flash('Plan no válido.', 'warning');
-    redirect('/auth/suscripcion.php');
+    redirect('/auth/suscripcion');
 }
 
 try {
@@ -26,5 +26,5 @@ try {
     exit;
 } catch (MpException $e) {
     flash('No se pudo iniciar el pago: ' . $e->getMessage(), 'danger');
-    redirect('/auth/suscripcion.php');
+    redirect('/auth/suscripcion');
 }

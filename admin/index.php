@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($cid === 1 && in_array($accion, ['suspender'], true)) {
         flash('No puedes suspender el consultorio principal.', 'warning');
-        redirect('/admin/index.php');
+        redirect('/admin/index');
     }
     switch ($accion) {
         case 'extender':   // +15 días de prueba (a partir de hoy o del fin actual)
@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             flash('Consultorio suspendido.');
             break;
     }
-    redirect('/admin/index.php');
+    redirect('/admin/index');
 }
 
 // --- Listado de consultorios con métricas ---

@@ -54,7 +54,7 @@ include __DIR__ . '/../includes/header.php';
     </div>
     <div class="col-auto">
         <button class="btn btn-outline-secondary"><i class="bi bi-search"></i> Buscar</button>
-        <a href="<?= BASE_URL ?>/expediente/index.php" class="btn btn-link">Limpiar</a>
+        <a href="<?= BASE_URL ?>/expediente/index" class="btn btn-link">Limpiar</a>
     </div>
 </form>
 
@@ -73,7 +73,7 @@ include __DIR__ . '/../includes/header.php';
             <?php else: foreach ($pacientes as $p): ?>
                 <tr>
                     <td>
-                        <a href="<?= BASE_URL ?>/pacientes/ver.php?id=<?= $p['id'] ?>" class="fw-semibold text-decoration-none">
+                        <a href="<?= BASE_URL ?>/pacientes/ver?id=<?= $p['id'] ?>" class="fw-semibold text-decoration-none">
                             <?= e($p['apellidos'] . ', ' . $p['nombre']) ?>
                         </a>
                     </td>
@@ -88,7 +88,7 @@ include __DIR__ . '/../includes/header.php';
                         <span class="badge bg-<?= $p['num'] > 0 ? 'success' : 'light text-dark border' ?>"><?= (int) $p['num'] ?></span>
                     </td>
                     <td class="text-end text-nowrap">
-                        <a href="<?= BASE_URL ?>/pacientes/ver.php?id=<?= $p['id'] ?>" class="btn btn-sm btn-outline-secondary" title="Ver expediente">
+                        <a href="<?= BASE_URL ?>/pacientes/ver?id=<?= $p['id'] ?>" class="btn btn-sm btn-outline-secondary" title="Ver expediente">
                             <i class="bi bi-folder2-open"></i> Ver
                         </a>
                     </td>

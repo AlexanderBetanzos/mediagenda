@@ -8,4 +8,4 @@ if ($id) {
     db()->prepare('DELETE FROM facturas WHERE id = ? AND consultorio_id = ?')->execute([$id, tenant_id()]);
     flash('Factura eliminada.');
 }
-redirect('/facturacion/index.php');
+redirect('/facturacion/index');

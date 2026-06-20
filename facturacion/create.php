@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $pdo->commit();
         flash('Factura ' . $folio . ' creada.');
-        redirect('/facturacion/ver.php?id=' . $fid);
+        redirect('/facturacion/ver?id=' . $fid);
     }
 }
 
@@ -68,7 +68,7 @@ $activo = 'facturacion';
 include __DIR__ . '/../includes/header.php';
 ?>
 <nav aria-label="breadcrumb"><ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/facturacion/index.php">Facturación</a></li>
+    <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/facturacion/index">Facturación</a></li>
     <li class="breadcrumb-item active">Nueva</li>
 </ol></nav>
 <h1 class="h3 mb-3">Nueva factura</h1>
@@ -135,7 +135,7 @@ include __DIR__ . '/../includes/header.php';
         </div>
     </div>
     <div class="card-footer text-end">
-        <a href="<?= BASE_URL ?>/facturacion/index.php" class="btn btn-light">Cancelar</a>
+        <a href="<?= BASE_URL ?>/facturacion/index" class="btn btn-light">Cancelar</a>
         <button class="btn btn-primary"><i class="bi bi-check-lg"></i> Guardar factura</button>
     </div>
 </form>

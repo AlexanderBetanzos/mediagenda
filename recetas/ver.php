@@ -33,7 +33,7 @@ include __DIR__ . '/../includes/header.php';
 </style>
 <div class="d-flex justify-content-between align-items-center mb-3 no-print">
     <nav aria-label="breadcrumb" class="mb-0"><ol class="breadcrumb mb-0">
-        <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/recetas/index.php">Recetas</a></li>
+        <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/recetas/index">Recetas</a></li>
         <li class="breadcrumb-item active">Receta #<?= $id ?></li>
     </ol></nav>
     <button onclick="window.print()" class="btn btn-primary"><i class="bi bi-printer"></i> Imprimir</button>

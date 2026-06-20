@@ -28,7 +28,7 @@ include __DIR__ . '/../includes/header.php';
 ?>
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h1 class="h3 mb-0"><i class="bi bi-receipt text-info"></i> Facturación</h1>
-    <a href="<?= BASE_URL ?>/facturacion/create.php" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Nueva factura</a>
+    <a href="<?= BASE_URL ?>/facturacion/create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Nueva factura</a>
 </div>
 
 <div class="row g-3 mb-3">
@@ -64,19 +64,19 @@ include __DIR__ . '/../includes/header.php';
                 <tr>
                     <td class="fw-semibold"><?= e($f['folio']) ?></td>
                     <td><?= fmt_fecha($f['fecha']) ?></td>
-                    <td><a href="<?= BASE_URL ?>/pacientes/ver.php?id=<?= $f['paciente_id'] ?>"><?= e($f['pac_nombre'].' '.$f['pac_ape']) ?></a></td>
+                    <td><a href="<?= BASE_URL ?>/pacientes/ver?id=<?= $f['paciente_id'] ?>"><?= e($f['pac_nombre'].' '.$f['pac_ape']) ?></a></td>
                     <td class="text-end fw-semibold"><?= fmt_money($f['total']) ?></td>
                     <td><span class="badge bg-<?= $badge ?>"><?= ucfirst($f['estado']) ?></span></td>
                     <td class="text-end text-nowrap">
-                        <a href="<?= BASE_URL ?>/facturacion/ver.php?id=<?= $f['id'] ?>" class="btn btn-sm btn-outline-secondary" title="Ver/Imprimir"><i class="bi bi-printer"></i></a>
+                        <a href="<?= BASE_URL ?>/facturacion/ver?id=<?= $f['id'] ?>" class="btn btn-sm btn-outline-secondary" title="Ver/Imprimir"><i class="bi bi-printer"></i></a>
                         <?php if ($f['estado'] === 'pendiente'): ?>
-                        <form action="<?= BASE_URL ?>/facturacion/estado.php" method="post" class="d-inline">
+                        <form action="<?= BASE_URL ?>/facturacion/estado" method="post" class="d-inline">
                             <?= csrf_field() ?><input type="hidden" name="id" value="<?= $f['id'] ?>"><input type="hidden" name="estado" value="pagada">
                             <button class="btn btn-sm btn-outline-success" title="Marcar pagada"><i class="bi bi-cash-coin"></i></button>
                         </form>
                         <?php endif; ?>
                         <?php if (has_role('admin')): ?>
-                        <form action="<?= BASE_URL ?>/facturacion/delete.php" method="post" class="d-inline" onsubmit="return confirm('¿Eliminar esta factura?');">
+                        <form action="<?= BASE_URL ?>/facturacion/delete" method="post" class="d-inline" onsubmit="return confirm('¿Eliminar esta factura?');">
                             <?= csrf_field() ?><input type="hidden" name="id" value="<?= $f['id'] ?>">
                             <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
                         </form>

@@ -11,4 +11,4 @@ if ($id && in_array($estado, $validos, true)) {
     db()->prepare('UPDATE citas SET estado = ? WHERE id = ? AND consultorio_id = ?')->execute([$estado, $id, tenant_id()]);
     flash('Estado de la cita actualizado a “' . estado_label($estado) . '”.');
 }
-redirect('/citas/index.php');
+redirect('/citas/index');

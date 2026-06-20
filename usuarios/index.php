@@ -12,7 +12,7 @@ include __DIR__ . '/../includes/header.php';
 ?>
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h1 class="h3 mb-0"><i class="bi bi-person-badge text-brand"></i> Personal</h1>
-    <a href="<?= BASE_URL ?>/usuarios/create.php" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Nuevo usuario</a>
+    <a href="<?= BASE_URL ?>/usuarios/create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Nuevo usuario</a>
 </div>
 
 <div class="card">
@@ -37,9 +37,9 @@ include __DIR__ . '/../includes/header.php';
                         <?php endif; ?>
                     </td>
                     <td class="text-end text-nowrap">
-                        <a href="<?= BASE_URL ?>/usuarios/edit.php?id=<?= $usr['id'] ?>" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
+                        <a href="<?= BASE_URL ?>/usuarios/edit?id=<?= $usr['id'] ?>" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
                         <?php if ($usr['id'] != current_user()['id']): ?>
-                        <form action="<?= BASE_URL ?>/usuarios/toggle.php" method="post" class="d-inline">
+                        <form action="<?= BASE_URL ?>/usuarios/toggle" method="post" class="d-inline">
                             <?= csrf_field() ?>
                             <input type="hidden" name="id" value="<?= $usr['id'] ?>">
                             <button class="btn btn-sm btn-outline-<?= $usr['activo'] ? 'warning' : 'success' ?>" title="<?= $usr['activo'] ? 'Desactivar' : 'Activar' ?>">

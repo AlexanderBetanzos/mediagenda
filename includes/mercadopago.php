@@ -80,8 +80,8 @@ function mp_crear_suscripcion(array $consultorio, string $planKey, string $payer
         'reason'             => 'MediAgenda — Plan ' . $plan['nombre'],
         'external_reference' => 'consultorio:' . (int) $consultorio['id'] . '|plan:' . $planKey,
         'payer_email'        => $payerEmail,
-        'back_url'           => rtrim(url_absoluta('/pagos/retorno.php'), '/'),
-        'notification_url'   => url_absoluta('/pagos/webhook.php'),
+        'back_url'           => rtrim(url_absoluta('/pagos/retorno'), '/'),
+        'notification_url'   => url_absoluta('/pagos/webhook.php'),  // webhook queda con .php (excluido del redirect)
         'status'             => 'pending',
         'auto_recurring'     => [
             'frequency'          => 1,

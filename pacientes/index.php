@@ -30,7 +30,7 @@ include __DIR__ . '/../includes/header.php';
 ?>
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h1 class="h3 mb-0"><i class="bi bi-people text-brand"></i> Pacientes</h1>
-    <a href="<?= BASE_URL ?>/pacientes/create.php" class="btn btn-primary">
+    <a href="<?= BASE_URL ?>/pacientes/create" class="btn btn-primary">
         <i class="bi bi-plus-lg"></i> Nuevo paciente
     </a>
 </div>
@@ -48,7 +48,7 @@ include __DIR__ . '/../includes/header.php';
     </div>
     <div class="col-auto">
         <button class="btn btn-outline-secondary"><i class="bi bi-search"></i> Buscar</button>
-        <a href="<?= BASE_URL ?>/pacientes/index.php" class="btn btn-link">Limpiar</a>
+        <a href="<?= BASE_URL ?>/pacientes/index" class="btn btn-link">Limpiar</a>
     </div>
 </form>
 
@@ -67,7 +67,7 @@ include __DIR__ . '/../includes/header.php';
             <?php else: foreach ($pacientes as $p): ?>
                 <tr>
                     <td>
-                        <a href="<?= BASE_URL ?>/pacientes/ver.php?id=<?= $p['id'] ?>" class="fw-semibold text-decoration-none">
+                        <a href="<?= BASE_URL ?>/pacientes/ver?id=<?= $p['id'] ?>" class="fw-semibold text-decoration-none">
                             <?= e($p['apellidos'] . ', ' . $p['nombre']) ?>
                         </a>
                     </td>
@@ -80,10 +80,10 @@ include __DIR__ . '/../includes/header.php';
                     <td><?= e($p['telefono'] ?: '—') ?></td>
                     <td><?= e($p['email'] ?: '—') ?></td>
                     <td class="text-end text-nowrap">
-                        <a href="<?= BASE_URL ?>/pacientes/ver.php?id=<?= $p['id'] ?>" class="btn btn-sm btn-outline-secondary" title="Expediente"><i class="bi bi-folder2-open"></i></a>
-                        <a href="<?= BASE_URL ?>/pacientes/edit.php?id=<?= $p['id'] ?>" class="btn btn-sm btn-outline-primary" title="Editar"><i class="bi bi-pencil"></i></a>
+                        <a href="<?= BASE_URL ?>/pacientes/ver?id=<?= $p['id'] ?>" class="btn btn-sm btn-outline-secondary" title="Expediente"><i class="bi bi-folder2-open"></i></a>
+                        <a href="<?= BASE_URL ?>/pacientes/edit?id=<?= $p['id'] ?>" class="btn btn-sm btn-outline-primary" title="Editar"><i class="bi bi-pencil"></i></a>
                         <?php if (has_role('admin', 'recepcion')): ?>
-                        <form action="<?= BASE_URL ?>/pacientes/delete.php" method="post" class="d-inline"
+                        <form action="<?= BASE_URL ?>/pacientes/delete" method="post" class="d-inline"
                               onsubmit="return confirm('¿Eliminar a <?= e(addslashes($p['nombre'].' '.$p['apellidos'])) ?>? Se borrarán también sus citas y consultas.');">
                             <?= csrf_field() ?>
                             <input type="hidden" name="id" value="<?= $p['id'] ?>">

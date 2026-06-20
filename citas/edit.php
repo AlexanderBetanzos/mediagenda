@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             trim($c['notas'] ?? '') ?: null, $id, tenant_id(),
         ]);
         flash('Cita actualizada.');
-        redirect('/citas/index.php?desde=' . urlencode($c['fecha']));
+        redirect('/citas/index?desde=' . urlencode($c['fecha']));
     }
 }
 
@@ -40,7 +40,7 @@ include __DIR__ . '/../includes/header.php';
 ?>
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/citas/index.php">Citas</a></li>
+        <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/citas/index">Citas</a></li>
         <li class="breadcrumb-item active">Editar</li>
     </ol>
 </nav>
@@ -57,12 +57,12 @@ include __DIR__ . '/../includes/header.php';
         <?php include __DIR__ . '/_form.php'; ?>
     </div>
     <div class="card-footer bg-white text-end">
-        <a href="<?= BASE_URL ?>/citas/index.php" class="btn btn-light">Cancelar</a>
+        <a href="<?= BASE_URL ?>/citas/index" class="btn btn-light">Cancelar</a>
         <button class="btn btn-primary"><i class="bi bi-check-lg"></i> Guardar</button>
     </div>
 </form>
 
-<form action="<?= BASE_URL ?>/citas/delete.php" method="post" class="mt-3" onsubmit="return confirm('¿Eliminar esta cita?');">
+<form action="<?= BASE_URL ?>/citas/delete" method="post" class="mt-3" onsubmit="return confirm('¿Eliminar esta cita?');">
     <?= csrf_field() ?>
     <input type="hidden" name="id" value="<?= $id ?>">
     <button class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i> Eliminar cita</button>

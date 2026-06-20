@@ -29,7 +29,7 @@ include __DIR__ . '/../includes/header.php';
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h1 class="h3 mb-0"><i class="bi bi-capsule text-info"></i> Recetas</h1>
     <?php if (has_role('medico', 'admin')): ?>
-    <a href="<?= BASE_URL ?>/recetas/create.php" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Nueva receta</a>
+    <a href="<?= BASE_URL ?>/recetas/create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Nueva receta</a>
     <?php endif; ?>
 </div>
 
@@ -39,7 +39,7 @@ include __DIR__ . '/../includes/header.php';
     </div>
     <div class="col-auto">
         <button class="btn btn-outline-secondary"><i class="bi bi-search"></i> Buscar</button>
-        <a href="<?= BASE_URL ?>/recetas/index.php" class="btn btn-link">Limpiar</a>
+        <a href="<?= BASE_URL ?>/recetas/index" class="btn btn-link">Limpiar</a>
     </div>
 </form>
 
@@ -53,14 +53,14 @@ include __DIR__ . '/../includes/header.php';
             <?php else: foreach ($recetas as $r): ?>
                 <tr>
                     <td><?= fmt_fecha($r['fecha']) ?></td>
-                    <td><a href="<?= BASE_URL ?>/pacientes/ver.php?id=<?= $r['paciente_id'] ?>"><?= e($r['pac_nombre'].' '.$r['pac_ape']) ?></a></td>
+                    <td><a href="<?= BASE_URL ?>/pacientes/ver?id=<?= $r['paciente_id'] ?>"><?= e($r['pac_nombre'].' '.$r['pac_ape']) ?></a></td>
                     <td class="small"><?= e($r['med_nombre']) ?></td>
                     <td><?= e($r['diagnostico'] ?: '—') ?></td>
                     <td><span class="badge bg-info"><?= $r['n_items'] ?></span></td>
                     <td class="text-end text-nowrap">
-                        <a href="<?= BASE_URL ?>/recetas/ver.php?id=<?= $r['id'] ?>" class="btn btn-sm btn-outline-secondary" title="Ver/Imprimir"><i class="bi bi-printer"></i></a>
+                        <a href="<?= BASE_URL ?>/recetas/ver?id=<?= $r['id'] ?>" class="btn btn-sm btn-outline-secondary" title="Ver/Imprimir"><i class="bi bi-printer"></i></a>
                         <?php if (has_role('medico', 'admin')): ?>
-                        <form action="<?= BASE_URL ?>/recetas/delete.php" method="post" class="d-inline" onsubmit="return confirm('¿Eliminar esta receta?');">
+                        <form action="<?= BASE_URL ?>/recetas/delete" method="post" class="d-inline" onsubmit="return confirm('¿Eliminar esta receta?');">
                             <?= csrf_field() ?><input type="hidden" name="id" value="<?= $r['id'] ?>">
                             <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
                         </form>

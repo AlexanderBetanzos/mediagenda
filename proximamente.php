@@ -14,6 +14,6 @@ include __DIR__ . '/includes/header.php';
         Este módulo está en desarrollo y estará disponible próximamente.
         Mientras tanto puedes usar la agenda, los pacientes y el expediente clínico.
     </p>
-    <a href="<?= BASE_URL ?>/dashboard.php" class="btn btn-primary"><i class="bi bi-arrow-left"></i> Volver al panel</a>
+    <a href="<?= BASE_URL ?>/dashboard" class="btn btn-primary"><i class="bi bi-arrow-left"></i> Volver al panel</a>
 </div>
 <?php include __DIR__ . '/includes/footer.php'; ?>

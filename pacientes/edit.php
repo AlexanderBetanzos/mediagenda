@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             trim($p['notas'] ?? '') ?: null, $id, tenant_id(),
         ]);
         flash('Datos del paciente actualizados.');
-        redirect('/pacientes/ver.php?id=' . $id);
+        redirect('/pacientes/ver?id=' . $id);
     }
 }
 
@@ -43,8 +43,8 @@ include __DIR__ . '/../includes/header.php';
 ?>
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/pacientes/index.php">Pacientes</a></li>
-        <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/pacientes/ver.php?id=<?= $id ?>"><?= e($p['nombre'].' '.$p['apellidos']) ?></a></li>
+        <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/pacientes/index">Pacientes</a></li>
+        <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/pacientes/ver?id=<?= $id ?>"><?= e($p['nombre'].' '.$p['apellidos']) ?></a></li>
         <li class="breadcrumb-item active">Editar</li>
     </ol>
 </nav>
@@ -61,7 +61,7 @@ include __DIR__ . '/../includes/header.php';
         <?php include __DIR__ . '/_form.php'; ?>
     </div>
     <div class="card-footer bg-white text-end">
-        <a href="<?= BASE_URL ?>/pacientes/ver.php?id=<?= $id ?>" class="btn btn-light">Cancelar</a>
+        <a href="<?= BASE_URL ?>/pacientes/ver?id=<?= $id ?>" class="btn btn-light">Cancelar</a>
         <button class="btn btn-primary"><i class="bi bi-check-lg"></i> Guardar cambios</button>
     </div>
 </form>

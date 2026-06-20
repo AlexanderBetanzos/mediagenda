@@ -8,4 +8,4 @@ if ($id) {
     db()->prepare('DELETE FROM pacientes WHERE id = ? AND consultorio_id = ?')->execute([$id, tenant_id()]);
     flash('Paciente eliminado.');
 }
-redirect('/pacientes/index.php');
+redirect('/pacientes/index');

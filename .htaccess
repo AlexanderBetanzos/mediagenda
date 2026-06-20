@@ -1,0 +1,30 @@
+# =====================================================================
+#  MediAgenda — URLs limpias (sin .php)
+#  Funciona en la raíz del dominio (producción) y en subcarpeta (XAMPP),
+#  porque las reglas son relativas a la ubicación de este .htaccess.
+# =====================================================================
+
+# Evita que Apache resuelva /archivo a /archivo.php por su cuenta (MultiViews).
+Options -MultiViews
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # 1) Redirige las URLs viejas con .php a su versión limpia (solo en GET,
+    #    para no romper POST ni el webhook de pagos).
+    #    Ej: /pacientes/index.php  ->  /pacientes/index
+    RewriteCond %{REQUEST_METHOD} GET
+    RewriteCond %{THE_REQUEST} \s/+([^.\s?]+)\.php[\s?] [NC]
+    RewriteCond %{REQUEST_URI} !^/pagos/webhook\.php$ [NC]
+    RewriteRule ^ /%1 [R=301,L]
+
+    # 2) Sirve internamente la URL limpia desde el archivo .php real.
+    #    Ej: /pacientes/index  ->  /pacientes/index.php
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME}.php -f
+    RewriteRule ^(.+?)/?$ $1.php [L]
+</IfModule>
+
+# Páginas de error amigables (opcional)
+# ErrorDocument 404 /index.php

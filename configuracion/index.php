@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'formato_fecha' => isset($formatos[$_POST['formato_fecha'] ?? '']) ? $_POST['formato_fecha'] : 'd/m/Y',
     ]);
     flash('Configuración guardada correctamente.');
-    redirect('/configuracion/index.php');
+    redirect('/configuracion/index');
 }
 
 $titulo = 'Configuración';

@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             trim($c['notas'] ?? '') ?: null,
         ]);
         flash('Cita agendada correctamente.');
-        redirect('/citas/index.php?desde=' . urlencode($c['fecha']));
+        redirect('/citas/index?desde=' . urlencode($c['fecha']));
     }
 }
 
@@ -37,7 +37,7 @@ include __DIR__ . '/../includes/header.php';
 ?>
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/citas/index.php">Citas</a></li>
+        <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/citas/index">Citas</a></li>
         <li class="breadcrumb-item active">Nueva</li>
     </ol>
 </nav>
@@ -50,7 +50,7 @@ include __DIR__ . '/../includes/header.php';
 <form method="post" class="card">
     <div class="card-body"><?= csrf_field() ?><?php include __DIR__ . '/_form.php'; ?></div>
     <div class="card-footer bg-white text-end">
-        <a href="<?= BASE_URL ?>/citas/index.php" class="btn btn-light">Cancelar</a>
+        <a href="<?= BASE_URL ?>/citas/index" class="btn btn-light">Cancelar</a>
         <button class="btn btn-primary"><i class="bi bi-check-lg"></i> Agendar</button>
     </div>
 </form>

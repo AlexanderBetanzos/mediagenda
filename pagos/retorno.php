@@ -35,12 +35,12 @@ $activa = ($estado === 'authorized');
         <div class="display-4 text-success mb-3"><i class="bi bi-check-circle-fill"></i></div>
         <h1 class="h3">¡Pago confirmado!</h1>
         <p class="text-muted">Tu membresía está activa. Gracias por confiar en <strong><?= e(marca_nombre()) ?></strong>.</p>
-        <a href="<?= BASE_URL ?>/dashboard.php" class="btn btn-primary mt-2"><i class="bi bi-speedometer2"></i> Ir a mi panel</a>
+        <a href="<?= BASE_URL ?>/dashboard" class="btn btn-primary mt-2"><i class="bi bi-speedometer2"></i> Ir a mi panel</a>
     <?php else: ?>
         <div class="display-4 text-warning mb-3"><i class="bi bi-hourglass-split"></i></div>
         <h1 class="h3">Estamos procesando tu pago</h1>
         <p class="text-muted">En cuanto Mercado Pago confirme la suscripción, tu cuenta se activará automáticamente. Puede tardar unos minutos.</p>
-        <a href="<?= BASE_URL ?>/dashboard.php" class="btn btn-outline-primary mt-2">Volver al panel</a>
+        <a href="<?= BASE_URL ?>/dashboard" class="btn btn-outline-primary mt-2">Volver al panel</a>
     <?php endif; ?>
 </div>
 </body>

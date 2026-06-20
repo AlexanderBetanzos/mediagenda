@@ -8,4 +8,4 @@ if ($id) {
     db()->prepare('DELETE FROM citas WHERE id = ? AND consultorio_id = ?')->execute([$id, tenant_id()]);
     flash('Cita eliminada.');
 }
-redirect('/citas/index.php');
+redirect('/citas/index');

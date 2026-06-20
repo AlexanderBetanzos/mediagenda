@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             trim($p['notas'] ?? '') ?: null,
         ]);
         flash('Paciente registrado correctamente.');
-        redirect('/pacientes/ver.php?id=' . db()->lastInsertId());
+        redirect('/pacientes/ver?id=' . db()->lastInsertId());
     }
 }
 
@@ -38,7 +38,7 @@ include __DIR__ . '/../includes/header.php';
 ?>
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/pacientes/index.php">Pacientes</a></li>
+        <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/pacientes/index">Pacientes</a></li>
         <li class="breadcrumb-item active">Nuevo</li>
     </ol>
 </nav>
@@ -54,7 +54,7 @@ include __DIR__ . '/../includes/header.php';
         <?php include __DIR__ . '/_form.php'; ?>
     </div>
     <div class="card-footer bg-white text-end">
-        <a href="<?= BASE_URL ?>/pacientes/index.php" class="btn btn-light">Cancelar</a>
+        <a href="<?= BASE_URL ?>/pacientes/index" class="btn btn-light">Cancelar</a>
         <button class="btn btn-primary"><i class="bi bi-check-lg"></i> Guardar</button>
     </div>
 </form>
