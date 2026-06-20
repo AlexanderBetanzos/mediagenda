@@ -227,6 +227,12 @@ function require_login(): void
         flash('Debes iniciar sesión.', 'warning');
         redirect('/auth/login.php');
     }
+    // Gating de suscripción: si la prueba venció o el consultorio está suspendido,
+    // se bloquea el acceso (salvo páginas que declaran ALLOW_INACTIVE, p. ej.
+    // la pantalla de suscripción o el cierre de sesión).
+    if (!defined('ALLOW_INACTIVE') && tenant_bloqueado()) {
+        redirect('/auth/suscripcion.php');
+    }
 }
 
 /** Exige uno de los roles indicados. */
