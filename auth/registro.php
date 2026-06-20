@@ -11,9 +11,11 @@ if (is_logged_in()) {
 const TRIAL_DIAS = 15;
 
 // Plan elegido: '' = prueba gratis de 15 días; 'estandar'/'premium' = pago inmediato.
+// Nota: el mensaje/flujo depende del plan elegido, NO de si MP está configurado
+// (el paso de pago decide qué hacer si MP aún no está disponible).
 $plan  = preg_replace('/[^a-z]/', '', (string) ($_GET['plan'] ?? $_POST['plan'] ?? ''));
 $planes = planes_mp();
-$pagar = ($plan !== '' && isset($planes[$plan]) && mp_configurado());
+$pagar = ($plan !== '' && isset($planes[$plan]));
 
 $error = '';
 $f = ['consultorio' => '', 'nombre' => '', 'email' => '', 'telefono' => ''];
