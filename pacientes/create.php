@@ -15,10 +15,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$errores) {
         $stmt = db()->prepare(
             'INSERT INTO pacientes
-             (nombre, apellidos, fecha_nacimiento, sexo, telefono, email, direccion, tipo, alergias, antecedentes, notas)
-             VALUES (?,?,?,?,?,?,?,?,?,?,?)'
+             (consultorio_id, nombre, apellidos, fecha_nacimiento, sexo, telefono, email, direccion, tipo, alergias, antecedentes, notas)
+             VALUES (?,?,?,?,?,?,?,?,?,?,?,?)'
         );
         $stmt->execute([
+            tenant_id(),
             trim($p['nombre']), trim($p['apellidos']),
             $p['fecha_nacimiento'] ?: null, $p['sexo'] ?: null,
             trim($p['telefono'] ?? '') ?: null, trim($p['email'] ?? '') ?: null,

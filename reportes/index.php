@@ -3,10 +3,11 @@ require_once __DIR__ . '/../includes/functions.php';
 require_role('admin', 'medico');
 
 $pdo = db();
+$tid = tenant_id();   // entero del consultorio activo (seguro para interpolar)
 
 // --- Citas por estado ---
 $porEstado = ['programada'=>0,'confirmada'=>0,'atendida'=>0,'cancelada'=>0,'no_asistio'=>0];
-foreach ($pdo->query("SELECT estado, COUNT(*) c FROM citas GROUP BY estado") as $r) {
+foreach ($pdo->query("SELECT estado, COUNT(*) c FROM citas WHERE consultorio_id = $tid GROUP BY estado") as $r) {
     $porEstado[$r['estado']] = (int) $r['c'];
 }
 
@@ -17,12 +18,12 @@ for ($i = 5; $i >= 0; $i--) {
 }
 $citasMes = $meses;
 foreach ($pdo->query("SELECT DATE_FORMAT(fecha,'%Y-%m') ym, COUNT(*) c FROM citas
-                      WHERE fecha >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH) GROUP BY ym") as $r) {
+                      WHERE consultorio_id = $tid AND fecha >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH) GROUP BY ym") as $r) {
     if (isset($citasMes[$r['ym']])) $citasMes[$r['ym']] = (int) $r['c'];
 }
 $ingresosMes = $meses;
 foreach ($pdo->query("SELECT DATE_FORMAT(fecha,'%Y-%m') ym, COALESCE(SUM(total),0) t FROM facturas
-                      WHERE estado='pagada' AND fecha >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH) GROUP BY ym") as $r) {
+                      WHERE consultorio_id = $tid AND estado='pagada' AND fecha >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH) GROUP BY ym") as $r) {
     if (isset($ingresosMes[$r['ym']])) $ingresosMes[$r['ym']] = (float) $r['t'];
 }
 
@@ -32,13 +33,14 @@ $labelsMes = array_map(fn($ym) => $mesesCorto[(int)substr($ym,5,2)] . ' ' . subs
 
 // --- Pacientes por tipo ---
 $porTipo = ['medico'=>0,'dental'=>0];
-foreach ($pdo->query("SELECT tipo, COUNT(*) c FROM pacientes GROUP BY tipo") as $r) {
+foreach ($pdo->query("SELECT tipo, COUNT(*) c FROM pacientes WHERE consultorio_id = $tid GROUP BY tipo") as $r) {
     $porTipo[$r['tipo']] = (int) $r['c'];
 }
 
 // --- Médicos con más citas ---
 $topMedicos = $pdo->query(
     "SELECT u.nombre, COUNT(*) c FROM citas ci JOIN usuarios u ON u.id = ci.medico_id
+     WHERE ci.consultorio_id = $tid
      GROUP BY ci.medico_id ORDER BY c DESC LIMIT 5"
 )->fetchAll();
 

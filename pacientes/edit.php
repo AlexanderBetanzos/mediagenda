@@ -3,8 +3,8 @@ require_once __DIR__ . '/../includes/functions.php';
 require_login();
 
 $id = (int) ($_GET['id'] ?? $_POST['id'] ?? 0);
-$stmt = db()->prepare('SELECT * FROM pacientes WHERE id = ?');
-$stmt->execute([$id]);
+$stmt = db()->prepare('SELECT * FROM pacientes WHERE id = ? AND consultorio_id = ?');
+$stmt->execute([$id, tenant_id()]);
 $p = $stmt->fetch();
 if (!$p) { http_response_code(404); die('Paciente no encontrado.'); }
 
@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'UPDATE pacientes SET
              nombre=?, apellidos=?, fecha_nacimiento=?, sexo=?, telefono=?, email=?,
              direccion=?, tipo=?, alergias=?, antecedentes=?, notas=?
-             WHERE id=?'
+             WHERE id=? AND consultorio_id=?'
         );
         $stmt->execute([
             trim($p['nombre']), trim($p['apellidos']),
@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             trim($p['telefono'] ?? '') ?: null, trim($p['email'] ?? '') ?: null,
             trim($p['direccion'] ?? '') ?: null, $p['tipo'] ?? 'medico',
             trim($p['alergias'] ?? '') ?: null, trim($p['antecedentes'] ?? '') ?: null,
-            trim($p['notas'] ?? '') ?: null, $id,
+            trim($p['notas'] ?? '') ?: null, $id, tenant_id(),
         ]);
         flash('Datos del paciente actualizados.');
         redirect('/pacientes/ver.php?id=' . $id);

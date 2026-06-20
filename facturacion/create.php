@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $descuento   = (float) ($_POST['descuento'] ?? 0);
     $lineas      = $_POST['item'] ?? [];
 
-    if (!$paciente_id) $errores[] = 'Selecciona un paciente.';
+    if (!$paciente_id || !pertenece_al_tenant('pacientes', $paciente_id)) $errores[] = 'Selecciona un paciente.';
 
     $items = [];
     $subtotal = 0;
@@ -34,11 +34,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // folio temporal único, luego se actualiza con el id
         $tmp = 'TMP-' . uniqid();
         $stmt = $pdo->prepare(
-            'INSERT INTO facturas (folio, paciente_id, medico_id, fecha, subtotal, descuento, total, estado, metodo_pago, notas)
-             VALUES (?,?,?,?,?,?,?,?,?,?)'
+            'INSERT INTO facturas (consultorio_id, folio, paciente_id, medico_id, fecha, subtotal, descuento, total, estado, metodo_pago, notas)
+             VALUES (?,?,?,?,?,?,?,?,?,?,?)'
         );
         $stmt->execute([
-            $tmp, $paciente_id, $u['rol'] === 'medico' ? $u['id'] : null,
+            tenant_id(), $tmp, $paciente_id, $u['rol'] === 'medico' ? $u['id'] : null,
             $_POST['fecha'] ?: date('Y-m-d'),
             $subtotal, $descuento, $total,
             $_POST['estado'] ?? 'pendiente',
@@ -47,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ]);
         $fid = $pdo->lastInsertId();
         $folio = 'F-' . date('Y') . '-' . str_pad((string)$fid, 4, '0', STR_PAD_LEFT);
-        $pdo->prepare('UPDATE facturas SET folio = ? WHERE id = ?')->execute([$folio, $fid]);
+        $pdo->prepare('UPDATE facturas SET folio = ? WHERE id = ? AND consultorio_id = ?')->execute([$folio, $fid, tenant_id()]);
 
         $it = $pdo->prepare('INSERT INTO factura_items (factura_id, descripcion, cantidad, precio, importe) VALUES (?,?,?,?,?)');
         foreach ($items as $row) {
@@ -59,7 +59,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$pacientes = db()->query('SELECT id, nombre, apellidos FROM pacientes ORDER BY apellidos, nombre')->fetchAll();
+$pacientes = db()->prepare('SELECT id, nombre, apellidos FROM pacientes WHERE consultorio_id = ? ORDER BY apellidos, nombre');
+$pacientes->execute([tenant_id()]);
+$pacientes = $pacientes->fetchAll();
 
 $titulo = 'Nueva factura';
 $activo = 'facturacion';

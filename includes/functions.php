@@ -43,6 +43,16 @@ function trial_dias_restantes(): ?int
     return (int) floor((strtotime($t['trial_fin']) - strtotime('today')) / 86400);
 }
 
+/** ¿La fila $id de $tabla pertenece al consultorio activo? (anti cross-tenant) */
+function pertenece_al_tenant(string $tabla, int $id): bool
+{
+    $permitidas = ['pacientes', 'usuarios', 'citas', 'consultas', 'recetas', 'facturas'];
+    if ($id <= 0 || !in_array($tabla, $permitidas, true)) return false;
+    $st = db()->prepare("SELECT 1 FROM $tabla WHERE id = ? AND consultorio_id = ?");
+    $st->execute([$id, tenant_id()]);
+    return (bool) $st->fetchColumn();
+}
+
 /** ¿El consultorio está bloqueado (prueba vencida o suspendido)? */
 function tenant_bloqueado(): bool
 {

@@ -3,8 +3,8 @@ require_once __DIR__ . '/../includes/functions.php';
 require_login();
 
 $id = (int) ($_GET['id'] ?? $_POST['id'] ?? 0);
-$stmt = db()->prepare('SELECT * FROM citas WHERE id = ?');
-$stmt->execute([$id]);
+$stmt = db()->prepare('SELECT * FROM citas WHERE id = ? AND consultorio_id = ?');
+$stmt->execute([$id, tenant_id()]);
 $c = $stmt->fetch();
 if (!$c) { http_response_code(404); die('Cita no encontrada.'); }
 
@@ -14,20 +14,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
     $c = array_merge($c, $_POST);
 
-    if (empty($c['paciente_id'])) $errores[] = 'Selecciona un paciente.';
-    if (empty($c['medico_id']))   $errores[] = 'Selecciona un médico.';
+    if (empty($c['paciente_id']) || !pertenece_al_tenant('pacientes', (int) $c['paciente_id'])) $errores[] = 'Selecciona un paciente.';
+    if (empty($c['medico_id'])   || !pertenece_al_tenant('usuarios', (int) $c['medico_id']))    $errores[] = 'Selecciona un médico.';
     if (empty($c['fecha']))       $errores[] = 'Indica la fecha.';
     if (empty($c['hora']))        $errores[] = 'Indica la hora.';
 
     if (!$errores) {
         $stmt = db()->prepare(
-            'UPDATE citas SET paciente_id=?, medico_id=?, fecha=?, hora=?, duracion=?, tipo=?, motivo=?, estado=?, notas=? WHERE id=?'
+            'UPDATE citas SET paciente_id=?, medico_id=?, fecha=?, hora=?, duracion=?, tipo=?, motivo=?, estado=?, notas=? WHERE id=? AND consultorio_id=?'
         );
         $stmt->execute([
             (int) $c['paciente_id'], (int) $c['medico_id'], $c['fecha'], $c['hora'],
             (int) ($c['duracion'] ?: 30), $c['tipo'] ?? 'medica',
             trim($c['motivo'] ?? '') ?: null, $c['estado'] ?? 'programada',
-            trim($c['notas'] ?? '') ?: null, $id,
+            trim($c['notas'] ?? '') ?: null, $id, tenant_id(),
         ]);
         flash('Cita actualizada.');
         redirect('/citas/index.php?desde=' . urlencode($c['fecha']));

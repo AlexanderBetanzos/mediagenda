@@ -5,8 +5,8 @@ require_login();
 $u  = current_user();
 $id = (int) ($_GET['id'] ?? $_POST['paciente_id'] ?? 0);
 
-$stmt = db()->prepare('SELECT * FROM pacientes WHERE id = ?');
-$stmt->execute([$id]);
+$stmt = db()->prepare('SELECT * FROM pacientes WHERE id = ? AND consultorio_id = ?');
+$stmt->execute([$id, tenant_id()]);
 $p = $stmt->fetch();
 if (!$p) { http_response_code(404); die('Paciente no encontrado.'); }
 
@@ -17,12 +17,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'consu
 
     $stmt = db()->prepare(
         'INSERT INTO consultas
-         (paciente_id, medico_id, motivo, exploracion, diagnostico, tratamiento, receta,
+         (consultorio_id, paciente_id, medico_id, motivo, exploracion, diagnostico, tratamiento, receta,
           peso, estatura, presion, temperatura, notas)
-         VALUES (?,?,?,?,?,?,?,?,?,?,?,?)'
+         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)'
     );
     $stmt->execute([
-        $id, $u['id'],
+        tenant_id(), $id, $u['id'],
         trim($_POST['motivo'] ?? '') ?: null,
         trim($_POST['exploracion'] ?? '') ?: null,
         trim($_POST['diagnostico'] ?? '') ?: null,
@@ -42,18 +42,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'consu
 $citas = db()->prepare(
     'SELECT c.*, u.nombre AS med_nombre FROM citas c
      JOIN usuarios u ON u.id = c.medico_id
-     WHERE c.paciente_id = ? ORDER BY c.fecha DESC, c.hora DESC'
+     WHERE c.paciente_id = ? AND c.consultorio_id = ? ORDER BY c.fecha DESC, c.hora DESC'
 );
-$citas->execute([$id]);
+$citas->execute([$id, tenant_id()]);
 $citas = $citas->fetchAll();
 
 // Consultas (expediente)
 $cons = db()->prepare(
     'SELECT co.*, u.nombre AS med_nombre FROM consultas co
      JOIN usuarios u ON u.id = co.medico_id
-     WHERE co.paciente_id = ? ORDER BY co.fecha DESC'
+     WHERE co.paciente_id = ? AND co.consultorio_id = ? ORDER BY co.fecha DESC'
 );
-$cons->execute([$id]);
+$cons->execute([$id, tenant_id()]);
 $cons = $cons->fetchAll();
 
 $titulo = $p['nombre'] . ' ' . $p['apellidos'];

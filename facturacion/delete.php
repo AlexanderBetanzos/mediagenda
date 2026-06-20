@@ -5,7 +5,7 @@ verify_csrf();
 
 $id = (int) ($_POST['id'] ?? 0);
 if ($id) {
-    db()->prepare('DELETE FROM facturas WHERE id = ?')->execute([$id]);
+    db()->prepare('DELETE FROM facturas WHERE id = ? AND consultorio_id = ?')->execute([$id, tenant_id()]);
     flash('Factura eliminada.');
 }
 redirect('/facturacion/index.php');

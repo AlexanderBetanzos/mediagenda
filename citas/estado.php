@@ -8,7 +8,7 @@ $estado = $_POST['estado'] ?? '';
 $validos = ['programada','confirmada','atendida','cancelada','no_asistio'];
 
 if ($id && in_array($estado, $validos, true)) {
-    db()->prepare('UPDATE citas SET estado = ? WHERE id = ?')->execute([$estado, $id]);
+    db()->prepare('UPDATE citas SET estado = ? WHERE id = ? AND consultorio_id = ?')->execute([$estado, $id, tenant_id()]);
     flash('Estado de la cita actualizado a “' . estado_label($estado) . '”.');
 }
 redirect('/citas/index.php');
