@@ -70,22 +70,17 @@ $marca  = marca_nombre();
                 </div>
             </div>
             <div class="col-lg-6">
-                <div class="lp-hero-mock">
-                    <div class="card shadow-lg border-0">
-                        <div class="card-body p-4">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <span class="fw-semibold text-brand"><i class="bi bi-calendar-day"></i> Agenda de hoy</span>
-                                <span class="badge bg-success">8 citas</span>
-                            </div>
-                            <ul class="list-group list-group-flush">
-                                <li class="list-group-item d-flex justify-content-between px-0"><span><span class="badge bg-light text-dark border me-2">09:00</span> María García</span><span class="badge bg-info">Confirmada</span></li>
-                                <li class="list-group-item d-flex justify-content-between px-0"><span><span class="badge bg-light text-dark border me-2">10:30</span> Juan Pérez</span><span class="badge bg-secondary">Programada</span></li>
-                                <li class="list-group-item d-flex justify-content-between px-0"><span><span class="badge bg-light text-dark border me-2">12:00</span> Ana Torres</span><span class="badge bg-success">Atendida</span></li>
-                            </ul>
-                        </div>
+                <div class="lp-hero-visual">
+                    <img src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=900&h=1125&q=80&auto=format&fit=crop&crop=faces"
+                         alt="Profesional médico usando <?= e($marca) ?>" class="lp-hero-photo" width="900" height="1125">
+                    <div class="lp-float lp-float-a">
+                        <span class="lp-float-dot" style="background:#22c55e"></span>
+                        <div><div class="fw-semibold">Cita confirmada</div><div class="lp-float-sub">09:00 · María García</div></div>
                     </div>
-                    <div class="lp-float lp-float-1"><i class="bi bi-graph-up-arrow text-success"></i> Ingresos del mes <strong>$48,200</strong></div>
-                    <div class="lp-float lp-float-2"><i class="bi bi-bell-fill text-warning"></i> Recordatorio enviado</div>
+                    <div class="lp-float lp-float-b">
+                        <i class="bi bi-graph-up-arrow text-success fs-5"></i>
+                        <div><div class="lp-float-sub">Ingresos del mes</div><div class="fw-bold">$48,200</div></div>
+                    </div>
                 </div>
             </div>
         </div>
