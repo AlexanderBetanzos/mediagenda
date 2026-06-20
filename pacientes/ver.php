@@ -34,7 +34,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'consu
         $_POST['temperatura'] !== '' ? $_POST['temperatura'] : null,
         trim($_POST['notas'] ?? '') ?: null,
     ]);
-    flash('Consulta agregada al expediente.');
+    $consulta_id = (int) db()->lastInsertId();
+
+    // Adjunto opcional ligado a esta consulta.
+    $r = guardar_archivo_expediente($_FILES['archivo'] ?? null, $id, $u['id'], $_POST['descripcion'] ?? '', $consulta_id);
+    if ($r['estado'] === 'error') {
+        flash('Consulta guardada, pero el archivo no se adjuntó: ' . $r['mensaje'], 'warning');
+    } else {
+        flash('Consulta agregada al expediente.');
+    }
+    redirect('/pacientes/ver?id=' . $id);
+}
+
+/* --- Subir archivo al expediente. Solo médicos y admin. --- */
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'subir_archivo') {
+    verify_csrf();
+    if (!has_role('medico', 'admin')) { http_response_code(403); die('Sin permiso.'); }
+
+    $r = guardar_archivo_expediente($_FILES['archivo'] ?? null, $id, $u['id'], $_POST['descripcion'] ?? '');
+    if ($r['estado'] === 'vacio') {
+        flash('Selecciona un archivo para subir.', 'warning');
+    } else {
+        flash($r['mensaje'], $r['estado'] === 'ok' ? 'success' : 'danger');
+    }
+    redirect('/pacientes/ver?id=' . $id);
+}
+
+/* --- Borrar archivo del expediente. Solo médicos y admin. --- */
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'borrar_archivo') {
+    verify_csrf();
+    if (!has_role('medico', 'admin')) { http_response_code(403); die('Sin permiso.'); }
+
+    $aid  = (int) ($_POST['archivo_id'] ?? 0);
+    $stmt = db()->prepare('SELECT * FROM archivos WHERE id = ? AND paciente_id = ? AND consultorio_id = ?');
+    $stmt->execute([$aid, $id, tenant_id()]);
+    if ($a = $stmt->fetch()) {
+        $ruta = archivo_dir($id) . '/' . basename($a['nombre_guardado']);
+        if (is_file($ruta)) { @unlink($ruta); }
+        db()->prepare('DELETE FROM archivos WHERE id = ? AND consultorio_id = ?')
+            ->execute([$aid, tenant_id()]);
+        flash('Archivo eliminado.');
+    }
     redirect('/pacientes/ver?id=' . $id);
 }
 
@@ -55,6 +95,21 @@ $cons = db()->prepare(
 );
 $cons->execute([$id, tenant_id()]);
 $cons = $cons->fetchAll();
+
+// Archivos del expediente
+$archivos = db()->prepare(
+    'SELECT a.*, u.nombre AS sub_nombre FROM archivos a
+     LEFT JOIN usuarios u ON u.id = a.subido_por
+     WHERE a.paciente_id = ? AND a.consultorio_id = ? ORDER BY a.creado_en DESC'
+);
+$archivos->execute([$id, tenant_id()]);
+$archivos = $archivos->fetchAll();
+
+// Agrupa los archivos por consulta para mostrarlos dentro de cada tarjeta.
+$archivos_por_consulta = [];
+foreach ($archivos as $a) {
+    if ($a['consulta_id']) { $archivos_por_consulta[$a['consulta_id']][] = $a; }
+}
 
 $titulo = $p['nombre'] . ' ' . $p['apellidos'];
 $activo = 'pacientes';
@@ -116,6 +171,7 @@ include __DIR__ . '/../includes/header.php';
     <div class="col-lg-8">
         <ul class="nav nav-tabs mb-3" role="tablist">
             <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-exp"><i class="bi bi-file-medical"></i> Expediente (<?= count($cons) ?>)</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-archivos"><i class="bi bi-paperclip"></i> Archivos (<?= count($archivos) ?>)</button></li>
             <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-citas"><i class="bi bi-calendar-check"></i> Citas (<?= count($citas) ?>)</button></li>
         </ul>
 
@@ -130,7 +186,7 @@ include __DIR__ . '/../includes/header.php';
                 </div>
                 <div class="collapse mb-4" id="formConsulta">
                     <div class="card card-body">
-                        <form method="post">
+                        <form method="post" enctype="multipart/form-data">
                             <?= csrf_field() ?>
                             <input type="hidden" name="accion" value="consulta">
                             <input type="hidden" name="paciente_id" value="<?= $id ?>">
@@ -148,8 +204,17 @@ include __DIR__ . '/../includes/header.php';
                                 <div class="col-md-6"><label class="form-label">Tratamiento</label><textarea name="tratamiento" class="form-control" rows="2"></textarea></div>
                                 <div class="col-md-6"><label class="form-label">Receta</label><textarea name="receta" class="form-control" rows="2"></textarea></div>
                                 <div class="col-12"><label class="form-label">Notas</label><textarea name="notas" class="form-control" rows="2"></textarea></div>
+                                <div class="col-md-7">
+                                    <label class="form-label">Adjuntar archivo <span class="text-muted fw-normal">(opcional)</span></label>
+                                    <input type="file" name="archivo" class="form-control">
+                                </div>
+                                <div class="col-md-5">
+                                    <label class="form-label">Descripción del archivo</label>
+                                    <input type="text" name="descripcion" class="form-control" maxlength="255" placeholder="Ej. Estudio de laboratorio">
+                                </div>
                             </div>
-                            <div class="text-end mt-3">
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <small class="text-muted">Adjunto: PDF, imagen, Word, Excel o texto. Máx. <?= fmt_bytes(archivo_max_bytes()) ?>.</small>
                                 <button class="btn btn-primary"><i class="bi bi-check-lg"></i> Guardar consulta</button>
                             </div>
                         </form>
@@ -183,10 +248,93 @@ include __DIR__ . '/../includes/header.php';
                                     <div class="col-md-6 mb-2"><strong><?= $lbl ?>:</strong><br><?= nl2br(e($c[$k])) ?></div>
                                 <?php endif; endforeach; ?>
                             </div>
-                            <?php if ($c['notas']): ?><p class="mb-0 text-muted"><small><?= nl2br(e($c['notas'])) ?></small></p><?php endif; ?>
+                            <?php if ($c['notas']): ?><p class="mb-2 text-muted"><small><?= nl2br(e($c['notas'])) ?></small></p><?php endif; ?>
+                            <?php if (!empty($archivos_por_consulta[$c['id']])): ?>
+                            <div class="mt-2 pt-2 border-top">
+                                <?php foreach ($archivos_por_consulta[$c['id']] as $a): ?>
+                                <a href="<?= BASE_URL ?>/pacientes/archivo?id=<?= $a['id'] ?>" class="badge text-bg-light border text-decoration-none me-1" title="<?= e($a['descripcion'] ?: $a['nombre_original']) ?>">
+                                    <i class="bi <?= archivo_icono($a['nombre_original']) ?>"></i> <?= e($a['nombre_original']) ?>
+                                </a>
+                                <?php endforeach; ?>
+                            </div>
+                            <?php endif; ?>
                         </div>
                     </div>
                 <?php endforeach; endif; ?>
+            </div>
+
+            <!-- Archivos -->
+            <div class="tab-pane fade" id="tab-archivos">
+                <?php if (has_role('medico', 'admin')): ?>
+                <div class="text-end mb-3">
+                    <button class="btn btn-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#formArchivo">
+                        <i class="bi bi-cloud-upload"></i> Subir archivo
+                    </button>
+                </div>
+                <div class="collapse mb-4" id="formArchivo">
+                    <div class="card card-body">
+                        <form method="post" enctype="multipart/form-data">
+                            <?= csrf_field() ?>
+                            <input type="hidden" name="accion" value="subir_archivo">
+                            <input type="hidden" name="paciente_id" value="<?= $id ?>">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Archivo</label>
+                                    <input type="file" name="archivo" class="form-control" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Descripción (opcional)</label>
+                                    <input type="text" name="descripcion" class="form-control" maxlength="255" placeholder="Ej. Radiografía de tórax">
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <small class="text-muted">PDF, imágenes, Word, Excel o texto. Máx. <?= fmt_bytes(archivo_max_bytes()) ?>.</small>
+                                <button class="btn btn-primary"><i class="bi bi-check-lg"></i> Subir</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <?php endif; ?>
+
+                <?php if (!$archivos): ?>
+                    <p class="text-muted text-center py-4">Sin archivos en el expediente.</p>
+                <?php else: ?>
+                <div class="card">
+                    <ul class="list-group list-group-flush">
+                        <?php foreach ($archivos as $a):
+                            $mime = $a['mime'] ?? '';
+                            $previa = strpos($mime, 'image/') === 0 || $mime === 'application/pdf';
+                        ?>
+                        <li class="list-group-item d-flex align-items-center gap-3">
+                            <i class="bi <?= archivo_icono($a['nombre_original']) ?> fs-3 text-brand"></i>
+                            <div class="flex-grow-1 min-w-0">
+                                <div class="fw-semibold text-truncate"><?= e($a['nombre_original']) ?></div>
+                                <small class="text-muted">
+                                    <?php if ($a['descripcion']): ?><?= e($a['descripcion']) ?> · <?php endif; ?>
+                                    <?= fmt_bytes($a['tamano']) ?> · <?= fmt_fecha($a['creado_en']) ?>
+                                    <?php if ($a['sub_nombre']): ?> · <?= e($a['sub_nombre']) ?><?php endif; ?>
+                                </small>
+                            </div>
+                            <div class="text-nowrap">
+                                <?php if ($previa): ?>
+                                <a href="<?= BASE_URL ?>/pacientes/archivo?id=<?= $a['id'] ?>&ver=1" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary" title="Ver"><i class="bi bi-eye"></i></a>
+                                <?php endif; ?>
+                                <a href="<?= BASE_URL ?>/pacientes/archivo?id=<?= $a['id'] ?>" class="btn btn-sm btn-outline-secondary" title="Descargar"><i class="bi bi-download"></i></a>
+                                <?php if (has_role('medico', 'admin')): ?>
+                                <form method="post" class="d-inline" onsubmit="return confirm('¿Eliminar este archivo? No se puede deshacer.');">
+                                    <?= csrf_field() ?>
+                                    <input type="hidden" name="accion" value="borrar_archivo">
+                                    <input type="hidden" name="paciente_id" value="<?= $id ?>">
+                                    <input type="hidden" name="archivo_id" value="<?= $a['id'] ?>">
+                                    <button class="btn btn-sm btn-outline-danger" title="Eliminar"><i class="bi bi-trash"></i></button>
+                                </form>
+                                <?php endif; ?>
+                            </div>
+                        </li>
+                        <?php endforeach; ?>
+                    </ul>
+                </div>
+                <?php endif; ?>
             </div>
 
             <!-- Citas -->

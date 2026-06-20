@@ -17,3 +17,7 @@ Thumbs.db
 # --- Logs / temporales ---
 *.log
 *.tmp
+
+# --- Archivos subidos por usuarios (NO versionar el contenido) ---
+uploads/expedientes/*
+!uploads/expedientes/.gitkeep

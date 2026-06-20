@@ -1,0 +1,14 @@
+# =====================================================================
+#  Bloquea el acceso DIRECTO por URL a los archivos del expediente.
+#  Son datos clínicos: solo deben servirse a través de pacientes/archivo.php
+#  (que verifica sesión y consultorio). Nunca enlazar a /uploads/... directo.
+# =====================================================================
+<IfModule mod_authz_core.c>
+    # Apache 2.4+
+    Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+    # Apache 2.2
+    Order allow,deny
+    Deny from all
+</IfModule>

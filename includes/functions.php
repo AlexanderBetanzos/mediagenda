@@ -52,7 +52,7 @@ function trial_dias_restantes(): ?int
 /** ¿La fila $id de $tabla pertenece al consultorio activo? (anti cross-tenant) */
 function pertenece_al_tenant(string $tabla, int $id): bool
 {
-    $permitidas = ['pacientes', 'usuarios', 'citas', 'consultas', 'recetas', 'facturas'];
+    $permitidas = ['pacientes', 'usuarios', 'citas', 'consultas', 'recetas', 'facturas', 'archivos'];
     if ($id <= 0 || !in_array($tabla, $permitidas, true)) return false;
     $st = db()->prepare("SELECT 1 FROM $tabla WHERE id = ? AND consultorio_id = ?");
     $st->execute([$id, tenant_id()]);
@@ -339,6 +339,112 @@ function edad(?string $fnac): string
 function fmt_money($n): string
 {
     return '$' . number_format((float) $n, 2);
+}
+
+/** Tamaño legible de un archivo en bytes, ej: 1.2 MB. */
+function fmt_bytes($bytes): string
+{
+    $bytes = (float) $bytes;
+    $u = ['B', 'KB', 'MB', 'GB'];
+    $i = 0;
+    while ($bytes >= 1024 && $i < count($u) - 1) { $bytes /= 1024; $i++; }
+    return ($i === 0 ? (int) $bytes : number_format($bytes, 1)) . ' ' . $u[$i];
+}
+
+/* --------------------------------------------------------------------
+ *  Archivos del expediente
+ * ------------------------------------------------------------------ */
+
+/** Tipos permitidos en el expediente: extensión => MIME esperado. */
+function archivo_tipos_permitidos(): array
+{
+    return [
+        'pdf'  => 'application/pdf',
+        'jpg'  => 'image/jpeg',
+        'jpeg' => 'image/jpeg',
+        'png'  => 'image/png',
+        'gif'  => 'image/gif',
+        'webp' => 'image/webp',
+        'doc'  => 'application/msword',
+        'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'xls'  => 'application/vnd.ms-excel',
+        'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'txt'  => 'text/plain',
+    ];
+}
+
+/** Tamaño máximo permitido por archivo (bytes). */
+function archivo_max_bytes(): int
+{
+    return 10 * 1024 * 1024; // 10 MB
+}
+
+/** Carpeta física donde se guardan los archivos de un paciente (la crea si falta). */
+function archivo_dir(int $paciente_id): string
+{
+    $dir = __DIR__ . '/../uploads/expedientes/' . tenant_id() . '/' . $paciente_id;
+    if (!is_dir($dir)) { @mkdir($dir, 0775, true); }
+    return $dir;
+}
+
+/** Icono de Bootstrap según la extensión del archivo. */
+function archivo_icono(string $nombre): string
+{
+    $ext = strtolower(pathinfo($nombre, PATHINFO_EXTENSION));
+    if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp'], true)) return 'bi-file-earmark-image';
+    if ($ext === 'pdf')                       return 'bi-file-earmark-pdf';
+    if (in_array($ext, ['doc', 'docx'], true)) return 'bi-file-earmark-word';
+    if (in_array($ext, ['xls', 'xlsx'], true)) return 'bi-file-earmark-excel';
+    if ($ext === 'txt')                       return 'bi-file-earmark-text';
+    return 'bi-file-earmark';
+}
+
+/**
+ * Valida y guarda un archivo subido al expediente de un paciente.
+ * No imprime nada: el llamador decide qué hacer con el resultado.
+ *
+ * @param array|null $f           Entrada de $_FILES (o null si no vino).
+ * @param int        $consulta_id Liga opcional a una consulta (0 = ninguna).
+ * @return array{estado:string,mensaje:string}  estado: 'ok' | 'vacio' | 'error'.
+ */
+function guardar_archivo_expediente(?array $f, int $paciente_id, int $usuario_id,
+                                    ?string $descripcion = null, int $consulta_id = 0): array
+{
+    if (!$f || ($f['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
+        return ['estado' => 'vacio', 'mensaje' => 'No se seleccionó ningún archivo.'];
+    }
+    if (in_array($f['error'], [UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE], true)) {
+        return ['estado' => 'error', 'mensaje' => 'El archivo supera el tamaño máximo permitido.'];
+    }
+    if ($f['error'] !== UPLOAD_ERR_OK || !is_uploaded_file($f['tmp_name'])) {
+        return ['estado' => 'error', 'mensaje' => 'No se pudo subir el archivo. Inténtalo de nuevo.'];
+    }
+    if ($f['size'] > archivo_max_bytes()) {
+        return ['estado' => 'error', 'mensaje' => 'El archivo supera el máximo de ' . fmt_bytes(archivo_max_bytes()) . '.'];
+    }
+
+    $ext = strtolower(pathinfo($f['name'], PATHINFO_EXTENSION));
+    if (!isset(archivo_tipos_permitidos()[$ext])) {
+        return ['estado' => 'error', 'mensaje' => 'Tipo de archivo no permitido. Usa PDF, imagen, Word, Excel o texto.'];
+    }
+    // Comprueba el MIME real del contenido, no solo la extensión.
+    $mime = (new finfo(FILEINFO_MIME_TYPE))->file($f['tmp_name']) ?: 'application/octet-stream';
+
+    $nombre_guardado = bin2hex(random_bytes(16)) . '.' . $ext;
+    if (!move_uploaded_file($f['tmp_name'], archivo_dir($paciente_id) . '/' . $nombre_guardado)) {
+        return ['estado' => 'error', 'mensaje' => 'No se pudo guardar el archivo en el servidor.'];
+    }
+
+    db()->prepare(
+        'INSERT INTO archivos
+         (consultorio_id, paciente_id, consulta_id, subido_por, nombre_original, nombre_guardado, mime, tamano, descripcion)
+         VALUES (?,?,?,?,?,?,?,?,?)'
+    )->execute([
+        tenant_id(), $paciente_id, $consulta_id ?: null, $usuario_id,
+        mb_substr($f['name'], 0, 255), $nombre_guardado, $mime, (int) $f['size'],
+        ($descripcion = trim((string) $descripcion)) !== '' ? $descripcion : null,
+    ]);
+    return ['estado' => 'ok', 'mensaje' => 'Archivo agregado al expediente.'];
 }
 
 /** Devuelve color de badge Bootstrap según el estado de la cita. */
