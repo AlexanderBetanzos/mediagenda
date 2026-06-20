@@ -118,10 +118,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="card-body p-4 p-sm-5">
             <div class="text-center mb-4">
                 <span class="badge bg-success-subtle text-success border border-success-subtle mb-2">
-                    <i class="bi bi-gift"></i> <?= TRIAL_DIAS ?> días gratis · sin tarjeta
+                    <i class="bi bi-gift"></i> <?= TRIAL_DIAS ?> días gratis · acceso completo · sin tarjeta
                 </span>
                 <h1 class="h4 mb-1">Crea tu consultorio en <?= e(APP_NAME) ?></h1>
-                <p class="text-muted small mb-0">Empieza tu prueba y gestiona pacientes, citas y expediente.</p>
+                <p class="text-muted small mb-0"><?= TRIAL_DIAS ?> días con <strong>todas las funciones desbloqueadas</strong>: pacientes, citas, expediente, recetas, facturación y reportes.</p>
             </div>
 
             <?php if ($error): ?>

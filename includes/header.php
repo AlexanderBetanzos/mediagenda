@@ -155,7 +155,7 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
                 <span>
                     <i class="bi bi-stopwatch"></i>
                     <?php if ($__dias !== null && $__dias > 0): ?>
-                        Estás en tu <strong>prueba gratis</strong>: te quedan <strong><?= (int) $__dias ?> día<?= $__dias === 1 ? '' : 's' ?></strong>.
+                        Prueba gratis con <strong>acceso completo</strong> · te quedan <strong><?= (int) $__dias ?> día<?= $__dias === 1 ? '' : 's' ?></strong>.
                     <?php else: ?>
                         Tu prueba gratis termina <strong>hoy</strong>.
                     <?php endif; ?>
