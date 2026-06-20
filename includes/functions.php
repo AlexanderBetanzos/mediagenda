@@ -19,6 +19,12 @@ function tenant_id(): int
     return isset($u['consultorio_id']) ? (int) $u['consultorio_id'] : 1;
 }
 
+/** ¿El usuario en sesión es súper-administrador (dueño del producto)? */
+function es_superadmin(): bool
+{
+    return !empty($_SESSION['usuario']['es_superadmin']);
+}
+
 /** Fila del consultorio activo (cacheada). null si la tabla aún no existe. */
 function tenant(bool $reset = false): ?array
 {
@@ -230,8 +236,18 @@ function require_login(): void
     // Gating de suscripción: si la prueba venció o el consultorio está suspendido,
     // se bloquea el acceso (salvo páginas que declaran ALLOW_INACTIVE, p. ej.
     // la pantalla de suscripción o el cierre de sesión).
-    if (!defined('ALLOW_INACTIVE') && tenant_bloqueado()) {
+    if (!defined('ALLOW_INACTIVE') && !es_superadmin() && tenant_bloqueado()) {
         redirect('/auth/suscripcion.php');
+    }
+}
+
+/** Exige súper-administrador (panel de gestión de consultorios). */
+function require_superadmin(): void
+{
+    require_login();
+    if (!es_superadmin()) {
+        http_response_code(403);
+        die('<h3 style="font-family:sans-serif;padding:2rem">403 — Solo para súper-administradores.</h3>');
     }
 }
 

@@ -26,6 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'email'          => $user['email'],
             'rol'            => $user['rol'],
             'consultorio_id' => (int) $user['consultorio_id'],
+            'es_superadmin'  => (int) ($user['es_superadmin'] ?? 0),
         ];
         flash('¡Bienvenido(a), ' . $user['nombre'] . '!');
         redirect('/dashboard.php');

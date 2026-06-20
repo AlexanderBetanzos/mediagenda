@@ -132,6 +132,9 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
                     <li class="nav-item mt-2"><a class="nav-link<?= nav_active('usuarios', $activo) ?>" href="<?= BASE_URL ?>/usuarios/index.php"><i class="bi bi-person-badge"></i> Personal</a></li>
                     <li class="nav-item"><a class="nav-link<?= nav_active('configuracion', $activo) ?>" href="<?= BASE_URL ?>/configuracion/index.php"><i class="bi bi-gear"></i> Configuración</a></li>
                     <?php endif; ?>
+                    <?php if (es_superadmin()): ?>
+                    <li class="nav-item mt-2"><a class="nav-link<?= nav_active('admin', $activo) ?>" href="<?= BASE_URL ?>/admin/index.php"><i class="bi bi-shield-lock"></i> Súper-admin</a></li>
+                    <?php endif; ?>
                 </ul>
             </div>
         </nav>
