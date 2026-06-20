@@ -80,9 +80,13 @@ el landing, registro, suscripción y pagos consumen de ahí. El nav
 **Fail-open**: súper-admin, prueba vigente, plan sin mapeo o tablas ausentes →
 acceso total, para no bloquear a nadie por accidente.
 
-Pendiente (siguiente iteración): pantalla de súper-admin para asignar plan y
-add-ons por consultorio; aplicar `require_modulo()` dentro de cada controlador
-nuevo (hoy solo se gatea el menú).
+✅ Pantalla de súper-admin para asignar plan y add-ons por consultorio:
+`admin/consultorio.php` (cambia `consultorios.plan` y gestiona overrides en
+`consultorio_modulos` con semántica de solo-deltas). Enlace "Plan y módulos"
+en `admin/index.php`.
+
+Pendiente (siguiente iteración): aplicar `require_modulo()` dentro de cada
+controlador nuevo (hoy solo se gatea el menú).
 
 ### 3.2 Seguridad y cumplimiento (México) 🟡
 - ✅ **Auditoría / logs de actividad**: tabla `auditoria` + helper `auditar()`.

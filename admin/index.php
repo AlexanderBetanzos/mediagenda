@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/mercadopago.php';
 require_superadmin();
 
 $pdo = db();
@@ -18,14 +19,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         case 'extender':   // +15 días de prueba (a partir de hoy o del fin actual)
             $pdo->prepare("UPDATE consultorios SET estado='trial',
                            trial_fin = DATE_ADD(GREATEST(trial_fin, CURDATE()), INTERVAL 15 DAY) WHERE id=?")->execute([$cid]);
+            auditar('trial_extender', 'consultorio', $cid, null, $cid);
             flash('Prueba extendida 15 días.');
             break;
-        case 'activar':    // membresía activa (sin caducidad)
-            $pdo->prepare("UPDATE consultorios SET estado='activa', plan='activa' WHERE id=?")->execute([$cid]);
-            flash('Consultorio activado.');
+        case 'activar':    // membresía activa (sin caducidad). No toca el plan:
+                           // el plan/módulos se asignan en /admin/consultorio.
+            $pdo->prepare("UPDATE consultorios SET estado='activa' WHERE id=?")->execute([$cid]);
+            auditar('activar', 'consultorio', $cid, null, $cid);
+            flash('Consultorio activado. Asigna su plan en «Plan y módulos».');
             break;
         case 'suspender':
             $pdo->prepare("UPDATE consultorios SET estado='suspendida' WHERE id=?")->execute([$cid]);
+            auditar('suspender', 'consultorio', $cid, null, $cid);
             flash('Consultorio suspendido.');
             break;
     }
@@ -47,6 +52,7 @@ $tot = ['total' => 0, 'trial' => 0, 'activa' => 0, 'suspendida' => 0, 'expirada'
 foreach ($consultorios as $c) { $tot['total']++; $tot[$c['estado']] = ($tot[$c['estado']] ?? 0) + 1; }
 
 $badge = ['trial' => 'info', 'activa' => 'success', 'suspendida' => 'danger', 'expirada' => 'secondary'];
+$planNombres = array_map(fn($p) => $p['nombre'], planes_mp());
 
 $titulo = 'Súper-admin';
 $activo = 'admin';
@@ -101,7 +107,10 @@ include __DIR__ . '/../includes/header.php';
                             <?php endif; ?>
                         </div>
                     </td>
-                    <td><span class="badge bg-<?= $badge[$c['estado']] ?? 'secondary' ?>"><?= ucfirst($c['estado']) ?></span></td>
+                    <td>
+                        <span class="badge bg-<?= $badge[$c['estado']] ?? 'secondary' ?>"><?= ucfirst($c['estado']) ?></span>
+                        <div class="small text-muted mt-1"><i class="bi bi-stars"></i> <?= e($planNombres[$c['plan']] ?? $c['plan']) ?></div>
+                    </td>
                     <td class="small">
                         <?php if ($c['estado'] === 'trial'): ?>
                             <?= fmt_fecha($c['trial_fin']) ?>
@@ -120,6 +129,8 @@ include __DIR__ . '/../includes/header.php';
                         <div class="btn-group">
                             <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">Gestionar</button>
                             <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="<?= BASE_URL ?>/admin/consultorio?id=<?= $c['id'] ?>"><i class="bi bi-stars me-2"></i>Plan y módulos</a></li>
+                                <li><hr class="dropdown-divider"></li>
                                 <li><button form="f<?= $c['id'] ?>" name="accion" value="extender" class="dropdown-item"><i class="bi bi-stopwatch me-2"></i>Extender prueba 15 días</button></li>
                                 <li><button form="f<?= $c['id'] ?>" name="accion" value="activar" class="dropdown-item text-success"><i class="bi bi-check-circle me-2"></i>Activar membresía</button></li>
                                 <?php if ($c['id'] != 1): ?>
