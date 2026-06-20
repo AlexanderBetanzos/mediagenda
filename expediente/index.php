@@ -5,8 +5,8 @@ require_login();
 $q   = trim($_GET['q'] ?? '');
 $con = $_GET['con'] ?? '';   // '' = todos, '1' = solo con expediente
 
-$where  = [];
-$params = [];
+$where  = ['p.consultorio_id = ?'];
+$params = [tenant_id()];
 if ($q !== '') {
     $where[] = '(p.nombre LIKE ? OR p.apellidos LIKE ?)';
     $like = "%$q%";

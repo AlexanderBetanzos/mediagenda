@@ -3,8 +3,12 @@
 $c = $c ?? [];
 $val = fn(string $k, $def='') => e($c[$k] ?? $def);
 
-$pacientes = db()->query('SELECT id, nombre, apellidos FROM pacientes ORDER BY apellidos, nombre')->fetchAll();
-$medicos   = db()->query("SELECT id, nombre, especialidad FROM usuarios WHERE rol='medico' AND activo=1 ORDER BY nombre")->fetchAll();
+$pacientes = db()->prepare('SELECT id, nombre, apellidos FROM pacientes WHERE consultorio_id = ? ORDER BY apellidos, nombre');
+$pacientes->execute([tenant_id()]);
+$pacientes = $pacientes->fetchAll();
+$medicos   = db()->prepare("SELECT id, nombre, especialidad FROM usuarios WHERE rol='medico' AND activo=1 AND consultorio_id = ? ORDER BY nombre");
+$medicos->execute([tenant_id()]);
+$medicos = $medicos->fetchAll();
 ?>
 <div class="row g-3">
     <div class="col-md-6">

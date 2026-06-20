@@ -12,7 +12,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $medico_id   = (int) ($_POST['medico_id'] ?? $u['id']);
     $meds        = $_POST['med'] ?? [];
 
-    if (!$paciente_id) $errores[] = 'Selecciona un paciente.';
+    if (!$paciente_id || !pertenece_al_tenant('pacientes', $paciente_id)) $errores[] = 'Selecciona un paciente.';
+    if (!pertenece_al_tenant('usuarios', $medico_id)) $medico_id = (int) $u['id'];
     // Al menos un medicamento con nombre
     $items = [];
     foreach ($meds as $m) {
@@ -25,9 +26,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$errores) {
         $pdo = db();
         $pdo->beginTransaction();
-        $stmt = $pdo->prepare('INSERT INTO recetas (paciente_id, medico_id, diagnostico, indicaciones, notas) VALUES (?,?,?,?,?)');
+        $stmt = $pdo->prepare('INSERT INTO recetas (consultorio_id, paciente_id, medico_id, diagnostico, indicaciones, notas) VALUES (?,?,?,?,?,?)');
         $stmt->execute([
-            $paciente_id, $medico_id,
+            tenant_id(), $paciente_id, $medico_id,
             trim($_POST['diagnostico'] ?? '') ?: null,
             trim($_POST['indicaciones'] ?? '') ?: null,
             trim($_POST['notas'] ?? '') ?: null,
@@ -48,8 +49,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$pacientes = db()->query('SELECT id, nombre, apellidos FROM pacientes ORDER BY apellidos, nombre')->fetchAll();
-$medicos   = db()->query("SELECT id, nombre FROM usuarios WHERE rol='medico' AND activo=1 ORDER BY nombre")->fetchAll();
+$pacientes = db()->prepare('SELECT id, nombre, apellidos FROM pacientes WHERE consultorio_id = ? ORDER BY apellidos, nombre');
+$pacientes->execute([tenant_id()]);
+$pacientes = $pacientes->fetchAll();
+$medicos   = db()->prepare("SELECT id, nombre FROM usuarios WHERE rol='medico' AND activo=1 AND consultorio_id = ? ORDER BY nombre");
+$medicos->execute([tenant_id()]);
+$medicos = $medicos->fetchAll();
 
 $titulo = 'Nueva receta';
 $activo = 'recetas';

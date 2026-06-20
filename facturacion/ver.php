@@ -5,9 +5,9 @@ require_login();
 $id = (int) ($_GET['id'] ?? 0);
 $stmt = db()->prepare(
     'SELECT f.*, p.nombre AS pac_nombre, p.apellidos AS pac_ape, p.email, p.telefono, p.direccion
-     FROM facturas f JOIN pacientes p ON p.id = f.paciente_id WHERE f.id = ?'
+     FROM facturas f JOIN pacientes p ON p.id = f.paciente_id WHERE f.id = ? AND f.consultorio_id = ?'
 );
-$stmt->execute([$id]);
+$stmt->execute([$id, tenant_id()]);
 $f = $stmt->fetch();
 if (!$f) { http_response_code(404); die('Factura no encontrada.'); }
 

@@ -10,8 +10,8 @@ $hasta  = $_GET['hasta']  ?? '';
 $estado = $_GET['estado'] ?? '';
 $medico = $_GET['medico'] ?? ($u['rol'] === 'medico' ? (string) $u['id'] : '');
 
-$where  = ['c.fecha >= ?'];
-$params = [$desde];
+$where  = ['c.consultorio_id = ?', 'c.fecha >= ?'];
+$params = [tenant_id(), $desde];
 if ($hasta !== '')  { $where[] = 'c.fecha <= ?';  $params[] = $hasta; }
 if ($estado !== '' && array_key_exists($estado, ['programada'=>1,'confirmada'=>1,'atendida'=>1,'cancelada'=>1,'no_asistio'=>1])) {
     $where[] = 'c.estado = ?'; $params[] = $estado;
@@ -33,7 +33,9 @@ $resumen = ['programada'=>0,'confirmada'=>0,'atendida'=>0,'no_asistio'=>0,'cance
 foreach ($citas as $c) { $resumen[$c['estado']] = ($resumen[$c['estado']] ?? 0) + 1; }
 
 // Médicos para el filtro
-$medicos = db()->query("SELECT id, nombre FROM usuarios WHERE rol='medico' AND activo=1 ORDER BY nombre")->fetchAll();
+$medicos = db()->prepare("SELECT id, nombre FROM usuarios WHERE rol='medico' AND activo=1 AND consultorio_id = ? ORDER BY nombre");
+$medicos->execute([tenant_id()]);
+$medicos = $medicos->fetchAll();
 
 $titulo = 'Citas';
 $activo = 'citas';

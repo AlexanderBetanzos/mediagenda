@@ -2,7 +2,9 @@
 require_once __DIR__ . '/../includes/functions.php';
 require_role('admin');
 
-$usuarios = db()->query('SELECT * FROM usuarios ORDER BY rol, nombre')->fetchAll();
+$usuarios = db()->prepare('SELECT * FROM usuarios WHERE consultorio_id = ? ORDER BY rol, nombre');
+$usuarios->execute([tenant_id()]);
+$usuarios = $usuarios->fetchAll();
 
 $titulo = 'Personal';
 $activo = 'usuarios';

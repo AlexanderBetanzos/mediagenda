@@ -6,13 +6,13 @@ $u = current_user();
 $medFiltro = $u['rol'] === 'medico' ? ' AND r.medico_id = ' . (int) $u['id'] : '';
 
 $q = trim($_GET['q'] ?? '');
-$params = [];
+$params = [tenant_id()];
 $sql = "SELECT r.*, p.nombre AS pac_nombre, p.apellidos AS pac_ape, u.nombre AS med_nombre,
                (SELECT COUNT(*) FROM receta_items ri WHERE ri.receta_id = r.id) AS n_items
         FROM recetas r
         JOIN pacientes p ON p.id = r.paciente_id
         JOIN usuarios  u ON u.id = r.medico_id
-        WHERE 1=1 $medFiltro";
+        WHERE r.consultorio_id = ? $medFiltro";
 if ($q !== '') {
     $sql .= " AND (p.nombre LIKE ? OR p.apellidos LIKE ? OR r.diagnostico LIKE ?)";
     $like = "%$q%"; array_push($params, $like, $like, $like);

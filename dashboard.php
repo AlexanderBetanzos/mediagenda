@@ -6,36 +6,37 @@ $u        = current_user();
 $esMedico = $u['rol'] === 'medico';
 $pdo      = db();
 
-/* Filtro por médico cuando el usuario es médico (ve solo lo suyo). */
+/* Aislamiento por consultorio + filtro por médico (ve solo lo suyo). */
+$tid       = (int) tenant_id();
 $medFiltro = $esMedico ? ' AND medico_id = ' . (int) $u['id'] : '';
 
 // --- Estadísticas ---
 $citasHoy = (int) $pdo->query(
-    "SELECT COUNT(*) FROM citas WHERE fecha = CURDATE() AND estado <> 'cancelada' $medFiltro"
+    "SELECT COUNT(*) FROM citas WHERE consultorio_id = $tid AND fecha = CURDATE() AND estado <> 'cancelada' $medFiltro"
 )->fetchColumn();
 $citasConfHoy = (int) $pdo->query(
-    "SELECT COUNT(*) FROM citas WHERE fecha = CURDATE() AND estado IN ('confirmada','atendida') $medFiltro"
+    "SELECT COUNT(*) FROM citas WHERE consultorio_id = $tid AND fecha = CURDATE() AND estado IN ('confirmada','atendida') $medFiltro"
 )->fetchColumn();
 
-$totPacientes  = (int) $pdo->query('SELECT COUNT(*) FROM pacientes')->fetchColumn();
+$totPacientes  = (int) $pdo->query("SELECT COUNT(*) FROM pacientes WHERE consultorio_id = $tid")->fetchColumn();
 $pacientesMes  = (int) $pdo->query(
-    "SELECT COUNT(*) FROM pacientes WHERE YEAR(creado_en)=YEAR(CURDATE()) AND MONTH(creado_en)=MONTH(CURDATE())"
+    "SELECT COUNT(*) FROM pacientes WHERE consultorio_id = $tid AND YEAR(creado_en)=YEAR(CURDATE()) AND MONTH(creado_en)=MONTH(CURDATE())"
 )->fetchColumn();
 
 $consultasMes = (int) $pdo->query(
-    "SELECT COUNT(*) FROM consultas WHERE YEAR(fecha)=YEAR(CURDATE()) AND MONTH(fecha)=MONTH(CURDATE()) $medFiltro"
+    "SELECT COUNT(*) FROM consultas WHERE consultorio_id = $tid AND YEAR(fecha)=YEAR(CURDATE()) AND MONTH(fecha)=MONTH(CURDATE()) $medFiltro"
 )->fetchColumn();
 
 $citasPend = (int) $pdo->query(
-    "SELECT COUNT(*) FROM citas WHERE fecha >= CURDATE() AND estado IN ('programada','confirmada') $medFiltro"
+    "SELECT COUNT(*) FROM citas WHERE consultorio_id = $tid AND fecha >= CURDATE() AND estado IN ('programada','confirmada') $medFiltro"
 )->fetchColumn();
 
 $recetasMes = (int) $pdo->query(
-    "SELECT COUNT(*) FROM recetas WHERE YEAR(fecha)=YEAR(CURDATE()) AND MONTH(fecha)=MONTH(CURDATE()) $medFiltro"
+    "SELECT COUNT(*) FROM recetas WHERE consultorio_id = $tid AND YEAR(fecha)=YEAR(CURDATE()) AND MONTH(fecha)=MONTH(CURDATE()) $medFiltro"
 )->fetchColumn();
 
 $ingresosMes = (float) $pdo->query(
-    "SELECT COALESCE(SUM(total),0) FROM facturas WHERE estado='pagada'
+    "SELECT COALESCE(SUM(total),0) FROM facturas WHERE consultorio_id = $tid AND estado='pagada'
      AND YEAR(fecha)=YEAR(CURDATE()) AND MONTH(fecha)=MONTH(CURDATE())"
 )->fetchColumn();
 
@@ -46,9 +47,9 @@ $wk = [];
 for ($i = 0; $i < 7; $i++) $wk[date('Y-m-d', strtotime("$monday +$i day"))] = 0;
 $stmt = $pdo->prepare(
     "SELECT DATE(fecha) d, COUNT(*) c FROM citas
-     WHERE fecha BETWEEN ? AND ? AND estado <> 'cancelada' $medFiltro GROUP BY DATE(fecha)"
+     WHERE consultorio_id = ? AND fecha BETWEEN ? AND ? AND estado <> 'cancelada' $medFiltro GROUP BY DATE(fecha)"
 );
-$stmt->execute([$monday, $sunday]);
+$stmt->execute([$tid, $monday, $sunday]);
 foreach ($stmt as $r) if (isset($wk[$r['d']])) $wk[$r['d']] = (int) $r['c'];
 $chartData = array_values($wk);
 
@@ -56,10 +57,10 @@ $chartData = array_values($wk);
 $ag = $pdo->prepare(
     "SELECT c.*, p.nombre, p.apellidos FROM citas c
      JOIN pacientes p ON p.id = c.paciente_id
-     WHERE c.fecha = CURDATE() AND c.estado <> 'cancelada' $medFiltro
+     WHERE c.consultorio_id = ? AND c.fecha = CURDATE() AND c.estado <> 'cancelada' $medFiltro
      ORDER BY c.hora LIMIT 8"
 );
-$ag->execute();
+$ag->execute([$tid]);
 $agendaHoy = $ag->fetchAll();
 
 // --- Últimos expedientes (últimas consultas) ---
@@ -68,10 +69,10 @@ $ue = $pdo->prepare(
             (SELECT COUNT(*) FROM citas ci WHERE ci.paciente_id=p.id
              AND ci.fecha>=CURDATE() AND ci.estado IN('programada','confirmada')) futuras
      FROM consultas co JOIN pacientes p ON p.id = co.paciente_id
-     WHERE 1=1 $medFiltro
+     WHERE co.consultorio_id = ? $medFiltro
      ORDER BY co.fecha DESC LIMIT 6"
 );
-$ue->execute();
+$ue->execute([$tid]);
 $ultimos = $ue->fetchAll();
 
 $titulo = 'Panel';

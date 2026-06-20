@@ -23,10 +23,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!$errores) {
         $stmt = db()->prepare(
-            'INSERT INTO usuarios (nombre, email, password_hash, rol, especialidad, telefono)
-             VALUES (?,?,?,?,?,?)'
+            'INSERT INTO usuarios (consultorio_id, nombre, email, password_hash, rol, especialidad, telefono)
+             VALUES (?,?,?,?,?,?,?)'
         );
         $stmt->execute([
+            tenant_id(),
             trim($usr['nombre']), trim($usr['email']),
             password_hash($usr['password'], PASSWORD_DEFAULT),
             $usr['rol'],

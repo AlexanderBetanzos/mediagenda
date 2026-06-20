@@ -9,17 +9,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
     $c = $_POST;
 
-    if (empty($c['paciente_id'])) $errores[] = 'Selecciona un paciente.';
-    if (empty($c['medico_id']))   $errores[] = 'Selecciona un médico.';
+    if (empty($c['paciente_id']) || !pertenece_al_tenant('pacientes', (int) $c['paciente_id'])) $errores[] = 'Selecciona un paciente.';
+    if (empty($c['medico_id'])   || !pertenece_al_tenant('usuarios', (int) $c['medico_id']))    $errores[] = 'Selecciona un médico.';
     if (empty($c['fecha']))       $errores[] = 'Indica la fecha.';
     if (empty($c['hora']))        $errores[] = 'Indica la hora.';
 
     if (!$errores) {
         $stmt = db()->prepare(
-            'INSERT INTO citas (paciente_id, medico_id, fecha, hora, duracion, tipo, motivo, estado, notas)
-             VALUES (?,?,?,?,?,?,?,?,?)'
+            'INSERT INTO citas (consultorio_id, paciente_id, medico_id, fecha, hora, duracion, tipo, motivo, estado, notas)
+             VALUES (?,?,?,?,?,?,?,?,?,?)'
         );
         $stmt->execute([
+            tenant_id(),
             (int) $c['paciente_id'], (int) $c['medico_id'], $c['fecha'], $c['hora'],
             (int) ($c['duracion'] ?: 30), $c['tipo'] ?? 'medica',
             trim($c['motivo'] ?? '') ?: null, $c['estado'] ?? 'programada',

@@ -3,9 +3,9 @@ require_once __DIR__ . '/../includes/functions.php';
 require_login();
 
 $estado = $_GET['estado'] ?? '';
-$params = [];
+$params = [tenant_id()];
 $sql = "SELECT f.*, p.nombre AS pac_nombre, p.apellidos AS pac_ape
-        FROM facturas f JOIN pacientes p ON p.id = f.paciente_id WHERE 1=1";
+        FROM facturas f JOIN pacientes p ON p.id = f.paciente_id WHERE f.consultorio_id = ?";
 if (in_array($estado, ['pendiente','pagada','cancelada'], true)) {
     $sql .= " AND f.estado = ?"; $params[] = $estado;
 }
@@ -14,9 +14,13 @@ $stmt = db()->prepare($sql);
 $stmt->execute($params);
 $facturas = $stmt->fetchAll();
 
-// Totales
-$totPagado = (float) db()->query("SELECT COALESCE(SUM(total),0) FROM facturas WHERE estado='pagada'")->fetchColumn();
-$totPend   = (float) db()->query("SELECT COALESCE(SUM(total),0) FROM facturas WHERE estado='pendiente'")->fetchColumn();
+// Totales (del consultorio activo)
+$tp = db()->prepare("SELECT COALESCE(SUM(total),0) FROM facturas WHERE estado='pagada' AND consultorio_id = ?");
+$tp->execute([tenant_id()]);
+$totPagado = (float) $tp->fetchColumn();
+$tn = db()->prepare("SELECT COALESCE(SUM(total),0) FROM facturas WHERE estado='pendiente' AND consultorio_id = ?");
+$tn->execute([tenant_id()]);
+$totPend = (float) $tn->fetchColumn();
 
 $titulo = 'Facturación';
 $activo = 'facturacion';

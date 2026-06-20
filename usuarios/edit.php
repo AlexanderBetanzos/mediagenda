@@ -3,8 +3,8 @@ require_once __DIR__ . '/../includes/functions.php';
 require_role('admin');
 
 $id = (int) ($_GET['id'] ?? $_POST['id'] ?? 0);
-$stmt = db()->prepare('SELECT * FROM usuarios WHERE id = ?');
-$stmt->execute([$id]);
+$stmt = db()->prepare('SELECT * FROM usuarios WHERE id = ? AND consultorio_id = ?');
+$stmt->execute([$id, tenant_id()]);
 $usr = $stmt->fetch();
 if (!$usr) { http_response_code(404); die('Usuario no encontrado.'); }
 
@@ -27,14 +27,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!$errores) {
         if (($usr['password'] ?? '') !== '') {
-            $stmt = db()->prepare('UPDATE usuarios SET nombre=?, email=?, rol=?, especialidad=?, telefono=?, password_hash=? WHERE id=?');
+            $stmt = db()->prepare('UPDATE usuarios SET nombre=?, email=?, rol=?, especialidad=?, telefono=?, password_hash=? WHERE id=? AND consultorio_id=?');
             $stmt->execute([trim($usr['nombre']), trim($usr['email']), $usr['rol'],
                 trim($usr['especialidad'] ?? '') ?: null, trim($usr['telefono'] ?? '') ?: null,
-                password_hash($usr['password'], PASSWORD_DEFAULT), $id]);
+                password_hash($usr['password'], PASSWORD_DEFAULT), $id, tenant_id()]);
         } else {
-            $stmt = db()->prepare('UPDATE usuarios SET nombre=?, email=?, rol=?, especialidad=?, telefono=? WHERE id=?');
+            $stmt = db()->prepare('UPDATE usuarios SET nombre=?, email=?, rol=?, especialidad=?, telefono=? WHERE id=? AND consultorio_id=?');
             $stmt->execute([trim($usr['nombre']), trim($usr['email']), $usr['rol'],
-                trim($usr['especialidad'] ?? '') ?: null, trim($usr['telefono'] ?? '') ?: null, $id]);
+                trim($usr['especialidad'] ?? '') ?: null, trim($usr['telefono'] ?? '') ?: null, $id, tenant_id()]);
         }
         flash('Usuario actualizado.');
         redirect('/usuarios/index.php');

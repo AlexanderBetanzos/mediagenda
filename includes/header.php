@@ -143,3 +143,25 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             <?php endforeach; ?>
+
+            <?php
+            /* Banner de prueba: días restantes y aviso al acercarse el fin. */
+            $__t = tenant();
+            if ($__t && ($__t['estado'] ?? '') === 'trial'):
+                $__dias = trial_dias_restantes();
+                $__urgente = $__dias !== null && $__dias <= 3;
+            ?>
+            <div class="alert <?= $__urgente ? 'alert-warning' : 'alert-info' ?> d-flex flex-wrap align-items-center justify-content-between gap-2 py-2">
+                <span>
+                    <i class="bi bi-stopwatch"></i>
+                    <?php if ($__dias !== null && $__dias > 0): ?>
+                        Estás en tu <strong>prueba gratis</strong>: te quedan <strong><?= (int) $__dias ?> día<?= $__dias === 1 ? '' : 's' ?></strong>.
+                    <?php else: ?>
+                        Tu prueba gratis termina <strong>hoy</strong>.
+                    <?php endif; ?>
+                </span>
+                <a href="<?= BASE_URL ?>/auth/suscripcion.php" class="btn btn-sm <?= $__urgente ? 'btn-warning' : 'btn-primary' ?>">
+                    <i class="bi bi-stars"></i> Activar plan
+                </a>
+            </div>
+            <?php endif; ?>

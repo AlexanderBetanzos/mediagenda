@@ -5,7 +5,7 @@ verify_csrf();
 
 $id = (int) ($_POST['id'] ?? 0);
 if ($id) {
-    db()->prepare('DELETE FROM pacientes WHERE id = ?')->execute([$id]);
+    db()->prepare('DELETE FROM pacientes WHERE id = ? AND consultorio_id = ?')->execute([$id, tenant_id()]);
     flash('Paciente eliminado.');
 }
 redirect('/pacientes/index.php');

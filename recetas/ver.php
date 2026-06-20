@@ -9,9 +9,9 @@ $stmt = db()->prepare(
      FROM recetas r
      JOIN pacientes p ON p.id = r.paciente_id
      JOIN usuarios  u ON u.id = r.medico_id
-     WHERE r.id = ?'
+     WHERE r.id = ? AND r.consultorio_id = ?'
 );
-$stmt->execute([$id]);
+$stmt->execute([$id, tenant_id()]);
 $r = $stmt->fetch();
 if (!$r) { http_response_code(404); die('Receta no encontrada.'); }
 

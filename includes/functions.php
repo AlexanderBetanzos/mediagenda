@@ -9,24 +9,81 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 /* --------------------------------------------------------------------
- *  Configuración del consultorio (tabla clave-valor)
+ *  Multi-tenant: contexto del consultorio (tenant) activo
  * ------------------------------------------------------------------ */
 
-/** Devuelve todos los ajustes (cacheado por petición). $reset limpia la caché. */
+/** ID del consultorio activo: el del usuario en sesión, o 1 (contexto público). */
+function tenant_id(): int
+{
+    $u = $_SESSION['usuario'] ?? null;
+    return isset($u['consultorio_id']) ? (int) $u['consultorio_id'] : 1;
+}
+
+/** Fila del consultorio activo (cacheada). null si la tabla aún no existe. */
+function tenant(bool $reset = false): ?array
+{
+    static $cache = [];
+    $tid = tenant_id();
+    if ($reset) { $cache = []; return null; }
+    if (array_key_exists($tid, $cache)) return $cache[$tid] ?: null;
+    $cache[$tid] = false;
+    try {
+        $st = db()->prepare('SELECT * FROM consultorios WHERE id = ?');
+        $st->execute([$tid]);
+        $cache[$tid] = $st->fetch() ?: false;
+    } catch (Throwable $e) { /* tabla consultorios aún no creada */ }
+    return $cache[$tid] ?: null;
+}
+
+/** Días restantes de prueba (negativo si ya venció). null si no aplica. */
+function trial_dias_restantes(): ?int
+{
+    $t = tenant();
+    if (!$t || empty($t['trial_fin'])) return null;
+    return (int) floor((strtotime($t['trial_fin']) - strtotime('today')) / 86400);
+}
+
+/** ¿La fila $id de $tabla pertenece al consultorio activo? (anti cross-tenant) */
+function pertenece_al_tenant(string $tabla, int $id): bool
+{
+    $permitidas = ['pacientes', 'usuarios', 'citas', 'consultas', 'recetas', 'facturas'];
+    if ($id <= 0 || !in_array($tabla, $permitidas, true)) return false;
+    $st = db()->prepare("SELECT 1 FROM $tabla WHERE id = ? AND consultorio_id = ?");
+    $st->execute([$id, tenant_id()]);
+    return (bool) $st->fetchColumn();
+}
+
+/** ¿El consultorio está bloqueado (prueba vencida o suspendido)? */
+function tenant_bloqueado(): bool
+{
+    $t = tenant();
+    if (!$t) return false;
+    if (in_array($t['estado'], ['suspendida', 'expirada'], true)) return true;
+    if ($t['estado'] === 'trial' && (trial_dias_restantes() ?? 0) < 0) return true;
+    return false;
+}
+
+/* --------------------------------------------------------------------
+ *  Configuración del consultorio (clave-valor, POR consultorio)
+ * ------------------------------------------------------------------ */
+
+/** Devuelve los ajustes del consultorio activo (cacheado por tenant). */
 function cfg_all(bool $reset = false): array
 {
-    static $cache = null;
-    if ($reset)            { $cache = null; return []; }
-    if ($cache !== null)   { return $cache; }
-    $cache = [];
+    static $cache = [];
+    if ($reset) { $cache = []; return []; }
+    $tid = tenant_id();
+    if (isset($cache[$tid])) return $cache[$tid];
+    $out = [];
     try {
-        foreach (db()->query('SELECT clave, valor FROM configuracion') as $row) {
-            $cache[$row['clave']] = $row['valor'];
-        }
+        $st = db()->prepare('SELECT clave, valor FROM configuracion WHERE consultorio_id = ?');
+        $st->execute([$tid]);
+        foreach ($st as $row) { $out[$row['clave']] = $row['valor']; }
     } catch (Throwable $e) {
-        $cache = []; // la tabla aún no existe (antes de importar configuracion.sql)
+        $out = []; // la tabla aún no existe
     }
-    return $cache;
+    $cache[$tid] = $out;
+    return $out;
 }
 
 /** Lee un ajuste; devuelve $default si está vacío o no existe. */
@@ -37,15 +94,16 @@ function cfg(string $clave, $default = '')
     return ($v === null || $v === '') ? $default : $v;
 }
 
-/** Guarda (upsert) un conjunto de ajustes clave => valor. */
+/** Guarda (upsert) ajustes del consultorio activo. */
 function guardar_cfg(array $pares): void
 {
+    $tid  = tenant_id();
     $stmt = db()->prepare(
-        'INSERT INTO configuracion (clave, valor) VALUES (?, ?)
+        'INSERT INTO configuracion (consultorio_id, clave, valor) VALUES (?, ?, ?)
          ON DUPLICATE KEY UPDATE valor = VALUES(valor)'
     );
     foreach ($pares as $k => $v) {
-        $stmt->execute([$k, $v]);
+        $stmt->execute([$tid, $k, $v]);
     }
     cfg_all(true); // invalida la caché
 }
@@ -168,6 +226,12 @@ function require_login(): void
     if (!is_logged_in()) {
         flash('Debes iniciar sesión.', 'warning');
         redirect('/auth/login.php');
+    }
+    // Gating de suscripción: si la prueba venció o el consultorio está suspendido,
+    // se bloquea el acceso (salvo páginas que declaran ALLOW_INACTIVE, p. ej.
+    // la pantalla de suscripción o el cierre de sesión).
+    if (!defined('ALLOW_INACTIVE') && tenant_bloqueado()) {
+        redirect('/auth/suscripcion.php');
     }
 }
 
