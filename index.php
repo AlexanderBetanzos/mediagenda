@@ -153,11 +153,13 @@ $logged = is_logged_in();
         <div class="row g-4 justify-content-center">
             <?php
             $planes = [
-                ['Básico','$0','Para empezar', ['1 médico','Pacientes y citas','Expediente clínico'], false],
-                ['Estándar','$299','Consultorio en crecimiento', ['Hasta 5 médicos','Recordatorios','Reportes básicos','Soporte por correo'], true],
-                ['Premium','$599','Clínicas y equipos', ['Médicos ilimitados','Roles avanzados','Respaldo diario','Soporte prioritario'], false],
+                ['Prueba gratis','$0','15 días con acceso completo', ['Todas las funciones','Pacientes y citas','Expediente clínico','Sin tarjeta'], false, ''],
+                ['Estándar','$299','Consultorio en crecimiento', ['Hasta 5 médicos','Recordatorios','Reportes básicos','Soporte por correo'], true, 'estandar'],
+                ['Premium','$599','Clínicas y equipos', ['Médicos ilimitados','Roles avanzados','Respaldo diario','Soporte prioritario'], false, 'premium'],
             ];
-            foreach ($planes as [$nombre,$precio,$desc,$items,$feat]): ?>
+            foreach ($planes as [$nombre,$precio,$desc,$items,$feat,$planKey]):
+                $href = BASE_URL . '/auth/registro.php' . ($planKey ? '?plan=' . $planKey : '');
+                $btn  = $planKey ? 'Contratar ahora' : 'Probar 15 días gratis'; ?>
             <div class="col-md-6 col-lg-4">
                 <div class="card price-card h-100 shadow-sm <?= $feat ? 'featured' : '' ?>">
                     <div class="card-body p-4 text-center">
@@ -170,7 +172,7 @@ $logged = is_logged_in();
                                 <li class="mb-2"><i class="bi bi-check2 text-success me-2"></i><?= e($it) ?></li>
                             <?php endforeach; ?>
                         </ul>
-                        <a href="<?= BASE_URL ?>/auth/registro.php" class="btn <?= $feat ? 'btn-primary' : 'btn-outline-primary' ?> w-100">Probar 15 días gratis</a>
+                        <a href="<?= e($href) ?>" class="btn <?= $feat ? 'btn-primary' : 'btn-outline-primary' ?> w-100"><?= $btn ?></a>
                     </div>
                 </div>
             </div>

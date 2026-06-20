@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/mercadopago.php';
 
 // Si ya hay sesión, al panel.
 if (is_logged_in()) {
@@ -7,6 +8,11 @@ if (is_logged_in()) {
 }
 
 const TRIAL_DIAS = 15;
+
+// Plan elegido: '' = prueba gratis de 15 días; 'estandar'/'premium' = pago inmediato.
+$plan  = preg_replace('/[^a-z]/', '', (string) ($_GET['plan'] ?? $_POST['plan'] ?? ''));
+$planes = planes_mp();
+$pagar = ($plan !== '' && isset($planes[$plan]) && mp_configurado());
 
 $error = '';
 $f = ['consultorio' => '', 'nombre' => '', 'email' => '', 'telefono' => ''];
@@ -58,10 +64,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
                 $pdo->beginTransaction();
                 $slug = slug_unico($pdo, $f['consultorio']);
+                // Pago inmediato: sin prueba (trial_fin en el pasado → debe pagar).
+                $trialFin = $pagar
+                    ? date('Y-m-d', strtotime('-1 day'))
+                    : date('Y-m-d', strtotime('+' . TRIAL_DIAS . ' days'));
                 $pdo->prepare(
                     "INSERT INTO consultorios (nombre, slug, email, telefono, plan, estado, trial_inicio, trial_fin)
-                     VALUES (?, ?, ?, ?, 'trial', 'trial', CURDATE(), DATE_ADD(CURDATE(), INTERVAL ? DAY))"
-                )->execute([$f['consultorio'], $slug, $f['email'], $f['telefono'], TRIAL_DIAS]);
+                     VALUES (?, ?, ?, ?, ?, 'trial', CURDATE(), ?)"
+                )->execute([$f['consultorio'], $slug, $f['email'], $f['telefono'], $pagar ? $plan : 'trial', $trialFin]);
                 $cid = (int) $pdo->lastInsertId();
 
                 $pdo->prepare(
@@ -92,6 +102,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'formato_fecha' => 'd/m/Y',
                 ]);
 
+                if ($pagar) {
+                    // Plan de pago: directo a Mercado Pago, sin prueba.
+                    redirect('/pagos/suscribir.php?plan=' . $plan);
+                }
                 flash('¡Tu consultorio fue creado! Tienes ' . TRIAL_DIAS . ' días de prueba gratis.');
                 redirect('/dashboard.php');
             } catch (Throwable $e) {
@@ -120,11 +134,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="card shadow login-card" style="max-width:480px">
         <div class="card-body p-4 p-sm-5">
             <div class="text-center mb-4">
-                <span class="badge bg-success-subtle text-success border border-success-subtle mb-2">
-                    <i class="bi bi-gift"></i> <?= TRIAL_DIAS ?> días gratis · acceso completo · sin tarjeta
-                </span>
-                <h1 class="h4 mb-1">Crea tu consultorio en <?= e(APP_NAME) ?></h1>
-                <p class="text-muted small mb-0"><?= TRIAL_DIAS ?> días con <strong>todas las funciones desbloqueadas</strong>: pacientes, citas, expediente, recetas, facturación y reportes.</p>
+                <?php if ($pagar): $p = $planes[$plan]; ?>
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle mb-2">
+                        <i class="bi bi-stars"></i> Plan <?= e($p['nombre']) ?> · $<?= number_format($p['precio'], 0) ?>/mes
+                    </span>
+                    <h1 class="h4 mb-1">Crea tu cuenta y activa <?= e($p['nombre']) ?></h1>
+                    <p class="text-muted small mb-0">Al continuar te llevamos a <strong>Mercado Pago</strong> para activar tu suscripción mensual.</p>
+                <?php else: ?>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle mb-2">
+                        <i class="bi bi-gift"></i> <?= TRIAL_DIAS ?> días gratis · acceso completo · sin tarjeta
+                    </span>
+                    <h1 class="h4 mb-1">Crea tu consultorio en <?= e(APP_NAME) ?></h1>
+                    <p class="text-muted small mb-0"><?= TRIAL_DIAS ?> días con <strong>todas las funciones desbloqueadas</strong>: pacientes, citas, expediente, recetas, facturación y reportes.</p>
+                <?php endif; ?>
             </div>
 
             <?php if ($error): ?>
@@ -133,6 +155,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <form method="post" novalidate>
                 <?= csrf_field() ?>
+                <input type="hidden" name="plan" value="<?= e($plan) ?>">
                 <div class="mb-3">
                     <label class="form-label">Nombre del consultorio</label>
                     <div class="input-group">
@@ -176,7 +199,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <input type="password" name="password2" class="form-control" required minlength="8" placeholder="Repite la contraseña">
                     </div>
                 </div>
-                <button class="btn btn-primary w-100 py-2"><i class="bi bi-rocket-takeoff"></i> Empezar mi prueba de <?= TRIAL_DIAS ?> días</button>
+                <?php if ($pagar): ?>
+                    <button class="btn btn-primary w-100 py-2"><i class="bi bi-credit-card"></i> Continuar al pago</button>
+                <?php else: ?>
+                    <button class="btn btn-primary w-100 py-2"><i class="bi bi-rocket-takeoff"></i> Empezar mi prueba de <?= TRIAL_DIAS ?> días</button>
+                <?php endif; ?>
             </form>
 
             <div class="text-center mt-3 small text-muted">
