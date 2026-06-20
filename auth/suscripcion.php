@@ -13,6 +13,21 @@ $mensaje = [
 
 $soporte = cfg('email') ?: 'ventas@mediagenda.com.mx';
 
+// Datos del consultorio (a salvo) — refuerza la conversión.
+$tid = tenant_id();
+$contar = function (string $tabla) use ($tid): int {
+    $st = db()->prepare("SELECT COUNT(*) FROM $tabla WHERE consultorio_id = ?");
+    $st->execute([$tid]);
+    return (int) $st->fetchColumn();
+};
+$resumen = [
+    ['bi-people',        $contar('pacientes'), 'pacientes'],
+    ['bi-calendar-check',$contar('citas'),     'citas'],
+    ['bi-file-medical',  $contar('consultas'), 'consultas'],
+    ['bi-receipt',       $contar('facturas'),  'facturas'],
+];
+$totalDatos = array_sum(array_column($resumen, 1));
+
 $planes = [
     ['Estándar', '$299', 'Consultorio en crecimiento', ['Hasta 5 médicos', 'Recordatorios', 'Reportes', 'Soporte por correo'], true],
     ['Premium',  '$599', 'Clínicas y equipos',         ['Médicos ilimitados', 'Roles avanzados', 'Respaldo diario', 'Soporte prioritario'], false],
@@ -36,8 +51,25 @@ $planes = [
     <div class="text-center mb-4">
         <div class="display-5 text-brand"><i class="bi bi-lock-fill"></i></div>
         <h1 class="h3 mt-2"><?= e($mensaje) ?></h1>
-        <p class="text-muted">Para seguir usando <strong><?= e(marca_nombre()) ?></strong>, elige un plan y activa tu cuenta. Tus datos están guardados y a salvo.</p>
+        <p class="text-muted">Para seguir usando <strong><?= e(marca_nombre()) ?></strong>, elige un plan y reactiva tu cuenta.</p>
     </div>
+
+    <?php if ($totalDatos > 0): ?>
+    <div class="card border-success-subtle mb-4">
+        <div class="card-body">
+            <p class="text-center mb-3"><i class="bi bi-shield-check text-success"></i>
+                <strong>Tus datos están guardados y a salvo.</strong> Reactiva tu cuenta para recuperar el acceso a:</p>
+            <div class="row g-3 text-center">
+                <?php foreach ($resumen as [$icono, $num, $etq]): if ($num > 0): ?>
+                <div class="col">
+                    <div class="display-6 fw-bold text-brand"><?= $num ?></div>
+                    <div class="small text-muted"><i class="bi <?= $icono ?>"></i> <?= $etq ?></div>
+                </div>
+                <?php endif; endforeach; ?>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
 
     <div class="row g-3 justify-content-center mb-4">
         <?php foreach ($planes as [$nombre, $precio, $desc, $items, $feat]): ?>
