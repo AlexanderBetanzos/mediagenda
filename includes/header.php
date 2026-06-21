@@ -129,6 +129,7 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
                     <?php if (modulo_activo('expediente')): ?><li class="nav-item"><a class="nav-link<?= nav_active('expediente', $activo) ?>" href="<?= BASE_URL ?>/expediente/index"><i class="bi bi-folder2-open"></i> Expediente</a></li><?php endif; ?>
                     <?php if (modulo_activo('recetas')): ?><li class="nav-item"><a class="nav-link<?= nav_active('recetas', $activo) ?>" href="<?= BASE_URL ?>/recetas/index"><i class="bi bi-capsule"></i> Recetas</a></li><?php endif; ?>
                     <?php if (modulo_activo('facturacion')): ?><li class="nav-item"><a class="nav-link<?= nav_active('facturacion', $activo) ?>" href="<?= BASE_URL ?>/facturacion/index"><i class="bi bi-receipt"></i> Facturación</a></li><?php endif; ?>
+                    <?php if (modulo_activo('farmacia')): ?><li class="nav-item"><a class="nav-link<?= nav_active('inventario', $activo) ?>" href="<?= BASE_URL ?>/inventario/index"><i class="bi bi-box-seam"></i> Inventario</a></li><?php endif; ?>
                     <?php if (modulo_activo('reportes')): ?><li class="nav-item"><a class="nav-link<?= nav_active('reportes', $activo) ?>" href="<?= BASE_URL ?>/reportes/index"><i class="bi bi-bar-chart"></i> Reportes</a></li><?php endif; ?>
                     <?php if (has_role('admin')): ?>
                     <li class="nav-item mt-2"><a class="nav-link<?= nav_active('usuarios', $activo) ?>" href="<?= BASE_URL ?>/usuarios/index"><i class="bi bi-person-badge"></i> Personal</a></li>

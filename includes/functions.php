@@ -71,7 +71,7 @@ function trial_dias_restantes(): ?int
 /** ¿La fila $id de $tabla pertenece al consultorio activo? (anti cross-tenant) */
 function pertenece_al_tenant(string $tabla, int $id): bool
 {
-    $permitidas = ['pacientes', 'usuarios', 'citas', 'consultas', 'recetas', 'facturas', 'archivos'];
+    $permitidas = ['pacientes', 'usuarios', 'citas', 'consultas', 'recetas', 'facturas', 'archivos', 'productos'];
     if ($id <= 0 || !in_array($tabla, $permitidas, true)) return false;
     $st = db()->prepare("SELECT 1 FROM $tabla WHERE id = ? AND consultorio_id = ?");
     $st->execute([$id, tenant_id()]);
