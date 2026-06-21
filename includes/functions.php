@@ -671,21 +671,25 @@ function wa_link(?string $telefono, string $mensaje): string
 function estado_badge(string $estado): string
 {
     return [
-        'programada' => 'secondary',
-        'confirmada' => 'info',
-        'atendida'   => 'success',
-        'cancelada'  => 'danger',
-        'no_asistio' => 'warning',
+        'programada'  => 'secondary',
+        'confirmada'  => 'info',
+        'esperando'   => 'warning',
+        'en_consulta' => 'primary',
+        'atendida'    => 'success',
+        'cancelada'   => 'danger',
+        'no_asistio'  => 'dark',
     ][$estado] ?? 'secondary';
 }
 
 function estado_label(string $estado): string
 {
     return [
-        'programada' => 'Programada',
-        'confirmada' => 'Confirmada',
-        'atendida'   => 'Atendida',
-        'cancelada'  => 'Cancelada',
-        'no_asistio' => 'No asistió',
+        'programada'  => 'Programada',
+        'confirmada'  => 'Confirmada',
+        'esperando'   => 'En espera',
+        'en_consulta' => 'En consulta',
+        'atendida'    => 'Atendida',
+        'cancelada'   => 'Cancelada',
+        'no_asistio'  => 'No asistió',
     ][$estado] ?? $estado;
 }

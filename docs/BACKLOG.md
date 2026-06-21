@@ -119,13 +119,13 @@ Objetivo: que un consultorio pague hoy. Completa el núcleo + comunicación.
 | Módulo | Qué incluye | Plan | Depende de | Estado |
 |---|---|---|---|---|
 | Agenda pro | ✅ Vista día/semana/mes (FullCalendar) + **drag&drop** reagendar · ✅ **citas recurrentes** (semanal/quincenal/mensual) · ✅ **horarios por médico** + **bloqueos** (`citas/horarios.php`, bloqueos como franjas de fondo en el calendario). ⏳ Falta: validar choques contra horario/bloqueo al agendar, duración por defecto por médico | B | — | 🟢 |
-| Flujo de sala | Estados (esperando/en consulta/finalizada/cancelada/no asistió), check-in, QR de llegada, turnos, tiempo de espera | P | Agenda pro | ⬜ |
+| Flujo de sala | ✅ Estados (esperando/en consulta/atendida/…), **check-in**, tablero del día (`citas/sala.php`), tiempo de espera y promedio. ⬜ Falta: QR de llegada, turnos digitales, pantallas en sala | P | Agenda pro | 🟢 |
 | Recordatorios | ✅ **Automáticos por correo** (cron `cron/recordatorios.php`, citas de mañana, idempotente, toggle en config) · ✅ **WhatsApp click-to-chat** (`wa.me` por cita). ⬜ Falta: WhatsApp/SMS automáticos por API (Twilio/Meta), confirmación bidireccional, lista de espera | B (correo) / P (WhatsApp/SMS) | 3.3 notificaciones | 🟢 |
 | Expediente inteligente | ✅ Identificación (CURP/RFC/INE/tipo sangre), contacto de emergencia, antecedentes (personales/familiares/cirugías/vacunas/crónicas/hábitos/alergias), **IMC automático** (de la última consulta), fotos/PDF/estudios ✅. ⬜ Falta: medicamentos actuales estructurados, gráficas de signos vitales | B | 3.2 NOM-024 | 🟡 |
 | Consulta avanzada | Plantillas por especialidad, notas rápidas, diagnósticos/tratamientos, órdenes médicas, interconsultas | B | Expediente | ⬜ |
 | Recetas electrónicas | Catálogo de medicamentos, recetas favoritas, dosis automáticas, firma electrónica, QR, reimpresión, historial | B (básico) / P (firma+QR) | 3.3 PDF | 🟡 |
 | Facturación + caja | Métodos de pago, caja, cortes, pagos parciales, cuentas por cobrar; **CFDI/SAT** | B (simple) / C (CFDI) | 3.2 SAT | 🟡 |
-| Portal del paciente | ✅ Acceso propio (sesión separada), ver citas próximas/historial, ver/imprimir recetas, descargar estudios. Provisión desde `pacientes/ver` (staff fija contraseña). ⬜ Falta: reagendar/cancelar, pagos, auto-registro por token de correo | P | 3.3 API | 🟡 |
+| Portal del paciente | ✅ Acceso propio (sesión separada), ver citas próximas/historial, **reagendar/cancelar** sus citas (`portal/cita.php`), ver/imprimir recetas, descargar estudios. Provisión desde `pacientes/ver`. ⬜ Falta: pagos, chat/video, auto-registro por token | P | 3.3 API | 🟢 |
 | Dashboard | KPIs configurables, agenda del día, pendientes, ingresos | B | — | 🟡 |
 
 ---

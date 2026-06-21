@@ -28,8 +28,9 @@ $st->execute($params);
 
 // Colores por estado (coherentes con los badges de la app).
 $colores = [
-    'programada' => '#6c757d', 'confirmada' => '#0dcaf0', 'atendida' => '#198754',
-    'cancelada'  => '#dc3545', 'no_asistio' => '#f59e0b',
+    'programada' => '#6c757d', 'confirmada' => '#0dcaf0', 'esperando' => '#f59e0b',
+    'en_consulta' => '#0b6fb8', 'atendida' => '#198754', 'cancelada' => '#dc3545',
+    'no_asistio' => '#343a40',
 ];
 
 $eventos = [];

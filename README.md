@@ -38,6 +38,7 @@ Construido con **PHP 8 + MariaDB + Bootstrap 5** sobre XAMPP.
    $MYSQL -u root consultorios_db < sql/inventario.sql
    $MYSQL -u root consultorios_db < sql/crm.sql
    $MYSQL -u root consultorios_db < sql/recordatorios.sql
+   $MYSQL -u root consultorios_db < sql/sala.sql
    ```
 
    **Cron de recordatorios (opcional):** para enviar recordatorios de cita por

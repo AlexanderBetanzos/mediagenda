@@ -31,12 +31,33 @@ include __DIR__ . '/../includes/portal_header.php';
         <?php if (!$proximas): ?>
             <div class="list-group-item text-muted text-center py-4">No tienes citas próximas. Contacta a tu consultorio para agendar.</div>
         <?php else: foreach ($proximas as $c): ?>
-            <div class="list-group-item d-flex flex-wrap justify-content-between align-items-center gap-2">
-                <div>
-                    <div class="fw-semibold"><?= fmt_fecha($c['fecha']) ?> · <?= fmt_hora($c['hora']) ?></div>
-                    <small class="text-muted"><?= e($c['med_nombre']) ?><?= $c['motivo'] ? ' · ' . e($c['motivo']) : '' ?></small>
+            <div class="list-group-item">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                    <div>
+                        <div class="fw-semibold"><?= fmt_fecha($c['fecha']) ?> · <?= fmt_hora($c['hora']) ?></div>
+                        <small class="text-muted"><?= e($c['med_nombre']) ?><?= $c['motivo'] ? ' · ' . e($c['motivo']) : '' ?></small>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-<?= estado_badge($c['estado']) ?>"><?= estado_label($c['estado']) ?></span>
+                        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#reag<?= $c['id'] ?>"><i class="bi bi-arrow-repeat"></i> Reagendar</button>
+                        <form method="post" action="<?= BASE_URL ?>/portal/cita" class="m-0" onsubmit="return confirm('¿Cancelar esta cita?');">
+                            <?= csrf_field() ?>
+                            <input type="hidden" name="accion" value="cancelar">
+                            <input type="hidden" name="cita_id" value="<?= $c['id'] ?>">
+                            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-x-lg"></i></button>
+                        </form>
+                    </div>
                 </div>
-                <span class="badge bg-<?= estado_badge($c['estado']) ?>"><?= estado_label($c['estado']) ?></span>
+                <div class="collapse mt-2" id="reag<?= $c['id'] ?>">
+                    <form method="post" action="<?= BASE_URL ?>/portal/cita" class="row g-2 align-items-end">
+                        <?= csrf_field() ?>
+                        <input type="hidden" name="accion" value="reagendar">
+                        <input type="hidden" name="cita_id" value="<?= $c['id'] ?>">
+                        <div class="col-auto"><label class="form-label small mb-1">Nueva fecha</label><input type="date" name="fecha" class="form-control form-control-sm" required min="<?= date('Y-m-d') ?>"></div>
+                        <div class="col-auto"><label class="form-label small mb-1">Hora</label><input type="time" name="hora" class="form-control form-control-sm" required value="09:00"></div>
+                        <div class="col-auto"><button class="btn btn-sm btn-primary"><i class="bi bi-check-lg"></i> Confirmar cambio</button></div>
+                    </form>
+                </div>
             </div>
         <?php endforeach; endif; ?>
     </div>

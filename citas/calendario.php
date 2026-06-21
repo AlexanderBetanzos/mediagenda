@@ -29,6 +29,7 @@ include __DIR__ . '/../includes/header.php';
         </select>
         <?php endif; ?>
         <a href="<?= BASE_URL ?>/citas/index" class="btn btn-sm btn-outline-secondary"><i class="bi bi-list-ul"></i> Lista</a>
+        <a href="<?= BASE_URL ?>/citas/sala" class="btn btn-sm btn-outline-secondary"><i class="bi bi-hourglass-split"></i> Sala</a>
         <?php if (has_role('admin', 'medico')): ?>
         <a href="<?= BASE_URL ?>/citas/horarios" class="btn btn-sm btn-outline-secondary"><i class="bi bi-clock-history"></i> Horarios</a>
         <?php endif; ?>
