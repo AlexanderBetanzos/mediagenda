@@ -137,7 +137,7 @@ Objetivo: que un consultorio pague hoy. Completa el núcleo + comunicación.
 | Telemedicina | Videollamada, sala de espera virtual, chat en vivo, compartir estudios/pantalla, grabación | P (básica) / C (grabación) | Portal, integración Zoom/WebRTC | ⬜ |
 | Farmacia | Inventario, lotes, caducidades, entradas/salidas, **POS**, código de barras, alertas, compras, proveedores, transferencias entre sucursales | C | Multi-sucursal, Inventario | ⬜ |
 | Inventario general | Material médico, insumos, alertas, compras, proveedores | P | — | ⬜ |
-| Reportes / BI | Ventas, pacientes nuevos/recurrentes, no-show, consultas por médico, horas pico, enfermedades frecuentes, ingresos/gastos, KPIs | P | — | 🟡 |
+| Reportes / BI | ✅ KPIs (ingresos del mes + variación, citas, pacientes nuevos, tasa de no-show), ingresos/citas por mes, citas por estado, pacientes por tipo, top médicos, **horas pico**, **pacientes nuevos por mes** (Chart.js). Gateado `require_modulo('reportes')`. ⬜ Falta: exportar CSV, gastos, filtros por rango | P | — | 🟢 |
 | App móvil paciente | Agenda, historial, estudios, chat, videollamada, notificaciones, ubicación | P | Portal + API | ⬜ |
 | App móvil médico | Agenda, consultas, expedientes, dictado por voz, firmar recetas, estadísticas | C | API + firma | ⬜ |
 | CRM médico | Seguimiento, embudos, campañas, WhatsApp masivo, correos automáticos, cumpleaños, recordatorio de revisiones, encuestas | P | Notificaciones | ⬜ |
