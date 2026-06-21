@@ -44,6 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ]);
         }
         $pdo->commit();
+        auditar('crear', 'receta', (int) $rid, 'Paciente #' . $paciente_id);
         flash('Receta creada correctamente.');
         redirect('/recetas/ver?id=' . $rid);
     }

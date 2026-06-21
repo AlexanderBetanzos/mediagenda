@@ -51,6 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'recordatorio_plantilla' => trim($_POST['recordatorio_plantilla'] ?? ''),
         'recordatorio_auto'      => !empty($_POST['recordatorio_auto']) ? '1' : '0',
     ]);
+    auditar('config_editar');
     flash('Configuración guardada correctamente.');
     redirect('/configuracion/index');
 }

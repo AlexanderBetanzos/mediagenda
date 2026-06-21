@@ -6,6 +6,7 @@ verify_csrf();
 $id = (int) ($_POST['id'] ?? 0);
 if ($id) {
     db()->prepare('DELETE FROM recetas WHERE id = ? AND consultorio_id = ?')->execute([$id, tenant_id()]);
+    auditar('borrar', 'receta', $id);
     flash('Receta eliminada.');
 }
 redirect('/recetas/index');

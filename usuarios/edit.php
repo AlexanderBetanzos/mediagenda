@@ -36,6 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([trim($usr['nombre']), trim($usr['email']), $usr['rol'],
                 trim($usr['especialidad'] ?? '') ?: null, trim($usr['telefono'] ?? '') ?: null, $id, tenant_id()]);
         }
+        auditar('editar', 'usuario', $id, trim($usr['nombre']) . ' · ' . $usr['rol']);
         flash('Usuario actualizado.');
         redirect('/usuarios/index');
     }

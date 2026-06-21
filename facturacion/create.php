@@ -54,6 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $it->execute([$fid, $row[0], $row[1], $row[2], $row[3]]);
         }
         $pdo->commit();
+        auditar('crear', 'factura', (int) $fid, $folio);
         flash('Factura ' . $folio . ' creada.');
         redirect('/facturacion/ver?id=' . $fid);
     }

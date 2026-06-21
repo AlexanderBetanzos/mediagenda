@@ -34,6 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             trim($usr['especialidad'] ?? '') ?: null,
             trim($usr['telefono'] ?? '') ?: null,
         ]);
+        auditar('crear', 'usuario', (int) db()->lastInsertId(), trim($usr['nombre']) . ' · ' . $usr['rol']);
         flash('Usuario creado correctamente.');
         redirect('/usuarios/index');
     }

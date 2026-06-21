@@ -96,8 +96,10 @@ controlador nuevo (hoy solo se gatea el menú).
 - ✅ **2FA (TOTP)**: `includes/totp.php` (RFC 6238, sin librerías), pantalla
   `auth/seguridad.php` (activar con QR / desactivar con contraseña) y reto
   `auth/2fa.php` en el login. Compatible con Google Authenticator/Authy.
-- ⬜ Falta: auditar recetas/facturas; recuperación de 2FA (reset por admin);
-  **cifrado** de datos sensibles en reposo + respaldos automáticos.
+- ✅ Cobertura ampliada: ahora también auditan recetas, facturas (crear/
+  borrar/cambio de estado), personal (alta/edición/activar) y configuración.
+- ⬜ Falta: recuperación de 2FA (reset por admin); **cifrado** de datos
+  sensibles en reposo + respaldos automáticos; control de acceso por IP.
 - **NOM-024-SSA3-2012** (expediente clínico electrónico): estructura mínima,
   firma, integridad. Marca el diseño del expediente "inteligente" (Fase 1+).
 - **LFPDPPP**: aviso de privacidad, consentimiento, derechos ARCO.
