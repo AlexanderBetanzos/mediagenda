@@ -18,20 +18,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (trim($p['apellidos']) === '') $errores[] = 'Los apellidos son obligatorios.';
 
     if (!$errores) {
-        $stmt = db()->prepare(
-            'UPDATE pacientes SET
-             nombre=?, apellidos=?, fecha_nacimiento=?, sexo=?, telefono=?, email=?,
-             direccion=?, tipo=?, alergias=?, antecedentes=?, notas=?
-             WHERE id=? AND consultorio_id=?'
-        );
-        $stmt->execute([
-            trim($p['nombre']), trim($p['apellidos']),
-            $p['fecha_nacimiento'] ?: null, $p['sexo'] ?: null,
-            trim($p['telefono'] ?? '') ?: null, trim($p['email'] ?? '') ?: null,
-            trim($p['direccion'] ?? '') ?: null, $p['tipo'] ?? 'medico',
-            trim($p['alergias'] ?? '') ?: null, trim($p['antecedentes'] ?? '') ?: null,
-            trim($p['notas'] ?? '') ?: null, $id, tenant_id(),
-        ]);
+        $campos = paciente_post_campos($p);
+        $set    = implode(' = ?, ', array_keys($campos)) . ' = ?';
+        $stmt = db()->prepare("UPDATE pacientes SET $set WHERE id = ? AND consultorio_id = ?");
+        $stmt->execute(array_merge(array_values($campos), [$id, tenant_id()]));
         auditar('editar', 'paciente', $id, trim(($p['nombre'] ?? '') . ' ' . ($p['apellidos'] ?? '')));
         flash('Datos del paciente actualizados.');
         redirect('/pacientes/ver?id=' . $id);

@@ -140,6 +140,10 @@ foreach ($archivos as $a) {
     if ($a['consulta_id']) { $archivos_por_consulta[$a['consulta_id']][] = $a; }
 }
 
+// IMC automático: de la consulta más reciente que tenga peso y estatura.
+$bmi = null;
+foreach ($cons as $co) { if (($b = imc($co['peso'] ?? 0, $co['estatura'] ?? 0))) { $bmi = $b; break; } }
+
 $titulo = $p['nombre'] . ' ' . $p['apellidos'];
 $activo = 'pacientes';
 include __DIR__ . '/../includes/header.php';
@@ -162,6 +166,8 @@ include __DIR__ . '/../includes/header.php';
         <span class="text-muted">
             <?= e(edad($p['fecha_nacimiento'])) ?> ·
             <?= $p['sexo'] === 'F' ? 'Femenino' : ($p['sexo'] === 'M' ? 'Masculino' : 'Sexo n/d') ?>
+            <?php if (!empty($p['tipo_sangre'])): ?> · <span class="badge bg-danger-subtle text-danger border"><i class="bi bi-droplet-half"></i> <?= e($p['tipo_sangre']) ?></span><?php endif; ?>
+            <?php if ($bmi): ?> · <span class="badge bg-<?= $bmi['color'] ?>-subtle text-<?= $bmi['color'] ?> border" title="Índice de masa corporal (última consulta)">IMC <?= $bmi['valor'] ?> · <?= e($bmi['categoria']) ?></span><?php endif; ?>
         </span>
     </div>
     <div class="text-nowrap">
@@ -184,14 +190,39 @@ include __DIR__ . '/../includes/header.php';
                 <li class="list-group-item"><i class="bi bi-envelope me-2 text-muted"></i><?= e($p['email'] ?: '—') ?></li>
                 <li class="list-group-item"><i class="bi bi-geo-alt me-2 text-muted"></i><?= e($p['direccion'] ?: '—') ?></li>
                 <li class="list-group-item"><i class="bi bi-calendar me-2 text-muted"></i><?= fmt_fecha($p['fecha_nacimiento']) ?></li>
+                <?php if (!empty($p['curp'])): ?><li class="list-group-item small"><span class="text-muted">CURP:</span> <?= e($p['curp']) ?></li><?php endif; ?>
+                <?php if (!empty($p['rfc'])): ?><li class="list-group-item small"><span class="text-muted">RFC:</span> <?= e($p['rfc']) ?></li><?php endif; ?>
+                <?php if (!empty($p['ine'])): ?><li class="list-group-item small"><span class="text-muted">INE:</span> <?= e($p['ine']) ?></li><?php endif; ?>
             </ul>
         </div>
+
+        <?php if (!empty($p['contacto_nombre']) || !empty($p['contacto_telefono'])): ?>
+        <div class="card mb-4">
+            <div class="card-header bg-white fw-semibold"><i class="bi bi-telephone-plus text-brand"></i> Contacto de emergencia</div>
+            <div class="card-body">
+                <div class="fw-semibold"><?= e($p['contacto_nombre'] ?: '—') ?>
+                    <?php if (!empty($p['contacto_parentesco'])): ?><span class="text-muted fw-normal">· <?= e($p['contacto_parentesco']) ?></span><?php endif; ?>
+                </div>
+                <?php if (!empty($p['contacto_telefono'])): ?>
+                <a href="tel:<?= e(preg_replace('/[^0-9+]/', '', $p['contacto_telefono'])) ?>"><i class="bi bi-telephone"></i> <?= e($p['contacto_telefono']) ?></a>
+                <?php endif; ?>
+            </div>
+        </div>
+        <?php endif; ?>
+
         <div class="card">
             <div class="card-header bg-white fw-semibold"><i class="bi bi-clipboard2-pulse text-brand"></i> Información clínica</div>
             <div class="card-body">
-                <p class="mb-2"><strong>Alergias:</strong><br><?= nl2br(e($p['alergias'] ?: '—')) ?></p>
-                <p class="mb-2"><strong>Antecedentes:</strong><br><?= nl2br(e($p['antecedentes'] ?: '—')) ?></p>
-                <p class="mb-0"><strong>Notas:</strong><br><?= nl2br(e($p['notas'] ?: '—')) ?></p>
+                <?php
+                $clin = [
+                    'Alergias' => $p['alergias'], 'Enfermedades crónicas' => $p['enf_cronicas'] ?? '',
+                    'Antecedentes personales' => $p['antecedentes'], 'Antecedentes familiares' => $p['antecedentes_familiares'] ?? '',
+                    'Cirugías' => $p['cirugias'] ?? '', 'Vacunas' => $p['vacunas'] ?? '',
+                    'Hábitos' => $p['habitos'] ?? '', 'Notas' => $p['notas'],
+                ];
+                foreach ($clin as $lbl => $val): ?>
+                    <p class="mb-2"><strong><?= $lbl ?>:</strong><br><?= nl2br(e($val ?: '—')) ?></p>
+                <?php endforeach; ?>
             </div>
         </div>
 

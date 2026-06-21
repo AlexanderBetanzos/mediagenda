@@ -464,6 +464,22 @@ function edad(?string $fnac): string
     }
 }
 
+/**
+ * Índice de Masa Corporal a partir de peso (kg) y estatura (cm).
+ * Devuelve null si faltan datos; o ['valor','categoria','color'(badge)].
+ */
+function imc($peso, $estatura_cm): ?array
+{
+    $peso = (float) $peso; $h = (float) $estatura_cm / 100;
+    if ($peso <= 0 || $h <= 0) return null;
+    $v = round($peso / ($h * $h), 1);
+    if ($v < 18.5)      [$cat, $col] = ['Bajo peso', 'info'];
+    elseif ($v < 25)    [$cat, $col] = ['Normal', 'success'];
+    elseif ($v < 30)    [$cat, $col] = ['Sobrepeso', 'warning'];
+    else                [$cat, $col] = ['Obesidad', 'danger'];
+    return ['valor' => $v, 'categoria' => $cat, 'color' => $col];
+}
+
 /** Formatea un número como dinero, ej: $1,250.00. */
 function fmt_money($n): string
 {
@@ -574,6 +590,43 @@ function guardar_archivo_expediente(?array $f, int $paciente_id, int $usuario_id
         ($descripcion = trim((string) $descripcion)) !== '' ? $descripcion : null,
     ]);
     return ['estado' => 'ok', 'mensaje' => 'Archivo agregado al expediente.'];
+}
+
+/**
+ * Normaliza los campos editables de un paciente desde $_POST.
+ * Devuelve un mapa columna => valor (listo para INSERT/UPDATE), compartido
+ * por pacientes/create.php y edit.php para no duplicar la lista.
+ */
+function paciente_post_campos(array $post): array
+{
+    $t = fn(string $k) => (($v = trim((string) ($post[$k] ?? ''))) !== '' ? $v : null);
+    $up = fn(string $k) => (($v = strtoupper(trim((string) ($post[$k] ?? '')))) !== '' ? $v : null);
+    $sangres = ['O+','O-','A+','A-','B+','B-','AB+','AB-'];
+    return [
+        'nombre'                  => trim((string) ($post['nombre'] ?? '')),
+        'apellidos'               => trim((string) ($post['apellidos'] ?? '')),
+        'fecha_nacimiento'        => ($post['fecha_nacimiento'] ?? '') ?: null,
+        'sexo'                    => in_array($post['sexo'] ?? '', ['M','F','O'], true) ? $post['sexo'] : null,
+        'telefono'                => $t('telefono'),
+        'email'                   => $t('email'),
+        'direccion'               => $t('direccion'),
+        'tipo'                    => in_array($post['tipo'] ?? '', ['medico','dental'], true) ? $post['tipo'] : 'medico',
+        'curp'                    => $up('curp'),
+        'rfc'                     => $up('rfc'),
+        'ine'                     => $up('ine'),
+        'tipo_sangre'             => in_array($post['tipo_sangre'] ?? '', $sangres, true) ? $post['tipo_sangre'] : null,
+        'contacto_nombre'         => $t('contacto_nombre'),
+        'contacto_telefono'       => $t('contacto_telefono'),
+        'contacto_parentesco'     => $t('contacto_parentesco'),
+        'alergias'                => $t('alergias'),
+        'antecedentes'            => $t('antecedentes'),
+        'antecedentes_familiares' => $t('antecedentes_familiares'),
+        'cirugias'                => $t('cirugias'),
+        'vacunas'                 => $t('vacunas'),
+        'enf_cronicas'            => $t('enf_cronicas'),
+        'habitos'                 => $t('habitos'),
+        'notas'                   => $t('notas'),
+    ];
 }
 
 /* --------------------------------------------------------------------

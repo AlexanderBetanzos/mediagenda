@@ -13,20 +13,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (trim($p['apellidos'] ?? '') === '') $errores[] = 'Los apellidos son obligatorios.';
 
     if (!$errores) {
+        $campos = paciente_post_campos($p);
+        $cols   = array_keys($campos);
+        $ph     = implode(',', array_fill(0, count($cols) + 1, '?'));
         $stmt = db()->prepare(
-            'INSERT INTO pacientes
-             (consultorio_id, nombre, apellidos, fecha_nacimiento, sexo, telefono, email, direccion, tipo, alergias, antecedentes, notas)
-             VALUES (?,?,?,?,?,?,?,?,?,?,?,?)'
+            'INSERT INTO pacientes (consultorio_id, ' . implode(', ', $cols) . ") VALUES ($ph)"
         );
-        $stmt->execute([
-            tenant_id(),
-            trim($p['nombre']), trim($p['apellidos']),
-            $p['fecha_nacimiento'] ?: null, $p['sexo'] ?: null,
-            trim($p['telefono'] ?? '') ?: null, trim($p['email'] ?? '') ?: null,
-            trim($p['direccion'] ?? '') ?: null, $p['tipo'] ?? 'medico',
-            trim($p['alergias'] ?? '') ?: null, trim($p['antecedentes'] ?? '') ?: null,
-            trim($p['notas'] ?? '') ?: null,
-        ]);
+        $stmt->execute(array_merge([tenant_id()], array_values($campos)));
         $nuevoId = (int) db()->lastInsertId();
         auditar('crear', 'paciente', $nuevoId, trim(($p['nombre'] ?? '') . ' ' . ($p['apellidos'] ?? '')));
         flash('Paciente registrado correctamente.');
