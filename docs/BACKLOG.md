@@ -140,7 +140,7 @@ Objetivo: que un consultorio pague hoy. Completa el núcleo + comunicación.
 | Reportes / BI | ✅ KPIs (ingresos del mes + variación, citas, pacientes nuevos, tasa de no-show), ingresos/citas por mes, citas por estado, pacientes por tipo, top médicos, **horas pico**, **pacientes nuevos por mes** (Chart.js). Gateado `require_modulo('reportes')`. ⬜ Falta: exportar CSV, gastos, filtros por rango | P | — | 🟢 |
 | App móvil paciente | Agenda, historial, estudios, chat, videollamada, notificaciones, ubicación | P | Portal + API | ⬜ |
 | App móvil médico | Agenda, consultas, expedientes, dictado por voz, firmar recetas, estadísticas | C | API + firma | ⬜ |
-| CRM médico | Seguimiento, embudos, campañas, WhatsApp masivo, correos automáticos, cumpleaños, recordatorio de revisiones, encuestas | P | Notificaciones | ⬜ |
+| CRM médico | ✅ Seguimientos por paciente (tipo/fecha/estado, vencidos), cumpleaños del mes (felicitar por WhatsApp), **campañas de WhatsApp** por segmento (todos/tipo/cumpleaños) con enlaces wa.me (`crm/`). ⬜ Falta: embudos, correos automáticos, encuestas | P | Notificaciones | 🟡 |
 | Especialidades | Módulos propios: pediatría (curvas/percentiles/vacunas), ginecología (prenatal/FUM/USG), odontología (odontograma), psicología (sesiones/escalas), nutrición (planes/calorías), dermatología (comparativa fotos), cardiología (ECG), oftalmología (graduaciones) | P (paquete) / Add-on | Consulta avanzada + plantillas | ⬜ |
 
 ---
