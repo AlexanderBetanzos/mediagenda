@@ -31,7 +31,7 @@ $acento   = color_acento();
 $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
 ?>
 <!doctype html>
-<html lang="es" class="<?= $temaCss ?>"<?= $bsAttr ?>>
+<html lang="<?= e(idioma_actual()) ?>" class="<?= $temaCss ?>"<?= $bsAttr ?>>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -88,10 +88,14 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
                 <i class="bi bi-circle-half"></i>
             </a>
             <ul class="dropdown-menu dropdown-menu-end">
-                <li><h6 class="dropdown-header">Apariencia</h6></li>
-                <li><a class="dropdown-item" href="#" onclick="setTema('light');return false"><i class="bi bi-sun me-2"></i>Claro</a></li>
-                <li><a class="dropdown-item" href="#" onclick="setTema('dark');return false"><i class="bi bi-moon-stars me-2"></i>Oscuro</a></li>
-                <li><a class="dropdown-item" href="#" onclick="setTema('auto');return false"><i class="bi bi-circle-half me-2"></i>Automático</a></li>
+                <li><h6 class="dropdown-header"><?= et('Apariencia') ?></h6></li>
+                <li><a class="dropdown-item" href="#" onclick="setTema('light');return false"><i class="bi bi-sun me-2"></i><?= et('Claro') ?></a></li>
+                <li><a class="dropdown-item" href="#" onclick="setTema('dark');return false"><i class="bi bi-moon-stars me-2"></i><?= et('Oscuro') ?></a></li>
+                <li><a class="dropdown-item" href="#" onclick="setTema('auto');return false"><i class="bi bi-circle-half me-2"></i><?= et('Automático') ?></a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><h6 class="dropdown-header"><?= et('Idioma') ?></h6></li>
+                <li><a class="dropdown-item" href="#" onclick="setIdioma('es');return false">🇲🇽 Español</a></li>
+                <li><a class="dropdown-item" href="#" onclick="setIdioma('en');return false">🇺🇸 English</a></li>
             </ul>
         </div>
         <a href="<?= BASE_URL ?>/dashboard" class="icon-btn" title="Notificaciones">
@@ -107,15 +111,15 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
                     <small class="text-muted"><?= e(rol_label($u['rol'])) ?></small>
                 </li>
                 <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item" href="<?= BASE_URL ?>/auth/seguridad"><i class="bi bi-shield-lock me-2"></i>Seguridad</a></li>
+                <li><a class="dropdown-item" href="<?= BASE_URL ?>/auth/seguridad"><i class="bi bi-shield-lock me-2"></i><?= et('Seguridad') ?></a></li>
                 <?php if (has_role('medico', 'admin')): ?>
-                <li><a class="dropdown-item" href="<?= BASE_URL ?>/plantillas/index"><i class="bi bi-file-earmark-text me-2"></i>Plantillas de consulta</a></li>
+                <li><a class="dropdown-item" href="<?= BASE_URL ?>/plantillas/index"><i class="bi bi-file-earmark-text me-2"></i><?= et('Plantillas de consulta') ?></a></li>
                 <?php endif; ?>
                 <?php if (has_role('admin')): ?>
-                <li><a class="dropdown-item" href="<?= BASE_URL ?>/configuracion/index"><i class="bi bi-gear me-2"></i>Configuración</a></li>
-                <li><a class="dropdown-item" href="<?= BASE_URL ?>/admin/auditoria"><i class="bi bi-clipboard-data me-2"></i>Auditoría</a></li>
+                <li><a class="dropdown-item" href="<?= BASE_URL ?>/configuracion/index"><i class="bi bi-gear me-2"></i><?= et('Configuración') ?></a></li>
+                <li><a class="dropdown-item" href="<?= BASE_URL ?>/admin/auditoria"><i class="bi bi-clipboard-data me-2"></i><?= et('Auditoría') ?></a></li>
                 <?php endif; ?>
-                <li><a class="dropdown-item" href="<?= BASE_URL ?>/auth/logout"><i class="bi bi-box-arrow-right"></i> Cerrar sesión</a></li>
+                <li><a class="dropdown-item" href="<?= BASE_URL ?>/auth/logout"><i class="bi bi-box-arrow-right"></i> <?= et('Cerrar sesión') ?></a></li>
             </ul>
         </div>
     </div>
@@ -126,22 +130,22 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
         <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block sidebar collapse">
             <div class="position-sticky pt-3">
                 <ul class="nav flex-column">
-                    <li class="nav-item"><a class="nav-link<?= nav_active('dashboard', $activo) ?>" href="<?= BASE_URL ?>/dashboard"><i class="bi bi-grid-1x2-fill"></i> Panel</a></li>
-                    <?php if (modulo_activo('citas')): ?><li class="nav-item"><a class="nav-link<?= nav_active('citas', $activo) ?>" href="<?= BASE_URL ?>/citas/index"><i class="bi bi-calendar-check"></i> Agenda</a></li><?php endif; ?>
-                    <?php if (modulo_activo('pacientes')): ?><li class="nav-item"><a class="nav-link<?= nav_active('pacientes', $activo) ?>" href="<?= BASE_URL ?>/pacientes/index"><i class="bi bi-people"></i> Pacientes</a></li><?php endif; ?>
-                    <?php if (modulo_activo('expediente')): ?><li class="nav-item"><a class="nav-link<?= nav_active('expediente', $activo) ?>" href="<?= BASE_URL ?>/expediente/index"><i class="bi bi-folder2-open"></i> Expediente</a></li><?php endif; ?>
-                    <?php if (modulo_activo('recetas')): ?><li class="nav-item"><a class="nav-link<?= nav_active('recetas', $activo) ?>" href="<?= BASE_URL ?>/recetas/index"><i class="bi bi-capsule"></i> Recetas</a></li><?php endif; ?>
-                    <?php if (modulo_activo('facturacion')): ?><li class="nav-item"><a class="nav-link<?= nav_active('facturacion', $activo) ?>" href="<?= BASE_URL ?>/facturacion/index"><i class="bi bi-receipt"></i> Facturación</a></li><?php endif; ?>
-                    <?php if (modulo_activo('crm')): ?><li class="nav-item"><a class="nav-link<?= nav_active('crm', $activo) ?>" href="<?= BASE_URL ?>/crm/index"><i class="bi bi-people-fill"></i> CRM</a></li><?php endif; ?>
-                    <?php if (modulo_activo('farmacia')): ?><li class="nav-item"><a class="nav-link<?= nav_active('inventario', $activo) ?>" href="<?= BASE_URL ?>/inventario/index"><i class="bi bi-box-seam"></i> Inventario</a></li><?php endif; ?>
-                    <?php if (modulo_activo('reportes')): ?><li class="nav-item"><a class="nav-link<?= nav_active('reportes', $activo) ?>" href="<?= BASE_URL ?>/reportes/index"><i class="bi bi-bar-chart"></i> Reportes</a></li><?php endif; ?>
+                    <li class="nav-item"><a class="nav-link<?= nav_active('dashboard', $activo) ?>" href="<?= BASE_URL ?>/dashboard"><i class="bi bi-grid-1x2-fill"></i> <?= et('Panel') ?></a></li>
+                    <?php if (modulo_activo('citas')): ?><li class="nav-item"><a class="nav-link<?= nav_active('citas', $activo) ?>" href="<?= BASE_URL ?>/citas/index"><i class="bi bi-calendar-check"></i> <?= et('Agenda') ?></a></li><?php endif; ?>
+                    <?php if (modulo_activo('pacientes')): ?><li class="nav-item"><a class="nav-link<?= nav_active('pacientes', $activo) ?>" href="<?= BASE_URL ?>/pacientes/index"><i class="bi bi-people"></i> <?= et('Pacientes') ?></a></li><?php endif; ?>
+                    <?php if (modulo_activo('expediente')): ?><li class="nav-item"><a class="nav-link<?= nav_active('expediente', $activo) ?>" href="<?= BASE_URL ?>/expediente/index"><i class="bi bi-folder2-open"></i> <?= et('Expediente') ?></a></li><?php endif; ?>
+                    <?php if (modulo_activo('recetas')): ?><li class="nav-item"><a class="nav-link<?= nav_active('recetas', $activo) ?>" href="<?= BASE_URL ?>/recetas/index"><i class="bi bi-capsule"></i> <?= et('Recetas') ?></a></li><?php endif; ?>
+                    <?php if (modulo_activo('facturacion')): ?><li class="nav-item"><a class="nav-link<?= nav_active('facturacion', $activo) ?>" href="<?= BASE_URL ?>/facturacion/index"><i class="bi bi-receipt"></i> <?= et('Facturación') ?></a></li><?php endif; ?>
+                    <?php if (modulo_activo('crm')): ?><li class="nav-item"><a class="nav-link<?= nav_active('crm', $activo) ?>" href="<?= BASE_URL ?>/crm/index"><i class="bi bi-people-fill"></i> <?= et('CRM') ?></a></li><?php endif; ?>
+                    <?php if (modulo_activo('farmacia')): ?><li class="nav-item"><a class="nav-link<?= nav_active('inventario', $activo) ?>" href="<?= BASE_URL ?>/inventario/index"><i class="bi bi-box-seam"></i> <?= et('Inventario') ?></a></li><?php endif; ?>
+                    <?php if (modulo_activo('reportes')): ?><li class="nav-item"><a class="nav-link<?= nav_active('reportes', $activo) ?>" href="<?= BASE_URL ?>/reportes/index"><i class="bi bi-bar-chart"></i> <?= et('Reportes') ?></a></li><?php endif; ?>
                     <?php if (has_role('admin')): ?>
-                    <li class="nav-item mt-2"><a class="nav-link<?= nav_active('usuarios', $activo) ?>" href="<?= BASE_URL ?>/usuarios/index"><i class="bi bi-person-badge"></i> Personal</a></li>
-                    <li class="nav-item"><a class="nav-link<?= nav_active('suscripcion', $activo) ?>" href="<?= BASE_URL ?>/pagos/index"><i class="bi bi-stars"></i> Mi suscripción</a></li>
-                    <li class="nav-item"><a class="nav-link<?= nav_active('configuracion', $activo) ?>" href="<?= BASE_URL ?>/configuracion/index"><i class="bi bi-gear"></i> Configuración</a></li>
+                    <li class="nav-item mt-2"><a class="nav-link<?= nav_active('usuarios', $activo) ?>" href="<?= BASE_URL ?>/usuarios/index"><i class="bi bi-person-badge"></i> <?= et('Personal') ?></a></li>
+                    <li class="nav-item"><a class="nav-link<?= nav_active('suscripcion', $activo) ?>" href="<?= BASE_URL ?>/pagos/index"><i class="bi bi-stars"></i> <?= et('Mi suscripción') ?></a></li>
+                    <li class="nav-item"><a class="nav-link<?= nav_active('configuracion', $activo) ?>" href="<?= BASE_URL ?>/configuracion/index"><i class="bi bi-gear"></i> <?= et('Configuración') ?></a></li>
                     <?php endif; ?>
                     <?php if (es_superadmin()): ?>
-                    <li class="nav-item mt-2"><a class="nav-link<?= nav_active('admin', $activo) ?>" href="<?= BASE_URL ?>/admin/index"><i class="bi bi-shield-lock"></i> Súper-admin</a></li>
+                    <li class="nav-item mt-2"><a class="nav-link<?= nav_active('admin', $activo) ?>" href="<?= BASE_URL ?>/admin/index"><i class="bi bi-shield-lock"></i> <?= et('Súper-admin') ?></a></li>
                     <?php endif; ?>
                 </ul>
             </div>

@@ -46,6 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'moneda'        => in_array($_POST['moneda'] ?? '', $monedas, true) ? $_POST['moneda'] : 'MXN',
         'zona_horaria'  => in_array($_POST['zona_horaria'] ?? '', $zonas, true) ? $_POST['zona_horaria'] : 'America/Mexico_City',
         'formato_fecha' => isset($formatos[$_POST['formato_fecha'] ?? '']) ? $_POST['formato_fecha'] : 'd/m/Y',
+        'idioma_default' => in_array($_POST['idioma_default'] ?? '', ['es','en'], true) ? $_POST['idioma_default'] : 'es',
         // Recordatorios / WhatsApp
         'pais_lada'              => preg_replace('/\D/', '', $_POST['pais_lada'] ?? '') ?: '52',
         'recordatorio_plantilla' => trim($_POST['recordatorio_plantilla'] ?? ''),
@@ -165,6 +166,15 @@ include __DIR__ . '/../includes/header.php';
                         <option value="<?= e($k) ?>" <?= cfg('formato_fecha', 'd/m/Y') === $k ? 'selected' : '' ?>><?= e($lbl) ?></option>
                     <?php endforeach; ?>
                 </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Idioma por defecto</label>
+                <select name="idioma_default" class="form-select">
+                    <?php foreach (['es'=>'Español','en'=>'English'] as $k => $lbl): ?>
+                        <option value="<?= $k ?>" <?= cfg('idioma_default', 'es') === $k ? 'selected' : '' ?>><?= e($lbl) ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <div class="form-text">Cada usuario puede cambiarlo desde el menú de idioma.</div>
             </div>
         </div>
     </div>

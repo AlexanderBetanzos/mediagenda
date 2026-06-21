@@ -45,15 +45,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     auditar('login_fallido', null, null, 'email: ' . mb_substr($email, 0, 120),
             $user ? (int) $user['consultorio_id'] : null,
             $user ? ['id' => (int) $user['id'], 'nombre' => $user['nombre']] : ['nombre' => $email]);
-    $error = 'Correo o contraseña incorrectos.';
+    $error = t('Correo o contraseña incorrectos.');
 }
 ?>
 <!doctype html>
-<html lang="es">
+<html lang="<?= e(idioma_actual()) ?>">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Iniciar sesión · <?= e(marca_nombre()) ?></title>
+    <title><?= et('Iniciar sesión') ?> · <?= e(marca_nombre()) ?></title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -78,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <form method="post" novalidate>
                 <?= csrf_field() ?>
                 <div class="mb-3">
-                    <label class="form-label">Correo electrónico</label>
+                    <label class="form-label"><?= et('Correo electrónico') ?></label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="bi bi-envelope"></i></span>
                         <input type="email" name="email" class="form-control" required autofocus
@@ -86,30 +86,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                 </div>
                 <div class="mb-4">
-                    <label class="form-label">Contraseña</label>
+                    <label class="form-label"><?= et('Contraseña') ?></label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="bi bi-lock"></i></span>
                         <input type="password" name="password" class="form-control" required placeholder="••••••••">
                         <button class="btn btn-outline-secondary toggle-pass" type="button" tabindex="-1" aria-label="Mostrar u ocultar contraseña"><i class="bi bi-eye"></i></button>
                     </div>
                 </div>
-                <button class="btn btn-primary w-100 py-2"><i class="bi bi-box-arrow-in-right"></i> Entrar</button>
+                <button class="btn btn-primary w-100 py-2"><i class="bi bi-box-arrow-in-right"></i> <?= et('Entrar') ?></button>
             </form>
 
             <div class="text-center mt-4 pt-3 border-top">
-                <p class="mb-2 small text-muted">¿Aún no tienes cuenta?</p>
+                <p class="mb-2 small text-muted"><?= et('¿Aún no tienes cuenta?') ?></p>
                 <a href="<?= BASE_URL ?>/auth/registro" class="btn btn-outline-primary w-100">
-                    <i class="bi bi-rocket-takeoff"></i> Crear consultorio — 15 días gratis
+                    <i class="bi bi-rocket-takeoff"></i> <?= et('Crear consultorio — 15 días gratis') ?>
                 </a>
             </div>
             <div class="text-center mt-3">
-                <a href="<?= BASE_URL ?>/portal/login" class="small text-decoration-none"><i class="bi bi-person-heart"></i> ¿Eres paciente? Entra al portal</a>
-                <div class="mt-2"><a href="<?= BASE_URL ?>/index" class="small text-muted">&larr; Volver al sitio</a></div>
+                <a href="<?= BASE_URL ?>/portal/login" class="small text-decoration-none"><i class="bi bi-person-heart"></i> <?= et('¿Eres paciente? Entra al portal') ?></a>
+                <div class="mt-2">
+                    <a href="<?= BASE_URL ?>/index" class="small text-muted">&larr; <?= et('Volver al sitio') ?></a>
+                    <span class="text-muted small mx-1">·</span>
+                    <a href="#" class="small text-muted text-decoration-none" onclick="setLang('<?= idioma_actual() === 'en' ? 'es' : 'en' ?>');return false"><?= idioma_actual() === 'en' ? 'Español' : 'English' ?></a>
+                </div>
             </div>
         </div>
     </div>
 </div>
 <script>
+function setLang(l){ document.cookie = 'lang=' + l + ';path=<?= BASE_URL ?>/;max-age=31536000;samesite=Lax'; location.reload(); }
 document.querySelectorAll('.toggle-pass').forEach(function (btn) {
     btn.addEventListener('click', function () {
         var inp = btn.closest('.input-group').querySelector('input');

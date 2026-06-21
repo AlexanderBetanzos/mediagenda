@@ -18,6 +18,11 @@ function setTema(pref) {
     if (resolved === 'light') { el.setAttribute('data-bs-theme', 'light'); }
     else { el.removeAttribute('data-bs-theme'); }
 }
+/* Guarda el idioma del usuario y recarga para aplicarlo. */
+function setIdioma(lang) {
+    document.cookie = 'lang=' + lang + ';path=<?= BASE_URL ?>/;max-age=31536000;samesite=Lax';
+    location.reload();
+}
 </script>
 </body>
 </html>

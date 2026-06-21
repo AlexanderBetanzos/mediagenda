@@ -233,6 +233,40 @@ function tema_actual(): string
     return in_array($def, $valid, true) ? $def : 'dark';
 }
 
+/* --------------------------------------------------------------------
+ *  Idioma / i18n
+ * ------------------------------------------------------------------ */
+
+/** Idioma activo: cookie del usuario, o el default del consultorio, o 'es'. */
+function idioma_actual(): string
+{
+    $valid  = ['es', 'en'];
+    $cookie = $_COOKIE['lang'] ?? '';
+    if (in_array($cookie, $valid, true)) return $cookie;
+    $def = cfg('idioma_default', 'es');
+    return in_array($def, $valid, true) ? $def : 'es';
+}
+
+/**
+ * Traduce un texto. El idioma base es español: la clave ES el texto en
+ * español, así que en 'es' se devuelve tal cual. Para otros idiomas se busca
+ * en lang/<idioma>.php (mapa español => traducción); si falta, cae al español.
+ */
+function t(string $texto): string
+{
+    $idi = idioma_actual();
+    if ($idi === 'es') return $texto;
+    static $cache = [];
+    if (!isset($cache[$idi])) {
+        $f = __DIR__ . '/../lang/' . $idi . '.php';
+        $cache[$idi] = is_file($f) ? (require $f) : [];
+    }
+    return $cache[$idi][$texto] ?? $texto;
+}
+
+/** Escapa y traduce en un solo paso (para imprimir en HTML). */
+function et(string $texto): string { return e(t($texto)); }
+
 // Aplica la zona horaria configurada (si la tabla ya existe).
 date_default_timezone_set(cfg('zona_horaria', 'America/Mexico_City'));
 

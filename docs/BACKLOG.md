@@ -110,7 +110,11 @@ controlador nuevo (hoy solo se gatea el menú).
 - **Plantillas** reutilizables (consulta, mensajes, documentos).
 - **Generador de PDF** con membrete del tenant (recetas, certificados, facturas).
 - **API interna / webhooks** para portal paciente, app móvil e integraciones.
-- **Internacionalización (i18n)**: extraer textos para multi-idioma.
+- 🟡 **Internacionalización (i18n)**: cimiento listo — helper `t()`/`et()`
+  (el español es la clave, `lang/en.php` traduce), `idioma_actual()` (cookie
+  `lang` o `cfg('idioma_default')`), selector ES/EN en el menú y en el login,
+  HTML `lang` dinámico. Traducidos: nav y login. ⬜ Falta: traducir el resto
+  de vistas módulo por módulo (ampliar `lang/en.php`).
 
 ---
 
