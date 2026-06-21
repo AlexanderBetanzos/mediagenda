@@ -90,6 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="input-group">
                         <span class="input-group-text"><i class="bi bi-lock"></i></span>
                         <input type="password" name="password" class="form-control" required placeholder="••••••••">
+                        <button class="btn btn-outline-secondary toggle-pass" type="button" tabindex="-1" aria-label="Mostrar u ocultar contraseña"><i class="bi bi-eye"></i></button>
                     </div>
                 </div>
                 <button class="btn btn-primary w-100 py-2"><i class="bi bi-box-arrow-in-right"></i> Entrar</button>
@@ -108,5 +109,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
 </div>
+<script>
+document.querySelectorAll('.toggle-pass').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+        var inp = btn.closest('.input-group').querySelector('input');
+        var ic  = btn.querySelector('i');
+        var oculto = inp.getAttribute('type') === 'password';
+        inp.setAttribute('type', oculto ? 'text' : 'password');
+        ic.className = oculto ? 'bi bi-eye-slash' : 'bi bi-eye';
+    });
+});
+</script>
 </body>
 </html>
