@@ -49,6 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Recordatorios / WhatsApp
         'pais_lada'              => preg_replace('/\D/', '', $_POST['pais_lada'] ?? '') ?: '52',
         'recordatorio_plantilla' => trim($_POST['recordatorio_plantilla'] ?? ''),
+        'recordatorio_auto'      => !empty($_POST['recordatorio_auto']) ? '1' : '0',
     ]);
     flash('Configuración guardada correctamente.');
     redirect('/configuracion/index');
@@ -164,6 +165,18 @@ include __DIR__ . '/../includes/header.php';
                     <?php endforeach; ?>
                 </select>
             </div>
+        </div>
+    </div>
+
+    <!-- Recordatorios automáticos (correo) -->
+    <div class="card mb-4">
+        <div class="card-header fw-semibold"><i class="bi bi-bell text-brand"></i> Recordatorios automáticos</div>
+        <div class="card-body">
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" role="switch" id="recordatorio_auto" name="recordatorio_auto" value="1" <?= cfg('recordatorio_auto', '1') === '1' ? 'checked' : '' ?>>
+                <label class="form-check-label" for="recordatorio_auto">Enviar recordatorio por <strong>correo</strong> a los pacientes con cita al día siguiente</label>
+            </div>
+            <div class="form-text">Se envía una vez al día (requiere el cron <code>cron/recordatorios.php</code> activo en el servidor).</div>
         </div>
     </div>
 

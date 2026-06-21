@@ -65,6 +65,19 @@ function correo_bienvenida_trial(string $email, string $nombre, int $dias): bool
     return enviar_correo($email, '¡Bienvenido a ' . marca_nombre() . '! Tu prueba de ' . $dias . ' días está activa', $html);
 }
 
+/** Recordatorio de cita próxima. */
+function correo_recordatorio_cita(string $email, string $nombre, string $fecha, string $hora, ?string $medico): bool
+{
+    $cuerpo = 'Hola <strong>' . e($nombre) . '</strong>,<br><br>'
+        . 'Te recordamos tu próxima cita en <strong>' . e(marca_nombre()) . '</strong>:'
+        . '<br><br><div style="background:#f4f7fb;border-radius:10px;padding:16px;font-size:15px">'
+        . '📅 <strong>' . e($fecha) . '</strong><br>🕐 <strong>' . e($hora) . '</strong>'
+        . ($medico ? '<br>👩‍⚕️ ' . e($medico) : '')
+        . '</div><br>Si no puedes asistir, por favor avísanos para reagendar. ¡Te esperamos!';
+    $html = correo_layout('Recordatorio de tu cita', $cuerpo);
+    return enviar_correo($email, 'Recordatorio de tu cita en ' . marca_nombre() . ' · ' . $fecha, $html);
+}
+
 /** Correo de confirmación cuando se activa la suscripción de pago. */
 function correo_suscripcion_activa(string $email, string $nombre, string $plan, ?string $proximo): bool
 {

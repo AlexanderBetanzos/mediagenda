@@ -37,7 +37,13 @@ Construido con **PHP 8 + MariaDB + Bootstrap 5** sobre XAMPP.
    $MYSQL -u root consultorios_db < sql/agenda.sql
    $MYSQL -u root consultorios_db < sql/inventario.sql
    $MYSQL -u root consultorios_db < sql/crm.sql
+   $MYSQL -u root consultorios_db < sql/recordatorios.sql
    ```
+
+   **Cron de recordatorios (opcional):** para enviar recordatorios de cita por
+   correo automáticamente, programa una vez al día:
+   `php /ruta/cron/recordatorios.php` (o por URL con `?key=` y `CRON_TOKEN`
+   definido en los secretos). Se activa/desactiva por consultorio en Configuración.
 
    O desde **phpMyAdmin** → selecciona la BD → *Importar* (un archivo a la vez,
    en ese orden). Los `.sql` ya no incluyen `CREATE DATABASE`, así que se importan
