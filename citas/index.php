@@ -18,7 +18,7 @@ if ($estado !== '' && array_key_exists($estado, ['programada'=>1,'confirmada'=>1
 }
 if ($medico !== '' && ctype_digit($medico)) { $where[] = 'c.medico_id = ?'; $params[] = (int) $medico; }
 
-$sql = "SELECT c.*, p.nombre AS pac_nombre, p.apellidos AS pac_ape, u.nombre AS med_nombre
+$sql = "SELECT c.*, p.nombre AS pac_nombre, p.apellidos AS pac_ape, p.telefono AS pac_tel, u.nombre AS med_nombre
         FROM citas c
         JOIN pacientes p ON p.id = c.paciente_id
         JOIN usuarios  u ON u.id = c.medico_id
@@ -126,6 +126,11 @@ include __DIR__ . '/../includes/header.php';
                                 <?php endforeach; ?>
                             </ul>
                         </div>
+                        <?php if (modulo_activo('whatsapp')):
+                            $wa = wa_link($c['pac_tel'], mensaje_recordatorio($c['pac_nombre'].' '.$c['pac_ape'], fmt_fecha($c['fecha']), fmt_hora($c['hora'])));
+                            if ($wa): ?>
+                        <a href="<?= e($wa) ?>" target="_blank" rel="noopener" class="btn btn-sm btn-outline-success" title="Recordatorio por WhatsApp"><i class="bi bi-whatsapp"></i></a>
+                        <?php endif; endif; ?>
                         <a href="<?= BASE_URL ?>/citas/edit?id=<?= $c['id'] ?>" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
                     </td>
                 </tr>

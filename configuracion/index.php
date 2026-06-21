@@ -46,6 +46,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'moneda'        => in_array($_POST['moneda'] ?? '', $monedas, true) ? $_POST['moneda'] : 'MXN',
         'zona_horaria'  => in_array($_POST['zona_horaria'] ?? '', $zonas, true) ? $_POST['zona_horaria'] : 'America/Mexico_City',
         'formato_fecha' => isset($formatos[$_POST['formato_fecha'] ?? '']) ? $_POST['formato_fecha'] : 'd/m/Y',
+        // Recordatorios / WhatsApp
+        'pais_lada'              => preg_replace('/\D/', '', $_POST['pais_lada'] ?? '') ?: '52',
+        'recordatorio_plantilla' => trim($_POST['recordatorio_plantilla'] ?? ''),
     ]);
     flash('Configuración guardada correctamente.');
     redirect('/configuracion/index');
@@ -163,6 +166,28 @@ include __DIR__ . '/../includes/header.php';
             </div>
         </div>
     </div>
+
+    <?php if (modulo_activo('whatsapp')): ?>
+    <!-- Recordatorios / WhatsApp -->
+    <div class="card mb-4">
+        <div class="card-header fw-semibold"><i class="bi bi-whatsapp text-brand"></i> Recordatorios por WhatsApp</div>
+        <div class="card-body row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Lada del país</label>
+                <div class="input-group">
+                    <span class="input-group-text">+</span>
+                    <input type="text" name="pais_lada" class="form-control" value="<?= e(cfg('pais_lada', '52')) ?>" maxlength="4" placeholder="52">
+                </div>
+                <div class="form-text">Se antepone a teléfonos locales (México = 52).</div>
+            </div>
+            <div class="col-12">
+                <label class="form-label">Plantilla del mensaje</label>
+                <textarea name="recordatorio_plantilla" class="form-control" rows="3" maxlength="500"><?= e(cfg('recordatorio_plantilla', 'Hola {paciente}, le recordamos su cita en {consultorio} el {fecha} a las {hora}. Por favor confirme su asistencia. ¡Gracias!')) ?></textarea>
+                <div class="form-text">Marcadores disponibles: <code>{paciente}</code> <code>{consultorio}</code> <code>{fecha}</code> <code>{hora}</code>.</div>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
 
     <div class="text-end mb-4">
         <button class="btn btn-primary"><i class="bi bi-check-lg"></i> Guardar configuración</button>

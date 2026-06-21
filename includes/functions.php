@@ -557,6 +557,44 @@ function guardar_archivo_expediente(?array $f, int $paciente_id, int $usuario_id
     return ['estado' => 'ok', 'mensaje' => 'Archivo agregado al expediente.'];
 }
 
+/* --------------------------------------------------------------------
+ *  Recordatorios / WhatsApp (click-to-chat)
+ * ------------------------------------------------------------------ */
+
+/** Normaliza un teléfono a solo dígitos en formato internacional (E.164 sin +). */
+function tel_e164(?string $tel): string
+{
+    $d = preg_replace('/\D/', '', (string) $tel);
+    if ($d === '') return '';
+    $d = ltrim($d, '0');
+    $lada = preg_replace('/\D/', '', cfg('pais_lada', '52')) ?: '52';
+    // Si parece un número local (<= 10 dígitos), anteponemos la lada del país.
+    if (strlen($d) <= 10) { $d = $lada . $d; }
+    return $d;
+}
+
+/** Plantilla de recordatorio con marcadores reemplazados. */
+function mensaje_recordatorio(string $paciente, string $fecha, string $hora): string
+{
+    $plantilla = cfg('recordatorio_plantilla',
+        'Hola {paciente}, le recordamos su cita en {consultorio} el {fecha} a las {hora}. '
+        . 'Por favor confirme su asistencia. ¡Gracias!');
+    return strtr($plantilla, [
+        '{paciente}'    => $paciente,
+        '{consultorio}' => marca_nombre(),
+        '{fecha}'       => $fecha,
+        '{hora}'        => $hora,
+    ]);
+}
+
+/** URL wa.me para abrir WhatsApp con un mensaje pre-cargado. '' si no hay tel. */
+function wa_link(?string $telefono, string $mensaje): string
+{
+    $tel = tel_e164($telefono);
+    if ($tel === '') return '';
+    return 'https://wa.me/' . $tel . '?text=' . rawurlencode($mensaje);
+}
+
 /** Devuelve color de badge Bootstrap según el estado de la cita. */
 function estado_badge(string $estado): string
 {
