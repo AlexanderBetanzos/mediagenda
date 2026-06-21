@@ -108,6 +108,9 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
                 </li>
                 <li><hr class="dropdown-divider"></li>
                 <li><a class="dropdown-item" href="<?= BASE_URL ?>/auth/seguridad"><i class="bi bi-shield-lock me-2"></i>Seguridad</a></li>
+                <?php if (has_role('medico', 'admin')): ?>
+                <li><a class="dropdown-item" href="<?= BASE_URL ?>/plantillas/index"><i class="bi bi-file-earmark-text me-2"></i>Plantillas de consulta</a></li>
+                <?php endif; ?>
                 <?php if (has_role('admin')): ?>
                 <li><a class="dropdown-item" href="<?= BASE_URL ?>/configuracion/index"><i class="bi bi-gear me-2"></i>Configuración</a></li>
                 <li><a class="dropdown-item" href="<?= BASE_URL ?>/admin/auditoria"><i class="bi bi-clipboard-data me-2"></i>Auditoría</a></li>

@@ -140,6 +140,15 @@ foreach ($archivos as $a) {
     if ($a['consulta_id']) { $archivos_por_consulta[$a['consulta_id']][] = $a; }
 }
 
+// Plantillas de consulta (para pre-llenar el formulario; solo médico/admin).
+$plantillas = [];
+if (has_role('medico', 'admin')) {
+    $stp = db()->prepare('SELECT nombre, motivo, exploracion, diagnostico, tratamiento, receta, notas
+                          FROM plantillas_consulta WHERE consultorio_id = ? ORDER BY nombre');
+    $stp->execute([tenant_id()]);
+    $plantillas = $stp->fetchAll();
+}
+
 // IMC automático: de la consulta más reciente que tenga peso y estatura.
 $bmi = null;
 foreach ($cons as $co) { if (($b = imc($co['peso'] ?? 0, $co['estatura'] ?? 0))) { $bmi = $b; break; } }
@@ -284,6 +293,18 @@ include __DIR__ . '/../includes/header.php';
                             <?= csrf_field() ?>
                             <input type="hidden" name="accion" value="consulta">
                             <input type="hidden" name="paciente_id" value="<?= $id ?>">
+                            <?php if ($plantillas): ?>
+                            <div class="d-flex align-items-center gap-2 mb-3">
+                                <label class="form-label mb-0 small text-muted"><i class="bi bi-file-earmark-text"></i> Plantilla:</label>
+                                <select id="selPlantilla" class="form-select form-select-sm" style="max-width:260px">
+                                    <option value="">— ninguna —</option>
+                                    <?php foreach ($plantillas as $i => $pl): ?><option value="<?= $i ?>"><?= e($pl['nombre']) ?></option><?php endforeach; ?>
+                                </select>
+                                <a href="<?= BASE_URL ?>/plantillas/index" class="small text-decoration-none">Gestionar</a>
+                            </div>
+                            <?php else: ?>
+                            <div class="mb-2 small"><a href="<?= BASE_URL ?>/plantillas/index" class="text-decoration-none"><i class="bi bi-file-earmark-text"></i> Crear plantillas de consulta</a></div>
+                            <?php endif; ?>
                             <div class="row g-3">
                                 <div class="col-12">
                                     <label class="form-label">Motivo de consulta</label>
@@ -314,6 +335,26 @@ include __DIR__ . '/../includes/header.php';
                         </form>
                     </div>
                 </div>
+                <?php if ($plantillas): ?>
+                <script>
+                (function () {
+                    var P = <?= json_encode(array_map(fn($pl) => [
+                        'motivo'=>$pl['motivo'],'exploracion'=>$pl['exploracion'],'diagnostico'=>$pl['diagnostico'],
+                        'tratamiento'=>$pl['tratamiento'],'receta'=>$pl['receta'],'notas'=>$pl['notas'],
+                    ], $plantillas), JSON_UNESCAPED_UNICODE) ?>;
+                    var sel = document.getElementById('selPlantilla');
+                    var box = document.getElementById('formConsulta');
+                    if (!sel || !box) return;
+                    sel.addEventListener('change', function () {
+                        var p = P[this.value]; if (!p) return;
+                        Object.keys(p).forEach(function (k) {
+                            var el = box.querySelector('[name="' + k + '"]');
+                            if (el && p[k] != null && p[k] !== '') el.value = p[k];
+                        });
+                    });
+                })();
+                </script>
+                <?php endif; ?>
                 <?php endif; ?>
 
                 <?php if (!$cons): ?>
