@@ -118,7 +118,7 @@ Objetivo: que un consultorio pague hoy. Completa el núcleo + comunicación.
 
 | Módulo | Qué incluye | Plan | Depende de | Estado |
 |---|---|---|---|---|
-| Agenda pro | ✅ Vista día/semana/mes (FullCalendar) + **drag&drop** para reagendar (`citas/calendario.php`, feed `citas/feed.php`, `citas/mover.php`). ⬜ Falta: citas recurrentes, bloqueo de horarios, horarios por médico, duración por consulta | B | — | 🟡 |
+| Agenda pro | ✅ Vista día/semana/mes (FullCalendar) + **drag&drop** reagendar · ✅ **citas recurrentes** (semanal/quincenal/mensual) · ✅ **horarios por médico** + **bloqueos** (`citas/horarios.php`, bloqueos como franjas de fondo en el calendario). ⏳ Falta: validar choques contra horario/bloqueo al agendar, duración por defecto por médico | B | — | 🟢 |
 | Flujo de sala | Estados (esperando/en consulta/finalizada/cancelada/no asistió), check-in, QR de llegada, turnos, tiempo de espera | P | Agenda pro | ⬜ |
 | Recordatorios | Correo ✅ · ✅ **WhatsApp click-to-chat** (`wa.me` con mensaje pre-armado por cita, plantilla configurable, gateado a plan Profesional). ⬜ Falta: envío automático por API (Twilio/Meta Cloud), SMS, lista de espera | B (correo) / P (WhatsApp/SMS) | 3.3 notificaciones | 🟡 |
 | Expediente inteligente | ✅ Identificación (CURP/RFC/INE/tipo sangre), contacto de emergencia, antecedentes (personales/familiares/cirugías/vacunas/crónicas/hábitos/alergias), **IMC automático** (de la última consulta), fotos/PDF/estudios ✅. ⬜ Falta: medicamentos actuales estructurados, gráficas de signos vitales | B | 3.2 NOM-024 | 🟡 |

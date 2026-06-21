@@ -70,4 +70,21 @@ $medicos = $medicos->fetchAll();
         <label class="form-label">Notas</label>
         <textarea name="notas" class="form-control" rows="2"><?= $val('notas') ?></textarea>
     </div>
+
+    <?php if (!empty($mostrar_recurrencia)): ?>
+    <div class="col-12"><hr class="my-1"><span class="fw-semibold small text-muted text-uppercase"><i class="bi bi-arrow-repeat"></i> Repetición</span></div>
+    <div class="col-md-6">
+        <label class="form-label">Repetir</label>
+        <select name="repetir" class="form-select">
+            <?php $rp = $c['repetir'] ?? 'no'; foreach (['no'=>'No se repite','semanal'=>'Cada semana','quincenal'=>'Cada 2 semanas','mensual'=>'Cada mes'] as $k=>$lbl): ?>
+                <option value="<?= $k ?>" <?= $rp===$k?'selected':'' ?>><?= $lbl ?></option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+    <div class="col-md-6">
+        <label class="form-label">Número de citas</label>
+        <input type="number" name="repeticiones" class="form-control" min="1" max="52" value="<?= $val('repeticiones', '1') ?>">
+        <div class="form-text">Incluye la primera. Ej. 4 = la cita + 3 repeticiones.</div>
+    </div>
+    <?php endif; ?>
 </div>

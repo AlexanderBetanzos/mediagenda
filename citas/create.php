@@ -15,22 +15,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($c['hora']))        $errores[] = 'Indica la hora.';
 
     if (!$errores) {
+        // Citas recurrentes: genera una serie a partir de la primera fecha.
+        $intervalos = ['semanal' => '+1 week', 'quincenal' => '+2 weeks', 'mensual' => '+1 month'];
+        $repetir = $_POST['repetir'] ?? 'no';
+        $reps    = max(1, min(52, (int) ($_POST['repeticiones'] ?? 1)));
+        if (!isset($intervalos[$repetir])) { $reps = 1; }
+
         $stmt = db()->prepare(
             'INSERT INTO citas (consultorio_id, paciente_id, medico_id, fecha, hora, duracion, tipo, motivo, estado, notas)
              VALUES (?,?,?,?,?,?,?,?,?,?)'
         );
-        $stmt->execute([
-            tenant_id(),
-            (int) $c['paciente_id'], (int) $c['medico_id'], $c['fecha'], $c['hora'],
-            (int) ($c['duracion'] ?: 30), $c['tipo'] ?? 'medica',
-            trim($c['motivo'] ?? '') ?: null, $c['estado'] ?? 'programada',
-            trim($c['notas'] ?? '') ?: null,
-        ]);
-        flash('Cita agendada correctamente.');
+        $fecha = $c['fecha'];
+        $creadas = 0;
+        $primera = null;
+        for ($i = 0; $i < $reps; $i++) {
+            $stmt->execute([
+                tenant_id(),
+                (int) $c['paciente_id'], (int) $c['medico_id'], $fecha, $c['hora'],
+                (int) ($c['duracion'] ?: 30), $c['tipo'] ?? 'medica',
+                trim($c['motivo'] ?? '') ?: null, $c['estado'] ?? 'programada',
+                trim($c['notas'] ?? '') ?: null,
+            ]);
+            if ($i === 0) { $primera = (int) db()->lastInsertId(); }
+            $creadas++;
+            $fecha = date('Y-m-d', strtotime($fecha . ' ' . $intervalos[$repetir]));
+        }
+        auditar('crear', 'cita', $primera, $creadas > 1 ? "serie de $creadas citas" : null);
+        flash($creadas > 1 ? "Se agendaron $creadas citas." : 'Cita agendada correctamente.');
         redirect('/citas/index?desde=' . urlencode($c['fecha']));
     }
 }
 
+$mostrar_recurrencia = true;
 $titulo = 'Nueva cita';
 $activo = 'citas';
 include __DIR__ . '/../includes/header.php';

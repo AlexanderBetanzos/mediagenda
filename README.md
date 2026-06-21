@@ -34,6 +34,7 @@ Construido con **PHP 8 + MariaDB + Bootstrap 5** sobre XAMPP.
    $MYSQL -u root consultorios_db < sql/seguridad.sql
    $MYSQL -u root consultorios_db < sql/portal.sql
    $MYSQL -u root consultorios_db < sql/expediente.sql
+   $MYSQL -u root consultorios_db < sql/agenda.sql
    ```
 
    O desde **phpMyAdmin** → selecciona la BD → *Importar* (un archivo a la vez,

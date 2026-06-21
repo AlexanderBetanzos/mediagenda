@@ -53,4 +53,23 @@ foreach ($st as $c) {
     ];
 }
 
+// Bloqueos como eventos de fondo (franjas en rojo donde no se agenda).
+$wb = ['b.consultorio_id = ?', 'b.fin >= ?', 'b.inicio <= ?'];
+$pb = [tenant_id(), $ini . ' 00:00:00', $fin . ' 23:59:59'];
+if ($medico !== '' && ctype_digit($medico)) {
+    $wb[] = '(b.medico_id = ? OR b.medico_id IS NULL)';
+    $pb[] = (int) $medico;
+}
+$bq = db()->prepare('SELECT inicio, fin, motivo FROM bloqueos b WHERE ' . implode(' AND ', $wb));
+$bq->execute($pb);
+foreach ($bq as $b) {
+    $eventos[] = [
+        'start'   => str_replace(' ', 'T', $b['inicio']),
+        'end'     => str_replace(' ', 'T', $b['fin']),
+        'display' => 'background',
+        'color'   => '#dc3545',
+        'title'   => $b['motivo'] ?: 'Bloqueo',
+    ];
+}
+
 echo json_encode($eventos, JSON_UNESCAPED_UNICODE);
