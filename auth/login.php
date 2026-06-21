@@ -102,7 +102,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </a>
             </div>
             <div class="text-center mt-3">
-                <a href="<?= BASE_URL ?>/index" class="small text-muted">&larr; Volver al sitio</a>
+                <a href="<?= BASE_URL ?>/portal/login" class="small text-decoration-none"><i class="bi bi-person-heart"></i> ¿Eres paciente? Entra al portal</a>
+                <div class="mt-2"><a href="<?= BASE_URL ?>/index" class="small text-muted">&larr; Volver al sitio</a></div>
             </div>
         </div>
     </div>

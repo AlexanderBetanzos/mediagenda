@@ -81,6 +81,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'borra
     redirect('/pacientes/ver?id=' . $id);
 }
 
+/* --- Portal del paciente: habilitar acceso / cambiar contraseña. Staff. --- */
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'portal') {
+    verify_csrf();
+    if (!has_role('admin', 'medico', 'recepcion')) { http_response_code(403); die('Sin permiso.'); }
+
+    if (($_POST['sub'] ?? '') === 'desactivar') {
+        db()->prepare('UPDATE pacientes SET portal_activo = 0 WHERE id = ? AND consultorio_id = ?')
+            ->execute([$id, tenant_id()]);
+        auditar('portal_desactivar', 'paciente', $id);
+        flash('Acceso al portal desactivado.');
+    } else {
+        $pw = $_POST['portal_password'] ?? '';
+        if (!$p['email']) {
+            flash('El paciente necesita un correo para acceder al portal.', 'warning');
+        } elseif (strlen($pw) < 6) {
+            flash('La contraseña del portal debe tener al menos 6 caracteres.', 'warning');
+        } else {
+            db()->prepare('UPDATE pacientes SET portal_password_hash = ?, portal_activo = 1 WHERE id = ? AND consultorio_id = ?')
+                ->execute([password_hash($pw, PASSWORD_BCRYPT), $id, tenant_id()]);
+            auditar('portal_provision', 'paciente', $id);
+            flash('Acceso al portal activado. Comparte la contraseña con el paciente.');
+        }
+    }
+    redirect('/pacientes/ver?id=' . $id);
+}
+
 // Citas del paciente
 $citas = db()->prepare(
     'SELECT c.*, u.nombre AS med_nombre FROM citas c
@@ -168,6 +194,40 @@ include __DIR__ . '/../includes/header.php';
                 <p class="mb-0"><strong>Notas:</strong><br><?= nl2br(e($p['notas'] ?: '—')) ?></p>
             </div>
         </div>
+
+        <?php if (modulo_activo('portal') && has_role('admin', 'medico', 'recepcion')): ?>
+        <div class="card mt-4">
+            <div class="card-header bg-white fw-semibold"><i class="bi bi-person-lock text-brand"></i> Portal del paciente</div>
+            <div class="card-body">
+                <?php if ($p['portal_activo']): ?>
+                    <p class="mb-2"><span class="badge bg-success">Activo</span> El paciente entra con su correo.</p>
+                <?php else: ?>
+                    <p class="text-muted small mb-2">Da acceso para que vea sus citas, recetas y estudios.</p>
+                <?php endif; ?>
+                <?php if (!$p['email']): ?>
+                    <div class="alert alert-warning py-2 small mb-2">Agrega un correo al paciente para habilitar el portal.</div>
+                <?php endif; ?>
+                <form method="post" class="row g-2">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="accion" value="portal">
+                    <input type="hidden" name="paciente_id" value="<?= $id ?>">
+                    <div class="col-12">
+                        <input type="text" name="portal_password" class="form-control form-control-sm" autocomplete="new-password"
+                               placeholder="<?= $p['portal_activo'] ? 'Nueva contraseña' : 'Contraseña (mín. 6)' ?>" <?= !$p['email'] ? 'disabled' : '' ?>>
+                    </div>
+                    <div class="col-12 d-flex gap-2">
+                        <button class="btn btn-sm btn-primary" <?= !$p['email'] ? 'disabled' : '' ?>>
+                            <i class="bi bi-key"></i> <?= $p['portal_activo'] ? 'Cambiar contraseña' : 'Activar acceso' ?>
+                        </button>
+                        <?php if ($p['portal_activo']): ?>
+                        <button name="sub" value="desactivar" class="btn btn-sm btn-outline-danger">Desactivar</button>
+                        <?php endif; ?>
+                    </div>
+                    <div class="col-12"><small class="text-muted">Correo: <?= e($p['email'] ?: '—') ?> · <a href="<?= BASE_URL ?>/portal/login" target="_blank">Abrir portal</a></small></div>
+                </form>
+            </div>
+        </div>
+        <?php endif; ?>
     </div>
 
     <!-- Expediente / citas -->

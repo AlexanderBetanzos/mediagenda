@@ -125,7 +125,7 @@ Objetivo: que un consultorio pague hoy. Completa el núcleo + comunicación.
 | Consulta avanzada | Plantillas por especialidad, notas rápidas, diagnósticos/tratamientos, órdenes médicas, interconsultas | B | Expediente | ⬜ |
 | Recetas electrónicas | Catálogo de medicamentos, recetas favoritas, dosis automáticas, firma electrónica, QR, reimpresión, historial | B (básico) / P (firma+QR) | 3.3 PDF | 🟡 |
 | Facturación + caja | Métodos de pago, caja, cortes, pagos parciales, cuentas por cobrar; **CFDI/SAT** | B (simple) / C (CFDI) | 3.2 SAT | 🟡 |
-| Portal del paciente | Cuenta, ver/reagendar citas, descargar recetas/estudios, ver historial, pagos | P | 3.3 API | ⬜ |
+| Portal del paciente | ✅ Acceso propio (sesión separada), ver citas próximas/historial, ver/imprimir recetas, descargar estudios. Provisión desde `pacientes/ver` (staff fija contraseña). ⬜ Falta: reagendar/cancelar, pagos, auto-registro por token de correo | P | 3.3 API | 🟡 |
 | Dashboard | KPIs configurables, agenda del día, pendientes, ingresos | B | — | 🟡 |
 
 ---

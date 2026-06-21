@@ -39,6 +39,7 @@ $marca  = marca_nombre();
                 <li class="nav-item"><a class="nav-link" href="#beneficios">Beneficios</a></li>
                 <li class="nav-item"><a class="nav-link" href="#planes">Planes</a></li>
                 <li class="nav-item"><a class="nav-link" href="#faq">Preguntas</a></li>
+                <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>/portal/login"><i class="bi bi-person-heart"></i> Portal del paciente</a></li>
             </ul>
             <ul class="navbar-nav align-items-lg-center gap-lg-2">
                 <?php if ($logged): ?>

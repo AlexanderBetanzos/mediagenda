@@ -12,11 +12,30 @@ if (session_status() === PHP_SESSION_NONE) {
  *  Multi-tenant: contexto del consultorio (tenant) activo
  * ------------------------------------------------------------------ */
 
-/** ID del consultorio activo: el del usuario en sesión, o 1 (contexto público). */
+/** ID del consultorio activo: el del usuario o paciente en sesión, o 1 (público). */
 function tenant_id(): int
 {
-    $u = $_SESSION['usuario'] ?? null;
-    return isset($u['consultorio_id']) ? (int) $u['consultorio_id'] : 1;
+    if (isset($_SESSION['usuario']['consultorio_id']))  return (int) $_SESSION['usuario']['consultorio_id'];
+    if (isset($_SESSION['paciente']['consultorio_id'])) return (int) $_SESSION['paciente']['consultorio_id'];
+    return 1;
+}
+
+/* --------------------------------------------------------------------
+ *  Portal del paciente (sesión separada de la del personal)
+ * ------------------------------------------------------------------ */
+
+/** Paciente en sesión (portal), o null. */
+function current_paciente(): ?array
+{
+    return $_SESSION['paciente'] ?? null;
+}
+
+/** Exige sesión de paciente; si no, manda al login del portal. */
+function require_paciente(): void
+{
+    if (!isset($_SESSION['paciente'])) {
+        redirect('/portal/login');
+    }
 }
 
 /** ¿El usuario en sesión es súper-administrador (dueño del producto)? */
