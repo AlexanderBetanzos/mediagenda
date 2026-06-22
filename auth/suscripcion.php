@@ -37,11 +37,11 @@ foreach ($precios as $key => $pl) {
 $conPago = mp_configurado();
 ?>
 <!doctype html>
-<html lang="es" class="app-light" data-bs-theme="light">
+<html lang="<?= e(idioma_actual()) ?>" class="app-light" data-bs-theme="light">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Activar plan · <?= e(marca_nombre()) ?></title>
+    <title><?= et('Activar plan') ?> · <?= e(marca_nombre()) ?></title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -54,14 +54,14 @@ $conPago = mp_configurado();
     <div class="text-center mb-4">
         <div class="display-5 text-brand"><i class="bi bi-lock-fill"></i></div>
         <h1 class="h3 mt-2"><?= e($mensaje) ?></h1>
-        <p class="text-muted">Para seguir usando <strong><?= e(marca_nombre()) ?></strong>, elige un plan y reactiva tu cuenta.</p>
+        <p class="text-muted"><?= et('Para seguir usando') ?> <strong><?= e(marca_nombre()) ?></strong>, <?= et('elige un plan y reactiva tu cuenta.') ?></p>
     </div>
 
     <?php if ($totalDatos > 0): ?>
     <div class="card border-success-subtle mb-4">
         <div class="card-body">
             <p class="text-center mb-3"><i class="bi bi-shield-check text-success"></i>
-                <strong>Tus datos están guardados y a salvo.</strong> Reactiva tu cuenta para recuperar el acceso a:</p>
+                <strong><?= et('Tus datos están guardados y a salvo.') ?></strong> <?= et('Reactiva tu cuenta para recuperar el acceso a:') ?></p>
             <div class="row g-3 text-center">
                 <?php foreach ($resumen as [$icono, $num, $etq]): if ($num > 0): ?>
                 <div class="col">
@@ -92,7 +92,7 @@ $conPago = mp_configurado();
                     <?php if ($conPago): ?>
                     <a href="<?= BASE_URL ?>/pagos/suscribir?plan=<?= e($key) ?>"
                        class="btn <?= $feat ? 'btn-primary' : 'btn-outline-primary' ?> w-100">
-                        <i class="bi bi-credit-card"></i> Suscribirme
+                        <i class="bi bi-credit-card"></i> <?= et('Suscribirme') ?>
                     </a>
                     <?php else: ?>
                     <a href="mailto:<?= e($soporte) ?>?subject=<?= rawurlencode('Activar plan ' . $nombre . ' — ' . marca_nombre()) ?>"
