@@ -374,4 +374,5 @@ return [
     'Peso para la edad'=>'Weight for age','Talla para la edad'=>'Height for age','IMC para la edad'=>'BMI for age',
     'Edad (años)'=>'Age (years)','Referencia'=>'Reference','Talla'=>'Height',
     'Superior'=>'Upper','Inferior'=>'Lower','Derecha'=>'Right','Izquierda'=>'Left',
+    'Con "Sano" seleccionado, al hacer clic quitas la marca de un diente.'=>'With "Healthy" selected, clicking removes a tooth mark.',
 ];

@@ -24,6 +24,10 @@ $estados = [
     'ausente'    => ['Ausente',     '#adb5bd', '#ffffff'],
     'extraccion' => ['Extracción',  '#212529', '#ffffff'],
 ];
+$iconos = [
+    'sano' => 'bi-check-circle', 'caries' => 'bi-exclamation-circle', 'obturado' => 'bi-bandaid',
+    'corona' => 'bi-gem', 'endodoncia' => 'bi-asterisk', 'ausente' => 'bi-dash-circle', 'extraccion' => 'bi-x-octagon',
+];
 $arribaDer = [18,17,16,15,14,13,12,11]; $arribaIzq = [21,22,23,24,25,26,27,28];
 $abajoDer  = [48,47,46,45,44,43,42,41]; $abajoIzq  = [38,37,36,35,34,33,32,31];
 $dientesValidos = array_merge($arribaDer, $arribaIzq, $abajoDer, $abajoIzq);
@@ -88,9 +92,10 @@ include __DIR__ . '/../includes/header.php';
         <div class="d-flex flex-wrap gap-2" id="paleta">
             <?php foreach ($estados as $k => [$lbl, $bg, $fg]): ?>
             <button type="button" class="btn btn-sm border paleta-btn <?= $k === 'caries' ? 'active' : '' ?>" data-estado="<?= e($k) ?>"
-                    style="background:<?= $bg ?>;color:<?= $fg ?>"><?= et($lbl) ?></button>
+                    style="background:<?= $bg ?>;color:<?= $fg ?>"><i class="bi <?= $iconos[$k] ?>"></i> <?= et($lbl) ?></button>
             <?php endforeach; ?>
         </div>
+        <div class="form-text mt-2"><?= et('Con "Sano" seleccionado, al hacer clic quitas la marca de un diente.') ?></div>
     </div></div>
 
     <!-- Arcadas -->
@@ -113,6 +118,14 @@ include __DIR__ . '/../includes/header.php';
             </div>
             <div class="text-center text-muted small fw-semibold mt-1"><?= et('Inferior') ?></div>
         </div>
+        <hr class="my-3">
+        <div class="d-flex flex-wrap justify-content-center gap-2" id="resumen">
+            <?php foreach ($estados as $k => [$lbl, $bg, $fg]): if ($k === 'sano') continue; ?>
+            <span class="badge border d-inline-flex align-items-center gap-1" data-resumen="<?= e($k) ?>" style="background:<?= $bg ?>;color:<?= $fg ?>">
+                <i class="bi <?= $iconos[$k] ?>"></i> <?= et($lbl) ?>: <span class="cnt fw-bold">0</span>
+            </span>
+            <?php endforeach; ?>
+        </div>
         <div class="text-end mt-3">
             <a href="<?= BASE_URL ?>/pacientes/ver?id=<?= $pid ?>" class="btn btn-light"><?= et('Cancelar') ?></a>
             <button class="btn btn-primary"><i class="bi bi-check-lg"></i> <?= et('Guardar') ?></button>
@@ -134,18 +147,31 @@ include __DIR__ . '/../includes/header.php';
         });
     });
 
+    function updateResumen() {
+        var c = {};
+        Object.values(datos).forEach(function (e) { c[e] = (c[e] || 0) + 1; });
+        document.querySelectorAll('#resumen [data-resumen]').forEach(function (b) {
+            var n = c[b.dataset.resumen] || 0;
+            b.querySelector('.cnt').textContent = n;
+            b.style.opacity = n ? '1' : '.4';
+        });
+    }
+
     document.querySelectorAll('.diente').forEach(function (t) {
         t.addEventListener('click', function () {
             var d = t.dataset.diente;
             if (activo === 'sano') { delete datos[d]; } else { datos[d] = activo; }
             t.style.background = estados[activo].bg;
             t.style.color = estados[activo].fg;
+            updateResumen();
         });
     });
 
     document.getElementById('odoForm').addEventListener('submit', function () {
         document.getElementById('datosInput').value = JSON.stringify(datos);
     });
+
+    updateResumen();
 })();
 </script>
 <style>
