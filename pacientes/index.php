@@ -42,8 +42,8 @@ include __DIR__ . '/../includes/header.php';
     <div class="col-sm-4 col-md-3">
         <select name="tipo" class="form-select">
             <option value=""><?= et('Todos los tipos') ?></option>
-            <option value="medico" <?= $tipo === 'medico' ? 'selected' : '' ?>><?= et('Médico') ?></option>
-            <option value="dental" <?= $tipo === 'dental' ? 'selected' : '' ?>><?= et('Dental') ?></option>
+            <option value="medico" <?= $tipo === 'medico' ? 'selected' : '' ?>><?= e(tipo_paciente_label('medico')) ?></option>
+            <option value="dental" <?= $tipo === 'dental' ? 'selected' : '' ?>><?= e(tipo_paciente_label('dental')) ?></option>
         </select>
     </div>
     <div class="col-auto">
@@ -74,7 +74,7 @@ include __DIR__ . '/../includes/header.php';
                     <td><?= e(edad($p['fecha_nacimiento'])) ?></td>
                     <td>
                         <span class="badge bg-<?= $p['tipo'] === 'dental' ? 'info' : 'primary' ?>">
-                            <?= $p['tipo'] === 'dental' ? et('Dental') : et('Médico') ?>
+                            <?= e(tipo_paciente_label($p['tipo'])) ?>
                         </span>
                     </td>
                     <td><?= e($p['telefono'] ?: '—') ?></td>

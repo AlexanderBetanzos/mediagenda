@@ -47,17 +47,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $mostrar_recurrencia = true;
-$titulo = 'Nueva cita';
+$titulo = t('Nueva cita');
 $activo = 'citas';
 include __DIR__ . '/../includes/header.php';
 ?>
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/citas/index">Citas</a></li>
-        <li class="breadcrumb-item active">Nueva</li>
+        <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/citas/index"><?= et('Citas') ?></a></li>
+        <li class="breadcrumb-item active"><?= et('Nueva') ?></li>
     </ol>
 </nav>
-<h1 class="h3 mb-3">Agendar cita</h1>
+<h1 class="h3 mb-3"><?= et('Agendar cita') ?></h1>
 
 <?php if ($errores): ?>
     <div class="alert alert-danger"><ul class="mb-0"><?php foreach ($errores as $e) echo '<li>'.e($e).'</li>'; ?></ul></div>
@@ -66,8 +66,8 @@ include __DIR__ . '/../includes/header.php';
 <form method="post" class="card">
     <div class="card-body"><?= csrf_field() ?><?php include __DIR__ . '/_form.php'; ?></div>
     <div class="card-footer bg-white text-end">
-        <a href="<?= BASE_URL ?>/citas/index" class="btn btn-light">Cancelar</a>
-        <button class="btn btn-primary"><i class="bi bi-check-lg"></i> Agendar</button>
+        <a href="<?= BASE_URL ?>/citas/index" class="btn btn-light"><?= et('Cancelar') ?></a>
+        <button class="btn btn-primary"><i class="bi bi-check-lg"></i> <?= et('Agendar') ?></button>
     </div>
 </form>
 

@@ -37,52 +37,52 @@ $medicos = db()->prepare("SELECT id, nombre FROM usuarios WHERE rol='medico' AND
 $medicos->execute([tenant_id()]);
 $medicos = $medicos->fetchAll();
 
-$titulo = 'Citas';
+$titulo = t('Citas');
 $activo = 'citas';
 include __DIR__ . '/../includes/header.php';
 ?>
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="h3 mb-0"><i class="bi bi-calendar-check text-brand"></i> Agenda de citas</h1>
+    <h1 class="h3 mb-0"><i class="bi bi-calendar-check text-brand"></i> <?= et('Agenda de citas') ?></h1>
     <div class="d-flex gap-2">
-        <a href="<?= BASE_URL ?>/citas/sala" class="btn btn-outline-secondary"><i class="bi bi-hourglass-split"></i> Sala</a>
-        <a href="<?= BASE_URL ?>/citas/calendario" class="btn btn-outline-secondary"><i class="bi bi-calendar3"></i> Calendario</a>
+        <a href="<?= BASE_URL ?>/citas/sala" class="btn btn-outline-secondary"><i class="bi bi-hourglass-split"></i> <?= et('Sala') ?></a>
+        <a href="<?= BASE_URL ?>/citas/calendario" class="btn btn-outline-secondary"><i class="bi bi-calendar3"></i> <?= et('Calendario') ?></a>
         <?php if (has_role('admin', 'medico')): ?>
-        <a href="<?= BASE_URL ?>/citas/horarios" class="btn btn-outline-secondary"><i class="bi bi-clock-history"></i> Horarios</a>
+        <a href="<?= BASE_URL ?>/citas/horarios" class="btn btn-outline-secondary"><i class="bi bi-clock-history"></i> <?= et('Horarios') ?></a>
         <?php endif; ?>
-        <a href="<?= BASE_URL ?>/citas/create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Nueva cita</a>
+        <a href="<?= BASE_URL ?>/citas/create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> <?= et('Nueva cita') ?></a>
     </div>
 </div>
 
 <form class="row g-2 mb-3 align-items-end" method="get">
     <div class="col-6 col-md-2">
-        <label class="form-label small mb-1">Desde</label>
+        <label class="form-label small mb-1"><?= et('Desde') ?></label>
         <input type="date" name="desde" class="form-control" value="<?= e($desde) ?>">
     </div>
     <div class="col-6 col-md-2">
-        <label class="form-label small mb-1">Hasta</label>
+        <label class="form-label small mb-1"><?= et('Hasta') ?></label>
         <input type="date" name="hasta" class="form-control" value="<?= e($hasta) ?>">
     </div>
     <div class="col-6 col-md-3">
-        <label class="form-label small mb-1">Médico</label>
+        <label class="form-label small mb-1"><?= et('Médico') ?></label>
         <select name="medico" class="form-select" <?= $u['rol']==='medico' ? 'disabled' : '' ?>>
-            <option value="">Todos</option>
+            <option value=""><?= et('Todos') ?></option>
             <?php foreach ($medicos as $m): ?>
                 <option value="<?= $m['id'] ?>" <?= (string)$m['id']===$medico ? 'selected':'' ?>><?= e($m['nombre']) ?></option>
             <?php endforeach; ?>
         </select>
     </div>
     <div class="col-6 col-md-2">
-        <label class="form-label small mb-1">Estado</label>
+        <label class="form-label small mb-1"><?= et('Estado') ?></label>
         <select name="estado" class="form-select">
-            <option value="">Todos</option>
+            <option value=""><?= et('Todos') ?></option>
             <?php foreach (['programada','confirmada','atendida','cancelada','no_asistio'] as $es): ?>
                 <option value="<?= $es ?>" <?= $estado===$es?'selected':'' ?>><?= estado_label($es) ?></option>
             <?php endforeach; ?>
         </select>
     </div>
     <div class="col-md-3">
-        <button class="btn btn-outline-secondary"><i class="bi bi-funnel"></i> Filtrar</button>
-        <a href="<?= BASE_URL ?>/citas/index" class="btn btn-link">Limpiar</a>
+        <button class="btn btn-outline-secondary"><i class="bi bi-funnel"></i> <?= et('Filtrar') ?></button>
+        <a href="<?= BASE_URL ?>/citas/index" class="btn btn-link"><?= et('Limpiar') ?></a>
     </div>
 </form>
 
@@ -99,24 +99,24 @@ include __DIR__ . '/../includes/header.php';
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
             <thead class="table-light">
-                <tr><th>Fecha</th><th>Hora</th><th>Paciente</th><th>Médico</th><th>Tipo</th><th>Motivo</th><th>Estado</th><th class="text-end">Acciones</th></tr>
+                <tr><th><?= et('Fecha') ?></th><th><?= et('Hora') ?></th><th><?= et('Paciente') ?></th><th><?= et('Médico') ?></th><th><?= et('Tipo') ?></th><th><?= et('Motivo') ?></th><th><?= et('Estado') ?></th><th class="text-end"><?= et('Acciones') ?></th></tr>
             </thead>
             <tbody>
             <?php if (!$citas): ?>
-                <tr><td colspan="8" class="text-center text-muted py-4">No hay citas con esos filtros.</td></tr>
+                <tr><td colspan="8" class="text-center text-muted py-4"><?= et('No hay citas con esos filtros.') ?></td></tr>
             <?php else: foreach ($citas as $c): ?>
                 <tr>
-                    <td><?= fmt_fecha($c['fecha']) ?><?= $c['fecha']===date('Y-m-d') ? ' <span class="badge bg-success">Hoy</span>' : '' ?></td>
+                    <td><?= fmt_fecha($c['fecha']) ?><?= $c['fecha']===date('Y-m-d') ? ' <span class="badge bg-success">'.et('Hoy').'</span>' : '' ?></td>
                     <td><?= fmt_hora($c['hora']) ?></td>
                     <td><a href="<?= BASE_URL ?>/pacientes/ver?id=<?= $c['paciente_id'] ?>"><?= e($c['pac_nombre'].' '.$c['pac_ape']) ?></a></td>
                     <td class="small"><?= e($c['med_nombre']) ?></td>
-                    <td><span class="badge bg-<?= $c['tipo']==='dental'?'info':'primary' ?>"><?= $c['tipo']==='dental'?'Dental':'Médica' ?></span></td>
+                    <td><span class="badge bg-<?= $c['tipo']==='dental'?'info':'primary' ?>"><?= $c['tipo']==='dental'?et('Dental'):et('Médica') ?></span></td>
                     <td><?= e($c['motivo'] ?: '—') ?></td>
                     <td><span class="badge bg-<?= estado_badge($c['estado']) ?>"><?= estado_label($c['estado']) ?></span></td>
                     <td class="text-end text-nowrap">
                         <!-- Cambio rápido de estado -->
                         <div class="btn-group">
-                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">Estado</button>
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown"><?= et('Estado') ?></button>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <?php foreach (['confirmada','atendida','cancelada','no_asistio','programada'] as $es): ?>
                                 <li>

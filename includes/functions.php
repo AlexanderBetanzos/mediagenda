@@ -446,14 +446,21 @@ function has_role(string ...$roles): bool
     return $u && in_array($u['rol'], $roles, true);
 }
 
+/** Etiqueta del tipo de paciente (evita el homónimo "Médico"=doctor vs tipo). */
+function tipo_paciente_label(string $tipo): string
+{
+    if ($tipo === 'dental') return t('Dental');
+    return idioma_actual() === 'en' ? 'Medical' : 'Médico';
+}
+
 /** Etiqueta legible de un rol. */
 function rol_label(string $rol): string
 {
-    return [
+    return t([
         'admin'     => 'Administrador',
         'medico'    => 'Médico / Dentista',
         'recepcion' => 'Recepción',
-    ][$rol] ?? $rol;
+    ][$rol] ?? $rol);
 }
 
 /* --------------------------------------------------------------------
@@ -717,7 +724,7 @@ function estado_badge(string $estado): string
 
 function estado_label(string $estado): string
 {
-    return [
+    return t([
         'programada'  => 'Programada',
         'confirmada'  => 'Confirmada',
         'esperando'   => 'En espera',
@@ -725,5 +732,5 @@ function estado_label(string $estado): string
         'atendida'    => 'Atendida',
         'cancelada'   => 'Cancelada',
         'no_asistio'  => 'No asistió',
-    ][$estado] ?? $estado;
+    ][$estado] ?? $estado);
 }

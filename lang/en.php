@@ -86,7 +86,6 @@ return [
     'Tipo'                => 'Type',
     'Edad'               => 'Age',
     'Acciones'            => 'Actions',
-    'Médico'             => 'Medical',
     'Dental'             => 'Dental',
     'Ver expediente'     => 'View record',
     'Editar'             => 'Edit',
@@ -95,4 +94,77 @@ return [
     'Limpiar'            => 'Clear',
     'Buscar por nombre, teléfono o correo…' => 'Search by name, phone or email…',
     'Todos los tipos'    => 'All types',
+
+    // Estados de cita (estado_label) y roles (rol_label)
+    'Programada'=>'Scheduled','Confirmada'=>'Confirmed','En espera'=>'Waiting',
+    'En consulta'=>'In visit','Atendida'=>'Attended','No asistió'=>'No-show',
+    'Administrador'=>'Administrator','Médico / Dentista'=>'Doctor / Dentist','Recepción'=>'Reception',
+
+    // Citas
+    'Agenda de citas'=>'Appointment schedule','Calendario'=>'Calendar','Sala'=>'Waiting room',
+    'Horarios'=>'Hours','Lista'=>'List','Desde'=>'From','Hasta'=>'To','Todos'=>'All',
+    'Filtrar'=>'Filter','Hora'=>'Time','Fecha'=>'Date','Motivo'=>'Reason','Notas'=>'Notes',
+    'Duración (min)'=>'Duration (min)','Agendar cita'=>'Book appointment','Agendar'=>'Book',
+    '— Selecciona —'=>'— Select —','No hay citas con esos filtros.'=>'No appointments match those filters.',
+    'Repetición'=>'Repeat','Repetir'=>'Repeat','No se repite'=>'Does not repeat',
+    'Cada semana'=>'Weekly','Cada 2 semanas'=>'Every 2 weeks','Cada mes'=>'Monthly',
+    'Número de citas'=>'Number of appointments','Estado de la cita'=>'Appointment status',
+    'Médico / Dentista'=>'Doctor / Dentist',
+    'Todos los médicos'=>'All doctors','Arrastra una cita para reagendarla. Haz clic para editarla.'=>'Drag an appointment to reschedule it. Click to edit.',
+
+    // Sala de espera
+    'Sala de espera'=>'Waiting room','Por llegar'=>'To arrive','Pasar a consulta'=>'Start visit',
+    'Finalizar'=>'Finish','Atendidas hoy'=>'Attended today',
+
+    // Horarios y bloqueos
+    'Horarios y bloqueos'=>'Hours and blocks','Horario semanal'=>'Weekly hours',
+    'Lunes'=>'Monday','Martes'=>'Tuesday','Miércoles'=>'Wednesday','Jueves'=>'Thursday',
+    'Viernes'=>'Friday','Sábado'=>'Saturday','Domingo'=>'Sunday','Guardar horario'=>'Save hours',
+    'Nuevo bloqueo'=>'New block','Inicio'=>'Start','Fin'=>'End','Agregar bloqueo'=>'Add block',
+    'Bloqueos próximos'=>'Upcoming blocks','Sin bloqueos.'=>'No blocks.',
+    'Aplicar a todo el consultorio'=>'Apply to the whole clinic','Todo el consultorio'=>'Whole clinic',
+    'Médico'=>'Doctor','Médica'=>'Medical',
+    'Incluye la primera. Ej. 4 = la cita + 3 repeticiones.'=>'Includes the first one. E.g. 4 = the visit + 3 repeats.',
+    'Nueva'=>'New','Nuevo'=>'New',
+
+    // Expediente / consulta
+    'Datos de contacto'=>'Contact info','Información clínica'=>'Clinical info',
+    'Contacto de emergencia'=>'Emergency contact','Identificación'=>'Identification',
+    'Alergias'=>'Allergies','Antecedentes personales'=>'Personal history',
+    'Antecedentes familiares'=>'Family history','Enfermedades crónicas'=>'Chronic diseases',
+    'Cirugías'=>'Surgeries','Vacunas'=>'Vaccines','Hábitos'=>'Habits','Cita'=>'Appointment',
+    'Nueva consulta'=>'New visit','Guardar consulta'=>'Save visit','Motivo de consulta'=>'Visit reason',
+    'Exploración'=>'Examination','Tratamiento'=>'Treatment','Peso (kg)'=>'Weight (kg)',
+    'Estatura (cm)'=>'Height (cm)','Presión'=>'Blood pressure','Temp. (°C)'=>'Temp. (°C)',
+    'Sin consultas registradas.'=>'No visits recorded.','Archivos'=>'Files','Subir archivo'=>'Upload file',
+    'Femenino'=>'Female','Masculino'=>'Male','Sin archivos en el expediente.'=>'No files in the record.',
+    'Expediente clínico'=>'Clinical record','Diagnóstico'=>'Diagnosis',
+
+    // Recetas / Facturación
+    'Recetas'=>'Prescriptions','Nueva receta'=>'New prescription','Medicamento'=>'Medication',
+    'Dosis'=>'Dose','Frecuencia'=>'Frequency','Duración'=>'Duration','Indicaciones'=>'Instructions',
+    'Imprimir'=>'Print','Folio'=>'Reference','Facturación'=>'Billing','Nueva factura'=>'New invoice',
+    'Concepto'=>'Item','Cantidad'=>'Qty','Precio'=>'Price','Importe'=>'Amount','Subtotal'=>'Subtotal',
+    'Descuento'=>'Discount','Total'=>'Total','Pendiente'=>'Pending','Pagada'=>'Paid',
+    'Método de pago'=>'Payment method',
+
+    // Inventario
+    'Inventario / Farmacia'=>'Inventory / Pharmacy','Producto'=>'Product','Productos'=>'Products',
+    'Entrada'=>'Stock in','Salida'=>'Stock out','Stock'=>'Stock','Categoría'=>'Category',
+    'Unidad'=>'Unit','Stock mínimo'=>'Minimum stock','Lote'=>'Batch','Caducidad'=>'Expiry',
+    'Proveedor'=>'Supplier','con stock bajo'=>'low stock','por caducar (30 días)'=>'expiring (30 days)',
+    'Próx. caducidad'=>'Next expiry',
+
+    // CRM
+    'CRM · Seguimiento'=>'CRM · Follow-up','Campañas'=>'Campaigns','Nuevo seguimiento'=>'New follow-up',
+    'Pendientes'=>'Pending','Cumpleaños de este mes'=>"This month's birthdays",'Título'=>'Title',
+    'Llamada'=>'Call','Mensaje'=>'Message','Revisión'=>'Check-up','Otro'=>'Other','Hecho'=>'Done',
+    'Segmento'=>'Segment','Generar lista'=>'Generate list','Enviar'=>'Send',
+
+    // Configuración / Usuarios
+    'Apariencia'=>'Appearance','Marca'=>'Brand','Datos del consultorio'=>'Clinic details',
+    'Regional'=>'Regional','Moneda'=>'Currency','Zona horaria'=>'Time zone','Formato de fecha'=>'Date format',
+    'Idioma por defecto'=>'Default language','Guardar configuración'=>'Save settings',
+    'Recordatorios automáticos'=>'Automatic reminders','Rol'=>'Role','Especialidad'=>'Specialty',
+    'Activo'=>'Active','Inactivo'=>'Inactive','Nuevo usuario'=>'New user',
 ];
