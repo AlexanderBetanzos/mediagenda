@@ -58,40 +58,40 @@ $plantillas = db()->prepare('SELECT * FROM plantillas_consulta WHERE consultorio
 $plantillas->execute([$tid]);
 $plantillas = $plantillas->fetchAll();
 
-$tipoLbl = ['general'=>'General','medico'=>'Médico','dental'=>'Dental'];
+$tipoLbl = ['general'=>t('General'),'medico'=>tipo_paciente_label('medico'),'dental'=>t('Dental')];
 $v = fn($k) => e($f[$k] ?? '');
 
-$titulo = 'Plantillas de consulta';
+$titulo = t('Plantillas de consulta');
 $activo = 'plantillas';
 include __DIR__ . '/../includes/header.php';
 ?>
-<h1 class="h3 mb-3"><i class="bi bi-file-earmark-text text-brand"></i> Plantillas de consulta</h1>
-<p class="text-muted">Crea formatos reutilizables para llenar más rápido el expediente.</p>
+<h1 class="h3 mb-3"><i class="bi bi-file-earmark-text text-brand"></i> <?= et('Plantillas de consulta') ?></h1>
+<p class="text-muted"><?= et('Crea formatos reutilizables para llenar más rápido el expediente.') ?></p>
 
 <div class="row g-4">
     <div class="col-lg-5">
         <div class="card">
-            <div class="card-header bg-white fw-semibold"><?= $f['id'] ? 'Editar plantilla' : 'Nueva plantilla' ?></div>
+            <div class="card-header bg-white fw-semibold"><?= $f['id'] ? et('Editar plantilla') : et('Nueva plantilla') ?></div>
             <div class="card-body">
                 <form method="post" class="row g-2">
                     <?= csrf_field() ?>
                     <input type="hidden" name="accion" value="guardar">
                     <input type="hidden" name="id" value="<?= (int) $f['id'] ?>">
-                    <div class="col-8"><label class="form-label">Nombre *</label><input type="text" name="nombre" class="form-control" required maxlength="120" value="<?= $v('nombre') ?>"></div>
-                    <div class="col-4"><label class="form-label">Tipo</label>
+                    <div class="col-8"><label class="form-label"><?= et('Nombre') ?> *</label><input type="text" name="nombre" class="form-control" required maxlength="120" value="<?= $v('nombre') ?>"></div>
+                    <div class="col-4"><label class="form-label"><?= et('Tipo') ?></label>
                         <select name="tipo" class="form-select">
-                            <?php foreach ($tipoLbl as $k=>$l): ?><option value="<?= $k ?>" <?= $f['tipo']===$k?'selected':'' ?>><?= $l ?></option><?php endforeach; ?>
+                            <?php foreach ($tipoLbl as $k=>$l): ?><option value="<?= $k ?>" <?= $f['tipo']===$k?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?>
                         </select>
                     </div>
-                    <div class="col-12"><label class="form-label">Motivo</label><input type="text" name="motivo" class="form-control" value="<?= $v('motivo') ?>"></div>
-                    <div class="col-md-6"><label class="form-label">Exploración</label><textarea name="exploracion" class="form-control" rows="2"><?= $v('exploracion') ?></textarea></div>
-                    <div class="col-md-6"><label class="form-label">Diagnóstico</label><textarea name="diagnostico" class="form-control" rows="2"><?= $v('diagnostico') ?></textarea></div>
-                    <div class="col-md-6"><label class="form-label">Tratamiento</label><textarea name="tratamiento" class="form-control" rows="2"><?= $v('tratamiento') ?></textarea></div>
-                    <div class="col-md-6"><label class="form-label">Receta</label><textarea name="receta" class="form-control" rows="2"><?= $v('receta') ?></textarea></div>
-                    <div class="col-12"><label class="form-label">Notas</label><textarea name="notas" class="form-control" rows="2"><?= $v('notas') ?></textarea></div>
+                    <div class="col-12"><label class="form-label"><?= et('Motivo') ?></label><input type="text" name="motivo" class="form-control" value="<?= $v('motivo') ?>"></div>
+                    <div class="col-md-6"><label class="form-label"><?= et('Exploración') ?></label><textarea name="exploracion" class="form-control" rows="2"><?= $v('exploracion') ?></textarea></div>
+                    <div class="col-md-6"><label class="form-label"><?= et('Diagnóstico') ?></label><textarea name="diagnostico" class="form-control" rows="2"><?= $v('diagnostico') ?></textarea></div>
+                    <div class="col-md-6"><label class="form-label"><?= et('Tratamiento') ?></label><textarea name="tratamiento" class="form-control" rows="2"><?= $v('tratamiento') ?></textarea></div>
+                    <div class="col-md-6"><label class="form-label"><?= et('Receta') ?></label><textarea name="receta" class="form-control" rows="2"><?= $v('receta') ?></textarea></div>
+                    <div class="col-12"><label class="form-label"><?= et('Notas') ?></label><textarea name="notas" class="form-control" rows="2"><?= $v('notas') ?></textarea></div>
                     <div class="col-12 text-end">
-                        <?php if ($f['id']): ?><a href="<?= BASE_URL ?>/plantillas/index" class="btn btn-light btn-sm">Cancelar</a><?php endif; ?>
-                        <button class="btn btn-primary btn-sm"><i class="bi bi-check-lg"></i> Guardar</button>
+                        <?php if ($f['id']): ?><a href="<?= BASE_URL ?>/plantillas/index" class="btn btn-light btn-sm"><?= et('Cancelar') ?></a><?php endif; ?>
+                        <button class="btn btn-primary btn-sm"><i class="bi bi-check-lg"></i> <?= et('Guardar') ?></button>
                     </div>
                 </form>
             </div>
@@ -100,10 +100,10 @@ include __DIR__ . '/../includes/header.php';
 
     <div class="col-lg-7">
         <div class="card">
-            <div class="card-header bg-white fw-semibold">Mis plantillas (<?= count($plantillas) ?>)</div>
+            <div class="card-header bg-white fw-semibold"><?= et('Mis plantillas') ?> (<?= count($plantillas) ?>)</div>
             <ul class="list-group list-group-flush">
                 <?php if (!$plantillas): ?>
-                    <li class="list-group-item text-muted text-center py-4">Aún no hay plantillas.</li>
+                    <li class="list-group-item text-muted text-center py-4"><?= et('Aún no hay plantillas.') ?></li>
                 <?php else: foreach ($plantillas as $pl): ?>
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <div>

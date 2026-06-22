@@ -327,5 +327,8 @@ return [
     'Mis recetas'=>'My prescriptions','Aún no tienes recetas.'=>'You have no prescriptions yet.',
     'Mis estudios y documentos'=>'My files and documents','Folio'=>'Reference',
     'Tu consultorio aún no ha subido documentos a tu expediente.'=>'Your clinic has not uploaded documents to your record yet.',
-    'Portal del paciente'=>'Patient portal','Mis recetas'=>'My prescriptions',
+    'Portal del paciente'=>'Patient portal',
+    'Crea formatos reutilizables para llenar más rápido el expediente.'=>'Create reusable formats to fill the record faster.',
+    'Editar plantilla'=>'Edit template','Nueva plantilla'=>'New template','Mis plantillas'=>'My templates',
+    'Aún no hay plantillas.'=>'No templates yet.','General'=>'General','Plantillas de consulta'=>'Visit templates',
 ];
