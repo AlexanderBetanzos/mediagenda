@@ -292,4 +292,18 @@ return [
     'Pacientes por tipo'=>'Patients by type','Médicos con más citas'=>'Doctors with most appointments',
     'Horas pico (citas por hora)'=>'Peak hours (per hour)','Pacientes nuevos por mes'=>'New patients per month',
     'Sin datos.'=>'No data.',
+
+    // Súper-admin
+    'Consultorios'=>'Clinics','Gestión de todos los consultorios de'=>'Manage all clinics in',
+    'Total'=>'Total','En prueba'=>'On trial','Activos'=>'Active','Suspendidos'=>'Suspended',
+    'Consultorio'=>'Clinic','Prueba/Vence'=>'Trial/Expires','Usuarios'=>'Users','Alta'=>'Signup',
+    'Aún no hay consultorios registrados.'=>'No clinics registered yet.','vencida'=>'expired',
+    'días'=>'days','Sin caducidad'=>'No expiry','Gestionar'=>'Manage','Plan y módulos'=>'Plan and modules',
+    'Extender prueba 15 días'=>'Extend trial 15 days','Activar membresía'=>'Activate membership',
+    'Suspender'=>'Suspend','principal'=>'main',
+    'Trial'=>'Trial','Activa'=>'Active','Suspendida'=>'Suspended','Expirada'=>'Expired',
+    // Auditoría
+    'Auditoría'=>'Audit log','eventos'=>'events','todos los consultorios'=>'all clinics',
+    'Buscar por usuario, detalle o IP…'=>'Search by user, detail or IP…','Todas las acciones'=>'All actions',
+    'Sin eventos.'=>'No events.','Detalle'=>'Detail','Usuario'=>'User','Acción'=>'Action','Entidad'=>'Entity',
 ];

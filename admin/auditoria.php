@@ -59,30 +59,30 @@ function aud_badge(string $a): string
     return 'secondary';
 }
 
-$titulo = 'Auditoría';
+$titulo = t('Auditoría');
 $activo = '';
 include __DIR__ . '/../includes/header.php';
 ?>
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
-    <h1 class="h3 mb-0"><i class="bi bi-clipboard-data text-brand"></i> Auditoría</h1>
-    <span class="text-muted small"><?= number_format($total) ?> eventos<?= $verTodos ? ' · todos los consultorios' : '' ?></span>
+    <h1 class="h3 mb-0"><i class="bi bi-clipboard-data text-brand"></i> <?= et('Auditoría') ?></h1>
+    <span class="text-muted small"><?= number_format($total) ?> <?= et('eventos') ?><?= $verTodos ? ' · ' . et('todos los consultorios') : '' ?></span>
 </div>
 
 <form class="row g-2 mb-3" method="get">
     <div class="col-sm-5 col-md-4">
-        <input type="search" name="q" class="form-control" placeholder="Buscar por usuario, detalle o IP…" value="<?= e($q) ?>">
+        <input type="search" name="q" class="form-control" placeholder="<?= et('Buscar por usuario, detalle o IP…') ?>" value="<?= e($q) ?>">
     </div>
     <div class="col-sm-4 col-md-3">
         <select name="accion" class="form-select">
-            <option value="">Todas las acciones</option>
+            <option value=""><?= et('Todas las acciones') ?></option>
             <?php foreach ($acciones as $ac): ?>
                 <option value="<?= e($ac) ?>" <?= $accion === $ac ? 'selected' : '' ?>><?= e($ac) ?></option>
             <?php endforeach; ?>
         </select>
     </div>
     <div class="col-auto">
-        <button class="btn btn-outline-secondary"><i class="bi bi-search"></i> Filtrar</button>
-        <a href="<?= BASE_URL ?>/admin/auditoria" class="btn btn-link">Limpiar</a>
+        <button class="btn btn-outline-secondary"><i class="bi bi-search"></i> <?= et('Filtrar') ?></button>
+        <a href="<?= BASE_URL ?>/admin/auditoria" class="btn btn-link"><?= et('Limpiar') ?></a>
     </div>
 </form>
 
@@ -91,14 +91,14 @@ include __DIR__ . '/../includes/header.php';
         <table class="table table-hover table-sm align-middle mb-0">
             <thead class="table-light">
                 <tr>
-                    <th>Fecha</th>
-                    <?php if ($verTodos): ?><th>Consultorio</th><?php endif; ?>
-                    <th>Usuario</th><th>Acción</th><th>Entidad</th><th>Detalle</th><th>IP</th>
+                    <th><?= et('Fecha') ?></th>
+                    <?php if ($verTodos): ?><th><?= et('Consultorio') ?></th><?php endif; ?>
+                    <th><?= et('Usuario') ?></th><th><?= et('Acción') ?></th><th><?= et('Entidad') ?></th><th><?= et('Detalle') ?></th><th>IP</th>
                 </tr>
             </thead>
             <tbody>
             <?php if (!$filas): ?>
-                <tr><td colspan="<?= $verTodos ? 7 : 6 ?>" class="text-center text-muted py-4">Sin eventos.</td></tr>
+                <tr><td colspan="<?= $verTodos ? 7 : 6 ?>" class="text-center text-muted py-4"><?= et('Sin eventos.') ?></td></tr>
             <?php else: foreach ($filas as $f): ?>
                 <tr>
                     <td class="text-nowrap small"><?= fmt_fecha($f['creado_en']) ?> <?= date('H:i', strtotime($f['creado_en'])) ?></td>
