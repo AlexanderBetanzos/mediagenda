@@ -375,4 +375,5 @@ return [
     'Edad (años)'=>'Age (years)','Referencia'=>'Reference','Talla'=>'Height',
     'Superior'=>'Upper','Inferior'=>'Lower','Derecha'=>'Right','Izquierda'=>'Left',
     'Con "Sano" seleccionado, al hacer clic quitas la marca de un diente.'=>'With "Healthy" selected, clicking removes a tooth mark.',
+    'Limpiar todo'=>'Clear all','¿Quitar todas las marcas del odontograma?'=>'Remove all marks from the dental chart?',
 ];

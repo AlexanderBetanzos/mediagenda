@@ -126,9 +126,12 @@ include __DIR__ . '/../includes/header.php';
             </span>
             <?php endforeach; ?>
         </div>
-        <div class="text-end mt-3">
-            <a href="<?= BASE_URL ?>/pacientes/ver?id=<?= $pid ?>" class="btn btn-light"><?= et('Cancelar') ?></a>
-            <button class="btn btn-primary"><i class="bi bi-check-lg"></i> <?= et('Guardar') ?></button>
+        <div class="d-flex justify-content-between align-items-center mt-3">
+            <button type="button" class="btn btn-outline-danger btn-sm" id="limpiarTodo"><i class="bi bi-eraser"></i> <?= et('Limpiar todo') ?></button>
+            <div>
+                <a href="<?= BASE_URL ?>/pacientes/ver?id=<?= $pid ?>" class="btn btn-light"><?= et('Cancelar') ?></a>
+                <button class="btn btn-primary"><i class="bi bi-check-lg"></i> <?= et('Guardar') ?></button>
+            </div>
         </div>
     </div></div>
 </form>
@@ -165,6 +168,16 @@ include __DIR__ . '/../includes/header.php';
             t.style.color = estados[activo].fg;
             updateResumen();
         });
+    });
+
+    document.getElementById('limpiarTodo').addEventListener('click', function () {
+        if (!confirm(<?= json_encode(t('¿Quitar todas las marcas del odontograma?')) ?>)) return;
+        Object.keys(datos).forEach(function (k) { delete datos[k]; });
+        document.querySelectorAll('.diente').forEach(function (t) {
+            t.style.background = estados['sano'].bg;
+            t.style.color = estados['sano'].fg;
+        });
+        updateResumen();
     });
 
     document.getElementById('odoForm').addEventListener('submit', function () {
