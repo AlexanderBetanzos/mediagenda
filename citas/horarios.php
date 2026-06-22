@@ -90,19 +90,19 @@ $bl = db()->prepare(
 $bl->execute([tenant_id(), $medicoId]);
 $bloqueos = $bl->fetchAll();
 
-$titulo = 'Horarios y bloqueos';
+$titulo = t('Horarios y bloqueos');
 $activo = 'citas';
 include __DIR__ . '/../includes/header.php';
 ?>
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
-    <h1 class="h3 mb-0"><i class="bi bi-clock-history text-brand"></i> Horarios y bloqueos</h1>
-    <a href="<?= BASE_URL ?>/citas/calendario" class="btn btn-sm btn-outline-secondary"><i class="bi bi-calendar3"></i> Calendario</a>
+    <h1 class="h3 mb-0"><i class="bi bi-clock-history text-brand"></i> <?= et('Horarios y bloqueos') ?></h1>
+    <a href="<?= BASE_URL ?>/citas/calendario" class="btn btn-sm btn-outline-secondary"><i class="bi bi-calendar3"></i> <?= et('Calendario') ?></a>
 </div>
 
 <?php if ($esAdmin): ?>
 <form class="row g-2 mb-3 align-items-end" method="get">
     <div class="col-sm-6 col-md-4">
-        <label class="form-label small mb-1">Médico</label>
+        <label class="form-label small mb-1"><?= et('Médico') ?></label>
         <select name="medico" class="form-select" onchange="this.form.submit()">
             <?php foreach ($medicos as $m): ?>
                 <option value="<?= $m['id'] ?>" <?= $medicoId === (int) $m['id'] ? 'selected' : '' ?>><?= e($m['nombre']) ?></option>
@@ -113,13 +113,13 @@ include __DIR__ . '/../includes/header.php';
 <?php endif; ?>
 
 <?php if (!$medicoId): ?>
-    <div class="alert alert-info">No hay médicos para gestionar.</div>
+    <div class="alert alert-info"><?= et('No hay médicos para gestionar.') ?></div>
 <?php else: ?>
 <div class="row g-4">
     <!-- Horario semanal -->
     <div class="col-lg-6">
         <div class="card">
-            <div class="card-header bg-white fw-semibold"><i class="bi bi-calendar-week text-brand"></i> Horario semanal</div>
+            <div class="card-header bg-white fw-semibold"><i class="bi bi-calendar-week text-brand"></i> <?= et('Horario semanal') ?></div>
             <div class="card-body">
                 <form method="post">
                     <?= csrf_field() ?>
@@ -127,14 +127,14 @@ include __DIR__ . '/../includes/header.php';
                     <input type="hidden" name="medico_id" value="<?= $medicoId ?>">
                     <?php foreach ($dias as $d => $nom): $h = $hor[$d] ?? null; ?>
                     <div class="row g-2 align-items-center mb-2">
-                        <div class="col-4 col-sm-3"><?= $nom ?></div>
+                        <div class="col-4 col-sm-3"><?= et($nom) ?></div>
                         <div class="col"><input type="time" name="dia[<?= $d ?>][inicio]" class="form-control form-control-sm" value="<?= e($h['hora_inicio'] ?? '') ?>"></div>
                         <div class="col-auto text-muted">a</div>
                         <div class="col"><input type="time" name="dia[<?= $d ?>][fin]" class="form-control form-control-sm" value="<?= e($h['hora_fin'] ?? '') ?>"></div>
                     </div>
                     <?php endforeach; ?>
-                    <div class="form-text mb-2">Deja un día en blanco para marcarlo como no laborable.</div>
-                    <button class="btn btn-primary btn-sm"><i class="bi bi-check-lg"></i> Guardar horario</button>
+                    <div class="form-text mb-2"><?= et('Deja un día en blanco para marcarlo como no laborable.') ?></div>
+                    <button class="btn btn-primary btn-sm"><i class="bi bi-check-lg"></i> <?= et('Guardar horario') ?></button>
                 </form>
             </div>
         </div>
@@ -143,34 +143,34 @@ include __DIR__ . '/../includes/header.php';
     <!-- Bloqueos -->
     <div class="col-lg-6">
         <div class="card mb-3">
-            <div class="card-header bg-white fw-semibold"><i class="bi bi-slash-circle text-brand"></i> Nuevo bloqueo</div>
+            <div class="card-header bg-white fw-semibold"><i class="bi bi-slash-circle text-brand"></i> <?= et('Nuevo bloqueo') ?></div>
             <div class="card-body">
                 <form method="post" class="row g-2">
                     <?= csrf_field() ?>
                     <input type="hidden" name="accion" value="bloqueo_add">
                     <input type="hidden" name="medico_id" value="<?= $medicoId ?>">
-                    <div class="col-7"><label class="form-label small mb-1">Inicio</label><input type="date" name="b_inicio_f" class="form-control form-control-sm" required value="<?= date('Y-m-d') ?>"></div>
-                    <div class="col-5"><label class="form-label small mb-1">Hora</label><input type="time" name="b_inicio_h" class="form-control form-control-sm" required value="09:00"></div>
-                    <div class="col-7"><label class="form-label small mb-1">Fin</label><input type="date" name="b_fin_f" class="form-control form-control-sm" required value="<?= date('Y-m-d') ?>"></div>
-                    <div class="col-5"><label class="form-label small mb-1">Hora</label><input type="time" name="b_fin_h" class="form-control form-control-sm" required value="10:00"></div>
-                    <div class="col-12"><input type="text" name="b_motivo" class="form-control form-control-sm" placeholder="Motivo (comida, vacaciones…)" maxlength="120"></div>
+                    <div class="col-7"><label class="form-label small mb-1"><?= et('Inicio') ?></label><input type="date" name="b_inicio_f" class="form-control form-control-sm" required value="<?= date('Y-m-d') ?>"></div>
+                    <div class="col-5"><label class="form-label small mb-1"><?= et('Hora') ?></label><input type="time" name="b_inicio_h" class="form-control form-control-sm" required value="09:00"></div>
+                    <div class="col-7"><label class="form-label small mb-1"><?= et('Fin') ?></label><input type="date" name="b_fin_f" class="form-control form-control-sm" required value="<?= date('Y-m-d') ?>"></div>
+                    <div class="col-5"><label class="form-label small mb-1"><?= et('Hora') ?></label><input type="time" name="b_fin_h" class="form-control form-control-sm" required value="10:00"></div>
+                    <div class="col-12"><input type="text" name="b_motivo" class="form-control form-control-sm" placeholder="<?= et('Motivo (comida, vacaciones…)') ?>" maxlength="120"></div>
                     <?php if ($esAdmin): ?>
-                    <div class="col-12"><div class="form-check"><input class="form-check-input" type="checkbox" name="b_todos" id="b_todos" value="1"><label class="form-check-label small" for="b_todos">Aplicar a todo el consultorio</label></div></div>
+                    <div class="col-12"><div class="form-check"><input class="form-check-input" type="checkbox" name="b_todos" id="b_todos" value="1"><label class="form-check-label small" for="b_todos"><?= et('Aplicar a todo el consultorio') ?></label></div></div>
                     <?php endif; ?>
-                    <div class="col-12"><button class="btn btn-outline-danger btn-sm"><i class="bi bi-plus-lg"></i> Agregar bloqueo</button></div>
+                    <div class="col-12"><button class="btn btn-outline-danger btn-sm"><i class="bi bi-plus-lg"></i> <?= et('Agregar bloqueo') ?></button></div>
                 </form>
             </div>
         </div>
         <div class="card">
-            <div class="card-header bg-white fw-semibold">Bloqueos próximos</div>
+            <div class="card-header bg-white fw-semibold"><?= et('Bloqueos próximos') ?></div>
             <ul class="list-group list-group-flush">
                 <?php if (!$bloqueos): ?>
-                    <li class="list-group-item text-muted text-center py-3">Sin bloqueos.</li>
+                    <li class="list-group-item text-muted text-center py-3"><?= et('Sin bloqueos.') ?></li>
                 <?php else: foreach ($bloqueos as $b): ?>
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <div>
                         <div class="small fw-semibold"><?= fmt_fecha($b['inicio']) ?> <?= date('H:i', strtotime($b['inicio'])) ?> – <?= fmt_fecha($b['fin']) ?> <?= date('H:i', strtotime($b['fin'])) ?></div>
-                        <div class="small text-muted"><?= e($b['motivo'] ?: 'Bloqueo') ?> · <?= $b['medico_id'] ? e($b['med_nombre']) : 'Todo el consultorio' ?></div>
+                        <div class="small text-muted"><?= e($b['motivo'] ?: t('Bloqueo')) ?> · <?= $b['medico_id'] ? e($b['med_nombre']) : et('Todo el consultorio') ?></div>
                     </div>
                     <form method="post" onsubmit="return confirm('¿Eliminar este bloqueo?');">
                         <?= csrf_field() ?>

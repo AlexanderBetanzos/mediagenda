@@ -13,33 +13,33 @@ $medicos = db()->prepare("SELECT id, nombre FROM usuarios WHERE rol='medico' AND
 $medicos->execute([tenant_id()]);
 $medicos = $medicos->fetchAll();
 
-$titulo = 'Calendario';
+$titulo = t('Calendario');
 $activo = 'citas';
 include __DIR__ . '/../includes/header.php';
 ?>
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
-    <h1 class="h3 mb-0"><i class="bi bi-calendar3 text-brand"></i> Calendario</h1>
+    <h1 class="h3 mb-0"><i class="bi bi-calendar3 text-brand"></i> <?= et('Calendario') ?></h1>
     <div class="d-flex gap-2">
         <?php if ($u['rol'] !== 'medico'): ?>
         <select id="filtroMedico" class="form-select form-select-sm" style="width:auto">
-            <option value="">Todos los médicos</option>
+            <option value=""><?= et('Todos los médicos') ?></option>
             <?php foreach ($medicos as $m): ?>
                 <option value="<?= $m['id'] ?>"><?= e($m['nombre']) ?></option>
             <?php endforeach; ?>
         </select>
         <?php endif; ?>
-        <a href="<?= BASE_URL ?>/citas/index" class="btn btn-sm btn-outline-secondary"><i class="bi bi-list-ul"></i> Lista</a>
-        <a href="<?= BASE_URL ?>/citas/sala" class="btn btn-sm btn-outline-secondary"><i class="bi bi-hourglass-split"></i> Sala</a>
+        <a href="<?= BASE_URL ?>/citas/index" class="btn btn-sm btn-outline-secondary"><i class="bi bi-list-ul"></i> <?= et('Lista') ?></a>
+        <a href="<?= BASE_URL ?>/citas/sala" class="btn btn-sm btn-outline-secondary"><i class="bi bi-hourglass-split"></i> <?= et('Sala') ?></a>
         <?php if (has_role('admin', 'medico')): ?>
-        <a href="<?= BASE_URL ?>/citas/horarios" class="btn btn-sm btn-outline-secondary"><i class="bi bi-clock-history"></i> Horarios</a>
+        <a href="<?= BASE_URL ?>/citas/horarios" class="btn btn-sm btn-outline-secondary"><i class="bi bi-clock-history"></i> <?= et('Horarios') ?></a>
         <?php endif; ?>
-        <a href="<?= BASE_URL ?>/citas/create" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Nueva cita</a>
+        <a href="<?= BASE_URL ?>/citas/create" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> <?= et('Nueva cita') ?></a>
     </div>
 </div>
 
 <div class="card"><div class="card-body">
     <div id="cal"></div>
-    <p class="text-muted small mt-2 mb-0"><i class="bi bi-info-circle"></i> Arrastra una cita para reagendarla. Haz clic para editarla.</p>
+    <p class="text-muted small mt-2 mb-0"><i class="bi bi-info-circle"></i> <?= et('Arrastra una cita para reagendarla. Haz clic para editarla.') ?></p>
 </div></div>
 
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet">
@@ -59,10 +59,10 @@ include __DIR__ . '/../includes/header.php';
     function his(d){ return pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':00'; }
 
     const cal = new FullCalendar.Calendar(document.getElementById('cal'), {
-        locale: 'es',
+        locale: <?= json_encode(idioma_actual()) ?>,
         initialView: 'dayGridMonth',
         headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek' },
-        buttonText: { today: 'Hoy', month: 'Mes', week: 'Semana', day: 'Día', list: 'Lista' },
+        buttonText: { today: <?= json_encode(t('Hoy')) ?>, month: <?= json_encode(t('Mes')) ?>, week: <?= json_encode(t('Semana')) ?>, day: <?= json_encode(t('Día')) ?>, list: <?= json_encode(t('Lista')) ?> },
         slotMinTime: '07:00:00', slotMaxTime: '21:00:00',
         nowIndicator: true, editable: true, eventStartEditable: true, eventDurationEditable: false,
         height: 'auto',

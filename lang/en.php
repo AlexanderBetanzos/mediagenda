@@ -169,4 +169,8 @@ return [
     'Activo'=>'Active','Inactivo'=>'Inactive','Nuevo usuario'=>'New user',
     'esperando'=>'waiting','en consulta'=>'in visit','Espera promedio hoy:'=>'Average wait today:',
     'Check-in'=>'Check-in','Expediente'=>'Record',
+    'Mes'=>'Month','Semana'=>'Week','Día'=>'Day',
+    'No hay médicos para gestionar.'=>'No doctors to manage.',
+    'Deja un día en blanco para marcarlo como no laborable.'=>'Leave a day blank to mark it non-working.',
+    'Motivo (comida, vacaciones…)'=>'Reason (lunch, vacation…)','Bloqueo'=>'Block',
 ];
