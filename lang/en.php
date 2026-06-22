@@ -361,4 +361,16 @@ return [
     'Tus datos están guardados y a salvo.'=>'Your data is saved and safe.',
     'Reactiva tu cuenta para recuperar el acceso a:'=>'Reactivate your account to recover access to:',
     'Suscribirme'=>'Subscribe','/mes'=>'/mo',
+
+    // Especialidades: odontograma y crecimiento
+    'Odontograma'=>'Dental chart','Curvas de crecimiento'=>'Growth charts','Crecimiento'=>'Growth',
+    'Sano'=>'Healthy','Caries'=>'Cavity','Obturado'=>'Filled','Corona'=>'Crown',
+    'Endodoncia'=>'Root canal','Ausente'=>'Missing','Extracción'=>'Extraction',
+    'Elige un estado y haz clic en los dientes para marcarlos.'=>'Pick a state and click teeth to mark them.',
+    'Odontograma guardado.'=>'Dental chart saved.',
+    'Línea punteada = mediana de referencia (OMS aprox.).'=>'Dotted line = reference median (WHO approx.).',
+    'Agrega la fecha de nacimiento del paciente para calcular la edad.'=>'Add the patient birth date to compute age.',
+    'Aún no hay mediciones de peso o talla en las consultas.'=>'No weight or height measurements in visits yet.',
+    'Peso para la edad'=>'Weight for age','Talla para la edad'=>'Height for age','IMC para la edad'=>'BMI for age',
+    'Edad (años)'=>'Age (years)','Referencia'=>'Reference','Talla'=>'Height',
 ];

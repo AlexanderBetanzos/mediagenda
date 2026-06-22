@@ -185,6 +185,12 @@ include __DIR__ . '/../includes/header.php';
         <a href="<?= BASE_URL ?>/recetas/create?paciente_id=<?= $id ?>" class="btn btn-outline-primary"><i class="bi bi-capsule"></i> <?= et('Receta') ?></a>
         <?php endif; ?>
         <a href="<?= BASE_URL ?>/facturacion/create?paciente_id=<?= $id ?>" class="btn btn-outline-primary"><i class="bi bi-receipt"></i> <?= et('Factura') ?></a>
+        <?php if (modulo_activo('especialidades') && has_role('medico', 'admin')): ?>
+        <?php if ($p['tipo'] === 'dental'): ?>
+        <a href="<?= BASE_URL ?>/odontograma/index?paciente_id=<?= $id ?>" class="btn btn-outline-primary"><i class="bi bi-emoji-smile"></i> <?= et('Odontograma') ?></a>
+        <?php endif; ?>
+        <a href="<?= BASE_URL ?>/crecimiento/index?paciente_id=<?= $id ?>" class="btn btn-outline-primary"><i class="bi bi-graph-up-arrow"></i> <?= et('Crecimiento') ?></a>
+        <?php endif; ?>
         <a href="<?= BASE_URL ?>/pacientes/edit?id=<?= $id ?>" class="btn btn-outline-secondary"><i class="bi bi-pencil"></i> <?= et('Editar') ?></a>
     </div>
 </div>

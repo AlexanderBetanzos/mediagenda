@@ -151,7 +151,7 @@ Objetivo: que un consultorio pague hoy. Completa el núcleo + comunicación.
 | App móvil paciente | Agenda, historial, estudios, chat, videollamada, notificaciones, ubicación | P | Portal + API | ⬜ |
 | App móvil médico | Agenda, consultas, expedientes, dictado por voz, firmar recetas, estadísticas | C | API + firma | ⬜ |
 | CRM médico | ✅ Seguimientos por paciente (tipo/fecha/estado, vencidos), cumpleaños del mes (felicitar por WhatsApp), **campañas de WhatsApp** por segmento (todos/tipo/cumpleaños) con enlaces wa.me (`crm/`). ⬜ Falta: embudos, correos automáticos, encuestas | P | Notificaciones | 🟡 |
-| Especialidades | Módulos propios: pediatría (curvas/percentiles/vacunas), ginecología (prenatal/FUM/USG), odontología (odontograma), psicología (sesiones/escalas), nutrición (planes/calorías), dermatología (comparativa fotos), cardiología (ECG), oftalmología (graduaciones) | P (paquete) / Add-on | Consulta avanzada + plantillas | ⬜ |
+| Especialidades | ✅ **Odontograma interactivo** (`odontograma/index.php`, notación FDI, JSON por paciente) · ✅ **Curvas de crecimiento** pediátricas (`crecimiento/index.php`, peso/talla/IMC vs edad + mediana de referencia por sexo). ⬜ Falta: percentiles exactos, ginecología (prenatal/FUM/USG), psicología (sesiones/escalas), nutrición (planes/calorías), dermatología (comparativa fotos), cardiología (ECG), oftalmología | P (paquete) / Add-on | Consulta avanzada + plantillas | 🟡 |
 
 ---
 
