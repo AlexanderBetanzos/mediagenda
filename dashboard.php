@@ -75,17 +75,17 @@ $ue = $pdo->prepare(
 $ue->execute([$tid]);
 $ultimos = $ue->fetchAll();
 
-$titulo = 'Panel';
+$titulo = t('Panel');
 $activo = 'dashboard';
 include __DIR__ . '/includes/header.php';
 ?>
 
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
     <div>
-        <h1 class="h3 mb-1">Hola, <?= e(explode(' ', trim($u['nombre']))[0]) ?> 👋</h1>
+        <h1 class="h3 mb-1"><?= et('Hola') ?>, <?= e(explode(' ', trim($u['nombre']))[0]) ?> 👋</h1>
         <p class="text-muted mb-0 text-capitalize"><?= e(fecha_hoy_larga()) ?></p>
     </div>
-    <a href="<?= BASE_URL ?>/citas/create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Nueva Cita</a>
+    <a href="<?= BASE_URL ?>/citas/create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> <?= et('Nueva cita') ?></a>
 </div>
 
 <!-- Tarjetas de estadísticas -->
@@ -93,41 +93,41 @@ include __DIR__ . '/includes/header.php';
     <div class="col-sm-6 col-xl-3">
         <div class="card stat-card h-100"><div class="card-body">
             <div class="d-flex justify-content-between align-items-start mb-2">
-                <div class="stat-label">Citas hoy</div>
+                <div class="stat-label"><?= et('Citas hoy') ?></div>
                 <div class="stat-icon" style="background:color-mix(in srgb,var(--brand) 14%,transparent);color:var(--brand)"><i class="bi bi-calendar-check"></i></div>
             </div>
             <div class="stat-num"><?= $citasHoy ?></div>
-            <span class="delta <?= $citasConfHoy ? 'delta-up' : 'delta-flat' ?> mt-1 d-inline-block"><i class="bi bi-check2-circle"></i> <?= $citasConfHoy ?> confirmadas</span>
+            <span class="delta <?= $citasConfHoy ? 'delta-up' : 'delta-flat' ?> mt-1 d-inline-block"><i class="bi bi-check2-circle"></i> <?= $citasConfHoy ?> <?= et('confirmadas') ?></span>
         </div></div>
     </div>
     <div class="col-sm-6 col-xl-3">
         <div class="card stat-card h-100"><div class="card-body">
             <div class="d-flex justify-content-between align-items-start mb-2">
-                <div class="stat-label">Pacientes</div>
+                <div class="stat-label"><?= et('Pacientes') ?></div>
                 <div class="stat-icon" style="background:rgba(20,184,166,.14);color:#0d9488"><i class="bi bi-people"></i></div>
             </div>
             <div class="stat-num"><?= $totPacientes ?></div>
-            <span class="delta <?= $pacientesMes ? 'delta-up' : 'delta-flat' ?> mt-1 d-inline-block"><i class="bi bi-person-plus"></i> <?= $pacientesMes ?> este mes</span>
+            <span class="delta <?= $pacientesMes ? 'delta-up' : 'delta-flat' ?> mt-1 d-inline-block"><i class="bi bi-person-plus"></i> <?= $pacientesMes ?> <?= et('este mes') ?></span>
         </div></div>
     </div>
     <div class="col-sm-6 col-xl-3">
         <div class="card stat-card h-100"><div class="card-body">
             <div class="d-flex justify-content-between align-items-start mb-2">
-                <div class="stat-label">Recetas (mes)</div>
+                <div class="stat-label"><?= et('Recetas (mes)') ?></div>
                 <div class="stat-icon" style="background:rgba(99,102,241,.14);color:#6366f1"><i class="bi bi-capsule"></i></div>
             </div>
             <div class="stat-num"><?= $recetasMes ?></div>
-            <span class="delta delta-flat mt-1 d-inline-block"><i class="bi bi-file-medical"></i> <?= $consultasMes ?> consultas</span>
+            <span class="delta delta-flat mt-1 d-inline-block"><i class="bi bi-file-medical"></i> <?= $consultasMes ?> <?= et('consultas') ?></span>
         </div></div>
     </div>
     <div class="col-sm-6 col-xl-3">
         <div class="card stat-card h-100"><div class="card-body">
             <div class="d-flex justify-content-between align-items-start mb-2">
-                <div class="stat-label">Ingresos (<?= e(moneda()) ?>)</div>
+                <div class="stat-label"><?= et('Ingresos') ?> (<?= e(moneda()) ?>)</div>
                 <div class="stat-icon" style="background:rgba(34,197,94,.14);color:#16a34a"><i class="bi bi-cash-coin"></i></div>
             </div>
             <div class="stat-num" style="font-size:1.6rem"><?= fmt_money($ingresosMes) ?></div>
-            <span class="delta delta-up mt-1 d-inline-block"><i class="bi bi-graph-up-arrow"></i> facturado este mes</span>
+            <span class="delta delta-up mt-1 d-inline-block"><i class="bi bi-graph-up-arrow"></i> <?= et('facturado este mes') ?></span>
         </div></div>
     </div>
 </div>
@@ -136,7 +136,7 @@ include __DIR__ . '/includes/header.php';
     <!-- Gráfica: citas por semana -->
     <div class="col-lg-8">
         <div class="card h-100"><div class="card-body">
-            <h2 class="h6 mb-3"><i class="bi bi-bar-chart-fill text-brand"></i> Citas por Semana</h2>
+            <h2 class="h6 mb-3"><i class="bi bi-bar-chart-fill text-brand"></i> <?= et('Citas por Semana') ?></h2>
             <canvas id="chartSemana" height="110"></canvas>
         </div></div>
     </div>
@@ -144,12 +144,12 @@ include __DIR__ . '/includes/header.php';
     <div class="col-lg-4">
         <div class="card h-100">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <span class="fw-semibold"><i class="bi bi-calendar-day text-brand"></i> Agenda de Hoy</span>
-                <a href="<?= BASE_URL ?>/citas/index" class="small">Ver completa →</a>
+                <span class="fw-semibold"><i class="bi bi-calendar-day text-brand"></i> <?= et('Agenda de Hoy') ?></span>
+                <a href="<?= BASE_URL ?>/citas/index" class="small"><?= et('Ver completa →') ?></a>
             </div>
             <div class="card-body p-0">
                 <?php if (!$agendaHoy): ?>
-                    <p class="text-muted text-center py-4 mb-0">Sin citas para hoy.</p>
+                    <p class="text-muted text-center py-4 mb-0"><?= et('Sin citas para hoy.') ?></p>
                 <?php else: ?>
                     <ul class="list-group list-group-flush">
                     <?php foreach ($agendaHoy as $c): ?>
@@ -170,13 +170,13 @@ include __DIR__ . '/includes/header.php';
 
 <!-- Últimos expedientes -->
 <div class="card">
-    <div class="card-header fw-semibold"><i class="bi bi-folder2-open text-brand"></i> Últimos Expedientes</div>
+    <div class="card-header fw-semibold"><i class="bi bi-folder2-open text-brand"></i> <?= et('Últimos Expedientes') ?></div>
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
-            <thead><tr><th>Paciente</th><th>Última visita</th><th>Diagnóstico</th><th class="text-end">Estado</th></tr></thead>
+            <thead><tr><th><?= et('Paciente') ?></th><th><?= et('Última visita') ?></th><th><?= et('Diagnóstico') ?></th><th class="text-end"><?= et('Estado') ?></th></tr></thead>
             <tbody>
             <?php if (!$ultimos): ?>
-                <tr><td colspan="4" class="text-center text-muted py-4">Aún no hay consultas registradas.</td></tr>
+                <tr><td colspan="4" class="text-center text-muted py-4"><?= et('Aún no hay consultas registradas.') ?></td></tr>
             <?php else: foreach ($ultimos as $r): ?>
                 <tr>
                     <td>
@@ -188,9 +188,9 @@ include __DIR__ . '/includes/header.php';
                     <td><?= e($r['diagnostico'] ?: '—') ?></td>
                     <td class="text-end">
                         <?php if ($r['futuras'] > 0): ?>
-                            <span class="badge rounded-pill text-bg-info">Seguimiento</span>
+                            <span class="badge rounded-pill text-bg-info"><?= et('Seguimiento') ?></span>
                         <?php else: ?>
-                            <span class="badge rounded-pill text-bg-success">Activo</span>
+                            <span class="badge rounded-pill text-bg-success"><?= et('Activo') ?></span>
                         <?php endif; ?>
                     </td>
                 </tr>
@@ -229,9 +229,9 @@ grad.addColorStop(1, fade(brand, .28));
 new Chart(ctx, {
     type: 'bar',
     data: {
-        labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+        labels: <?= json_encode([t('Lun'), t('Mar'), t('Mié'), t('Jue'), t('Vie'), t('Sáb'), t('Dom')]) ?>,
         datasets: [{
-            label: 'Citas',
+            label: <?= json_encode(t('Citas')) ?>,
             data: <?= json_encode($chartData) ?>,
             backgroundColor: grad,
             hoverBackgroundColor: brand,

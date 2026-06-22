@@ -113,8 +113,8 @@ controlador nuevo (hoy solo se gatea el menú).
 - 🟡 **Internacionalización (i18n)**: cimiento listo — helper `t()`/`et()`
   (el español es la clave, `lang/en.php` traduce), `idioma_actual()` (cookie
   `lang` o `cfg('idioma_default')`), selector ES/EN en el menú y en el login,
-  HTML `lang` dinámico. Traducidos: nav y login. ⬜ Falta: traducir el resto
-  de vistas módulo por módulo (ampliar `lang/en.php`).
+  HTML `lang` dinámico. Traducidos: nav, login, **dashboard, pacientes**.
+  ⬜ Falta: traducir el resto de vistas módulo por módulo (ampliar `lang/en.php`).
 
 ---
 
