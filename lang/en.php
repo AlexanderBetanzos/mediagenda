@@ -173,4 +173,19 @@ return [
     'No hay médicos para gestionar.'=>'No doctors to manage.',
     'Deja un día en blanco para marcarlo como no laborable.'=>'Leave a day blank to mark it non-working.',
     'Motivo (comida, vacaciones…)'=>'Reason (lunch, vacation…)','Bloqueo'=>'Block',
+
+    // Formulario de paciente
+    'Nombre(s)'=>'First name(s)','Apellidos'=>'Last name(s)','Fecha de nacimiento'=>'Date of birth',
+    'Sexo'=>'Sex','Tipo de paciente'=>'Patient type','Correo electrónico'=>'Email','Dirección'=>'Address',
+    'Clave INE'=>'Voter ID (INE)','Tipo de sangre'=>'Blood type','Parentesco'=>'Relationship',
+    'Antecedentes clínicos'=>'Clinical history','18 caracteres'=>'18 characters',
+    'Tabaquismo, alcohol, ejercicio…'=>'Smoking, alcohol, exercise…',
+    'Nuevo paciente'=>'New patient','Editar paciente'=>'Edit patient','Guardar cambios'=>'Save changes',
+    'El nombre es obligatorio.'=>'First name is required.','Los apellidos son obligatorios.'=>'Last name is required.',
+
+    // Expediente (pacientes/ver)
+    'Sexo n/d'=>'Sex n/a','Información clínica'=>'Clinical info','Datos de contacto'=>'Contact info',
+    'Alergias:'=>'Allergies:','Antecedentes:'=>'History:','Notas:'=>'Notes:',
+    'Sin consultas registradas.'=>'No visits recorded.','Citas ('=>'Appointments (',
+    'Expediente ('=>'Record (','Archivos ('=>'Files (',
 ];

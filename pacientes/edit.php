@@ -14,8 +14,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
     $p = array_merge($p, $_POST);
 
-    if (trim($p['nombre']) === '')    $errores[] = 'El nombre es obligatorio.';
-    if (trim($p['apellidos']) === '') $errores[] = 'Los apellidos son obligatorios.';
+    if (trim($p['nombre']) === '')    $errores[] = t('El nombre es obligatorio.');
+    if (trim($p['apellidos']) === '') $errores[] = t('Los apellidos son obligatorios.');
 
     if (!$errores) {
         $campos = paciente_post_campos($p);
@@ -28,18 +28,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$titulo = 'Editar paciente';
+$titulo = t('Editar paciente');
 $activo = 'pacientes';
 include __DIR__ . '/../includes/header.php';
 ?>
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/pacientes/index">Pacientes</a></li>
+        <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/pacientes/index"><?= et('Pacientes') ?></a></li>
         <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/pacientes/ver?id=<?= $id ?>"><?= e($p['nombre'].' '.$p['apellidos']) ?></a></li>
-        <li class="breadcrumb-item active">Editar</li>
+        <li class="breadcrumb-item active"><?= et('Editar') ?></li>
     </ol>
 </nav>
-<h1 class="h3 mb-3">Editar paciente</h1>
+<h1 class="h3 mb-3"><?= et('Editar paciente') ?></h1>
 
 <?php if ($errores): ?>
     <div class="alert alert-danger"><ul class="mb-0"><?php foreach ($errores as $e) echo '<li>' . e($e) . '</li>'; ?></ul></div>
@@ -52,8 +52,8 @@ include __DIR__ . '/../includes/header.php';
         <?php include __DIR__ . '/_form.php'; ?>
     </div>
     <div class="card-footer bg-white text-end">
-        <a href="<?= BASE_URL ?>/pacientes/ver?id=<?= $id ?>" class="btn btn-light">Cancelar</a>
-        <button class="btn btn-primary"><i class="bi bi-check-lg"></i> Guardar cambios</button>
+        <a href="<?= BASE_URL ?>/pacientes/ver?id=<?= $id ?>" class="btn btn-light"><?= et('Cancelar') ?></a>
+        <button class="btn btn-primary"><i class="bi bi-check-lg"></i> <?= et('Guardar cambios') ?></button>
     </div>
 </form>
 
