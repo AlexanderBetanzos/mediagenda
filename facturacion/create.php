@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $descuento   = (float) ($_POST['descuento'] ?? 0);
     $lineas      = $_POST['item'] ?? [];
 
-    if (!$paciente_id || !pertenece_al_tenant('pacientes', $paciente_id)) $errores[] = 'Selecciona un paciente.';
+    if (!$paciente_id || !pertenece_al_tenant('pacientes', $paciente_id)) $errores[] = t('Selecciona un paciente.');
 
     $items = [];
     $subtotal = 0;
@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $subtotal += $importe;
         $items[] = [$desc, $cant, $precio, $importe];
     }
-    if (!$items) $errores[] = 'Agrega al menos un concepto.';
+    if (!$items) $errores[] = t('Agrega al menos un concepto.');
 
     if (!$errores) {
         $total = max(0, $subtotal - $descuento);
@@ -64,15 +64,15 @@ $pacientes = db()->prepare('SELECT id, nombre, apellidos FROM pacientes WHERE co
 $pacientes->execute([tenant_id()]);
 $pacientes = $pacientes->fetchAll();
 
-$titulo = 'Nueva factura';
+$titulo = t('Nueva factura');
 $activo = 'facturacion';
 include __DIR__ . '/../includes/header.php';
 ?>
 <nav aria-label="breadcrumb"><ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/facturacion/index">Facturación</a></li>
-    <li class="breadcrumb-item active">Nueva</li>
+    <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/facturacion/index"><?= et('Facturación') ?></a></li>
+    <li class="breadcrumb-item active"><?= et('Nueva') ?></li>
 </ol></nav>
-<h1 class="h3 mb-3">Nueva factura</h1>
+<h1 class="h3 mb-3"><?= et('Nueva factura') ?></h1>
 
 <?php if ($errores): ?>
 <div class="alert alert-danger"><ul class="mb-0"><?php foreach ($errores as $e) echo '<li>'.e($e).'</li>'; ?></ul></div>
@@ -83,31 +83,31 @@ include __DIR__ . '/../includes/header.php';
         <?= csrf_field() ?>
         <div class="row g-3 mb-3">
             <div class="col-md-5">
-                <label class="form-label">Paciente *</label>
+                <label class="form-label"><?= et('Paciente') ?> *</label>
                 <select name="paciente_id" class="form-select" required>
-                    <option value="">— Selecciona —</option>
+                    <option value=""><?= et('— Selecciona —') ?></option>
                     <?php foreach ($pacientes as $p): ?>
                         <option value="<?= $p['id'] ?>" <?= $presel===$p['id']?'selected':'' ?>><?= e($p['apellidos'].', '.$p['nombre']) ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
-            <div class="col-md-3"><label class="form-label">Fecha</label><input type="date" name="fecha" class="form-control" value="<?= date('Y-m-d') ?>"></div>
+            <div class="col-md-3"><label class="form-label"><?= et('Fecha') ?></label><input type="date" name="fecha" class="form-control" value="<?= date('Y-m-d') ?>"></div>
             <div class="col-md-4">
-                <label class="form-label">Estado</label>
+                <label class="form-label"><?= et('Estado') ?></label>
                 <select name="estado" class="form-select">
-                    <option value="pendiente">Pendiente</option>
-                    <option value="pagada">Pagada</option>
+                    <option value="pendiente"><?= et('Pendiente') ?></option>
+                    <option value="pagada"><?= et('Pagada') ?></option>
                 </select>
             </div>
         </div>
 
-        <label class="form-label">Conceptos *</label>
+        <label class="form-label"><?= et('Conceptos') ?> *</label>
         <div class="table-responsive">
             <table class="table table-sm align-middle" id="tablaItems">
-                <thead><tr><th style="width:45%">Descripción</th><th>Cant.</th><th>Precio</th><th class="text-end">Importe</th><th></th></tr></thead>
+                <thead><tr><th style="width:45%"><?= et('Descripción') ?></th><th><?= et('Cant.') ?></th><th><?= et('Precio') ?></th><th class="text-end"><?= et('Importe') ?></th><th></th></tr></thead>
                 <tbody>
                     <tr>
-                        <td><input type="text" name="item[0][descripcion]" class="form-control" placeholder="Consulta médica"></td>
+                        <td><input type="text" name="item[0][descripcion]" class="form-control" placeholder="<?= et('Consulta médica') ?>"></td>
                         <td><input type="number" name="item[0][cantidad]" class="form-control cant" value="1" min="1"></td>
                         <td><input type="number" step="0.01" name="item[0][precio]" class="form-control precio" value="0"></td>
                         <td class="text-end importe">$0.00</td>
@@ -116,28 +116,28 @@ include __DIR__ . '/../includes/header.php';
                 </tbody>
             </table>
         </div>
-        <button type="button" class="btn btn-sm btn-outline-primary mb-3" id="agregarItem"><i class="bi bi-plus"></i> Agregar concepto</button>
+        <button type="button" class="btn btn-sm btn-outline-primary mb-3" id="agregarItem"><i class="bi bi-plus"></i> <?= et('Agregar concepto') ?></button>
 
         <div class="row g-3 justify-content-end">
             <div class="col-md-4">
-                <div class="d-flex justify-content-between"><span>Subtotal</span><strong id="subtotalTxt">$0.00</strong></div>
+                <div class="d-flex justify-content-between"><span><?= et('Subtotal') ?></span><strong id="subtotalTxt">$0.00</strong></div>
                 <div class="d-flex justify-content-between align-items-center mt-2">
-                    <span>Descuento</span>
+                    <span><?= et('Descuento') ?></span>
                     <input type="number" step="0.01" name="descuento" id="descuento" class="form-control form-control-sm w-50 text-end" value="0">
                 </div>
                 <hr>
-                <div class="d-flex justify-content-between fs-5"><span>Total</span><strong id="totalTxt" class="text-info">$0.00</strong></div>
+                <div class="d-flex justify-content-between fs-5"><span><?= et('Total') ?></span><strong id="totalTxt" class="text-info">$0.00</strong></div>
             </div>
         </div>
 
         <div class="row g-3 mt-1">
-            <div class="col-md-4"><label class="form-label">Método de pago</label><input type="text" name="metodo_pago" class="form-control" placeholder="Efectivo, tarjeta…"></div>
-            <div class="col-md-8"><label class="form-label">Notas</label><input type="text" name="notas" class="form-control"></div>
+            <div class="col-md-4"><label class="form-label"><?= et('Método de pago') ?></label><input type="text" name="metodo_pago" class="form-control" placeholder="<?= et('Efectivo, tarjeta…') ?>"></div>
+            <div class="col-md-8"><label class="form-label"><?= et('Notas') ?></label><input type="text" name="notas" class="form-control"></div>
         </div>
     </div>
     <div class="card-footer text-end">
-        <a href="<?= BASE_URL ?>/facturacion/index" class="btn btn-light">Cancelar</a>
-        <button class="btn btn-primary"><i class="bi bi-check-lg"></i> Guardar factura</button>
+        <a href="<?= BASE_URL ?>/facturacion/index" class="btn btn-light"><?= et('Cancelar') ?></a>
+        <button class="btn btn-primary"><i class="bi bi-check-lg"></i> <?= et('Guardar factura') ?></button>
     </div>
 </form>
 

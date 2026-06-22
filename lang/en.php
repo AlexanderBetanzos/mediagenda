@@ -240,4 +240,12 @@ return [
     'Guardar configuración'=>'Save settings','Personal'=>'Staff','Rol'=>'Role','Especialidad'=>'Specialty',
     'No hay usuarios.'=>'No users.','Activar'=>'Enable','Reportes'=>'Reports',
     'Indicaciones generales'=>'General instructions','Guardar receta'=>'Save prescription',
+    'Todas'=>'All','Pendientes'=>'Pending','Pagadas'=>'Paid','Canceladas'=>'Cancelled',
+    'Cobrado (pagadas)'=>'Collected (paid)','Por cobrar (pendientes)'=>'To collect (pending)',
+    'Marcar pagada'=>'Mark paid','Nueva factura'=>'New invoice','Guardar factura'=>'Save invoice',
+    'Descripción'=>'Description','Cant.'=>'Qty','Conceptos'=>'Items','Agregar concepto'=>'Add item',
+    'Efectivo, tarjeta…'=>'Cash, card…','Consulta médica'=>'Medical visit',
+    'Agrega al menos un concepto.'=>'Add at least one item.','Ver/Imprimir'=>'View/Print',
+    'Comprobante de pago'=>'Payment receipt','Cliente:'=>'Customer:','Método de pago:'=>'Payment method:',
+    'Factura'=>'Invoice',
 ];
