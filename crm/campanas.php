@@ -32,49 +32,49 @@ $pacientes = $st->fetchAll();
 $conTel = array_filter($pacientes, fn($p) => trim((string) $p['telefono']) !== '');
 $waOn   = modulo_activo('whatsapp');
 
-$titulo = 'Campañas';
+$titulo = t('Campañas');
 $activo = 'crm';
 include __DIR__ . '/../includes/header.php';
 ?>
 <nav aria-label="breadcrumb"><ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/crm/index">CRM</a></li>
-    <li class="breadcrumb-item active">Campañas</li>
+    <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/crm/index"><?= et('CRM') ?></a></li>
+    <li class="breadcrumb-item active"><?= et('Campañas') ?></li>
 </ol></nav>
-<h1 class="h3 mb-3"><i class="bi bi-megaphone text-brand"></i> Campaña de WhatsApp</h1>
+<h1 class="h3 mb-3"><i class="bi bi-megaphone text-brand"></i> <?= et('Campaña de WhatsApp') ?></h1>
 
 <?php if (!$waOn): ?>
-<div class="alert alert-warning"><i class="bi bi-exclamation-triangle"></i> El módulo de WhatsApp no está activo en tu plan; podrás ver la lista pero no los botones de envío.</div>
+<div class="alert alert-warning"><i class="bi bi-exclamation-triangle"></i> <?= et('El módulo de WhatsApp no está activo en tu plan; podrás ver la lista pero no los botones de envío.') ?></div>
 <?php endif; ?>
 
 <form class="card mb-4" method="get">
     <div class="card-body row g-3">
         <div class="col-md-4">
-            <label class="form-label">Segmento</label>
+            <label class="form-label"><?= et('Segmento') ?></label>
             <select name="seg" class="form-select">
                 <?php foreach ($segmentos as $k => $l): ?>
-                    <option value="<?= $k ?>" <?= $seg === $k ? 'selected' : '' ?>><?= e($l) ?></option>
+                    <option value="<?= $k ?>" <?= $seg === $k ? 'selected' : '' ?>><?= et($l) ?></option>
                 <?php endforeach; ?>
             </select>
         </div>
         <div class="col-md-8">
-            <label class="form-label">Mensaje</label>
+            <label class="form-label"><?= et('Mensaje') ?></label>
             <textarea name="msg" class="form-control" rows="3" maxlength="600"><?= e($msg) ?></textarea>
-            <div class="form-text">Marcadores: <code>{paciente}</code> <code>{consultorio}</code>.</div>
+            <div class="form-text"><?= et('Marcadores:') ?> <code>{paciente}</code> <code>{consultorio}</code>.</div>
         </div>
-        <div class="col-12"><button class="btn btn-primary"><i class="bi bi-search"></i> Generar lista</button></div>
+        <div class="col-12"><button class="btn btn-primary"><i class="bi bi-search"></i> <?= et('Generar lista') ?></button></div>
     </div>
 </form>
 
 <div class="d-flex flex-wrap gap-2 mb-3">
-    <span class="badge bg-secondary"><?= count($pacientes) ?> en el segmento</span>
-    <span class="badge bg-success"><?= count($conTel) ?> con teléfono</span>
-    <?php if (count($pacientes) - count($conTel) > 0): ?><span class="badge bg-warning text-dark"><?= count($pacientes) - count($conTel) ?> sin teléfono</span><?php endif; ?>
+    <span class="badge bg-secondary"><?= count($pacientes) ?> <?= et('en el segmento') ?></span>
+    <span class="badge bg-success"><?= count($conTel) ?> <?= et('con teléfono') ?></span>
+    <?php if (count($pacientes) - count($conTel) > 0): ?><span class="badge bg-warning text-dark"><?= count($pacientes) - count($conTel) ?> <?= et('sin teléfono') ?></span><?php endif; ?>
 </div>
 
 <div class="card">
     <ul class="list-group list-group-flush">
         <?php if (!$pacientes): ?>
-            <li class="list-group-item text-muted text-center py-4">No hay pacientes en este segmento.</li>
+            <li class="list-group-item text-muted text-center py-4"><?= et('No hay pacientes en este segmento.') ?></li>
         <?php else: foreach ($pacientes as $p):
             $nombre = $p['nombre'] . ' ' . $p['apellidos'];
             $texto  = strtr($msg, ['{paciente}' => $p['nombre'], '{consultorio}' => marca_nombre()]);
@@ -82,10 +82,10 @@ include __DIR__ . '/../includes/header.php';
         <li class="list-group-item d-flex justify-content-between align-items-center">
             <div>
                 <span class="fw-semibold"><?= e($nombre) ?></span>
-                <span class="small text-muted ms-2"><?= e($p['telefono'] ?: 'sin teléfono') ?></span>
+                <span class="small text-muted ms-2"><?= e($p['telefono'] ?: t('sin teléfono')) ?></span>
             </div>
             <?php if ($wa): ?>
-                <a href="<?= e($wa) ?>" target="_blank" rel="noopener" class="btn btn-sm btn-success"><i class="bi bi-whatsapp"></i> Enviar</a>
+                <a href="<?= e($wa) ?>" target="_blank" rel="noopener" class="btn btn-sm btn-success"><i class="bi bi-whatsapp"></i> <?= et('Enviar') ?></a>
             <?php else: ?>
                 <span class="badge bg-light text-muted border">—</span>
             <?php endif; ?>

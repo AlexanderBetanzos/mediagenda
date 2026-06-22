@@ -60,18 +60,18 @@ $pacientes = db()->prepare('SELECT id, nombre, apellidos FROM pacientes WHERE co
 $pacientes->execute([$tid]);
 $pacientes = $pacientes->fetchAll();
 
-$tipoLbl = ['llamada'=>'Llamada','mensaje'=>'Mensaje','revision'=>'Revisión','otro'=>'Otro'];
+$tipoLbl = ['llamada'=>t('Llamada'),'mensaje'=>t('Mensaje'),'revision'=>t('Revisión'),'otro'=>t('Otro')];
 $hoy = date('Y-m-d');
 
-$titulo = 'CRM';
+$titulo = t('CRM');
 $activo = 'crm';
 include __DIR__ . '/../includes/header.php';
 ?>
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
-    <h1 class="h3 mb-0"><i class="bi bi-people-fill text-brand"></i> CRM · Seguimiento</h1>
+    <h1 class="h3 mb-0"><i class="bi bi-people-fill text-brand"></i> <?= et('CRM · Seguimiento') ?></h1>
     <div class="d-flex gap-2">
-        <a href="<?= BASE_URL ?>/crm/campanas" class="btn btn-outline-success"><i class="bi bi-megaphone"></i> Campañas</a>
-        <button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#formSeg"><i class="bi bi-plus-lg"></i> Nuevo seguimiento</button>
+        <a href="<?= BASE_URL ?>/crm/campanas" class="btn btn-outline-success"><i class="bi bi-megaphone"></i> <?= et('Campañas') ?></a>
+        <button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#formSeg"><i class="bi bi-plus-lg"></i> <?= et('Nuevo seguimiento') ?></button>
     </div>
 </div>
 
@@ -81,32 +81,32 @@ include __DIR__ . '/../includes/header.php';
             <?= csrf_field() ?>
             <input type="hidden" name="accion" value="crear">
             <div class="col-md-4">
-                <label class="form-label">Paciente *</label>
+                <label class="form-label"><?= et('Paciente') ?> *</label>
                 <select name="paciente_id" class="form-select" required>
-                    <option value="">— Selecciona —</option>
+                    <option value=""><?= et('— Selecciona —') ?></option>
                     <?php foreach ($pacientes as $p): ?>
                         <option value="<?= $p['id'] ?>"><?= e($p['apellidos'].', '.$p['nombre']) ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
             <div class="col-md-2">
-                <label class="form-label">Tipo</label>
+                <label class="form-label"><?= et('Tipo') ?></label>
                 <select name="tipo" class="form-select">
-                    <?php foreach ($tipoLbl as $k=>$l): ?><option value="<?= $k ?>"><?= $l ?></option><?php endforeach; ?>
+                    <?php foreach ($tipoLbl as $k=>$l): ?><option value="<?= $k ?>"><?= e($l) ?></option><?php endforeach; ?>
                 </select>
             </div>
             <div class="col-md-4">
-                <label class="form-label">Título *</label>
-                <input type="text" name="titulo" class="form-control" required maxlength="160" placeholder="Ej. Llamar para control de presión">
+                <label class="form-label"><?= et('Título') ?> *</label>
+                <input type="text" name="titulo" class="form-control" required maxlength="160" placeholder="<?= et('Ej. Llamar para control de presión') ?>">
             </div>
             <div class="col-md-2">
-                <label class="form-label">Fecha</label>
+                <label class="form-label"><?= et('Fecha') ?></label>
                 <input type="date" name="fecha_objetivo" class="form-control">
             </div>
             <div class="col-12">
-                <input type="text" name="nota" class="form-control" placeholder="Nota (opcional)">
+                <input type="text" name="nota" class="form-control" placeholder="<?= et('Nota (opcional)') ?>">
             </div>
-            <div class="col-12 text-end"><button class="btn btn-primary btn-sm"><i class="bi bi-check-lg"></i> Guardar</button></div>
+            <div class="col-12 text-end"><button class="btn btn-primary btn-sm"><i class="bi bi-check-lg"></i> <?= et('Guardar') ?></button></div>
         </form>
     </div>
 </div>
@@ -114,10 +114,10 @@ include __DIR__ . '/../includes/header.php';
 <div class="row g-4">
     <div class="col-lg-8">
         <div class="card">
-            <div class="card-header bg-white fw-semibold"><i class="bi bi-list-check text-brand"></i> Pendientes (<?= count($pendientes) ?>)</div>
+            <div class="card-header bg-white fw-semibold"><i class="bi bi-list-check text-brand"></i> <?= et('Pendientes') ?> (<?= count($pendientes) ?>)</div>
             <ul class="list-group list-group-flush">
                 <?php if (!$pendientes): ?>
-                    <li class="list-group-item text-muted text-center py-4">Sin seguimientos pendientes. 🎉</li>
+                    <li class="list-group-item text-muted text-center py-4"><?= et('Sin seguimientos pendientes. 🎉') ?></li>
                 <?php else: foreach ($pendientes as $s):
                     $vencido = $s['fecha_objetivo'] && $s['fecha_objetivo'] < $hoy; ?>
                 <li class="list-group-item d-flex flex-wrap justify-content-between align-items-center gap-2">
@@ -127,7 +127,7 @@ include __DIR__ . '/../includes/header.php';
                         <div class="small text-muted">
                             <a href="<?= BASE_URL ?>/pacientes/ver?id=<?= $s['paciente_id'] ?>"><?= e($s['nombre'].' '.$s['apellidos']) ?></a>
                             <?php if ($s['fecha_objetivo']): ?>
-                                · <span class="<?= $vencido ? 'text-danger fw-semibold' : '' ?>"><i class="bi bi-calendar-event"></i> <?= fmt_fecha($s['fecha_objetivo']) ?><?= $vencido ? ' (vencido)' : '' ?></span>
+                                · <span class="<?= $vencido ? 'text-danger fw-semibold' : '' ?>"><i class="bi bi-calendar-event"></i> <?= fmt_fecha($s['fecha_objetivo']) ?><?= $vencido ? ' ' . et('(vencido)') : '' ?></span>
                             <?php endif; ?>
                             <?php if ($s['nota']): ?> · <?= e($s['nota']) ?><?php endif; ?>
                         </div>
@@ -136,7 +136,7 @@ include __DIR__ . '/../includes/header.php';
                         <?= csrf_field() ?>
                         <input type="hidden" name="accion" value="hecho">
                         <input type="hidden" name="seguimiento_id" value="<?= $s['id'] ?>">
-                        <button class="btn btn-sm btn-outline-success" title="Marcar como hecho"><i class="bi bi-check2"></i> Hecho</button>
+                        <button class="btn btn-sm btn-outline-success" title="<?= et('Marcar como hecho') ?>"><i class="bi bi-check2"></i> <?= et('Hecho') ?></button>
                     </form>
                 </li>
                 <?php endforeach; endif; ?>
@@ -146,10 +146,10 @@ include __DIR__ . '/../includes/header.php';
 
     <div class="col-lg-4">
         <div class="card">
-            <div class="card-header bg-white fw-semibold"><i class="bi bi-gift text-brand"></i> Cumpleaños de este mes</div>
+            <div class="card-header bg-white fw-semibold"><i class="bi bi-gift text-brand"></i> <?= et('Cumpleaños de este mes') ?></div>
             <ul class="list-group list-group-flush">
                 <?php if (!$cumpleanos): ?>
-                    <li class="list-group-item text-muted text-center py-3">Ninguno este mes.</li>
+                    <li class="list-group-item text-muted text-center py-3"><?= et('Ninguno este mes.') ?></li>
                 <?php else: foreach ($cumpleanos as $c):
                     $msg = '¡Feliz cumpleaños, ' . $c['nombre'] . '! Te deseamos un excelente día. — ' . marca_nombre();
                     $wa = modulo_activo('whatsapp') ? wa_link($c['telefono'], $msg) : ''; ?>
@@ -159,7 +159,7 @@ include __DIR__ . '/../includes/header.php';
                         <?php $mesesC = ['','ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic']; $tc = strtotime($c['fecha_nacimiento']); ?>
                         <small class="text-muted"><i class="bi bi-calendar-heart"></i> <?= (int) date('j', $tc) ?> <?= $mesesC[(int) date('n', $tc)] ?> · <?= e(edad($c['fecha_nacimiento'])) ?></small>
                     </div>
-                    <?php if ($wa): ?><a href="<?= e($wa) ?>" target="_blank" rel="noopener" class="btn btn-sm btn-outline-success" title="Felicitar por WhatsApp"><i class="bi bi-whatsapp"></i></a><?php endif; ?>
+                    <?php if ($wa): ?><a href="<?= e($wa) ?>" target="_blank" rel="noopener" class="btn btn-sm btn-outline-success" title="<?= et('Felicitar por WhatsApp') ?>"><i class="bi bi-whatsapp"></i></a><?php endif; ?>
                 </li>
                 <?php endforeach; endif; ?>
             </ul>
