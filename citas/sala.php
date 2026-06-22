@@ -70,15 +70,15 @@ function btn(string $accion, int $cid, string $clase, string $icono, string $txt
         . '<button class="btn btn-sm ' . $clase . '"><i class="bi ' . $icono . '"></i> ' . $txt . '</button></form>';
 }
 
-$titulo = 'Sala de espera';
+$titulo = t('Sala de espera');
 $activo = 'citas';
 include __DIR__ . '/../includes/header.php';
 ?>
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
-    <h1 class="h3 mb-0"><i class="bi bi-hourglass-split text-brand"></i> Sala de espera <span class="text-muted fs-6">· <?= fmt_fecha($hoy) ?></span></h1>
+    <h1 class="h3 mb-0"><i class="bi bi-hourglass-split text-brand"></i> <?= et('Sala de espera') ?> <span class="text-muted fs-6">· <?= fmt_fecha($hoy) ?></span></h1>
     <div class="d-flex gap-2 align-items-center">
-        <?php if ($promEspera !== null): ?><span class="badge bg-light text-dark border">Espera promedio hoy: <strong><?= $promEspera ?> min</strong></span><?php endif; ?>
-        <a href="<?= BASE_URL ?>/citas/calendario" class="btn btn-sm btn-outline-secondary"><i class="bi bi-calendar3"></i> Calendario</a>
+        <?php if ($promEspera !== null): ?><span class="badge bg-light text-dark border"><?= et('Espera promedio hoy:') ?> <strong><?= $promEspera ?> min</strong></span><?php endif; ?>
+        <a href="<?= BASE_URL ?>/citas/calendario" class="btn btn-sm btn-outline-secondary"><i class="bi bi-calendar3"></i> <?= et('Calendario') ?></a>
     </div>
 </div>
 
@@ -86,7 +86,7 @@ include __DIR__ . '/../includes/header.php';
     <!-- Por llegar -->
     <div class="col-lg-4">
         <div class="card h-100">
-            <div class="card-header bg-white fw-semibold"><i class="bi bi-clock text-secondary"></i> Por llegar (<?= count($porLlegar) ?>)</div>
+            <div class="card-header bg-white fw-semibold"><i class="bi bi-clock text-secondary"></i> <?= et('Por llegar') ?> (<?= count($porLlegar) ?>)</div>
             <ul class="list-group list-group-flush">
                 <?php if (!$porLlegar): ?><li class="list-group-item text-muted text-center py-3">—</li>
                 <?php else: foreach ($porLlegar as $c): ?>
@@ -94,8 +94,8 @@ include __DIR__ . '/../includes/header.php';
                     <div class="d-flex justify-content-between"><span class="fw-semibold"><?= fmt_hora($c['hora']) ?></span><span class="badge bg-<?= estado_badge($c['estado']) ?>"><?= estado_label($c['estado']) ?></span></div>
                     <div class="small"><?= e($c['pac_nombre'].' '.$c['pac_ape']) ?></div>
                     <div class="small text-muted mb-2"><?= e($c['med_nombre']) ?></div>
-                    <?= btn('checkin', $c['id'], 'btn-warning', 'bi-box-arrow-in-right', 'Check-in') ?>
-                    <?= btn('no_asistio', $c['id'], 'btn-outline-danger', 'bi-x', 'No asistió') ?>
+                    <?= btn('checkin', $c['id'], 'btn-warning', 'bi-box-arrow-in-right', t('Check-in')) ?>
+                    <?= btn('no_asistio', $c['id'], 'btn-outline-danger', 'bi-x', t('No asistió')) ?>
                 </li>
                 <?php endforeach; endif; ?>
             </ul>
@@ -104,18 +104,18 @@ include __DIR__ . '/../includes/header.php';
     <!-- En espera -->
     <div class="col-lg-4">
         <div class="card h-100">
-            <div class="card-header bg-white fw-semibold"><i class="bi bi-people text-warning"></i> En espera (<?= count($espera) ?>)</div>
+            <div class="card-header bg-white fw-semibold"><i class="bi bi-people text-warning"></i> <?= et('En espera') ?> (<?= count($espera) ?>)</div>
             <ul class="list-group list-group-flush">
                 <?php if (!$espera): ?><li class="list-group-item text-muted text-center py-3">—</li>
                 <?php else: foreach ($espera as $c): $m = mins_desde($c['checkin_en']); ?>
                 <li class="list-group-item">
                     <div class="d-flex justify-content-between">
                         <span class="fw-semibold"><?= fmt_hora($c['hora']) ?></span>
-                        <span class="badge bg-<?= $m >= 30 ? 'danger' : 'warning' ?> text-dark">esperando <?= $m ?> min</span>
+                        <span class="badge bg-<?= $m >= 30 ? 'danger' : 'warning' ?> text-dark"><?= et('esperando') ?> <?= $m ?> min</span>
                     </div>
                     <div class="small"><?= e($c['pac_nombre'].' '.$c['pac_ape']) ?></div>
                     <div class="small text-muted mb-2"><?= e($c['med_nombre']) ?></div>
-                    <?= btn('consulta', $c['id'], 'btn-primary', 'bi-door-open', 'Pasar a consulta') ?>
+                    <?= btn('consulta', $c['id'], 'btn-primary', 'bi-door-open', t('Pasar a consulta')) ?>
                 </li>
                 <?php endforeach; endif; ?>
             </ul>
@@ -124,16 +124,16 @@ include __DIR__ . '/../includes/header.php';
     <!-- En consulta -->
     <div class="col-lg-4">
         <div class="card h-100">
-            <div class="card-header bg-white fw-semibold"><i class="bi bi-clipboard-pulse text-primary"></i> En consulta (<?= count($enConsulta) ?>)</div>
+            <div class="card-header bg-white fw-semibold"><i class="bi bi-clipboard-pulse text-primary"></i> <?= et('En consulta') ?> (<?= count($enConsulta) ?>)</div>
             <ul class="list-group list-group-flush">
                 <?php if (!$enConsulta): ?><li class="list-group-item text-muted text-center py-3">—</li>
                 <?php else: foreach ($enConsulta as $c): $m = mins_desde($c['atencion_en']); ?>
                 <li class="list-group-item">
-                    <div class="d-flex justify-content-between"><span class="fw-semibold"><?= fmt_hora($c['hora']) ?></span><span class="badge bg-primary">en consulta <?= $m ?> min</span></div>
+                    <div class="d-flex justify-content-between"><span class="fw-semibold"><?= fmt_hora($c['hora']) ?></span><span class="badge bg-primary"><?= et('en consulta') ?> <?= $m ?> min</span></div>
                     <div class="small"><?= e($c['pac_nombre'].' '.$c['pac_ape']) ?></div>
                     <div class="small text-muted mb-2"><?= e($c['med_nombre']) ?></div>
-                    <?= btn('finalizar', $c['id'], 'btn-success', 'bi-check2-circle', 'Finalizar') ?>
-                    <a href="<?= BASE_URL ?>/pacientes/ver?id=<?= $c['paciente_id'] ?>" class="btn btn-sm btn-outline-secondary"><i class="bi bi-folder2-open"></i> Expediente</a>
+                    <?= btn('finalizar', $c['id'], 'btn-success', 'bi-check2-circle', t('Finalizar')) ?>
+                    <a href="<?= BASE_URL ?>/pacientes/ver?id=<?= $c['paciente_id'] ?>" class="btn btn-sm btn-outline-secondary"><i class="bi bi-folder2-open"></i> <?= et('Expediente') ?></a>
                 </li>
                 <?php endforeach; endif; ?>
             </ul>
@@ -143,7 +143,7 @@ include __DIR__ . '/../includes/header.php';
 
 <?php if ($terminadas): ?>
 <div class="card mt-3">
-    <div class="card-header bg-white fw-semibold"><i class="bi bi-check2-all text-success"></i> Atendidas hoy (<?= count($terminadas) ?>)</div>
+    <div class="card-header bg-white fw-semibold"><i class="bi bi-check2-all text-success"></i> <?= et('Atendidas hoy') ?> (<?= count($terminadas) ?>)</div>
     <div class="card-body d-flex flex-wrap gap-2">
         <?php foreach ($terminadas as $c): ?>
             <span class="badge bg-light text-dark border"><?= fmt_hora($c['hora']) ?> · <?= e($c['pac_nombre'].' '.$c['pac_ape']) ?></span>

@@ -167,4 +167,6 @@ return [
     'Idioma por defecto'=>'Default language','Guardar configuración'=>'Save settings',
     'Recordatorios automáticos'=>'Automatic reminders','Rol'=>'Role','Especialidad'=>'Specialty',
     'Activo'=>'Active','Inactivo'=>'Inactive','Nuevo usuario'=>'New user',
+    'esperando'=>'waiting','en consulta'=>'in visit','Espera promedio hoy:'=>'Average wait today:',
+    'Check-in'=>'Check-in','Expediente'=>'Record',
 ];
