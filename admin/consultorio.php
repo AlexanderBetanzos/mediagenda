@@ -76,19 +76,19 @@ include __DIR__ . '/../includes/header.php';
 ?>
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/admin/index">Consultorios</a></li>
+        <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/admin/index"><?= et('Consultorios') ?></a></li>
         <li class="breadcrumb-item active"><?= e($c['nombre']) ?></li>
     </ol>
 </nav>
 
 <h1 class="h3 mb-1"><i class="bi bi-shield-lock text-brand"></i> <?= e($c['nombre']) ?></h1>
-<p class="text-muted"><i class="bi bi-envelope"></i> <?= e($c['email']) ?> · Estado: <strong><?= ucfirst($c['estado']) ?></strong></p>
+<p class="text-muted"><i class="bi bi-envelope"></i> <?= e($c['email']) ?> · <?= et('Estado:') ?> <strong><?= et(ucfirst($c['estado'])) ?></strong></p>
 
 <div class="row g-4">
     <!-- Plan -->
     <div class="col-lg-5">
         <div class="card">
-            <div class="card-header bg-white fw-semibold"><i class="bi bi-stars text-brand"></i> Plan contratado</div>
+            <div class="card-header bg-white fw-semibold"><i class="bi bi-stars text-brand"></i> <?= et('Plan contratado') ?></div>
             <div class="card-body">
                 <form method="post">
                     <?= csrf_field() ?>
@@ -100,14 +100,14 @@ include __DIR__ . '/../includes/header.php';
                                <?= $c['plan'] === $k ? 'checked' : '' ?>>
                         <label class="form-check-label d-flex justify-content-between" for="plan_<?= e($k) ?>" style="width:100%">
                             <span><?= e($pl['nombre']) ?></span>
-                            <span class="text-brand fw-semibold">$<?= number_format($pl['precio'], 0) ?>/mes</span>
+                            <span class="text-brand fw-semibold">$<?= number_format($pl['precio'], 0) ?><?= et('/mes') ?></span>
                         </label>
                     </div>
                     <?php endforeach; ?>
                     <?php if (!isset($planes[$c['plan']])): ?>
                         <div class="alert alert-warning py-2 small mt-2">Plan actual «<?= e($c['plan']) ?>» sin definir: el consultorio tiene acceso total (fail-open). Asigna uno de la lista.</div>
                     <?php endif; ?>
-                    <button class="btn btn-primary mt-2"><i class="bi bi-check-lg"></i> Guardar plan</button>
+                    <button class="btn btn-primary mt-2"><i class="bi bi-check-lg"></i> <?= et('Guardar plan') ?></button>
                 </form>
             </div>
         </div>
@@ -117,8 +117,8 @@ include __DIR__ . '/../includes/header.php';
     <div class="col-lg-7">
         <div class="card">
             <div class="card-header bg-white fw-semibold d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-puzzle text-brand"></i> Módulos</span>
-                <span class="small text-muted">marcado = activo · fuera del plan = add-on</span>
+                <span><i class="bi bi-puzzle text-brand"></i> <?= et('Módulos') ?></span>
+                <span class="small text-muted"><?= et('marcado = activo · fuera del plan = add-on') ?></span>
             </div>
             <div class="card-body">
                 <form method="post">
@@ -128,7 +128,7 @@ include __DIR__ . '/../includes/header.php';
                     <?php foreach ($fases as $nf => $lf):
                         $deFase = array_filter($modulos, fn($m) => (int) $m['fase'] === $nf);
                         if (!$deFase) continue; ?>
-                        <div class="fw-semibold small text-muted text-uppercase mt-2 mb-1"><?= e($lf) ?></div>
+                        <div class="fw-semibold small text-muted text-uppercase mt-2 mb-1"><?= et($lf) ?></div>
                         <?php foreach ($deFase as $m):
                             $clave    = $m['clave'];
                             $incluido = in_array($clave, $enPlan, true);
@@ -137,14 +137,14 @@ include __DIR__ . '/../includes/header.php';
                             $bloqueado = $incluido && !$efectivo; ?>
                         <div class="form-check d-flex align-items-center gap-2">
                             <input class="form-check-input" type="checkbox" name="mod[<?= e($clave) ?>]" id="m_<?= e($clave) ?>" value="1" <?= $efectivo ? 'checked' : '' ?>>
-                            <label class="form-check-label" for="m_<?= e($clave) ?>"><?= e($m['nombre']) ?></label>
-                            <?php if ($incluido): ?><span class="badge bg-light text-success border">en el plan</span><?php endif; ?>
+                            <label class="form-check-label" for="m_<?= e($clave) ?>"><?= et($m['nombre']) ?></label>
+                            <?php if ($incluido): ?><span class="badge bg-light text-success border"><?= et('en el plan') ?></span><?php endif; ?>
                             <?php if ($esAddon): ?><span class="badge bg-info-subtle text-info border">add-on</span><?php endif; ?>
-                            <?php if ($bloqueado): ?><span class="badge bg-warning-subtle text-warning border">desactivado</span><?php endif; ?>
+                            <?php if ($bloqueado): ?><span class="badge bg-warning-subtle text-warning border"><?= et('desactivado') ?></span><?php endif; ?>
                         </div>
                         <?php endforeach; ?>
                     <?php endforeach; ?>
-                    <button class="btn btn-primary mt-3"><i class="bi bi-check-lg"></i> Guardar módulos</button>
+                    <button class="btn btn-primary mt-3"><i class="bi bi-check-lg"></i> <?= et('Guardar módulos') ?></button>
                 </form>
             </div>
         </div>
