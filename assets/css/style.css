@@ -84,6 +84,11 @@ html.app-dark body, html.app-light body { background: transparent; }
 .icon-btn { color: rgba(255,255,255,.85); font-size: 1.15rem; position: relative; text-decoration: none; }
 .icon-btn .dot { position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; border-radius: 50%; background: var(--d-green); border: 2px solid #0b2347; }
 .avatar-circle { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, var(--d-teal), #1b8fb0); color: #06222b; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+/* El navbar no usa .navbar-expand-*, así que Bootstrap deja los menús de
+   .navbar-nav en posición estática (en flujo) y empujan el contenido al abrir.
+   Los forzamos a flotar como menú normal. */
+.app-navbar .navbar-nav .dropdown-menu { position: absolute; }
+.app-navbar .dropdown-menu-end { right: 0; left: auto; }
 
 /* ---- Sidebar ---- */
 .app-dark .sidebar { background: rgba(8,20,40,.65); box-shadow: inset -1px 0 0 var(--d-border); min-height: calc(100vh - 48px); }
