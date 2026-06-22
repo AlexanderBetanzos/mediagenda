@@ -331,4 +331,22 @@ return [
     'Crea formatos reutilizables para llenar más rápido el expediente.'=>'Create reusable formats to fill the record faster.',
     'Editar plantilla'=>'Edit template','Nueva plantilla'=>'New template','Mis plantillas'=>'My templates',
     'Aún no hay plantillas.'=>'No templates yet.','General'=>'General','Plantillas de consulta'=>'Visit templates',
+
+    // Auth (2FA / seguridad / registro / suscripción)
+    'Verificación en dos pasos'=>'Two-step verification','Verificar'=>'Verify',
+    'Ingresa el código de 6 dígitos de tu app de autenticación.'=>'Enter the 6-digit code from your authenticator app.',
+    'Código incorrecto. Revisa tu app de autenticación e inténtalo de nuevo.'=>'Incorrect code. Check your authenticator app and try again.',
+    'Cancelar e iniciar sesión con otra cuenta'=>'Cancel and sign in with another account',
+    'Seguridad de la cuenta'=>'Account security','Activa'=>'Active','Inactiva'=>'Inactive',
+    'Protege tu acceso con verificación en dos pasos (2FA).'=>'Protect your access with two-step verification (2FA).',
+    'Activar 2FA'=>'Enable 2FA','Desactivar 2FA'=>'Disable 2FA','Confirmar y activar'=>'Confirm and enable',
+    'Clave manual:'=>'Manual key:','Crear tu cuenta'=>'Create your account','Crear cuenta'=>'Create account',
+    'Tu nombre'=>'Your name','Teléfono'=>'Phone','Confirmar'=>'Confirm','Continuar al pago'=>'Continue to payment',
+    'Activar plan'=>'Activate plan','¿Ya tienes cuenta?'=>'Already have an account?','Inicia sesión'=>'Sign in',
+    'Tu cuenta pide un código de tu app de autenticación al iniciar sesión.'=>'Your account asks for a code from your authenticator app when signing in.',
+    'Confirma tu contraseña para desactivar'=>'Confirm your password to disable',
+    'Usa Google Authenticator, Authy o Microsoft Authenticator. Es gratis y funciona sin internet.'=>'Use Google Authenticator, Authy or Microsoft Authenticator. Free and works offline.',
+    'Abre tu app de autenticación y escanea este código QR.'=>'Open your authenticator app and scan this QR code.',
+    'Escribe el código de 6 dígitos que aparezca para confirmar.'=>'Enter the 6-digit code shown to confirm.',
+    '¿No puedes escanear? Clave manual:'=>"Can't scan? Manual key:",
 ];
