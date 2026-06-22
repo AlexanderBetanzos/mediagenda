@@ -19,7 +19,7 @@ $items = db()->prepare('SELECT * FROM receta_items WHERE receta_id = ?');
 $items->execute([$id]);
 $items = $items->fetchAll();
 
-$titulo = 'Receta #' . $id;
+$titulo = t('Receta') . ' #' . $id;
 $activo = 'recetas';
 include __DIR__ . '/../includes/header.php';
 ?>
@@ -33,10 +33,10 @@ include __DIR__ . '/../includes/header.php';
 </style>
 <div class="d-flex justify-content-between align-items-center mb-3 no-print">
     <nav aria-label="breadcrumb" class="mb-0"><ol class="breadcrumb mb-0">
-        <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/recetas/index">Recetas</a></li>
-        <li class="breadcrumb-item active">Receta #<?= $id ?></li>
+        <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/recetas/index"><?= et('Recetas') ?></a></li>
+        <li class="breadcrumb-item active"><?= et('Receta') ?> #<?= $id ?></li>
     </ol></nav>
-    <button onclick="window.print()" class="btn btn-primary"><i class="bi bi-printer"></i> Imprimir</button>
+    <button onclick="window.print()" class="btn btn-primary"><i class="bi bi-printer"></i> <?= et('Imprimir') ?></button>
 </div>
 
 <div class="receta-print">
@@ -45,17 +45,17 @@ include __DIR__ . '/../includes/header.php';
         <div class="d-flex justify-content-between border-bottom pb-3 mb-3">
             <div>
                 <h2 class="h4 mb-0" style="color:#0b6fb8"><i class="bi bi-heart-pulse-fill"></i> <?= e(marca_nombre()) ?></h2>
-                <small class="text-muted">Receta médica</small>
+                <small class="text-muted"><?= et('Receta médica') ?></small>
             </div>
             <div class="text-end">
-                <div><strong>Folio:</strong> R-<?= str_pad((string)$id, 5, '0', STR_PAD_LEFT) ?></div>
-                <div><strong>Fecha:</strong> <?= fmt_fecha($r['fecha']) ?></div>
+                <div><strong><?= et('Folio') ?>:</strong> R-<?= str_pad((string)$id, 5, '0', STR_PAD_LEFT) ?></div>
+                <div><strong><?= et('Fecha') ?>:</strong> <?= fmt_fecha($r['fecha']) ?></div>
             </div>
         </div>
 
         <div class="row mb-3">
             <div class="col-6">
-                <strong>Paciente:</strong> <?= e($r['pac_nombre'].' '.$r['pac_ape']) ?><br>
+                <strong><?= et('Paciente') ?>:</strong> <?= e($r['pac_nombre'].' '.$r['pac_ape']) ?><br>
                 <small class="text-muted"><?= e(edad($r['fecha_nacimiento'])) ?></small>
             </div>
             <div class="col-6 text-end">
@@ -65,12 +65,12 @@ include __DIR__ . '/../includes/header.php';
         </div>
 
         <?php if ($r['diagnostico']): ?>
-            <p><strong>Diagnóstico:</strong> <?= e($r['diagnostico']) ?></p>
+            <p><strong><?= et('Diagnóstico') ?>:</strong> <?= e($r['diagnostico']) ?></p>
         <?php endif; ?>
 
-        <h3 class="h6 mt-4" style="color:#0b6fb8"><i class="bi bi-capsule"></i> Medicamentos</h3>
+        <h3 class="h6 mt-4" style="color:#0b6fb8"><i class="bi bi-capsule"></i> <?= et('Medicamentos') ?></h3>
         <table class="table table-bordered">
-            <thead><tr><th>Medicamento</th><th>Dosis</th><th>Frecuencia</th><th>Duración</th></tr></thead>
+            <thead><tr><th><?= et('Medicamento') ?></th><th><?= et('Dosis') ?></th><th><?= et('Frecuencia') ?></th><th><?= et('Duración') ?></th></tr></thead>
             <tbody>
             <?php foreach ($items as $m): ?>
                 <tr>
@@ -84,7 +84,7 @@ include __DIR__ . '/../includes/header.php';
         </table>
 
         <?php if ($r['indicaciones']): ?>
-            <p class="mt-3"><strong>Indicaciones:</strong><br><?= nl2br(e($r['indicaciones'])) ?></p>
+            <p class="mt-3"><strong><?= et('Indicaciones') ?>:</strong><br><?= nl2br(e($r['indicaciones'])) ?></p>
         <?php endif; ?>
         <?php if ($r['notas']): ?>
             <p class="text-muted"><small><?= nl2br(e($r['notas'])) ?></small></p>
@@ -92,7 +92,7 @@ include __DIR__ . '/../includes/header.php';
 
         <div class="text-center mt-5 pt-4">
             <div style="border-top:1px solid #333;width:240px;margin:0 auto"></div>
-            <small><?= e($r['med_nombre']) ?> · Firma</small>
+            <small><?= e($r['med_nombre']) ?> · <?= et('Firma') ?></small>
         </div>
     </div>
 </div>

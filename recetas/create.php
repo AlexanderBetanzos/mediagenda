@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $medico_id   = (int) ($_POST['medico_id'] ?? $u['id']);
     $meds        = $_POST['med'] ?? [];
 
-    if (!$paciente_id || !pertenece_al_tenant('pacientes', $paciente_id)) $errores[] = 'Selecciona un paciente.';
+    if (!$paciente_id || !pertenece_al_tenant('pacientes', $paciente_id)) $errores[] = t('Selecciona un paciente.');
     if (!pertenece_al_tenant('usuarios', $medico_id)) $medico_id = (int) $u['id'];
     // Al menos un medicamento con nombre
     $items = [];
@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $items[] = $m;
         }
     }
-    if (!$items) $errores[] = 'Agrega al menos un medicamento.';
+    if (!$items) $errores[] = t('Agrega al menos un medicamento.');
 
     if (!$errores) {
         $pdo = db();
@@ -57,15 +57,15 @@ $medicos   = db()->prepare("SELECT id, nombre FROM usuarios WHERE rol='medico' A
 $medicos->execute([tenant_id()]);
 $medicos = $medicos->fetchAll();
 
-$titulo = 'Nueva receta';
+$titulo = t('Nueva receta');
 $activo = 'recetas';
 include __DIR__ . '/../includes/header.php';
 ?>
 <nav aria-label="breadcrumb"><ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/recetas/index">Recetas</a></li>
-    <li class="breadcrumb-item active">Nueva</li>
+    <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/recetas/index"><?= et('Recetas') ?></a></li>
+    <li class="breadcrumb-item active"><?= et('Nueva') ?></li>
 </ol></nav>
-<h1 class="h3 mb-3">Nueva receta</h1>
+<h1 class="h3 mb-3"><?= et('Nueva receta') ?></h1>
 
 <?php if ($errores): ?>
 <div class="alert alert-danger"><ul class="mb-0"><?php foreach ($errores as $e) echo '<li>'.e($e).'</li>'; ?></ul></div>
@@ -76,16 +76,16 @@ include __DIR__ . '/../includes/header.php';
         <?= csrf_field() ?>
         <div class="row g-3 mb-3">
             <div class="col-md-6">
-                <label class="form-label">Paciente *</label>
+                <label class="form-label"><?= et('Paciente') ?> *</label>
                 <select name="paciente_id" class="form-select" required>
-                    <option value="">— Selecciona —</option>
+                    <option value=""><?= et('— Selecciona —') ?></option>
                     <?php foreach ($pacientes as $p): ?>
                         <option value="<?= $p['id'] ?>" <?= $presel===$p['id']?'selected':'' ?>><?= e($p['apellidos'].', '.$p['nombre']) ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
             <div class="col-md-6">
-                <label class="form-label">Médico *</label>
+                <label class="form-label"><?= et('Médico') ?> *</label>
                 <select name="medico_id" class="form-select" required>
                     <?php foreach ($medicos as $m): ?>
                         <option value="<?= $m['id'] ?>" <?= (int)$u['id']===$m['id']?'selected':'' ?>><?= e($m['nombre']) ?></option>
@@ -93,15 +93,15 @@ include __DIR__ . '/../includes/header.php';
                 </select>
             </div>
             <div class="col-12">
-                <label class="form-label">Diagnóstico</label>
+                <label class="form-label"><?= et('Diagnóstico') ?></label>
                 <input type="text" name="diagnostico" class="form-control">
             </div>
         </div>
 
-        <label class="form-label">Medicamentos *</label>
+        <label class="form-label"><?= et('Medicamentos') ?> *</label>
         <div class="table-responsive">
             <table class="table table-sm align-middle" id="tablaMeds">
-                <thead><tr><th>Medicamento</th><th>Dosis</th><th>Frecuencia</th><th>Duración</th><th></th></tr></thead>
+                <thead><tr><th><?= et('Medicamento') ?></th><th><?= et('Dosis') ?></th><th><?= et('Frecuencia') ?></th><th><?= et('Duración') ?></th><th></th></tr></thead>
                 <tbody>
                     <tr>
                         <td><input type="text" name="med[0][medicamento]" class="form-control" placeholder="Paracetamol 500mg"></td>
@@ -113,16 +113,16 @@ include __DIR__ . '/../includes/header.php';
                 </tbody>
             </table>
         </div>
-        <button type="button" class="btn btn-sm btn-outline-primary" id="agregarMed"><i class="bi bi-plus"></i> Agregar medicamento</button>
+        <button type="button" class="btn btn-sm btn-outline-primary" id="agregarMed"><i class="bi bi-plus"></i> <?= et('Agregar medicamento') ?></button>
 
         <div class="row g-3 mt-1">
-            <div class="col-md-6"><label class="form-label">Indicaciones generales</label><textarea name="indicaciones" class="form-control" rows="3"></textarea></div>
-            <div class="col-md-6"><label class="form-label">Notas</label><textarea name="notas" class="form-control" rows="3"></textarea></div>
+            <div class="col-md-6"><label class="form-label"><?= et('Indicaciones generales') ?></label><textarea name="indicaciones" class="form-control" rows="3"></textarea></div>
+            <div class="col-md-6"><label class="form-label"><?= et('Notas') ?></label><textarea name="notas" class="form-control" rows="3"></textarea></div>
         </div>
     </div>
     <div class="card-footer text-end">
-        <a href="<?= BASE_URL ?>/recetas/index" class="btn btn-light">Cancelar</a>
-        <button class="btn btn-primary"><i class="bi bi-check-lg"></i> Guardar receta</button>
+        <a href="<?= BASE_URL ?>/recetas/index" class="btn btn-light"><?= et('Cancelar') ?></a>
+        <button class="btn btn-primary"><i class="bi bi-check-lg"></i> <?= et('Guardar receta') ?></button>
     </div>
 </form>
 

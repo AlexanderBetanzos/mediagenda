@@ -209,4 +209,35 @@ return [
     'Agrega un correo al paciente para habilitar el portal.'=>'Add an email to the patient to enable the portal.',
     'Nueva contraseña'=>'New password','Contraseña (mín. 6)'=>'Password (min. 6)',
     'Correo:'=>'Email:','Abrir portal'=>'Open portal','Sin consultas registradas.'=>'No visits recorded.',
+
+    // Recetas
+    'Buscar por paciente o diagnóstico…'=>'Search by patient or diagnosis…','No hay recetas.'=>'No prescriptions.',
+    'Medicamentos'=>'Medications','Ver/Imprimir'=>'View/Print','Indicaciones'=>'Instructions',
+    'Receta médica'=>'Medical prescription','Agregar medicamento'=>'Add medication','Quitar'=>'Remove',
+    'Selecciona un paciente.'=>'Select a patient.','Agrega al menos un medicamento.'=>'Add at least one medication.',
+    'Imprimir / Guardar PDF'=>'Print / Save PDF','Firma'=>'Signature',
+
+    // Facturación
+    'Buscar por folio o paciente…'=>'Search by reference or patient…','No hay facturas.'=>'No invoices.',
+    'Conceptos'=>'Items','Agregar concepto'=>'Add item','Crear factura'=>'Create invoice',
+    'Marcar como'=>'Mark as','Cobrar'=>'Charge','Comprobante'=>'Receipt',
+
+    // Inventario
+    'Buscar por nombre, código o categoría…'=>'Search by name, code or category…','Sin productos. Crea el primero.'=>'No products. Create the first one.',
+    'Código / SKU'=>'Code / SKU','Precio de venta'=>'Sale price','Entrada de inventario'=>'Stock in',
+    'Salida de inventario'=>'Stock out','Costo unitario'=>'Unit cost','Motivo / nota'=>'Reason / note',
+    'Nuevo producto'=>'New product','Editar producto'=>'Edit product','Registrar'=>'Register',
+
+    // CRM
+    'No tienes seguimientos pendientes. 🎉'=>'You have no pending follow-ups. 🎉',
+    'Ninguno este mes.'=>'None this month.','en el segmento'=>'in segment','con teléfono'=>'with phone',
+    'sin teléfono'=>'without phone','Mensaje'=>'Message','Generar lista'=>'Generate list',
+
+    // Configuración / Usuarios / Reportes
+    'Nombre del consultorio'=>'Clinic name','Lema / descripción'=>'Tagline / description',
+    'Color de acento'=>'Accent color','Tema por defecto'=>'Default theme','Razón social'=>'Legal name',
+    'RFC / Id. fiscal'=>'Tax ID','Correo de contacto'=>'Contact email','Logo'=>'Logo',
+    'Guardar configuración'=>'Save settings','Personal'=>'Staff','Rol'=>'Role','Especialidad'=>'Specialty',
+    'No hay usuarios.'=>'No users.','Activar'=>'Enable','Reportes'=>'Reports',
+    'Indicaciones generales'=>'General instructions','Guardar receta'=>'Save prescription',
 ];
