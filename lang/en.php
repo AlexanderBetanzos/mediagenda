@@ -373,4 +373,5 @@ return [
     'Aún no hay mediciones de peso o talla en las consultas.'=>'No weight or height measurements in visits yet.',
     'Peso para la edad'=>'Weight for age','Talla para la edad'=>'Height for age','IMC para la edad'=>'BMI for age',
     'Edad (años)'=>'Age (years)','Referencia'=>'Reference','Talla'=>'Height',
+    'Superior'=>'Upper','Inferior'=>'Lower','Derecha'=>'Right','Izquierda'=>'Left',
 ];

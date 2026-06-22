@@ -52,15 +52,16 @@ $row = db()->prepare('SELECT datos FROM odontogramas WHERE paciente_id = ? AND c
 $row->execute([$pid, tenant_id()]);
 $actual = ($r = $row->fetchColumn()) ? (json_decode($r, true) ?: []) : [];
 
-/** Pinta una fila de dientes. */
-function fila_dientes(array $dientes, array $actual, array $estados): string
+/** Grupo de dientes (un cuadrante). $arco = 'sup' | 'inf' para la forma. */
+function cuadrante(array $dientes, array $actual, array $estados, string $arco): string
 {
-    $h = '<div class="d-flex justify-content-center flex-wrap gap-1 mb-1">';
+    $h = '<div class="cuadrante">';
     foreach ($dientes as $d) {
         $est = $actual[$d] ?? 'sano';
         [$lbl, $bg, $fg] = $estados[$est];
-        $h .= '<button type="button" class="diente btn btn-sm border" data-diente="' . $d . '" data-estado="' . e($est) . '"'
-            . ' style="width:40px;background:' . $bg . ';color:' . $fg . '" title="' . $d . ' · ' . e($lbl) . '">' . $d . '</button>';
+        $h .= '<button type="button" class="diente diente-' . $arco . ' border" data-diente="' . $d . '" data-estado="' . e($est) . '"'
+            . ' style="background:' . $bg . ';color:' . $fg . '" title="' . $d . ' · ' . e($lbl) . '">'
+            . '<span class="num">' . $d . '</span></button>';
     }
     return $h . '</div>';
 }
@@ -94,9 +95,24 @@ include __DIR__ . '/../includes/header.php';
 
     <!-- Arcadas -->
     <div class="card mb-3"><div class="card-body">
-        <?= fila_dientes($arribaDer, $actual, $estados) . fila_dientes($arribaIzq, $actual, $estados) ?>
-        <hr class="my-2">
-        <?= fila_dientes($abajoDer, $actual, $estados) . fila_dientes($abajoIzq, $actual, $estados) ?>
+        <div class="odo-wrap mx-auto">
+            <div class="d-flex justify-content-between text-muted small px-1 mb-1">
+                <span><i class="bi bi-arrow-left"></i> <?= et('Derecha') ?></span>
+                <span class="fw-semibold"><?= et('Superior') ?></span>
+                <span><?= et('Izquierda') ?> <i class="bi bi-arrow-right"></i></span>
+            </div>
+            <div class="arcada">
+                <?= cuadrante($arribaDer, $actual, $estados, 'sup') ?>
+                <div class="midline"></div>
+                <?= cuadrante($arribaIzq, $actual, $estados, 'sup') ?>
+            </div>
+            <div class="arcada mt-2">
+                <?= cuadrante($abajoDer, $actual, $estados, 'inf') ?>
+                <div class="midline"></div>
+                <?= cuadrante($abajoIzq, $actual, $estados, 'inf') ?>
+            </div>
+            <div class="text-center text-muted small fw-semibold mt-1"><?= et('Inferior') ?></div>
+        </div>
         <div class="text-end mt-3">
             <a href="<?= BASE_URL ?>/pacientes/ver?id=<?= $pid ?>" class="btn btn-light"><?= et('Cancelar') ?></a>
             <button class="btn btn-primary"><i class="bi bi-check-lg"></i> <?= et('Guardar') ?></button>
@@ -132,6 +148,19 @@ include __DIR__ . '/../includes/header.php';
     });
 })();
 </script>
-<style>.paleta-btn.active{outline:3px solid var(--brand,#0b6fb8);outline-offset:1px}.diente{font-weight:600}</style>
+<style>
+.odo-wrap{max-width:640px}
+.arcada{display:flex;justify-content:center;align-items:center}
+.cuadrante{display:flex;gap:5px}
+.midline{width:2px;align-self:stretch;background:#cbd5e1;margin:0 12px;border-radius:2px}
+.diente{width:38px;height:46px;display:flex;align-items:center;justify-content:center;
+        font-weight:700;font-size:.8rem;padding:0;cursor:pointer;background:#fff;
+        box-shadow:0 1px 2px rgba(15,39,71,.08);transition:transform .06s,box-shadow .06s}
+.diente:hover{transform:translateY(-2px);box-shadow:0 4px 10px rgba(15,39,71,.18)}
+.diente-sup{border-radius:9px 9px 15px 15px}
+.diente-inf{border-radius:15px 15px 9px 9px}
+.paleta-btn{font-weight:600;border-radius:8px}
+.paleta-btn.active{outline:3px solid var(--brand,#0b6fb8);outline-offset:2px;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+</style>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>
