@@ -247,5 +247,11 @@ return [
     'Efectivo, tarjeta…'=>'Cash, card…','Consulta médica'=>'Medical visit',
     'Agrega al menos un concepto.'=>'Add at least one item.','Ver/Imprimir'=>'View/Print',
     'Comprobante de pago'=>'Payment receipt','Cliente:'=>'Customer:','Método de pago:'=>'Payment method:',
-    'Factura'=>'Invoice',
+    'Factura'=>'Invoice','mín.'=>'min.','Categoría'=>'Category','Próx. caducidad'=>'Next expiry',
+    'Producto'=>'Product','Lote'=>'Batch','Caducidad'=>'Expiry','Costo unitario'=>'Unit cost',
+    'Proveedor'=>'Supplier','Motivo / nota'=>'Reason / note','Registrar'=>'Register','Unidad'=>'Unit',
+    'Stock mínimo'=>'Minimum stock','Código / SKU'=>'Code / SKU','Precio de venta'=>'Sale price',
+    'Cantidad'=>'Quantity','Entrada de inventario'=>'Stock in','Salida de inventario'=>'Stock out',
+    'Selecciona un producto válido.'=>'Select a valid product.','La cantidad debe ser mayor a cero.'=>'Quantity must be greater than zero.',
+    'Uso en consulta, venta, merma…'=>'Use in visit, sale, loss…','Compra, donación…'=>'Purchase, donation…',
 ];

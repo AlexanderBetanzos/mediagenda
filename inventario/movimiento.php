@@ -25,8 +25,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $cantidad = (int) ($_POST['cantidad'] ?? 0);
     $motivo   = trim($_POST['motivo'] ?? '') ?: null;
 
-    if (!$pid || !pertenece_al_tenant('productos', $pid)) $errores[] = 'Selecciona un producto válido.';
-    if ($cantidad <= 0) $errores[] = 'La cantidad debe ser mayor a cero.';
+    if (!$pid || !pertenece_al_tenant('productos', $pid)) $errores[] = t('Selecciona un producto válido.');
+    if ($cantidad <= 0) $errores[] = t('La cantidad debe ser mayor a cero.');
 
     if (!$errores && $tipo === 'entrada') {
         $lote = trim($_POST['lote'] ?? '') ?: null;
@@ -94,17 +94,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$titulo = $tipo === 'salida' ? 'Salida de inventario' : 'Entrada de inventario';
+$titulo = $tipo === 'salida' ? t('Salida de inventario') : t('Entrada de inventario');
 $activo = 'inventario';
 include __DIR__ . '/../includes/header.php';
 ?>
 <nav aria-label="breadcrumb"><ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/inventario/index">Inventario</a></li>
-    <li class="breadcrumb-item active"><?= $tipo === 'salida' ? 'Salida' : 'Entrada' ?></li>
+    <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/inventario/index"><?= et('Inventario') ?></a></li>
+    <li class="breadcrumb-item active"><?= $tipo === 'salida' ? et('Salida') : et('Entrada') ?></li>
 </ol></nav>
 <h1 class="h3 mb-3">
-    <?php if ($tipo === 'salida'): ?><i class="bi bi-box-arrow-up text-secondary"></i> Salida de inventario
-    <?php else: ?><i class="bi bi-box-arrow-in-down text-success"></i> Entrada de inventario<?php endif; ?>
+    <?php if ($tipo === 'salida'): ?><i class="bi bi-box-arrow-up text-secondary"></i> <?= et('Salida de inventario') ?>
+    <?php else: ?><i class="bi bi-box-arrow-in-down text-success"></i> <?= et('Entrada de inventario') ?><?php endif; ?>
 </h1>
 
 <?php if ($errores): ?><div class="alert alert-danger"><ul class="mb-0"><?php foreach ($errores as $e) echo '<li>'.e($e).'</li>'; ?></ul></div><?php endif; ?>
@@ -114,28 +114,28 @@ include __DIR__ . '/../includes/header.php';
         <?= csrf_field() ?>
         <input type="hidden" name="tipo" value="<?= $tipo ?>">
         <div class="col-md-8">
-            <label class="form-label">Producto *</label>
+            <label class="form-label"><?= et('Producto') ?> *</label>
             <select name="producto_id" class="form-select" required>
-                <option value="">— Selecciona —</option>
+                <option value=""><?= et('— Selecciona —') ?></option>
                 <?php foreach ($productos as $pr): ?>
                     <option value="<?= $pr['id'] ?>" <?= $preProducto === (int) $pr['id'] ? 'selected' : '' ?>><?= e($pr['nombre']) ?></option>
                 <?php endforeach; ?>
             </select>
         </div>
-        <div class="col-md-4"><label class="form-label">Cantidad *</label><input type="number" name="cantidad" class="form-control" min="1" required value="<?= e($_POST['cantidad'] ?? '') ?>"></div>
+        <div class="col-md-4"><label class="form-label"><?= et('Cantidad') ?> *</label><input type="number" name="cantidad" class="form-control" min="1" required value="<?= e($_POST['cantidad'] ?? '') ?>"></div>
 
         <?php if ($tipo === 'entrada'): ?>
-        <div class="col-md-5"><label class="form-label">Lote</label><input type="text" name="lote" class="form-control" value="<?= e($_POST['lote'] ?? '') ?>"></div>
-        <div class="col-md-3"><label class="form-label">Caducidad</label><input type="date" name="caducidad" class="form-control" value="<?= e($_POST['caducidad'] ?? '') ?>"></div>
-        <div class="col-md-4"><label class="form-label">Costo unitario</label><input type="number" step="0.01" min="0" name="costo" class="form-control" value="<?= e($_POST['costo'] ?? '') ?>"></div>
-        <div class="col-md-8"><label class="form-label">Proveedor</label><input type="text" name="proveedor" class="form-control" value="<?= e($_POST['proveedor'] ?? '') ?>"></div>
+        <div class="col-md-5"><label class="form-label"><?= et('Lote') ?></label><input type="text" name="lote" class="form-control" value="<?= e($_POST['lote'] ?? '') ?>"></div>
+        <div class="col-md-3"><label class="form-label"><?= et('Caducidad') ?></label><input type="date" name="caducidad" class="form-control" value="<?= e($_POST['caducidad'] ?? '') ?>"></div>
+        <div class="col-md-4"><label class="form-label"><?= et('Costo unitario') ?></label><input type="number" step="0.01" min="0" name="costo" class="form-control" value="<?= e($_POST['costo'] ?? '') ?>"></div>
+        <div class="col-md-8"><label class="form-label"><?= et('Proveedor') ?></label><input type="text" name="proveedor" class="form-control" value="<?= e($_POST['proveedor'] ?? '') ?>"></div>
         <?php endif; ?>
 
-        <div class="col-12"><label class="form-label">Motivo / nota</label><input type="text" name="motivo" class="form-control" maxlength="160" value="<?= e($_POST['motivo'] ?? '') ?>" placeholder="<?= $tipo === 'salida' ? 'Uso en consulta, venta, merma…' : 'Compra, donación…' ?>"></div>
+        <div class="col-12"><label class="form-label"><?= et('Motivo / nota') ?></label><input type="text" name="motivo" class="form-control" maxlength="160" value="<?= e($_POST['motivo'] ?? '') ?>" placeholder="<?= $tipo === 'salida' ? et('Uso en consulta, venta, merma…') : et('Compra, donación…') ?>"></div>
     </div>
     <div class="card-footer bg-white text-end">
-        <a href="<?= BASE_URL ?>/inventario/index" class="btn btn-light">Cancelar</a>
-        <button class="btn btn-<?= $tipo === 'salida' ? 'secondary' : 'success' ?>"><i class="bi bi-check-lg"></i> Registrar <?= $tipo ?></button>
+        <a href="<?= BASE_URL ?>/inventario/index" class="btn btn-light"><?= et('Cancelar') ?></a>
+        <button class="btn btn-<?= $tipo === 'salida' ? 'secondary' : 'success' ?>"><i class="bi bi-check-lg"></i> <?= et('Registrar') ?> <?= $tipo === 'salida' ? et('Salida') : et('Entrada') ?></button>
     </div>
 </form>
 
