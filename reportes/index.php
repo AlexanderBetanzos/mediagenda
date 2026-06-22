@@ -75,20 +75,20 @@ $topMedicos = $pdo->query(
      GROUP BY ci.medico_id ORDER BY c DESC LIMIT 5"
 )->fetchAll();
 
-$titulo = 'Reportes';
+$titulo = t('Reportes');
 $activo = 'reportes';
 include __DIR__ . '/../includes/header.php';
 ?>
-<h1 class="h3 mb-4"><i class="bi bi-bar-chart text-info"></i> Reportes</h1>
+<h1 class="h3 mb-4"><i class="bi bi-bar-chart text-info"></i> <?= et('Reportes') ?></h1>
 
 <div class="row g-3 mb-4">
     <?php
     $kpis = [
         ['Ingresos del mes', fmt_money($ingMes), 'bi-cash-coin', '#22c55e',
-         $deltaIng === null ? '' : ($deltaIng >= 0 ? "+$deltaIng% vs mes anterior" : "$deltaIng% vs mes anterior"), $deltaIng !== null && $deltaIng < 0],
+         $deltaIng === null ? '' : (($deltaIng >= 0 ? "+$deltaIng% " : "$deltaIng% ") . t('vs mes anterior')), $deltaIng !== null && $deltaIng < 0],
         ['Citas este mes', number_format($citasMesAct), 'bi-calendar-check', '#0b6fb8', '', false],
         ['Pacientes nuevos (mes)', number_format($nuevosMes), 'bi-person-plus', '#6366f1', '', false],
-        ['Inasistencia (90 días)', $noShow . '%', 'bi-person-x', '#ef4444', 'No-show', $noShow > 15],
+        ['Inasistencia (90 días)', $noShow . '%', 'bi-person-x', '#ef4444', t('No-show'), $noShow > 15],
     ];
     foreach ($kpis as [$lbl, $val, $ic, $col, $sub, $malo]): ?>
     <div class="col-6 col-xl-3">
@@ -96,7 +96,7 @@ include __DIR__ . '/../includes/header.php';
             <div class="stat-icon" style="background:<?= $col ?>1f;color:<?= $col ?>"><i class="bi <?= $ic ?>"></i></div>
             <div>
                 <div class="stat-num" style="font-size:1.5rem"><?= e($val) ?></div>
-                <div class="stat-label"><?= e($lbl) ?></div>
+                <div class="stat-label"><?= et($lbl) ?></div>
                 <?php if ($sub): ?><div class="small <?= $malo ? 'text-danger' : 'text-muted' ?>"><?= e($sub) ?></div><?php endif; ?>
             </div>
         </div></div>
@@ -107,13 +107,13 @@ include __DIR__ . '/../includes/header.php';
 <div class="row g-3 mb-3">
     <div class="col-lg-8">
         <div class="card h-100"><div class="card-body">
-            <h2 class="h6 mb-3">Ingresos por mes (facturas pagadas)</h2>
+            <h2 class="h6 mb-3"><?= et('Ingresos por mes (facturas pagadas)') ?></h2>
             <canvas id="chartIngresos" height="100"></canvas>
         </div></div>
     </div>
     <div class="col-lg-4">
         <div class="card h-100"><div class="card-body">
-            <h2 class="h6 mb-3">Citas por estado</h2>
+            <h2 class="h6 mb-3"><?= et('Citas por estado') ?></h2>
             <canvas id="chartEstado"></canvas>
         </div></div>
     </div>
@@ -122,22 +122,22 @@ include __DIR__ . '/../includes/header.php';
 <div class="row g-3">
     <div class="col-lg-6">
         <div class="card h-100"><div class="card-body">
-            <h2 class="h6 mb-3">Citas por mes</h2>
+            <h2 class="h6 mb-3"><?= et('Citas por mes') ?></h2>
             <canvas id="chartCitas" height="120"></canvas>
         </div></div>
     </div>
     <div class="col-lg-3">
         <div class="card h-100"><div class="card-body">
-            <h2 class="h6 mb-3">Pacientes por tipo</h2>
+            <h2 class="h6 mb-3"><?= et('Pacientes por tipo') ?></h2>
             <canvas id="chartTipo"></canvas>
         </div></div>
     </div>
     <div class="col-lg-3">
         <div class="card h-100">
-            <div class="card-header fw-semibold">Médicos con más citas</div>
+            <div class="card-header fw-semibold"><?= et('Médicos con más citas') ?></div>
             <ul class="list-group list-group-flush">
                 <?php if (!$topMedicos): ?>
-                    <li class="list-group-item text-muted">Sin datos.</li>
+                    <li class="list-group-item text-muted"><?= et('Sin datos.') ?></li>
                 <?php else: foreach ($topMedicos as $m): ?>
                     <li class="list-group-item d-flex justify-content-between">
                         <span><?= e($m['nombre']) ?></span><span class="badge bg-info"><?= $m['c'] ?></span>
@@ -151,13 +151,13 @@ include __DIR__ . '/../includes/header.php';
 <div class="row g-3 mt-1">
     <div class="col-lg-7">
         <div class="card h-100"><div class="card-body">
-            <h2 class="h6 mb-3">Horas pico (citas por hora)</h2>
+            <h2 class="h6 mb-3"><?= et('Horas pico (citas por hora)') ?></h2>
             <canvas id="chartHoras" height="110"></canvas>
         </div></div>
     </div>
     <div class="col-lg-5">
         <div class="card h-100"><div class="card-body">
-            <h2 class="h6 mb-3">Pacientes nuevos por mes</h2>
+            <h2 class="h6 mb-3"><?= et('Pacientes nuevos por mes') ?></h2>
             <canvas id="chartNuevos" height="110"></canvas>
         </div></div>
     </div>
@@ -178,7 +178,7 @@ new Chart(document.getElementById('chartIngresos'), {
 
 new Chart(document.getElementById('chartEstado'), {
     type: 'doughnut',
-    data: { labels: ['Programada','Confirmada','Atendida','Cancelada','No asistió'],
+    data: { labels: <?= json_encode([t('Programada'),t('Confirmada'),t('Atendida'),t('Cancelada'),t('No asistió')]) ?>,
         datasets: [{ data: <?= json_encode(array_values($porEstado)) ?>,
         backgroundColor: ['#94a6c4','#2bc4dd','#22c55e','#ef4444','#f59e0b'] }] },
     options: { plugins:{legend:{position:'bottom'}} }
@@ -194,7 +194,7 @@ new Chart(document.getElementById('chartCitas'), {
 
 new Chart(document.getElementById('chartTipo'), {
     type: 'doughnut',
-    data: { labels: ['Médico','Dental'], datasets: [{ data: <?= json_encode(array_values($porTipo)) ?>,
+    data: { labels: <?= json_encode([tipo_paciente_label('medico'), tipo_paciente_label('dental')]) ?>, datasets: [{ data: <?= json_encode(array_values($porTipo)) ?>,
         backgroundColor: ['#0b6fb8','#2bc4dd'] }] },
     options: { plugins:{legend:{position:'bottom'}} }
 });

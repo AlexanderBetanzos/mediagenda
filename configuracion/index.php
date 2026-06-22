@@ -57,54 +57,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     redirect('/configuracion/index');
 }
 
-$titulo = 'Configuración';
+$titulo = t('Configuración');
 $activo = 'configuracion';
 include __DIR__ . '/../includes/header.php';
 ?>
-<h1 class="h3 mb-1"><i class="bi bi-gear text-brand"></i> Configuración</h1>
-<p class="text-muted">Personaliza esta instalación para tu consultorio. Estos ajustes aplican a todo el sistema.</p>
+<h1 class="h3 mb-1"><i class="bi bi-gear text-brand"></i> <?= et('Configuración') ?></h1>
+<p class="text-muted"><?= et('Personaliza esta instalación para tu consultorio. Estos ajustes aplican a todo el sistema.') ?></p>
 
 <form method="post">
     <?= csrf_field() ?>
 
     <!-- Apariencia -->
     <div class="card mb-4">
-        <div class="card-header fw-semibold"><i class="bi bi-palette text-brand"></i> Apariencia</div>
+        <div class="card-header fw-semibold"><i class="bi bi-palette text-brand"></i> <?= et('Apariencia') ?></div>
         <div class="card-body row g-3">
             <div class="col-md-6">
-                <label class="form-label">Tema por defecto</label>
+                <label class="form-label"><?= et('Tema por defecto') ?></label>
                 <select name="tema_default" class="form-select">
                     <?php foreach ($temas as $k => $lbl): ?>
-                        <option value="<?= $k ?>" <?= cfg('tema_default', 'dark') === $k ? 'selected' : '' ?>><?= e($lbl) ?></option>
+                        <option value="<?= $k ?>" <?= cfg('tema_default', 'dark') === $k ? 'selected' : '' ?>><?= et($lbl) ?></option>
                     <?php endforeach; ?>
                 </select>
-                <div class="form-text">Cada usuario puede cambiarlo desde el menú de tema (<i class="bi bi-circle-half"></i>) en la barra superior.</div>
             </div>
             <div class="col-md-6">
-                <label class="form-label">Color de acento</label>
+                <label class="form-label"><?= et('Color de acento') ?></label>
                 <div class="input-group">
                     <input type="color" name="color_acento" class="form-control form-control-color" value="<?= e(color_acento()) ?>" title="Color de marca">
                     <input type="text" class="form-control" value="<?= e(color_acento()) ?>" readonly>
                 </div>
-                <div class="form-text">Se usa en botones y acentos de la interfaz.</div>
+                <div class="form-text"><?= et('Se usa en botones y acentos de la interfaz.') ?></div>
             </div>
         </div>
     </div>
 
     <!-- Marca / white-label -->
     <div class="card mb-4">
-        <div class="card-header fw-semibold"><i class="bi bi-stars text-brand"></i> Marca</div>
+        <div class="card-header fw-semibold"><i class="bi bi-stars text-brand"></i> <?= et('Marca') ?></div>
         <div class="card-body row g-3">
             <div class="col-md-6">
-                <label class="form-label">Nombre del consultorio</label>
+                <label class="form-label"><?= et('Nombre del consultorio') ?></label>
                 <input type="text" name="marca_nombre" class="form-control" value="<?= e(cfg('marca_nombre', 'MediAgenda')) ?>" maxlength="60">
             </div>
             <div class="col-md-6">
-                <label class="form-label">Lema / descripción</label>
+                <label class="form-label"><?= et('Lema / descripción') ?></label>
                 <input type="text" name="marca_lema" class="form-control" value="<?= e(cfg('marca_lema')) ?>" maxlength="120">
             </div>
             <div class="col-12">
-                <label class="form-label">URL del logo <span class="text-muted">(opcional)</span></label>
+                <label class="form-label"><?= et('URL del logo') ?> <span class="text-muted"><?= et('(opcional)') ?></span></label>
                 <input type="text" name="marca_logo" class="form-control" value="<?= e(cfg('marca_logo')) ?>" placeholder="https://… o /consultorios/assets/img/logo.png">
                 <div class="form-text">Si lo defines, reemplaza el ícono junto al nombre en la barra superior.</div>
             </div>
@@ -113,38 +112,38 @@ include __DIR__ . '/../includes/header.php';
 
     <!-- Datos del consultorio -->
     <div class="card mb-4">
-        <div class="card-header fw-semibold"><i class="bi bi-hospital text-brand"></i> Datos del consultorio</div>
+        <div class="card-header fw-semibold"><i class="bi bi-hospital text-brand"></i> <?= et('Datos del consultorio') ?></div>
         <div class="card-body row g-3">
             <div class="col-md-8">
-                <label class="form-label">Razón social</label>
+                <label class="form-label"><?= et('Razón social') ?></label>
                 <input type="text" name="razon_social" class="form-control" value="<?= e(cfg('razon_social')) ?>">
             </div>
             <div class="col-md-4">
-                <label class="form-label">RFC / Id. fiscal</label>
+                <label class="form-label"><?= et('RFC / Id. fiscal') ?></label>
                 <input type="text" name="rfc" class="form-control" value="<?= e(cfg('rfc')) ?>">
             </div>
             <div class="col-12">
-                <label class="form-label">Dirección</label>
+                <label class="form-label"><?= et('Dirección') ?></label>
                 <input type="text" name="direccion" class="form-control" value="<?= e(cfg('direccion')) ?>">
             </div>
             <div class="col-md-6">
-                <label class="form-label">Teléfono</label>
+                <label class="form-label"><?= et('Teléfono') ?></label>
                 <input type="text" name="telefono" class="form-control" value="<?= e(cfg('telefono')) ?>">
             </div>
             <div class="col-md-6">
-                <label class="form-label">Correo de contacto</label>
+                <label class="form-label"><?= et('Correo de contacto') ?></label>
                 <input type="email" name="email" class="form-control" value="<?= e(cfg('email')) ?>">
             </div>
-            <div class="col-12"><div class="form-text">Estos datos aparecen en recetas y facturas impresas.</div></div>
+            <div class="col-12"><div class="form-text"><?= et('Estos datos aparecen en recetas y facturas impresas.') ?></div></div>
         </div>
     </div>
 
     <!-- Regional -->
     <div class="card mb-4">
-        <div class="card-header fw-semibold"><i class="bi bi-globe-americas text-brand"></i> Regional</div>
+        <div class="card-header fw-semibold"><i class="bi bi-globe-americas text-brand"></i> <?= et('Regional') ?></div>
         <div class="card-body row g-3">
             <div class="col-md-4">
-                <label class="form-label">Moneda</label>
+                <label class="form-label"><?= et('Moneda') ?></label>
                 <select name="moneda" class="form-select">
                     <?php foreach ($monedas as $m): ?>
                         <option value="<?= $m ?>" <?= moneda() === $m ? 'selected' : '' ?>><?= $m ?></option>
@@ -152,7 +151,7 @@ include __DIR__ . '/../includes/header.php';
                 </select>
             </div>
             <div class="col-md-4">
-                <label class="form-label">Zona horaria</label>
+                <label class="form-label"><?= et('Zona horaria') ?></label>
                 <select name="zona_horaria" class="form-select">
                     <?php foreach ($zonas as $z): ?>
                         <option value="<?= $z ?>" <?= cfg('zona_horaria', 'America/Mexico_City') === $z ? 'selected' : '' ?>><?= $z ?></option>
@@ -160,7 +159,7 @@ include __DIR__ . '/../includes/header.php';
                 </select>
             </div>
             <div class="col-md-4">
-                <label class="form-label">Formato de fecha</label>
+                <label class="form-label"><?= et('Formato de fecha') ?></label>
                 <select name="formato_fecha" class="form-select">
                     <?php foreach ($formatos as $k => $lbl): ?>
                         <option value="<?= e($k) ?>" <?= cfg('formato_fecha', 'd/m/Y') === $k ? 'selected' : '' ?>><?= e($lbl) ?></option>
@@ -168,53 +167,53 @@ include __DIR__ . '/../includes/header.php';
                 </select>
             </div>
             <div class="col-md-4">
-                <label class="form-label">Idioma por defecto</label>
+                <label class="form-label"><?= et('Idioma por defecto') ?></label>
                 <select name="idioma_default" class="form-select">
                     <?php foreach (['es'=>'Español','en'=>'English'] as $k => $lbl): ?>
                         <option value="<?= $k ?>" <?= cfg('idioma_default', 'es') === $k ? 'selected' : '' ?>><?= e($lbl) ?></option>
                     <?php endforeach; ?>
                 </select>
-                <div class="form-text">Cada usuario puede cambiarlo desde el menú de idioma.</div>
+                <div class="form-text"><?= et('Cada usuario puede cambiarlo desde el menú de idioma.') ?></div>
             </div>
         </div>
     </div>
 
     <!-- Recordatorios automáticos (correo) -->
     <div class="card mb-4">
-        <div class="card-header fw-semibold"><i class="bi bi-bell text-brand"></i> Recordatorios automáticos</div>
+        <div class="card-header fw-semibold"><i class="bi bi-bell text-brand"></i> <?= et('Recordatorios automáticos') ?></div>
         <div class="card-body">
             <div class="form-check form-switch">
                 <input class="form-check-input" type="checkbox" role="switch" id="recordatorio_auto" name="recordatorio_auto" value="1" <?= cfg('recordatorio_auto', '1') === '1' ? 'checked' : '' ?>>
-                <label class="form-check-label" for="recordatorio_auto">Enviar recordatorio por <strong>correo</strong> a los pacientes con cita al día siguiente</label>
+                <label class="form-check-label" for="recordatorio_auto"><?= et('Enviar recordatorio por') ?> <strong><?= et('correo') ?></strong> <?= et('a los pacientes con cita al día siguiente') ?></label>
             </div>
-            <div class="form-text">Se envía una vez al día (requiere el cron <code>cron/recordatorios.php</code> activo en el servidor).</div>
+            <div class="form-text"><?= et('Se envía una vez al día') ?> (<?= et('requiere el cron') ?> <code>cron/recordatorios.php</code>).</div>
         </div>
     </div>
 
     <?php if (modulo_activo('whatsapp')): ?>
     <!-- Recordatorios / WhatsApp -->
     <div class="card mb-4">
-        <div class="card-header fw-semibold"><i class="bi bi-whatsapp text-brand"></i> Recordatorios por WhatsApp</div>
+        <div class="card-header fw-semibold"><i class="bi bi-whatsapp text-brand"></i> <?= et('Recordatorios por WhatsApp') ?></div>
         <div class="card-body row g-3">
             <div class="col-md-4">
-                <label class="form-label">Lada del país</label>
+                <label class="form-label"><?= et('Lada del país') ?></label>
                 <div class="input-group">
                     <span class="input-group-text">+</span>
                     <input type="text" name="pais_lada" class="form-control" value="<?= e(cfg('pais_lada', '52')) ?>" maxlength="4" placeholder="52">
                 </div>
-                <div class="form-text">Se antepone a teléfonos locales (México = 52).</div>
+                <div class="form-text"><?= et('Se antepone a teléfonos locales (México = 52).') ?></div>
             </div>
             <div class="col-12">
-                <label class="form-label">Plantilla del mensaje</label>
+                <label class="form-label"><?= et('Plantilla del mensaje') ?></label>
                 <textarea name="recordatorio_plantilla" class="form-control" rows="3" maxlength="500"><?= e(cfg('recordatorio_plantilla', 'Hola {paciente}, le recordamos su cita en {consultorio} el {fecha} a las {hora}. Por favor confirme su asistencia. ¡Gracias!')) ?></textarea>
-                <div class="form-text">Marcadores disponibles: <code>{paciente}</code> <code>{consultorio}</code> <code>{fecha}</code> <code>{hora}</code>.</div>
+                <div class="form-text"><?= et('Marcadores:') ?> <code>{paciente}</code> <code>{consultorio}</code> <code>{fecha}</code> <code>{hora}</code>.</div>
             </div>
         </div>
     </div>
     <?php endif; ?>
 
     <div class="text-end mb-4">
-        <button class="btn btn-primary"><i class="bi bi-check-lg"></i> Guardar configuración</button>
+        <button class="btn btn-primary"><i class="bi bi-check-lg"></i> <?= et('Guardar configuración') ?></button>
     </div>
 </form>
 

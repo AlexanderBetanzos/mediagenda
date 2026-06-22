@@ -40,17 +40,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$titulo = 'Nuevo usuario';
+$titulo = t('Nuevo usuario');
 $activo = 'usuarios';
 include __DIR__ . '/../includes/header.php';
 ?>
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/usuarios/index">Personal</a></li>
-        <li class="breadcrumb-item active">Nuevo</li>
+        <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/usuarios/index"><?= et('Personal') ?></a></li>
+        <li class="breadcrumb-item active"><?= et('Nuevo') ?></li>
     </ol>
 </nav>
-<h1 class="h3 mb-3">Nuevo usuario</h1>
+<h1 class="h3 mb-3"><?= et('Nuevo usuario') ?></h1>
 
 <?php if ($errores): ?>
     <div class="alert alert-danger"><ul class="mb-0"><?php foreach ($errores as $e) echo '<li>'.e($e).'</li>'; ?></ul></div>
@@ -60,24 +60,24 @@ include __DIR__ . '/../includes/header.php';
     <div class="card-body">
         <?= csrf_field() ?>
         <div class="row g-3">
-            <div class="col-md-6"><label class="form-label">Nombre *</label><input type="text" name="nombre" class="form-control" required value="<?= e($usr['nombre'] ?? '') ?>"></div>
-            <div class="col-md-6"><label class="form-label">Correo *</label><input type="email" name="email" class="form-control" required value="<?= e($usr['email'] ?? '') ?>"></div>
+            <div class="col-md-6"><label class="form-label"><?= et('Nombre') ?> *</label><input type="text" name="nombre" class="form-control" required value="<?= e($usr['nombre'] ?? '') ?>"></div>
+            <div class="col-md-6"><label class="form-label"><?= et('Correo') ?> *</label><input type="email" name="email" class="form-control" required value="<?= e($usr['email'] ?? '') ?>"></div>
             <div class="col-md-4">
-                <label class="form-label">Rol *</label>
+                <label class="form-label"><?= et('Rol') ?> *</label>
                 <select name="rol" class="form-select" required>
                     <?php $r = $usr['rol'] ?? ''; foreach (['admin','medico','recepcion'] as $rol): ?>
                         <option value="<?= $rol ?>" <?= $r===$rol?'selected':'' ?>><?= rol_label($rol) ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
-            <div class="col-md-4"><label class="form-label">Especialidad</label><input type="text" name="especialidad" class="form-control" value="<?= e($usr['especialidad'] ?? '') ?>" placeholder="Solo médicos/dentistas"></div>
-            <div class="col-md-4"><label class="form-label">Teléfono</label><input type="text" name="telefono" class="form-control" value="<?= e($usr['telefono'] ?? '') ?>"></div>
-            <div class="col-md-6"><label class="form-label">Contraseña *</label><input type="password" name="password" class="form-control" required minlength="6"></div>
+            <div class="col-md-4"><label class="form-label"><?= et('Especialidad') ?></label><input type="text" name="especialidad" class="form-control" value="<?= e($usr['especialidad'] ?? '') ?>" placeholder="<?= et('Solo médicos/dentistas') ?>"></div>
+            <div class="col-md-4"><label class="form-label"><?= et('Teléfono') ?></label><input type="text" name="telefono" class="form-control" value="<?= e($usr['telefono'] ?? '') ?>"></div>
+            <div class="col-md-6"><label class="form-label"><?= et('Contraseña') ?> *</label><input type="password" name="password" class="form-control" required minlength="6"></div>
         </div>
     </div>
     <div class="card-footer bg-white text-end">
-        <a href="<?= BASE_URL ?>/usuarios/index" class="btn btn-light">Cancelar</a>
-        <button class="btn btn-primary"><i class="bi bi-check-lg"></i> Crear usuario</button>
+        <a href="<?= BASE_URL ?>/usuarios/index" class="btn btn-light"><?= et('Cancelar') ?></a>
+        <button class="btn btn-primary"><i class="bi bi-check-lg"></i> <?= et('Crear usuario') ?></button>
     </div>
 </form>
 
