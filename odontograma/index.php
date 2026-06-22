@@ -34,19 +34,27 @@ $dientesValidos = array_merge($arribaDer, $arribaIzq, $abajoDer, $abajoIzq);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
-    $datos = json_decode($_POST['datos'] ?? '[]', true);
-    $limpio = [];
-    if (is_array($datos)) {
-        foreach ($datos as $diente => $estado) {
-            if (in_array((int) $diente, $dientesValidos, true) && isset($estados[$estado]) && $estado !== 'sano') {
-                $limpio[(int) $diente] = $estado;
-            }
+    $in   = json_decode($_POST['datos'] ?? '{}', true);
+    $in   = is_array($in) ? $in : [];
+    $estIn = is_array($in['estados'] ?? null) ? $in['estados'] : [];
+    $notIn = is_array($in['notas'] ?? null) ? $in['notas'] : [];
+    $estLimpio = $notLimpio = [];
+    foreach ($estIn as $d => $est) {
+        if (in_array((int) $d, $dientesValidos, true) && isset($estados[$est]) && $est !== 'sano') {
+            $estLimpio[(int) $d] = $est;
         }
     }
+    foreach ($notIn as $d => $n) {
+        $n = trim((string) $n);
+        if (in_array((int) $d, $dientesValidos, true) && $n !== '') {
+            $notLimpio[(int) $d] = mb_substr($n, 0, 200);
+        }
+    }
+    $payload = json_encode(['estados' => $estLimpio, 'notas' => $notLimpio], JSON_UNESCAPED_UNICODE);
     db()->prepare(
         'INSERT INTO odontogramas (consultorio_id, paciente_id, datos, actualizado_por) VALUES (?,?,?,?)
          ON DUPLICATE KEY UPDATE datos = VALUES(datos), actualizado_por = VALUES(actualizado_por)'
-    )->execute([tenant_id(), $pid, json_encode($limpio, JSON_UNESCAPED_UNICODE), current_user()['id']]);
+    )->execute([tenant_id(), $pid, $payload, current_user()['id']]);
     auditar('odontograma', 'paciente', $pid);
     flash(t('Odontograma guardado.'));
     redirect('/odontograma/index?paciente_id=' . $pid);
@@ -54,17 +62,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $row = db()->prepare('SELECT datos FROM odontogramas WHERE paciente_id = ? AND consultorio_id = ?');
 $row->execute([$pid, tenant_id()]);
-$actual = ($r = $row->fetchColumn()) ? (json_decode($r, true) ?: []) : [];
+$raw = ($r = $row->fetchColumn()) ? (json_decode($r, true) ?: []) : [];
+// Compatibilidad: formato nuevo {estados,notas} o el viejo plano {diente:estado}.
+if (isset($raw['estados']) || isset($raw['notas'])) {
+    $estAct = $raw['estados'] ?? []; $notAct = $raw['notas'] ?? [];
+} else {
+    $estAct = $raw ?: []; $notAct = [];
+}
 
 /** Grupo de dientes (un cuadrante). $arco = 'sup' | 'inf' para la forma. */
-function cuadrante(array $dientes, array $actual, array $estados, string $arco): string
+function cuadrante(array $dientes, array $estAct, array $notAct, array $estados, string $arco): string
 {
     $h = '<div class="cuadrante">';
     foreach ($dientes as $d) {
-        $est = $actual[$d] ?? 'sano';
+        $est = $estAct[$d] ?? 'sano';
         [$lbl, $bg, $fg] = $estados[$est];
-        $h .= '<button type="button" class="diente diente-' . $arco . ' border" data-diente="' . $d . '" data-estado="' . e($est) . '"'
-            . ' style="background:' . $bg . ';color:' . $fg . '" title="' . $d . ' · ' . e($lbl) . '">'
+        $nota  = trim((string) ($notAct[$d] ?? ''));
+        $title = $d . ' · ' . $lbl . ($nota !== '' ? ' · ' . $nota : '');
+        $h .= '<button type="button" class="diente diente-' . $arco . ' border' . ($nota !== '' ? ' tiene-nota' : '') . '"'
+            . ' data-diente="' . $d . '" style="background:' . $bg . ';color:' . $fg . '" title="' . e($title) . '">'
             . '<span class="num">' . $d . '</span></button>';
     }
     return $h . '</div>';
@@ -79,7 +95,11 @@ include __DIR__ . '/../includes/header.php';
     <li class="breadcrumb-item active"><?= et('Odontograma') ?></li>
 </ol></nav>
 
-<h1 class="h3 mb-3"><i class="bi bi-emoji-smile text-brand"></i> <?= et('Odontograma') ?></h1>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0"><i class="bi bi-emoji-smile text-brand"></i> <?= et('Odontograma') ?></h1>
+    <button type="button" onclick="window.print()" class="btn btn-outline-secondary btn-sm no-print"><i class="bi bi-printer"></i> <?= et('Imprimir / PDF') ?></button>
+</div>
+<div class="d-none d-print-block mb-2"><strong><?= e($pac['nombre'].' '.$pac['apellidos']) ?></strong> · <?= et('Odontograma') ?> · <?= fmt_fecha(date('Y-m-d')) ?></div>
 
 <form method="post" id="odoForm">
     <?= csrf_field() ?>
@@ -87,15 +107,16 @@ include __DIR__ . '/../includes/header.php';
     <input type="hidden" name="datos" id="datosInput">
 
     <!-- Paleta -->
-    <div class="card mb-3"><div class="card-body">
+    <div class="card mb-3 no-print"><div class="card-body">
         <div class="small text-muted mb-2"><?= et('Elige un estado y haz clic en los dientes para marcarlos.') ?></div>
         <div class="d-flex flex-wrap gap-2" id="paleta">
             <?php foreach ($estados as $k => [$lbl, $bg, $fg]): ?>
             <button type="button" class="btn btn-sm border paleta-btn <?= $k === 'caries' ? 'active' : '' ?>" data-estado="<?= e($k) ?>"
                     style="background:<?= $bg ?>;color:<?= $fg ?>"><i class="bi <?= $iconos[$k] ?>"></i> <?= et($lbl) ?></button>
             <?php endforeach; ?>
+            <button type="button" class="btn btn-sm border paleta-btn" data-estado="__nota"><i class="bi bi-pencil-square"></i> <?= et('Nota') ?></button>
         </div>
-        <div class="form-text mt-2"><?= et('Con "Sano" seleccionado, al hacer clic quitas la marca de un diente.') ?></div>
+        <div class="form-text mt-2"><?= et('Con "Sano" quitas la marca; con "Nota" agregas una observación al diente.') ?></div>
     </div></div>
 
     <!-- Arcadas -->
@@ -107,14 +128,14 @@ include __DIR__ . '/../includes/header.php';
                 <span><?= et('Izquierda') ?> <i class="bi bi-arrow-right"></i></span>
             </div>
             <div class="arcada">
-                <?= cuadrante($arribaDer, $actual, $estados, 'sup') ?>
+                <?= cuadrante($arribaDer, $estAct, $notAct, $estados, 'sup') ?>
                 <div class="midline"></div>
-                <?= cuadrante($arribaIzq, $actual, $estados, 'sup') ?>
+                <?= cuadrante($arribaIzq, $estAct, $notAct, $estados, 'sup') ?>
             </div>
             <div class="arcada mt-2">
-                <?= cuadrante($abajoDer, $actual, $estados, 'inf') ?>
+                <?= cuadrante($abajoDer, $estAct, $notAct, $estados, 'inf') ?>
                 <div class="midline"></div>
-                <?= cuadrante($abajoIzq, $actual, $estados, 'inf') ?>
+                <?= cuadrante($abajoIzq, $estAct, $notAct, $estados, 'inf') ?>
             </div>
             <div class="text-center text-muted small fw-semibold mt-1"><?= et('Inferior') ?></div>
         </div>
@@ -126,7 +147,8 @@ include __DIR__ . '/../includes/header.php';
             </span>
             <?php endforeach; ?>
         </div>
-        <div class="d-flex justify-content-between align-items-center mt-3">
+        <div id="listaNotas" class="mt-3 small"></div>
+        <div class="d-flex justify-content-between align-items-center mt-3 no-print">
             <button type="button" class="btn btn-outline-danger btn-sm" id="limpiarTodo"><i class="bi bi-eraser"></i> <?= et('Limpiar todo') ?></button>
             <div>
                 <a href="<?= BASE_URL ?>/pacientes/ver?id=<?= $pid ?>" class="btn btn-light"><?= et('Cancelar') ?></a>
@@ -139,8 +161,13 @@ include __DIR__ . '/../includes/header.php';
 <script>
 (function () {
     var estados = <?= json_encode(array_map(fn($v) => ['bg'=>$v[1],'fg'=>$v[2]], $estados), JSON_UNESCAPED_UNICODE) ?>;
-    var activo = 'caries';
-    var datos = <?= json_encode((object) $actual, JSON_UNESCAPED_UNICODE) ?>;
+    var T_NOTA  = <?= json_encode(t('Nota para el diente')) ?>;
+    var T_TITULO= <?= json_encode(t('Notas por diente')) ?>;
+    var activo  = 'caries';
+    var datos   = <?= json_encode((object) $estAct, JSON_UNESCAPED_UNICODE) ?>;
+    var notas   = <?= json_encode((object) $notAct, JSON_UNESCAPED_UNICODE) ?>;
+
+    function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
     document.querySelectorAll('.paleta-btn').forEach(function (b) {
         b.addEventListener('click', function () {
@@ -160,9 +187,28 @@ include __DIR__ . '/../includes/header.php';
         });
     }
 
+    function rebuildNotas() {
+        var keys = Object.keys(notas).sort((a, b) => a - b);
+        var el = document.getElementById('listaNotas');
+        if (!keys.length) { el.innerHTML = ''; return; }
+        var h = '<div class="fw-semibold mb-1"><i class="bi bi-card-text"></i> ' + esc(T_TITULO) + '</div><ul class="mb-0">';
+        keys.forEach(d => { h += '<li><strong>' + d + ':</strong> ' + esc(notas[d]) + '</li>'; });
+        el.innerHTML = h + '</ul>';
+    }
+
     document.querySelectorAll('.diente').forEach(function (t) {
         t.addEventListener('click', function () {
             var d = t.dataset.diente;
+            if (activo === '__nota') {
+                var n = prompt(T_NOTA + ' ' + d + ':', notas[d] || '');
+                if (n === null) return;
+                n = n.trim();
+                if (n) { notas[d] = n; t.classList.add('tiene-nota'); }
+                else { delete notas[d]; t.classList.remove('tiene-nota'); }
+                t.title = d + (notas[d] ? ' · ' + notas[d] : '');
+                rebuildNotas();
+                return;
+            }
             if (activo === 'sano') { delete datos[d]; } else { datos[d] = activo; }
             t.style.background = estados[activo].bg;
             t.style.color = estados[activo].fg;
@@ -172,19 +218,21 @@ include __DIR__ . '/../includes/header.php';
 
     document.getElementById('limpiarTodo').addEventListener('click', function () {
         if (!confirm(<?= json_encode(t('¿Quitar todas las marcas del odontograma?')) ?>)) return;
-        Object.keys(datos).forEach(function (k) { delete datos[k]; });
+        Object.keys(datos).forEach(k => delete datos[k]);
+        Object.keys(notas).forEach(k => delete notas[k]);
         document.querySelectorAll('.diente').forEach(function (t) {
             t.style.background = estados['sano'].bg;
             t.style.color = estados['sano'].fg;
+            t.classList.remove('tiene-nota');
         });
-        updateResumen();
+        updateResumen(); rebuildNotas();
     });
 
     document.getElementById('odoForm').addEventListener('submit', function () {
-        document.getElementById('datosInput').value = JSON.stringify(datos);
+        document.getElementById('datosInput').value = JSON.stringify({ estados: datos, notas: notas });
     });
 
-    updateResumen();
+    updateResumen(); rebuildNotas();
 })();
 </script>
 <style>
@@ -200,6 +248,15 @@ include __DIR__ . '/../includes/header.php';
 .diente-inf{border-radius:15px 15px 9px 9px}
 .paleta-btn{font-weight:600;border-radius:8px}
 .paleta-btn.active{outline:3px solid var(--brand,#0b6fb8);outline-offset:2px;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+.tiene-nota{position:relative}
+.tiene-nota::after{content:'';position:absolute;top:3px;right:3px;width:8px;height:8px;border-radius:50%;background:#0b6fb8;border:1.5px solid #fff}
+@media print{
+  .app-navbar,.sidebar,.breadcrumb,.no-print,footer{display:none!important}
+  .card{border:none!important;box-shadow:none!important}
+  main{width:100%!important;max-width:100%!important;flex:0 0 100%!important}
+  .diente{box-shadow:none!important}
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+}
 </style>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>

@@ -376,4 +376,6 @@ return [
     'Superior'=>'Upper','Inferior'=>'Lower','Derecha'=>'Right','Izquierda'=>'Left',
     'Con "Sano" seleccionado, al hacer clic quitas la marca de un diente.'=>'With "Healthy" selected, clicking removes a tooth mark.',
     'Limpiar todo'=>'Clear all','¿Quitar todas las marcas del odontograma?'=>'Remove all marks from the dental chart?',
+    'Imprimir / PDF'=>'Print / PDF','Nota'=>'Note','Nota para el diente'=>'Note for tooth','Notas por diente'=>'Notes per tooth',
+    'Con "Sano" quitas la marca; con "Nota" agregas una observación al diente.'=>'With "Healthy" you remove the mark; with "Note" you add an observation to the tooth.',
 ];
