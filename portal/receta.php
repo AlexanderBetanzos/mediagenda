@@ -30,8 +30,8 @@ include __DIR__ . '/../includes/portal_header.php';
 @media print { .navbar, footer, .no-print { display: none !important; } body { background: #fff !important; } }
 </style>
 <div class="d-flex justify-content-between align-items-center mb-3 no-print">
-    <a href="<?= BASE_URL ?>/portal/recetas" class="btn btn-link px-0"><i class="bi bi-arrow-left"></i> Mis recetas</a>
-    <button onclick="window.print()" class="btn btn-primary"><i class="bi bi-printer"></i> Imprimir / Guardar PDF</button>
+    <a href="<?= BASE_URL ?>/portal/recetas" class="btn btn-link px-0"><i class="bi bi-arrow-left"></i> <?= et('Mis recetas') ?></a>
+    <button onclick="window.print()" class="btn btn-primary"><i class="bi bi-printer"></i> <?= et('Imprimir / Guardar PDF') ?></button>
 </div>
 
 <div class="card mx-auto" style="max-width:800px">
@@ -39,23 +39,23 @@ include __DIR__ . '/../includes/portal_header.php';
         <div class="d-flex justify-content-between border-bottom pb-3 mb-3">
             <div>
                 <h2 class="h4 mb-0 text-brand"><i class="bi bi-heart-pulse-fill"></i> <?= e(marca_nombre()) ?></h2>
-                <small class="text-muted">Receta médica</small>
+                <small class="text-muted"><?= et('Receta médica') ?></small>
             </div>
             <div class="text-end">
-                <div><strong>Folio:</strong> R-<?= str_pad((string) $id, 5, '0', STR_PAD_LEFT) ?></div>
-                <div><strong>Fecha:</strong> <?= fmt_fecha($r['fecha']) ?></div>
+                <div><strong><?= et('Folio') ?>:</strong> R-<?= str_pad((string) $id, 5, '0', STR_PAD_LEFT) ?></div>
+                <div><strong><?= et('Fecha') ?>:</strong> <?= fmt_fecha($r['fecha']) ?></div>
             </div>
         </div>
         <div class="row mb-3">
-            <div class="col-6"><strong>Paciente:</strong> <?= e($r['pac_nombre'] . ' ' . $r['pac_ape']) ?><br>
+            <div class="col-6"><strong><?= et('Paciente') ?>:</strong> <?= e($r['pac_nombre'] . ' ' . $r['pac_ape']) ?><br>
                 <small class="text-muted"><?= e(edad($r['fecha_nacimiento'])) ?></small></div>
             <div class="col-6 text-end"><strong><?= e($r['med_nombre']) ?></strong><br>
                 <small class="text-muted"><?= e($r['especialidad'] ?: 'Médico') ?></small></div>
         </div>
-        <?php if ($r['diagnostico']): ?><p><strong>Diagnóstico:</strong> <?= e($r['diagnostico']) ?></p><?php endif; ?>
-        <h3 class="h6 mt-4 text-brand"><i class="bi bi-capsule"></i> Medicamentos</h3>
+        <?php if ($r['diagnostico']): ?><p><strong><?= et('Diagnóstico') ?>:</strong> <?= e($r['diagnostico']) ?></p><?php endif; ?>
+        <h3 class="h6 mt-4 text-brand"><i class="bi bi-capsule"></i> <?= et('Medicamentos') ?></h3>
         <table class="table table-bordered">
-            <thead><tr><th>Medicamento</th><th>Dosis</th><th>Frecuencia</th><th>Duración</th></tr></thead>
+            <thead><tr><th><?= et('Medicamento') ?></th><th><?= et('Dosis') ?></th><th><?= et('Frecuencia') ?></th><th><?= et('Duración') ?></th></tr></thead>
             <tbody>
             <?php foreach ($items as $m): ?>
                 <tr><td><?= e($m['medicamento']) ?></td><td><?= e($m['dosis'] ?: '—') ?></td>
@@ -63,7 +63,7 @@ include __DIR__ . '/../includes/portal_header.php';
             <?php endforeach; ?>
             </tbody>
         </table>
-        <?php if ($r['indicaciones']): ?><p class="mt-3"><strong>Indicaciones:</strong><br><?= nl2br(e($r['indicaciones'])) ?></p><?php endif; ?>
+        <?php if ($r['indicaciones']): ?><p class="mt-3"><strong><?= et('Indicaciones') ?>:</strong><br><?= nl2br(e($r['indicaciones'])) ?></p><?php endif; ?>
     </div>
 </div>
 

@@ -10,13 +10,13 @@ $archivos = db()->prepare(
 $archivos->execute([$pid, tenant_id()]);
 $archivos = $archivos->fetchAll();
 
-$titulo = 'Mis estudios';
+$titulo = t('Estudios');
 include __DIR__ . '/../includes/portal_header.php';
 ?>
-<h1 class="h3 mb-3"><i class="bi bi-paperclip text-brand"></i> Mis estudios y documentos</h1>
+<h1 class="h3 mb-3"><i class="bi bi-paperclip text-brand"></i> <?= et('Mis estudios y documentos') ?></h1>
 
 <?php if (!$archivos): ?>
-    <div class="card"><div class="card-body text-center text-muted py-5">Tu consultorio aún no ha subido documentos a tu expediente.</div></div>
+    <div class="card"><div class="card-body text-center text-muted py-5"><?= et('Tu consultorio aún no ha subido documentos a tu expediente.') ?></div></div>
 <?php else: ?>
 <div class="card"><ul class="list-group list-group-flush">
     <?php foreach ($archivos as $a):

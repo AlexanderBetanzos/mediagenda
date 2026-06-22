@@ -14,18 +14,18 @@ $recetas = db()->prepare(
 $recetas->execute([$pid, tenant_id()]);
 $recetas = $recetas->fetchAll();
 
-$titulo = 'Mis recetas';
+$titulo = t('Mis recetas');
 include __DIR__ . '/../includes/portal_header.php';
 ?>
-<h1 class="h3 mb-3"><i class="bi bi-capsule text-brand"></i> Mis recetas</h1>
+<h1 class="h3 mb-3"><i class="bi bi-capsule text-brand"></i> <?= et('Mis recetas') ?></h1>
 
 <div class="card">
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
-            <thead class="table-light"><tr><th>Folio</th><th>Fecha</th><th>Médico</th><th>Diagnóstico</th><th class="text-center">Medicamentos</th><th class="text-end">Ver</th></tr></thead>
+            <thead class="table-light"><tr><th><?= et('Folio') ?></th><th><?= et('Fecha') ?></th><th><?= et('Médico') ?></th><th><?= et('Diagnóstico') ?></th><th class="text-center"><?= et('Medicamentos') ?></th><th class="text-end"><?= et('Ver') ?></th></tr></thead>
             <tbody>
             <?php if (!$recetas): ?>
-                <tr><td colspan="6" class="text-center text-muted py-4">Aún no tienes recetas.</td></tr>
+                <tr><td colspan="6" class="text-center text-muted py-4"><?= et('Aún no tienes recetas.') ?></td></tr>
             <?php else: foreach ($recetas as $r): ?>
                 <tr>
                     <td>R-<?= str_pad((string) $r['id'], 5, '0', STR_PAD_LEFT) ?></td>
@@ -34,7 +34,7 @@ include __DIR__ . '/../includes/portal_header.php';
                     <td><?= e($r['diagnostico'] ?: '—') ?></td>
                     <td class="text-center"><span class="badge bg-secondary"><?= (int) $r['n_items'] ?></span></td>
                     <td class="text-end">
-                        <a href="<?= BASE_URL ?>/portal/receta?id=<?= $r['id'] ?>" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i> Ver</a>
+                        <a href="<?= BASE_URL ?>/portal/receta?id=<?= $r['id'] ?>" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i> <?= et('Ver') ?></a>
                     </td>
                 </tr>
             <?php endforeach; endif; ?>

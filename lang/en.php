@@ -317,4 +317,15 @@ return [
     'Farmacia y POS'=>'Pharmacy & POS','Laboratorio'=>'Laboratory','Multi-sucursal'=>'Multi-branch',
     'IA clínica'=>'Clinical AI','Recursos Humanos'=>'Human Resources','CRM / seguimiento'=>'CRM / follow-up',
     '/mes'=>'/mo','Pacientes'=>'Patients',
+
+    // Portal del paciente
+    'Mis citas'=>'My appointments','Estudios'=>'Files','Salir'=>'Sign out',
+    'Próximas citas'=>'Upcoming appointments','Historial de citas'=>'Appointment history',
+    'No tienes citas próximas. Contacta a tu consultorio para agendar.'=>'You have no upcoming appointments. Contact your clinic to book.',
+    'Sin historial.'=>'No history.','Aquí están tus próximas citas y tu historial.'=>'Here are your upcoming appointments and history.',
+    'Reagendar'=>'Reschedule','Cancelar'=>'Cancel','Nueva fecha'=>'New date','Confirmar cambio'=>'Confirm change',
+    'Mis recetas'=>'My prescriptions','Aún no tienes recetas.'=>'You have no prescriptions yet.',
+    'Mis estudios y documentos'=>'My files and documents','Folio'=>'Reference',
+    'Tu consultorio aún no ha subido documentos a tu expediente.'=>'Your clinic has not uploaded documents to your record yet.',
+    'Portal del paciente'=>'Patient portal','Mis recetas'=>'My prescriptions',
 ];
