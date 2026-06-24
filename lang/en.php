@@ -270,6 +270,8 @@ return [
     'Personaliza esta instalación para tu consultorio. Estos ajustes aplican a todo el sistema.'=>'Customize this installation for your clinic. These settings apply to the whole system.',
     'Tema por defecto'=>'Default theme','Color de acento'=>'Accent color','Nombre del consultorio'=>'Clinic name',
     'Lema / descripción'=>'Tagline / description','URL del logo'=>'Logo URL','Razón social'=>'Legal name',
+    'Subir logo'=>'Upload logo','o pega una URL'=>'or paste a URL',
+    'PNG, JPG, WEBP o GIF · máx. 2 MB. Reemplaza el ícono junto al nombre.'=>'PNG, JPG, WEBP or GIF · max 2 MB. Replaces the icon next to the name.',
     'RFC / Id. fiscal'=>'Tax ID','Correo de contacto'=>'Contact email','Moneda'=>'Currency',
     'Zona horaria'=>'Time zone','Formato de fecha'=>'Date format','Idioma por defecto'=>'Default language',
     'Datos del consultorio'=>'Clinic details','Se usa en botones y acentos de la interfaz.'=>'Used in buttons and interface accents.',

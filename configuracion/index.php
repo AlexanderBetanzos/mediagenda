@@ -28,11 +28,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $tema = $_POST['tema_default'] ?? 'dark';
     if (!isset($temas[$tema])) $tema = 'dark';
 
+    // Logo: si suben un archivo, gana sobre la URL escrita.
+    $logo = trim($_POST['marca_logo'] ?? '');
+    if (!empty($_FILES['marca_logo_file']['name'])) {
+        $f = $_FILES['marca_logo_file'];
+        $perm = ['jpg'=>1,'jpeg'=>1,'png'=>1,'gif'=>1,'webp'=>1];
+        $ext  = strtolower(pathinfo($f['name'], PATHINFO_EXTENSION));
+        if ($f['error'] !== UPLOAD_ERR_OK || !is_uploaded_file($f['tmp_name'])) {
+            flash('No se pudo subir el logo. Inténtalo de nuevo.', 'danger');
+        } elseif (!isset($perm[$ext]) || strpos((string) mime_content_type($f['tmp_name']), 'image/') !== 0) {
+            flash('El logo debe ser una imagen PNG, JPG, WEBP o GIF.', 'warning');
+        } elseif ($f['size'] > 2 * 1024 * 1024) {
+            flash('El logo supera el máximo de 2 MB.', 'warning');
+        } else {
+            $dir = __DIR__ . '/../assets/logos';
+            if (!is_dir($dir)) @mkdir($dir, 0775, true);
+            $nombre = 'logo_' . tenant_id() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
+            if (move_uploaded_file($f['tmp_name'], $dir . '/' . $nombre)) {
+                $logo = BASE_URL . '/assets/logos/' . $nombre;
+            } else {
+                flash('No se pudo guardar el logo en el servidor.', 'danger');
+            }
+        }
+    }
+
     guardar_cfg([
         // Marca
         'marca_nombre'  => trim($_POST['marca_nombre'] ?? '') ?: 'MediAgenda',
         'marca_lema'    => trim($_POST['marca_lema'] ?? ''),
-        'marca_logo'    => trim($_POST['marca_logo'] ?? ''),
+        'marca_logo'    => $logo,
         // Apariencia
         'tema_default'  => $tema,
         'color_acento'  => $acento,
@@ -64,7 +88,7 @@ include __DIR__ . '/../includes/header.php';
 <h1 class="h3 mb-1"><i class="bi bi-gear text-brand"></i> <?= et('Configuración') ?></h1>
 <p class="text-muted"><?= et('Personaliza esta instalación para tu consultorio. Estos ajustes aplican a todo el sistema.') ?></p>
 
-<form method="post">
+<form method="post" enctype="multipart/form-data">
     <?= csrf_field() ?>
 
     <!-- Apariencia -->
@@ -102,10 +126,17 @@ include __DIR__ . '/../includes/header.php';
                 <label class="form-label"><?= et('Lema / descripción') ?></label>
                 <input type="text" name="marca_lema" class="form-control" value="<?= e(cfg('marca_lema')) ?>" maxlength="120">
             </div>
-            <div class="col-12">
-                <label class="form-label"><?= et('URL del logo') ?> <span class="text-muted"><?= et('(opcional)') ?></span></label>
-                <input type="text" name="marca_logo" class="form-control" value="<?= e(cfg('marca_logo')) ?>" placeholder="https://… o /consultorios/assets/img/logo.png">
-                <div class="form-text">Si lo defines, reemplaza el ícono junto al nombre en la barra superior.</div>
+            <div class="col-md-6">
+                <label class="form-label"><?= et('Subir logo') ?> <span class="text-muted"><?= et('(opcional)') ?></span></label>
+                <input type="file" name="marca_logo_file" class="form-control" accept="image/png,image/jpeg,image/webp,image/gif">
+                <div class="form-text"><?= et('PNG, JPG, WEBP o GIF · máx. 2 MB. Reemplaza el ícono junto al nombre.') ?></div>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label"><?= et('o pega una URL') ?> <span class="text-muted"><?= et('(opcional)') ?></span></label>
+                <input type="text" name="marca_logo" class="form-control" value="<?= e(cfg('marca_logo')) ?>" placeholder="https://…">
+                <?php if (cfg('marca_logo')): ?>
+                <div class="mt-2"><img src="<?= e(cfg('marca_logo')) ?>" alt="logo" style="max-height:40px;max-width:160px" class="border rounded p-1 bg-white"></div>
+                <?php endif; ?>
             </div>
         </div>
     </div>
