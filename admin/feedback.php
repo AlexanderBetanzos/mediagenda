@@ -36,7 +36,7 @@ $estBadge = ['nuevo' => 'secondary', 'visto' => 'info', 'resuelto' => 'success']
 $tipoBadge = ['sugerencia' => 'primary', 'problema' => 'danger', 'otro' => 'secondary'];
 
 $titulo = t('Comentarios');
-$activo = 'admin';
+$activo = 'feedback_admin';
 include __DIR__ . '/../includes/header.php';
 ?>
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">

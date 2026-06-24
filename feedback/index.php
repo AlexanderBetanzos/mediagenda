@@ -35,7 +35,7 @@ $estLbl  = ['nuevo' => t('Nuevo'), 'visto' => t('Visto'), 'resuelto' => t('Resue
 $estBadge = ['nuevo' => 'secondary', 'visto' => 'info', 'resuelto' => 'success'];
 
 $titulo = t('Comentarios');
-$activo = '';
+$activo = 'feedback';
 include __DIR__ . '/../includes/header.php';
 ?>
 <h1 class="h3 mb-1"><i class="bi bi-chat-left-dots text-brand"></i> <?= et('Comentarios y sugerencias') ?></h1>

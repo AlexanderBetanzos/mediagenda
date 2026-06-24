@@ -60,7 +60,7 @@ function aud_badge(string $a): string
 }
 
 $titulo = t('Auditoría');
-$activo = '';
+$activo = 'auditoria';
 include __DIR__ . '/../includes/header.php';
 ?>
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">

@@ -111,19 +111,7 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
                     <small class="text-muted"><?= e(rol_label($u['rol'])) ?></small>
                 </li>
                 <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item" href="<?= BASE_URL ?>/auth/seguridad"><i class="bi bi-shield-lock me-2"></i><?= et('Seguridad') ?></a></li>
-                <li><a class="dropdown-item" href="<?= BASE_URL ?>/feedback/index"><i class="bi bi-chat-left-dots me-2"></i><?= et('Enviar comentario') ?></a></li>
-                <?php if (has_role('medico', 'admin')): ?>
-                <li><a class="dropdown-item" href="<?= BASE_URL ?>/plantillas/index"><i class="bi bi-file-earmark-text me-2"></i><?= et('Plantillas de consulta') ?></a></li>
-                <?php endif; ?>
-                <?php if (has_role('admin')): ?>
-                <li><a class="dropdown-item" href="<?= BASE_URL ?>/configuracion/index"><i class="bi bi-gear me-2"></i><?= et('Configuración') ?></a></li>
-                <li><a class="dropdown-item" href="<?= BASE_URL ?>/admin/auditoria"><i class="bi bi-clipboard-data me-2"></i><?= et('Auditoría') ?></a></li>
-                <?php endif; ?>
-                <?php if (es_superadmin()): ?>
-                <li><a class="dropdown-item" href="<?= BASE_URL ?>/admin/feedback"><i class="bi bi-chat-left-dots me-2"></i><?= et('Comentarios') ?></a></li>
-                <?php endif; ?>
-                <li><a class="dropdown-item" href="<?= BASE_URL ?>/auth/logout"><i class="bi bi-box-arrow-right"></i> <?= et('Cerrar sesión') ?></a></li>
+                <li><a class="dropdown-item" href="<?= BASE_URL ?>/auth/logout"><i class="bi bi-box-arrow-right me-2"></i><?= et('Cerrar sesión') ?></a></li>
             </ul>
         </div>
     </div>
@@ -148,9 +136,18 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
                     <li class="nav-item"><a class="nav-link<?= nav_active('suscripcion', $activo) ?>" href="<?= BASE_URL ?>/pagos/index"><i class="bi bi-stars"></i> <?= et('Mi suscripción') ?></a></li>
                     <li class="nav-item"><a class="nav-link<?= nav_active('configuracion', $activo) ?>" href="<?= BASE_URL ?>/configuracion/index"><i class="bi bi-gear"></i> <?= et('Configuración') ?></a></li>
                     <?php endif; ?>
+                    <?php if (has_role('medico', 'admin')): ?>
+                    <li class="nav-item"><a class="nav-link<?= nav_active('plantillas', $activo) ?>" href="<?= BASE_URL ?>/plantillas/index"><i class="bi bi-file-earmark-text"></i> <?= et('Plantillas de consulta') ?></a></li>
+                    <?php endif; ?>
+                    <?php if (has_role('admin')): ?>
+                    <li class="nav-item"><a class="nav-link<?= nav_active('auditoria', $activo) ?>" href="<?= BASE_URL ?>/admin/auditoria"><i class="bi bi-clipboard-data"></i> <?= et('Auditoría') ?></a></li>
+                    <?php endif; ?>
                     <?php if (es_superadmin()): ?>
                     <li class="nav-item mt-2"><a class="nav-link<?= nav_active('admin', $activo) ?>" href="<?= BASE_URL ?>/admin/index"><i class="bi bi-shield-lock"></i> <?= et('Súper-admin') ?></a></li>
+                    <li class="nav-item"><a class="nav-link<?= nav_active('feedback_admin', $activo) ?>" href="<?= BASE_URL ?>/admin/feedback"><i class="bi bi-chat-left-dots"></i> <?= et('Comentarios') ?></a></li>
                     <?php endif; ?>
+                    <li class="nav-item mt-2"><a class="nav-link<?= nav_active('seguridad', $activo) ?>" href="<?= BASE_URL ?>/auth/seguridad"><i class="bi bi-shield-lock"></i> <?= et('Seguridad') ?></a></li>
+                    <li class="nav-item"><a class="nav-link<?= nav_active('feedback', $activo) ?>" href="<?= BASE_URL ?>/feedback/index"><i class="bi bi-chat-left-dots"></i> <?= et('Enviar comentario') ?></a></li>
                 </ul>
             </div>
         </nav>

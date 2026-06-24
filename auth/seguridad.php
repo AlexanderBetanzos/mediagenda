@@ -56,7 +56,7 @@ $setup = !$tiene2fa ? ($_SESSION['2fa_setup'] ?? '') : '';
 $uri   = $setup ? totp_uri($setup, $u['email'], marca_nombre()) : '';
 
 $titulo = t('Seguridad');
-$activo = '';
+$activo = 'seguridad';
 include __DIR__ . '/../includes/header.php';
 ?>
 <h1 class="h3 mb-1"><i class="bi bi-shield-lock text-brand"></i> <?= et('Seguridad de la cuenta') ?></h1>
