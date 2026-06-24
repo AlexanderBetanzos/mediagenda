@@ -378,4 +378,14 @@ return [
     'Limpiar todo'=>'Clear all','¿Quitar todas las marcas del odontograma?'=>'Remove all marks from the dental chart?',
     'Imprimir / PDF'=>'Print / PDF','Nota'=>'Note','Nota para el diente'=>'Note for tooth','Notas por diente'=>'Notes per tooth',
     'Con "Sano" quitas la marca; con "Nota" agregas una observación al diente.'=>'With "Healthy" you remove the mark; with "Note" you add an observation to the tooth.',
+
+    // Feedback / comentarios
+    'Comentarios'=>'Comments','Comentarios y sugerencias'=>'Comments and suggestions',
+    '¿Algo que mejorar o un problema? Cuéntanos, lo leemos todo.'=>'Something to improve or a problem? Tell us — we read everything.',
+    'Sugerencia'=>'Suggestion','Problema'=>'Problem','Tu comentario'=>'Your comment',
+    'Describe tu sugerencia o el problema con el mayor detalle posible…'=>'Describe your suggestion or the problem in as much detail as possible…',
+    'Enviar comentario'=>'Send comment','Mis comentarios'=>'My comments',
+    'Aún no has enviado comentarios.'=>"You haven't sent any comments yet.",
+    'Escribe tu comentario.'=>'Write your comment.','¡Gracias! Tu comentario fue enviado.'=>'Thanks! Your comment was sent.',
+    'Visto'=>'Seen','Resuelto'=>'Resolved','nuevos'=>'new','Sin comentarios.'=>'No comments.',
 ];
