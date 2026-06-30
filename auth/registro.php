@@ -196,11 +196,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="row g-2 mb-4">
                     <div class="col-sm-6">
                         <label class="form-label"><?= et('Contraseña') ?></label>
-                        <input type="password" name="password" class="form-control" required minlength="8" placeholder="<?= et('Mín. 8 caracteres') ?>">
+                        <div class="input-group">
+                            <input type="password" name="password" id="pw1" class="form-control" required minlength="8" placeholder="<?= et('Mín. 8 caracteres') ?>">
+                            <button type="button" class="btn btn-outline-secondary toggle-pw" data-target="pw1" tabindex="-1" aria-label="<?= et('Mostrar u ocultar contraseña') ?>"><i class="bi bi-eye"></i></button>
+                        </div>
                     </div>
                     <div class="col-sm-6">
                         <label class="form-label"><?= et('Confirmar') ?></label>
-                        <input type="password" name="password2" class="form-control" required minlength="8" placeholder="<?= et('Repite la contraseña') ?>">
+                        <div class="input-group">
+                            <input type="password" name="password2" id="pw2" class="form-control" required minlength="8" placeholder="<?= et('Repite la contraseña') ?>">
+                            <button type="button" class="btn btn-outline-secondary toggle-pw" data-target="pw2" tabindex="-1" aria-label="<?= et('Mostrar u ocultar contraseña') ?>"><i class="bi bi-eye"></i></button>
+                        </div>
                     </div>
                 </div>
                 <?php if ($pagar): ?>
@@ -217,5 +223,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
 </div>
+<script>
+document.querySelectorAll('.toggle-pw').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+        var input = document.getElementById(btn.dataset.target);
+        var icon  = btn.querySelector('i');
+        var show  = input.type === 'password';
+        input.type = show ? 'text' : 'password';
+        icon.classList.toggle('bi-eye', !show);
+        icon.classList.toggle('bi-eye-slash', show);
+    });
+});
+</script>
 </body>
 </html>
