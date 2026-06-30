@@ -90,7 +90,7 @@ $conPago = mp_configurado();
                         <?php endforeach; ?>
                     </ul>
                     <?php if ($conPago): ?>
-                    <a href="<?= BASE_URL ?>/pagos/suscribir?plan=<?= e($key) ?>"
+                    <a href="<?= BASE_URL ?>/pagos/checkout?plan=<?= e($key) ?>"
                        class="btn <?= $feat ? 'btn-primary' : 'btn-outline-primary' ?> w-100">
                         <i class="bi bi-credit-card"></i> <?= et('Suscribirme') ?>
                     </a>

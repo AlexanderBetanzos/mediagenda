@@ -128,6 +128,46 @@ function mp_crear_suscripcion(array $consultorio, string $planKey, string $payer
     return ['id' => $r['id'], 'init_point' => $init];
 }
 
+/**
+ * Crea una suscripción (preapproval) YA AUTORIZADA con un token de tarjeta
+ * generado por el Card Payment Brick. No hay redirección: Mercado Pago cobra
+ * el primer mes al instante y deja la suscripción activa, renovándose sola.
+ * Devuelve el preapproval completo (incluye 'id' y 'status').
+ */
+function mp_crear_suscripcion_token(array $consultorio, string $planKey, string $payerEmail, string $cardToken): array
+{
+    $planes = planes_mp();
+    if (!isset($planes[$planKey])) {
+        throw new MpException('Plan no válido.');
+    }
+    if ($cardToken === '') {
+        throw new MpException('Falta el token de la tarjeta.');
+    }
+    $plan = $planes[$planKey];
+
+    $payload = [
+        'reason'             => 'MediAgenda — Plan ' . $plan['nombre'],
+        'external_reference' => 'consultorio:' . (int) $consultorio['id'] . '|plan:' . $planKey,
+        'payer_email'        => $payerEmail,
+        'card_token_id'      => $cardToken,
+        'back_url'           => rtrim(url_absoluta('/pagos/retorno'), '/'),
+        'notification_url'   => url_absoluta('/pagos/webhook.php'),
+        'status'             => 'authorized',   // cobra y activa de inmediato
+        'auto_recurring'     => [
+            'frequency'          => 1,
+            'frequency_type'     => 'months',
+            'transaction_amount' => $plan['precio'],
+            'currency_id'        => 'MXN',
+        ],
+    ];
+
+    $r = mp_request('POST', '/preapproval', $payload);
+    if (empty($r['id'])) {
+        throw new MpException('Mercado Pago no devolvió la suscripción.');
+    }
+    return $r;
+}
+
 /** Consulta el estado de una suscripción (preapproval). */
 function mp_obtener_suscripcion(string $id): array
 {

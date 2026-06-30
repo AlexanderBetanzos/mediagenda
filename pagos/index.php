@@ -94,7 +94,7 @@ include __DIR__ . '/../includes/header.php';
                         <div class="small text-muted"><?= e($p['descripcion']) ?></div>
                     </div>
                     <?php if (mp_configurado()): ?>
-                        <a href="<?= BASE_URL ?>/pagos/suscribir?plan=<?= $key ?>" class="btn btn-sm btn-primary">Suscribirme</a>
+                        <a href="<?= BASE_URL ?>/pagos/checkout?plan=<?= $key ?>" class="btn btn-sm btn-primary">Suscribirme</a>
                     <?php else: ?>
                         <a href="mailto:<?= e(cfg('email') ?: 'ventas@mediagenda.com.mx') ?>" class="btn btn-sm btn-outline-primary">Contactar</a>
                     <?php endif; ?>

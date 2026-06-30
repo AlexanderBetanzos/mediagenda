@@ -106,8 +106,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ]);
 
                 if ($pagar) {
-                    // Plan de pago: directo a Mercado Pago, sin prueba.
-                    redirect('/pagos/suscribir?plan=' . $plan);
+                    // Plan de pago: checkout embebido (cae a redirect si no hay Public Key).
+                    redirect('/pagos/checkout?plan=' . $plan);
                 }
                 @correo_bienvenida_trial($f['email'], $f['nombre'], TRIAL_DIAS);
                 flash('¡Tu consultorio fue creado! Tienes ' . TRIAL_DIAS . ' días de prueba gratis.');
