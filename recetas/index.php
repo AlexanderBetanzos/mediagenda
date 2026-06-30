@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../includes/functions.php';
 require_login();
+require_modulo('recetas');
 
 $u = current_user();
 $medFiltro = $u['rol'] === 'medico' ? ' AND r.medico_id = ' . (int) $u['id'] : '';

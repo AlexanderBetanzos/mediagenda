@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../includes/functions.php';
 require_login();
+require_modulo('pacientes');
 
 $q    = trim($_GET['q'] ?? '');
 $tipo = $_GET['tipo'] ?? '';

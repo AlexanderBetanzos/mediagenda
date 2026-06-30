@@ -78,27 +78,30 @@ INSERT INTO modulos (clave, nombre, fase, orden) VALUES
  ('multisucursal', 'Multi-sucursal',           4, 13),
  ('ia',            'IA clínica',               3, 14),
  ('rh',            'Recursos Humanos',         4, 15),
- ('cfdi',          'CFDI / SAT',               1, 16)
+ ('cfdi',          'CFDI / SAT',               1, 16),
+ ('crm',           'CRM y seguimientos',       1, 17),
+ ('plantillas',    'Plantillas de consulta',   1, 18)
 ON DUPLICATE KEY UPDATE nombre=VALUES(nombre), fase=VALUES(fase), orden=VALUES(orden);
 
 -- ---------------------------------------------------------------------------
 --  Seed: módulos por plan (acumulativo)
 -- ---------------------------------------------------------------------------
 INSERT INTO plan_modulos (plan_clave, modulo_clave) VALUES
- -- Básico
+ -- Básico (CRM incluido en todos los planes)
  ('basico','pacientes'),('basico','citas'),('basico','expediente'),
- ('basico','recetas'),('basico','facturacion'),
- -- Profesional = Básico + comunicación/portal/reportes/especialidades
+ ('basico','recetas'),('basico','facturacion'),('basico','crm'),
+ -- Profesional = Básico + comunicación/portal/reportes/especialidades/plantillas
  ('profesional','pacientes'),('profesional','citas'),('profesional','expediente'),
  ('profesional','recetas'),('profesional','facturacion'),('profesional','reportes'),
  ('profesional','portal'),('profesional','whatsapp'),('profesional','telemedicina'),
- ('profesional','especialidades'),
+ ('profesional','especialidades'),('profesional','crm'),('profesional','plantillas'),
  -- Clínica = todo
  ('clinica','pacientes'),('clinica','citas'),('clinica','expediente'),
  ('clinica','recetas'),('clinica','facturacion'),('clinica','reportes'),
  ('clinica','portal'),('clinica','whatsapp'),('clinica','telemedicina'),
  ('clinica','especialidades'),('clinica','farmacia'),('clinica','laboratorio'),
- ('clinica','multisucursal'),('clinica','ia'),('clinica','rh'),('clinica','cfdi')
+ ('clinica','multisucursal'),('clinica','ia'),('clinica','rh'),('clinica','cfdi'),
+ ('clinica','crm'),('clinica','plantillas')
 ON DUPLICATE KEY UPDATE plan_clave=VALUES(plan_clave);
 
 -- ---------------------------------------------------------------------------

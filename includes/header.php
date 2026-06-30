@@ -137,7 +137,7 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
                     <li class="nav-item"><a class="nav-link<?= nav_active('configuracion', $activo) ?>" href="<?= BASE_URL ?>/configuracion/index"><i class="bi bi-gear"></i> <?= et('Configuración') ?></a></li>
                     <?php endif; ?>
                     <?php if (has_role('medico', 'admin')): ?>
-                    <li class="nav-item"><a class="nav-link<?= nav_active('plantillas', $activo) ?>" href="<?= BASE_URL ?>/plantillas/index"><i class="bi bi-file-earmark-text"></i> <?= et('Plantillas de consulta') ?></a></li>
+                    <?php if (modulo_activo('plantillas')): ?><li class="nav-item"><a class="nav-link<?= nav_active('plantillas', $activo) ?>" href="<?= BASE_URL ?>/plantillas/index"><i class="bi bi-file-earmark-text"></i> <?= et('Plantillas de consulta') ?></a></li><?php endif; ?>
                     <?php endif; ?>
                     <?php if (has_role('admin')): ?>
                     <li class="nav-item"><a class="nav-link<?= nav_active('auditoria', $activo) ?>" href="<?= BASE_URL ?>/admin/auditoria"><i class="bi bi-clipboard-data"></i> <?= et('Auditoría') ?></a></li>

@@ -2,6 +2,7 @@
 /** Gestión de plantillas de consulta (médico / admin). */
 require_once __DIR__ . '/../includes/functions.php';
 require_login();
+require_modulo('plantillas');
 if (!has_role('medico', 'admin')) { http_response_code(403); die('Solo médico o admin.'); }
 
 $tid    = tenant_id();

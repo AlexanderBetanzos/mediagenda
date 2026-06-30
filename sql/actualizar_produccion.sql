@@ -327,10 +327,15 @@ CREATE TABLE IF NOT EXISTS seguimientos (
   INDEX idx_seg_paciente (paciente_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Registrar el módulo 'crm' en el catálogo de entitlements (Profesional+).
-INSERT INTO modulos (clave, nombre, fase, orden) VALUES ('crm', 'CRM / seguimiento', 2, 17)
-ON DUPLICATE KEY UPDATE nombre = VALUES(nombre), fase = VALUES(fase);
-INSERT INTO plan_modulos (plan_clave, modulo_clave) VALUES ('profesional', 'crm'), ('clinica', 'crm')
+-- Registrar módulos de entitlements: 'crm' (todos los planes) y
+-- 'plantillas' (Profesional+). Idempotente.
+INSERT INTO modulos (clave, nombre, fase, orden) VALUES
+ ('crm',        'CRM y seguimientos',     1, 17),
+ ('plantillas', 'Plantillas de consulta', 1, 18)
+ON DUPLICATE KEY UPDATE nombre = VALUES(nombre), fase = VALUES(fase), orden = VALUES(orden);
+INSERT INTO plan_modulos (plan_clave, modulo_clave) VALUES
+ ('basico', 'crm'), ('profesional', 'crm'), ('clinica', 'crm'),
+ ('profesional', 'plantillas'), ('clinica', 'plantillas')
 ON DUPLICATE KEY UPDATE plan_clave = VALUES(plan_clave);
 
 -- ============ sql/recordatorios.sql ============

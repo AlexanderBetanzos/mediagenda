@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../includes/functions.php';
 require_login();
+require_modulo('expediente');
 
 $q   = trim($_GET['q'] ?? '');
 $con = $_GET['con'] ?? '';   // '' = todos, '1' = solo con expediente
