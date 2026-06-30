@@ -49,6 +49,14 @@ defined('MP_PUBLIC_KEY')   || define('MP_PUBLIC_KEY',   getenv('MP_PUBLIC_KEY') 
 defined('CORREO_FROM')      || define('CORREO_FROM',      getenv('CORREO_FROM') ?: 'no-reply@mediagenda.com.mx');
 defined('CORREO_FROM_NAME') || define('CORREO_FROM_NAME', 'MediAgenda');
 
+// Datos de soporte del proveedor (MediAgenda). Globales: NO dependen del
+// consultorio. Se muestran en el panel para que los clientes nos contacten.
+// El número de WhatsApp va en formato internacional sin signos (52 + número).
+defined('SOPORTE_WHATSAPP') || define('SOPORTE_WHATSAPP', getenv('SOPORTE_WHATSAPP') ?: '525551568856');
+defined('SOPORTE_TEL')      || define('SOPORTE_TEL',      getenv('SOPORTE_TEL')      ?: '55 5156 8856');
+defined('SOPORTE_EMAIL')    || define('SOPORTE_EMAIL',    getenv('SOPORTE_EMAIL')    ?: 'contacto@betasyd.com.mx');
+defined('SOPORTE_HORARIO')  || define('SOPORTE_HORARIO',  getenv('SOPORTE_HORARIO')  ?: 'Lunes a Viernes de 9:00 a 18:00 hrs.');
+
 // 3) Configuración de la aplicación (no secreta).
 define('APP_NAME', 'MediAgenda');
 define('MONEDA', 'MXN');
