@@ -200,52 +200,6 @@ include __DIR__ . '/includes/header.php';
     </div>
 </div>
 
-<!-- Ayuda y soporte (MediAgenda) -->
-<?php
-    $waMsg = rawurlencode(t('Hola, necesito ayuda con MediAgenda.'));
-    $waUrl = 'https://wa.me/' . SOPORTE_WHATSAPP . '?text=' . $waMsg;
-?>
-<div class="card mt-4">
-    <div class="card-header fw-semibold"><i class="bi bi-life-preserver text-brand"></i> <?= et('Ayuda y soporte') ?></div>
-    <div class="card-body">
-        <p class="text-muted mb-3"><?= et('¿Necesitas ayuda con MediAgenda? Contáctanos por el medio que prefieras.') ?></p>
-        <div class="row g-3">
-            <div class="col-md-4">
-                <a href="<?= e($waUrl) ?>" target="_blank" rel="noopener" class="d-block text-center text-decoration-none card h-100 border-0 support-card">
-                    <div class="card-body">
-                        <i class="bi bi-whatsapp d-block mb-2" style="font-size:2rem;color:#25d366"></i>
-                        <div class="fw-semibold"><?= et('WhatsApp') ?></div>
-                        <div class="small text-muted"><?= et('Chatea con soporte') ?></div>
-                    </div>
-                </a>
-            </div>
-            <div class="col-md-4">
-                <a href="tel:<?= e(preg_replace('/\s+/', '', SOPORTE_TEL)) ?>" class="d-block text-center text-decoration-none card h-100 border-0 support-card">
-                    <div class="card-body">
-                        <i class="bi bi-telephone-fill d-block mb-2" style="font-size:2rem;color:var(--brand)"></i>
-                        <div class="fw-semibold"><?= et('Teléfono') ?></div>
-                        <div class="small text-muted"><?= e(SOPORTE_TEL) ?></div>
-                    </div>
-                </a>
-            </div>
-            <div class="col-md-4">
-                <a href="mailto:<?= e(SOPORTE_EMAIL) ?>" class="d-block text-center text-decoration-none card h-100 border-0 support-card">
-                    <div class="card-body">
-                        <i class="bi bi-envelope-fill d-block mb-2" style="font-size:2rem;color:var(--brand)"></i>
-                        <div class="fw-semibold"><?= et('Correo') ?></div>
-                        <div class="small text-muted"><?= e(SOPORTE_EMAIL) ?></div>
-                    </div>
-                </a>
-            </div>
-        </div>
-        <p class="text-muted small mb-0 mt-3"><i class="bi bi-clock"></i> <?= et('Horario de atención') ?>: <?= e(SOPORTE_HORARIO) ?></p>
-    </div>
-</div>
-<style>
-.support-card{background:color-mix(in srgb,var(--brand) 5%,transparent);transition:transform .15s ease,box-shadow .15s ease}
-.support-card:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.12)}
-</style>
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
 const ctx = document.getElementById('chartSemana');

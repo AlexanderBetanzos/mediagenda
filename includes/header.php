@@ -148,6 +148,7 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
                     <?php endif; ?>
                     <li class="nav-item mt-2"><a class="nav-link<?= nav_active('seguridad', $activo) ?>" href="<?= BASE_URL ?>/auth/seguridad"><i class="bi bi-shield-lock"></i> <?= et('Seguridad') ?></a></li>
                     <li class="nav-item"><a class="nav-link<?= nav_active('feedback', $activo) ?>" href="<?= BASE_URL ?>/feedback/index"><i class="bi bi-chat-left-dots"></i> <?= et('Enviar comentario') ?></a></li>
+                    <li class="nav-item"><a class="nav-link<?= nav_active('soporte', $activo) ?>" href="<?= BASE_URL ?>/soporte/index"><i class="bi bi-life-preserver"></i> <?= et('Ayuda y soporte') ?></a></li>
                 </ul>
             </div>
         </nav>
