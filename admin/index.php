@@ -11,8 +11,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $cid    = (int) ($_POST['id'] ?? 0);
     $accion = $_POST['accion'] ?? '';
 
-    if ($cid === 1 && in_array($accion, ['suspender'], true)) {
-        flash('No puedes suspender el consultorio principal.', 'warning');
+    if ($cid === 1 && in_array($accion, ['suspender', 'eliminar'], true)) {
+        flash('No puedes suspender ni eliminar el consultorio principal.', 'warning');
         redirect('/admin/index');
     }
     switch ($accion) {
@@ -32,6 +32,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $pdo->prepare("UPDATE consultorios SET estado='suspendida' WHERE id=?")->execute([$cid]);
             auditar('suspender', 'consultorio', $cid, null, $cid);
             flash('Consultorio suspendido.');
+            break;
+        case 'eliminar':   // borra el consultorio y TODOS sus datos (irreversible)
+            $nom = $pdo->prepare("SELECT nombre FROM consultorios WHERE id=?");
+            $nom->execute([$cid]);
+            $nombreCons = $nom->fetchColumn();
+            if ($nombreCons === false) {
+                flash('Consultorio no encontrado.', 'warning');
+                break;
+            }
+            try {
+                $pdo->beginTransaction();
+                // Todas las tablas que tienen una columna consultorio_id.
+                $tablas = $pdo->query(
+                    "SELECT TABLE_NAME FROM information_schema.COLUMNS
+                     WHERE TABLE_SCHEMA = DATABASE() AND COLUMN_NAME = 'consultorio_id'"
+                )->fetchAll(PDO::FETCH_COLUMN);
+                $pdo->exec('SET FOREIGN_KEY_CHECKS=0');
+                foreach ($tablas as $tabla) {
+                    $pdo->prepare("DELETE FROM `$tabla` WHERE consultorio_id = ?")->execute([$cid]);
+                }
+                $pdo->prepare("DELETE FROM consultorios WHERE id = ?")->execute([$cid]);
+                $pdo->exec('SET FOREIGN_KEY_CHECKS=1');
+                $pdo->commit();
+                // La bitácora queda en el consultorio del super-admin (el otro ya no existe).
+                auditar('eliminar', 'consultorio', $cid, $nombreCons);
+                flash('Consultorio «' . $nombreCons . '» eliminado permanentemente.');
+            } catch (Throwable $e) {
+                if ($pdo->inTransaction()) $pdo->rollBack();
+                $pdo->exec('SET FOREIGN_KEY_CHECKS=1');
+                flash('No se pudo eliminar el consultorio.', 'danger');
+            }
             break;
     }
     redirect('/admin/index');
@@ -136,6 +167,7 @@ include __DIR__ . '/../includes/header.php';
                                 <?php if ($c['id'] != 1): ?>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><button form="f<?= $c['id'] ?>" name="accion" value="suspender" class="dropdown-item text-danger" onclick="return confirm('¿Suspender este consultorio? Perderá el acceso.');"><i class="bi bi-pause-circle me-2"></i><?= et('Suspender') ?></button></li>
+                                <li><button form="f<?= $c['id'] ?>" name="accion" value="eliminar" class="dropdown-item text-danger fw-semibold" onclick="return confirm('¿ELIMINAR «<?= e(addslashes($c['nombre'])) ?>» y TODOS sus datos (usuarios, pacientes, citas, expedientes, etc.)?\n\nEsta acción NO se puede deshacer.');"><i class="bi bi-trash me-2"></i><?= et('Eliminar definitivamente') ?></button></li>
                                 <?php endif; ?>
                             </ul>
                         </div>
