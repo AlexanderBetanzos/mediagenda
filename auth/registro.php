@@ -67,14 +67,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
                 $pdo->beginTransaction();
                 $slug = slug_unico($pdo, $f['consultorio']);
-                // Pago inmediato: sin prueba (trial_fin en el pasado → debe pagar).
-                $trialFin = $pagar
-                    ? date('Y-m-d', strtotime('-1 day'))
-                    : date('Y-m-d', strtotime('+' . TRIAL_DIAS . ' days'));
+                // Todo registro nuevo obtiene la prueba gratis (sin tarjeta),
+                // venga o no de un plan. El plan elegido se recuerda para
+                // sugerirlo cuando el cliente decida pagar.
+                $trialFin = date('Y-m-d', strtotime('+' . TRIAL_DIAS . ' days'));
                 $pdo->prepare(
                     "INSERT INTO consultorios (nombre, slug, email, telefono, plan, estado, trial_inicio, trial_fin)
-                     VALUES (?, ?, ?, ?, ?, 'trial', CURDATE(), ?)"
-                )->execute([$f['consultorio'], $slug, $f['email'], $f['telefono'], $pagar ? $plan : 'trial', $trialFin]);
+                     VALUES (?, ?, ?, ?, 'trial', 'trial', CURDATE(), ?)"
+                )->execute([$f['consultorio'], $slug, $f['email'], $f['telefono'], $trialFin]);
                 $cid = (int) $pdo->lastInsertId();
 
                 $pdo->prepare(
@@ -97,18 +97,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 // Configuración inicial (white-label) del nuevo consultorio.
                 guardar_cfg([
-                    'marca_nombre'  => $f['consultorio'],
-                    'tema_default'  => 'light',
-                    'color_acento'  => '#0b6fb8',
-                    'moneda'        => 'MXN',
-                    'zona_horaria'  => 'America/Mexico_City',
-                    'formato_fecha' => 'd/m/Y',
+                    'marca_nombre'   => $f['consultorio'],
+                    'tema_default'   => 'light',
+                    'color_acento'   => '#0b6fb8',
+                    'moneda'         => 'MXN',
+                    'zona_horaria'   => 'America/Mexico_City',
+                    'formato_fecha'  => 'd/m/Y',
+                    'plan_preferido' => $pagar ? $plan : '',   // plan elegido en la landing (opcional)
                 ]);
 
-                if ($pagar) {
-                    // Plan de pago: checkout embebido (cae a redirect si no hay Public Key).
-                    redirect('/pagos/checkout?plan=' . $plan);
-                }
                 @correo_bienvenida_trial($f['email'], $f['nombre'], TRIAL_DIAS);
                 flash('¡Tu consultorio fue creado! Tienes ' . TRIAL_DIAS . ' días de prueba gratis.');
                 redirect('/dashboard');
@@ -139,11 +136,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="card-body p-4 p-sm-5">
             <div class="text-center mb-4">
                 <?php if ($pagar): $p = $planes[$plan]; ?>
-                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle mb-2">
-                        <i class="bi bi-stars"></i> Plan <?= e($p['nombre']) ?> · $<?= number_format($p['precio'], 0) ?>/mes
+                    <span class="badge bg-success-subtle text-success border border-success-subtle mb-2">
+                        <i class="bi bi-gift"></i> <?= TRIAL_DIAS ?> días gratis · acceso completo · sin tarjeta
                     </span>
-                    <h1 class="h4 mb-1">Crea tu cuenta y activa <?= e($p['nombre']) ?></h1>
-                    <p class="text-muted small mb-0">Al continuar te llevamos a <strong>Mercado Pago</strong> para activar tu suscripción mensual.</p>
+                    <h1 class="h4 mb-1">Crea tu cuenta y empieza gratis</h1>
+                    <p class="text-muted small mb-0">Pruebas <?= TRIAL_DIAS ?> días sin tarjeta. Después podrás activar el plan <strong><?= e($p['nombre']) ?></strong> ($<?= number_format($p['precio'], 0) ?>/mes) desde <strong>Mi suscripción</strong>.</p>
                 <?php else: ?>
                     <span class="badge bg-success-subtle text-success border border-success-subtle mb-2">
                         <i class="bi bi-gift"></i> <?= TRIAL_DIAS ?> días gratis · acceso completo · sin tarjeta
@@ -209,11 +206,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
                     </div>
                 </div>
-                <?php if ($pagar): ?>
-                    <button class="btn btn-primary w-100 py-2"><i class="bi bi-credit-card"></i> <?= et('Continuar al pago') ?></button>
-                <?php else: ?>
-                    <button class="btn btn-primary w-100 py-2"><i class="bi bi-rocket-takeoff"></i> <?= et('Empezar mi prueba de') ?> <?= TRIAL_DIAS ?> <?= et('días') ?></button>
-                <?php endif; ?>
+                <button class="btn btn-primary w-100 py-2"><i class="bi bi-rocket-takeoff"></i> <?= et('Empezar mi prueba de') ?> <?= TRIAL_DIAS ?> <?= et('días') ?></button>
             </form>
 
             <div class="text-center mt-3 small text-muted">
