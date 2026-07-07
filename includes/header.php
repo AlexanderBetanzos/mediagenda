@@ -71,7 +71,9 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
 </head>
 <body>
 <nav class="navbar navbar-dark app-navbar sticky-top flex-md-nowrap p-0">
-    <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3 fs-6 d-flex align-items-center gap-2" href="<?= BASE_URL ?>/dashboard">
+    <!-- Marca en la barra superior: solo en móvil (junto al menú). En desktop
+         la marca vive en el sidebar como "ficha" (estilo GymOS). -->
+    <a class="navbar-brand d-flex d-md-none me-0 px-3 fs-6 align-items-center gap-2" href="<?= BASE_URL ?>/dashboard">
         <?php if (cfg('marca_logo')): ?>
             <img src="<?= e(cfg('marca_logo')) ?>" alt="<?= e($marca) ?>" style="height:26px;width:auto">
         <?php else: ?>
@@ -122,6 +124,15 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
     <div class="row">
         <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block sidebar collapse">
             <div class="position-sticky pt-3">
+                <a href="<?= BASE_URL ?>/dashboard" class="brand text-decoration-none d-block">
+                    <?php if (cfg('marca_logo')): ?>
+                        <span class="brand-logo"><img src="<?= e(cfg('marca_logo')) ?>" alt="<?= e($marca) ?>"></span>
+                    <?php else: ?>
+                        <span class="brand-logo"><i class="bi bi-heart-pulse-fill" style="font-size:1.9rem;color:var(--brand)"></i></span>
+                    <?php endif; ?>
+                    <div class="brand-name"><?= e($marca) ?></div>
+                    <small class="brand-sub"><i class="bi bi-lightning-charge-fill"></i> <?= strtoupper(et('Panel')) ?></small>
+                </a>
                 <ul class="nav flex-column">
                     <li class="nav-item"><a class="nav-link<?= nav_active('dashboard', $activo) ?>" href="<?= BASE_URL ?>/dashboard"><i class="bi bi-grid-1x2-fill"></i> <?= et('Panel') ?></a></li>
                     <?php if (modulo_activo('citas')): ?><li class="nav-item"><a class="nav-link<?= nav_active('citas', $activo) ?>" href="<?= BASE_URL ?>/citas/index"><i class="bi bi-calendar-check"></i> <?= et('Agenda') ?></a></li><?php endif; ?>
