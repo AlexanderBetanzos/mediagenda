@@ -436,4 +436,12 @@ return [
     'Datos generales'=>'General info','Nombre del consultorio'=>'Clinic name','Correo de contacto'=>'Contact email',
     'Guardar datos'=>'Save details','El consultorio principal no se puede suspender.'=>'The main clinic cannot be suspended.',
     'Activa'=>'Active','Suspendida'=>'Suspended','Expirada'=>'Expired',
+    // Corte de caja (rango + historial)
+    'Desde'=>'From','Hasta'=>'To','Aplicar'=>'Apply','Hoy'=>'Today','Imprimir'=>'Print',
+    'Total cobrado'=>'Total collected','Por método de pago'=>'By payment method','pago(s)'=>'payment(s)',
+    'Neto (ingresos − egresos)'=>'Net (income − expenses)','Detalle de pagos'=>'Payments detail',
+    'Sin movimientos en este periodo.'=>'No movements in this period.','Historial de cortes (último mes)'=>'Cash close history (last month)',
+    'día(s) con movimientos'=>'day(s) with movements','Movimientos'=>'Movements','Total del día'=>"Day's total",
+    'Neto'=>'Net','Ver corte'=>'View close','Sin cortes en el último mes.'=>'No closes in the last month.',
+    'Venta'=>'Sale','Factura'=>'Invoice','En línea'=>'Online',
 ];
