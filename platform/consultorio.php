@@ -58,9 +58,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($accion === 'plan') {
         $nuevo = $_POST['plan'] ?? '';
         if (isset($planes[$nuevo])) {
-            db()->prepare('UPDATE consultorios SET plan = ? WHERE id = ?')->execute([$nuevo, $id]);
+            // Asignar un plan activa la membresía (deja de estar en prueba/expirada/suspendida).
+            db()->prepare("UPDATE consultorios SET plan = ?, estado = 'activa' WHERE id = ?")->execute([$nuevo, $id]);
             auditar('plan_cambiar', 'consultorio', $id, $nuevo, $id);
-            flash('Plan actualizado a ' . $planes[$nuevo]['nombre'] . '.');
+            flash('Plan actualizado a ' . $planes[$nuevo]['nombre'] . ' y membresía activada.');
         } else {
             flash('Plan no válido.', 'danger');
         }

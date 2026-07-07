@@ -471,4 +471,6 @@ return [
     'Aún no hay visitas registradas. En cuanto alguien navegue el sitio público, el panel del consultorio o el portal del paciente, aquí aparecerán las estadísticas.'=>'No visits recorded yet. As soon as someone browses the public site, the clinic panel or the patient portal, stats will appear here.',
     'Visitas (7 días)'=>'Visits (7 days)','Visitas (30 días)'=>'Visits (30 days)','Visitantes únicos (30 días)'=>'Unique visitors (30 days)',
     'Módulos más visitados'=>'Most visited modules','Tráfico por área'=>'Traffic by area','Consultas 30d'=>'Visits 30d','Acción'=>'Action',
+    'Tu plan ya está activo'=>'Your plan is already active','Tu prueba sigue activa'=>'Your trial is still active',
+    'día(s) restantes'=>'day(s) remaining','Ir al panel'=>'Go to dashboard',
 ];

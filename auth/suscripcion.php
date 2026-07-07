@@ -14,6 +14,12 @@ $mensaje = [
 
 $soporte = cfg('email') ?: 'ventas@mediagenda.com.mx';
 
+/* Si el consultorio YA tiene acceso (membresía activa o prueba vigente), esta
+   página de reactivación no aplica: se le confirma su estado. */
+$dias        = trial_dias_restantes();
+$tieneAcceso = ($estado === 'activa') || ($estado === 'trial' && $dias !== null && $dias >= 0);
+$planActual  = planes_mp()[$t['plan'] ?? '']['nombre'] ?? ($t['plan'] ?? '');
+
 // Datos del consultorio (a salvo) — refuerza la conversión.
 $tid = tenant_id();
 $contar = function (string $tabla) use ($tid): int {
@@ -51,6 +57,21 @@ $conPago = mp_configurado();
 </head>
 <body class="bg-body-tertiary">
 <div class="container py-5" style="max-width:900px">
+    <?php if ($tieneAcceso): ?>
+    <!-- Ya cuenta con membresía / prueba vigente -->
+    <div class="text-center py-5">
+        <div class="display-4 text-success"><i class="bi bi-check-circle-fill"></i></div>
+        <?php if ($estado === 'activa'): ?>
+            <h1 class="h3 mt-3"><?= et('Tu plan ya está activo') ?></h1>
+            <p class="text-muted"><?= et('Plan contratado') ?>: <strong><?= e($planActual) ?></strong></p>
+        <?php else: ?>
+            <h1 class="h3 mt-3"><?= et('Tu prueba sigue activa') ?></h1>
+            <p class="text-muted"><strong><?= (int) $dias ?></strong> <?= et('día(s) restantes') ?></p>
+        <?php endif; ?>
+        <a href="<?= BASE_URL ?>/dashboard" class="btn btn-primary btn-lg mt-2"><i class="bi bi-speedometer2"></i> <?= et('Ir al panel') ?></a>
+        <div class="mt-3"><a href="<?= BASE_URL ?>/auth/logout" class="text-muted small"><?= et('Cerrar sesión') ?></a></div>
+    </div>
+    <?php else: ?>
     <div class="text-center mb-4">
         <div class="display-5 text-brand"><i class="bi bi-lock-fill"></i></div>
         <h1 class="h3 mt-2"><?= e($mensaje) ?></h1>
@@ -111,6 +132,7 @@ $conPago = mp_configurado();
         <br>
         <a href="<?= BASE_URL ?>/auth/logout" class="text-muted">Cerrar sesión</a>
     </div>
+    <?php endif; ?>
 </div>
 </body>
 </html>
