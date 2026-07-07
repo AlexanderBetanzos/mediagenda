@@ -408,4 +408,8 @@ return [
     'Consultas (mes)'=>'Visits (month)','Atendidas hoy'=>'Seen today','Por confirmar'=>'To confirm',
     'Nuevos este mes'=>'New this month','Próximas citas'=>'Upcoming','Próximas citas (7 días)'=>'Upcoming (7 days)',
     'Últimas facturas'=>'Latest invoices','Buenos días'=>'Good morning','Buenas tardes'=>'Good afternoon','Buenas noches'=>'Good evening',
+    // Egresos: CRUD + categorías
+    'Editar egreso'=>'Edit expense','Actualizar egreso'=>'Update expense','Cancelar'=>'Cancel',
+    'Categorías'=>'Categories','Nueva categoría'=>'New category','Sin categorías.'=>'No categories.',
+    '¿Eliminar esta categoría?'=>'Delete this category?','Editar'=>'Edit','Guardar'=>'Save','Acciones'=>'Actions',
 ];

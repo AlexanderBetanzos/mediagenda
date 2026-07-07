@@ -446,3 +446,11 @@ CREATE TABLE IF NOT EXISTS egresos (
   creado_en      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_egr_tenant (consultorio_id, fecha)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS egreso_categorias (
+  id             INT AUTO_INCREMENT PRIMARY KEY,
+  consultorio_id INT NOT NULL DEFAULT 1,
+  nombre         VARCHAR(60) NOT NULL,
+  creado_en      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_egrcat_tenant (consultorio_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
