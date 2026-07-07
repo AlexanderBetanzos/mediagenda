@@ -62,7 +62,10 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
            skin cálido "GymOS" (naranja), donde --brand queda fijado al naranja
            para que íconos de estadística, enlaces y la gráfica combinen. */
         :root { --brand: <?= $acento ?>; --brand-dark: color-mix(in srgb, <?= $acento ?> 78%, #000); }
-        html.app-dark { --brand: #f66f14; --brand-dark: #d85f0f; }
+        /* El panel (claro y oscuro) usa el acento cálido GymOS; la landing
+           pública conserva el color de marca de :root. */
+        html.app-dark  { --brand: #f66f14; --brand-dark: #d85f0f; }
+        html.app-light { --brand: #f66f14; --brand-dark: #d9600f; }
         /* El botón primario oscuro (degradado naranja) se define en style.css. */
     </style>
 </head>

@@ -197,7 +197,15 @@ html.app-dark body, html.app-light body { background: transparent; }
    TEMA CLARO  (panel interno) — estilo SaaS médico: limpio y profesional.
    Barra blanca, sidebar con acentos suaves y tarjetas con sombras sutiles.
    ===================================================================== */
-html.app-light { background: #f4f7fb; color: var(--ink); }
+html.app-light {
+    background:
+        radial-gradient(circle at 12% -8%, rgba(246,111,20,.06), transparent 42%),
+        radial-gradient(circle at 108% 4%, rgba(255,214,10,.06), transparent 40%),
+        #f4f6fa;
+    background-attachment: fixed;
+    color: var(--ink);
+}
+html.app-light a:not(.btn) { color: #d9600f; }
 
 /* ---- Navbar blanca y limpia ---- */
 html.app-light .app-navbar {
@@ -214,7 +222,7 @@ html.app-light .navbar-toggler-icon {
 html.app-light .icon-btn { color: #5b6b82; }
 html.app-light .icon-btn:hover { color: var(--brand); }
 html.app-light .icon-btn .dot { border-color: #fff; }
-html.app-light .avatar-circle { background: linear-gradient(135deg, var(--brand), var(--accent)); color: #fff; }
+html.app-light .avatar-circle { background: linear-gradient(135deg, var(--d-accent), var(--d-accent2)); color: #fff; }
 
 /* ---- Sidebar ---- */
 html.app-light .sidebar {
@@ -231,7 +239,7 @@ html.app-light .sidebar .nav-link .bi { color: #94a3b8; font-size: 1.1rem; }
 html.app-light .sidebar .nav-link:hover { background: #f1f5fa; color: var(--brand-dark); }
 html.app-light .sidebar .nav-link:hover .bi { color: var(--brand); }
 html.app-light .sidebar .nav-link.active {
-    background: linear-gradient(90deg, var(--brand-light), rgba(231,242,251,.35));
+    background: rgba(246,111,20,.10);
     color: var(--brand-dark); font-weight: 600;
     box-shadow: inset 3px 0 0 var(--brand);
 }
