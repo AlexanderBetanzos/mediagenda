@@ -467,4 +467,8 @@ return [
     'Visitas hoy'=>'Visits today','Visitas 7 días'=>'Visits 7 days','Visitas 30 días'=>'Visits 30 days','Visitantes únicos 30d'=>'Unique visitors 30d',
     'Visitas por día · últimos 30 días'=>'Visits per day · last 30 days','Módulos más visitados (30 días)'=>'Most visited modules (30 days)',
     'Área'=>'Area','Módulo'=>'Module','Visitas'=>'Visits','Únicos'=>'Unique','Tráfico por área (30 días)'=>'Traffic by area (30 days)',
+    'visitas a las páginas · sin contar la consola de plataforma'=>'page views · excluding the platform console',
+    'Aún no hay visitas registradas. En cuanto alguien navegue el sitio público, el panel del consultorio o el portal del paciente, aquí aparecerán las estadísticas.'=>'No visits recorded yet. As soon as someone browses the public site, the clinic panel or the patient portal, stats will appear here.',
+    'Visitas (7 días)'=>'Visits (7 days)','Visitas (30 días)'=>'Visits (30 days)','Visitantes únicos (30 días)'=>'Unique visitors (30 days)',
+    'Módulos más visitados'=>'Most visited modules','Tráfico por área'=>'Traffic by area','Consultas 30d'=>'Visits 30d','Acción'=>'Action',
 ];

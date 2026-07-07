@@ -65,11 +65,13 @@ $convRate   = $trialsWith > 0 ? round($trialsConv / $trialsWith * 100) : 0;
 
 /* Top consultorios por GMV del mes */
 $top = $pdo->query(
-    "SELECT c.id, c.nombre, c.plan,
+    "SELECT c.id, c.nombre, c.plan, c.estado,
         (SELECT COALESCE(SUM(f.total),0) FROM facturas f WHERE f.consultorio_id=c.id AND f.estado='pagada' AND MONTH(f.fecha)=MONTH(CURDATE()) AND YEAR(f.fecha)=YEAR(CURDATE())) gmv,
-        (SELECT COUNT(*) FROM pacientes p WHERE p.consultorio_id=c.id) pac
+        (SELECT COUNT(*) FROM pacientes p WHERE p.consultorio_id=c.id) pac,
+        (SELECT COUNT(*) FROM consultas co WHERE co.consultorio_id=c.id AND co.fecha >= DATE_SUB(NOW(), INTERVAL 30 DAY)) cons30
      FROM consultorios c ORDER BY gmv DESC, pac DESC LIMIT 8"
 )->fetchAll();
+$estBadge = ['activa' => 'success', 'trial' => 'info', 'suspendida' => 'danger', 'expirada' => 'secondary'];
 
 /* Pruebas por vencer (próximos 15 días) */
 $trialsSoon = $pdo->query(
@@ -186,17 +188,24 @@ include __DIR__ . '/_head.php';
     <div class="col-lg-7"><div class="card h-100">
         <div class="card-header fw-semibold"><i class="bi bi-trophy text-brand"></i> <?= et('Top consultorios (por GMV del mes)') ?></div>
         <div class="table-responsive"><table class="table align-middle mb-0">
-            <thead><tr><th><?= et('Consultorio') ?></th><th><?= et('Plan') ?></th><th class="text-center"><?= et('Pacientes') ?></th><th class="text-end"><?= et('GMV del mes') ?></th></tr></thead>
+            <thead><tr><th><?= et('Consultorio') ?></th><th><?= et('Plan') ?></th><th class="text-end"><?= et('GMV del mes') ?></th><th class="text-end"><?= et('Pacientes') ?></th><th class="text-end"><?= et('Consultas 30d') ?></th><th class="text-end"><?= et('Acción') ?></th></tr></thead>
             <tbody>
             <?php foreach ($top as $tr): ?>
                 <tr>
-                    <td class="fw-semibold"><a href="<?= BASE_URL ?>/platform/consultorio?id=<?= (int) $tr['id'] ?>" class="text-decoration-none"><?= e($tr['nombre']) ?></a></td>
-                    <td class="small text-uppercase"><?= e($planNombre[$tr['plan']] ?? $tr['plan']) ?></td>
-                    <td class="text-center"><?= (int) $tr['pac'] ?></td>
+                    <td class="fw-semibold"><?= e($tr['nombre']) ?></td>
+                    <td><span class="badge bg-<?= $estBadge[$tr['estado']] ?? 'secondary' ?>"><?= e($planNombre[$tr['plan']] ?? $tr['plan']) ?></span></td>
                     <td class="text-end fw-bold text-success"><?= fmt_money($tr['gmv']) ?></td>
+                    <td class="text-end"><?= (int) $tr['pac'] ?></td>
+                    <td class="text-end"><?= (int) $tr['cons30'] ?></td>
+                    <td class="text-end">
+                        <form method="post" action="<?= BASE_URL ?>/platform/impersonar" class="d-inline m-0">
+                            <?= csrf_field() ?><input type="hidden" name="id" value="<?= (int) $tr['id'] ?>">
+                            <button class="btn btn-sm btn-outline-success" title="<?= e(t('Entrar como este consultorio')) ?>"><i class="bi bi-box-arrow-in-right"></i></button>
+                        </form>
+                    </td>
                 </tr>
             <?php endforeach; ?>
-            <?php if (!$top): ?><tr><td colspan="4" class="text-center text-muted py-4"><?= et('Sin datos.') ?></td></tr><?php endif; ?>
+            <?php if (!$top): ?><tr><td colspan="6" class="text-center text-muted py-4"><?= et('Sin datos.') ?></td></tr><?php endif; ?>
             </tbody>
         </table></div>
     </div></div>
@@ -234,24 +243,22 @@ include __DIR__ . '/_head.php';
 </div>
 
 <!-- ── Tráfico del sitio ─────────────────────────────────────────────── -->
-<div class="d-flex align-items-center gap-2 mt-4 mb-3">
+<div class="d-flex align-items-center gap-2 mt-4 mb-2">
     <h2 class="h4 fw-bold mb-0"><i class="bi bi-graph-up-arrow text-brand"></i> <?= et('Tráfico del sitio') ?></h2>
-    <span class="text-muted small"><?= et('excluye la consola de plataforma') ?></span>
+    <span class="text-muted small"><?= et('visitas a las páginas · sin contar la consola de plataforma') ?></span>
 </div>
 
 <?php if (!$hasViews): ?>
-<div class="card"><div class="card-body text-center text-muted py-4">
-    <i class="bi bi-bar-chart-line fs-3 d-block mb-2"></i>
-    <?= et('Aún no hay datos de tráfico. Se registran automáticamente a partir de ahora.') ?>
-</div></div>
-<?php else: ?>
+<div class="alert alert-info d-flex align-items-center gap-2">
+    <i class="bi bi-info-circle"></i> <?= et('Aún no hay visitas registradas. En cuanto alguien navegue el sitio público, el panel del consultorio o el portal del paciente, aquí aparecerán las estadísticas.') ?>
+</div>
+<?php endif; ?>
 
 <div class="row g-3 mb-3">
-    <?php foreach ([[et('Visitas hoy'), $visHoy], [et('Visitas 7 días'), $vis7], [et('Visitas 30 días'), $vis30], [et('Visitantes únicos 30d'), $uniq30]] as [$lbl, $val]): ?>
-    <div class="col-6 col-lg-3"><div class="card stat-card h-100"><div class="card-body">
-        <div class="stat-num" style="font-size:1.6rem"><?= number_format($val) ?></div><div class="stat-label mt-1"><?= e($lbl) ?></div>
-    </div></div></div>
-    <?php endforeach; ?>
+    <div class="col-6 col-lg-3"><div class="card stat-card h-100"><div class="card-body"><div class="stat-num" style="font-size:1.6rem"><?= number_format($visHoy) ?></div><div class="stat-label mt-1"><?= et('Visitas hoy') ?></div></div></div></div>
+    <div class="col-6 col-lg-3"><div class="card stat-card h-100"><div class="card-body"><div class="stat-num" style="font-size:1.6rem"><?= number_format($vis7) ?></div><div class="stat-label mt-1"><?= et('Visitas (7 días)') ?></div></div></div></div>
+    <div class="col-6 col-lg-3"><div class="card stat-card h-100"><div class="card-body"><div class="stat-num" style="font-size:1.6rem"><?= number_format($vis30) ?></div><div class="stat-label mt-1"><?= et('Visitas (30 días)') ?></div></div></div></div>
+    <div class="col-6 col-lg-3"><div class="card stat-card h-100"><div class="card-body"><div class="stat-num" style="font-size:1.6rem;color:#38bdf8"><?= number_format($uniq30) ?></div><div class="stat-label mt-1"><?= et('Visitantes únicos (30 días)') ?></div></div></div></div>
 </div>
 
 <div class="card mb-3">
@@ -260,33 +267,34 @@ include __DIR__ . '/_head.php';
 </div>
 
 <div class="row g-3">
-    <div class="col-lg-7"><div class="card h-100">
-        <div class="card-header fw-semibold"><i class="bi bi-fire text-brand"></i> <?= et('Módulos más visitados (30 días)') ?></div>
+    <div class="col-lg-8"><div class="card h-100">
+        <div class="card-header fw-semibold"><?= et('Módulos más visitados') ?> <span class="text-muted small">(30 <?= et('días') ?>)</span></div>
         <div class="table-responsive"><table class="table align-middle mb-0">
-            <thead><tr><th><?= et('Área') ?></th><th><?= et('Módulo') ?></th><th class="text-end"><?= et('Visitas') ?></th><th class="text-end"><?= et('Únicos') ?></th></tr></thead>
+            <thead><tr><th><?= et('Módulo') ?></th><th><?= et('Área') ?></th><th class="text-end"><?= et('Visitas') ?></th><th class="text-end"><?= et('Únicos') ?></th></tr></thead>
             <tbody>
             <?php foreach ($topModules as $m): ?>
                 <tr>
-                    <td class="small text-muted"><?= e(pageview_area_label($m['area'])) ?></td>
-                    <td class="small fw-semibold"><?= e(pageview_module_label($m['area'], $m['path'])) ?></td>
+                    <td class="fw-semibold"><?= e(pageview_module_label($m['area'], $m['path'])) ?></td>
+                    <td class="text-muted small"><?= e(pageview_area_label($m['area'])) ?></td>
                     <td class="text-end fw-bold"><?= number_format($m['n']) ?></td>
-                    <td class="text-end text-muted"><?= number_format($m['u']) ?></td>
+                    <td class="text-end"><?= number_format($m['u']) ?></td>
                 </tr>
             <?php endforeach; ?>
+            <?php if (!$topModules): ?><tr><td colspan="4" class="text-center text-muted py-3"><?= et('Sin datos aún.') ?></td></tr><?php endif; ?>
             </tbody>
         </table></div>
     </div></div>
-    <div class="col-lg-5"><div class="card h-100">
-        <div class="card-header fw-semibold"><i class="bi bi-pie-chart text-brand"></i> <?= et('Tráfico por área (30 días)') ?></div>
+    <div class="col-lg-4"><div class="card h-100">
+        <div class="card-header fw-semibold"><?= et('Tráfico por área') ?> <span class="text-muted small">(30 <?= et('días') ?>)</span></div>
         <div class="card-body">
-            <?php foreach ($byArea as $a): $pct = round($a['n'] / $areaTotal * 100); ?>
-                <div class="d-flex justify-content-between small"><span><?= e(pageview_area_label($a['area'])) ?></span><strong><?= number_format($a['n']) ?> <span class="text-muted">(<?= $pct ?>%)</span></strong></div>
+            <?php if (!$byArea): ?><p class="text-muted small mb-0"><?= et('Sin datos aún.') ?></p>
+            <?php else: foreach ($byArea as $a): $pct = round($a['n'] / $areaTotal * 100); ?>
+                <div class="d-flex justify-content-between small"><span><?= e(pageview_area_label($a['area'])) ?></span><strong><?= number_format($a['n']) ?> · <?= $pct ?>%</strong></div>
                 <div class="progress my-1" style="height:6px"><div class="progress-bar" style="width:<?= $pct ?>%;background:var(--brand)"></div></div>
-            <?php endforeach; ?>
+            <?php endforeach; endif; ?>
         </div>
     </div></div>
 </div>
-<?php endif; ?>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
