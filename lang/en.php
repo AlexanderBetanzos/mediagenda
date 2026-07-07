@@ -473,4 +473,7 @@ return [
     'Módulos más visitados'=>'Most visited modules','Tráfico por área'=>'Traffic by area','Consultas 30d'=>'Visits 30d','Acción'=>'Action',
     'Tu plan ya está activo'=>'Your plan is already active','Tu prueba sigue activa'=>'Your trial is still active',
     'día(s) restantes'=>'day(s) remaining','Ir al panel'=>'Go to dashboard',
+    'Foto del paciente'=>'Patient photo','Tomar foto con la cámara'=>'Take photo with camera','Abriendo cámara…'=>'Opening camera…',
+    'Actualizar cámaras'=>'Refresh cameras','Capturar'=>'Capture',
+    'Sube una imagen del dispositivo o tómala con la cámara (PC o celular).'=>'Upload an image from your device or take it with the camera (PC or phone).',
 ];

@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../includes/functions.php';
 require_login();
+try { db()->exec("ALTER TABLE pacientes ADD COLUMN IF NOT EXISTS foto VARCHAR(255) DEFAULT NULL"); } catch (Throwable $e) {}
 
 $id = (int) ($_GET['id'] ?? $_POST['id'] ?? 0);
 $stmt = db()->prepare('SELECT * FROM pacientes WHERE id = ? AND consultorio_id = ?');
@@ -19,6 +20,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!$errores) {
         $campos = paciente_post_campos($p);
+        $foto = guardar_foto_paciente($_FILES['foto'] ?? null);
+        if ($foto) { eliminar_foto_paciente($p['foto'] ?? null); $campos['foto'] = $foto; }
         $set    = implode(' = ?, ', array_keys($campos)) . ' = ?';
         $stmt = db()->prepare("UPDATE pacientes SET $set WHERE id = ? AND consultorio_id = ?");
         $stmt->execute(array_merge(array_values($campos), [$id, tenant_id()]));
@@ -45,7 +48,7 @@ include __DIR__ . '/../includes/header.php';
     <div class="alert alert-danger"><ul class="mb-0"><?php foreach ($errores as $e) echo '<li>' . e($e) . '</li>'; ?></ul></div>
 <?php endif; ?>
 
-<form method="post" class="card">
+<form method="post" class="card" enctype="multipart/form-data">
     <div class="card-body">
         <?= csrf_field() ?>
         <input type="hidden" name="id" value="<?= $id ?>">

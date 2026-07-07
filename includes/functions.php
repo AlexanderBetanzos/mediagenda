@@ -692,6 +692,40 @@ function archivo_max_bytes(): int
     return 10 * 1024 * 1024; // 10 MB
 }
 
+/**
+ * Guarda la foto de un paciente (imagen jpg/png/webp). Devuelve la ruta
+ * relativa (usable con BASE_URL) o null si no vino o no es válida.
+ */
+function guardar_foto_paciente(?array $f): ?string
+{
+    if (!$f || ($f['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) return null;
+    if ($f['error'] !== UPLOAD_ERR_OK || !is_uploaded_file($f['tmp_name'])) return null;
+    if ($f['size'] > 6 * 1024 * 1024) return null; // 6 MB
+    $mime = (new finfo(FILEINFO_MIME_TYPE))->file($f['tmp_name']) ?: '';
+    $ext  = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'][$mime] ?? null;
+    if (!$ext) return null;
+    $dir = __DIR__ . '/../uploads/pacientes/' . tenant_id();
+    if (!is_dir($dir)) { @mkdir($dir, 0775, true); }
+    $nombre = bin2hex(random_bytes(12)) . '.' . $ext;
+    if (!move_uploaded_file($f['tmp_name'], $dir . '/' . $nombre)) return null;
+    return 'uploads/pacientes/' . tenant_id() . '/' . $nombre;
+}
+
+/** Borra del disco la foto de un paciente (si existe). */
+function eliminar_foto_paciente(?string $ruta): void
+{
+    if (!$ruta) return;
+    $ruta = str_replace(['..', "\0"], '', $ruta);
+    $abs  = __DIR__ . '/../' . ltrim($ruta, '/');
+    if (is_file($abs)) { @unlink($abs); }
+}
+
+/** URL pública de la foto de un paciente (o '' si no tiene). */
+function foto_paciente_url(?string $ruta): string
+{
+    return $ruta ? BASE_URL . '/' . ltrim($ruta, '/') : '';
+}
+
 /** Carpeta física donde se guardan los archivos de un paciente (la crea si falta). */
 function archivo_dir(int $paciente_id): string
 {

@@ -165,7 +165,11 @@ include __DIR__ . '/../includes/header.php';
 </nav>
 
 <div class="d-flex flex-wrap justify-content-between align-items-start mb-3 gap-2">
-    <div>
+    <div class="d-flex align-items-center gap-3">
+        <?php $fu = foto_paciente_url($p['foto'] ?? null); $ini = strtoupper(mb_substr($p['nombre'], 0, 1) . mb_substr($p['apellidos'], 0, 1)); ?>
+        <?php if ($fu): ?><img src="<?= e($fu) ?>" class="rounded-circle border flex-shrink-0" style="width:72px;height:72px;object-fit:cover" alt="">
+        <?php else: ?><span class="rounded-circle d-inline-flex align-items-center justify-content-center fw-bold flex-shrink-0" style="width:72px;height:72px;background:color-mix(in srgb,var(--brand) 18%,transparent);color:var(--brand);font-size:1.4rem"><?= e($ini) ?></span><?php endif; ?>
+        <div>
         <h1 class="h3 mb-1">
             <?= e($p['nombre'].' '.$p['apellidos']) ?>
             <span class="badge bg-<?= $p['tipo'] === 'dental' ? 'info' : 'primary' ?> align-middle">
@@ -178,6 +182,7 @@ include __DIR__ . '/../includes/header.php';
             <?php if (!empty($p['tipo_sangre'])): ?> · <span class="badge bg-danger-subtle text-danger border"><i class="bi bi-droplet-half"></i> <?= e($p['tipo_sangre']) ?></span><?php endif; ?>
             <?php if ($bmi): ?> · <span class="badge bg-<?= $bmi['color'] ?>-subtle text-<?= $bmi['color'] ?> border" title="<?= et('Índice de masa corporal (última consulta)') ?>">IMC <?= $bmi['valor'] ?> · <?= e(t($bmi['categoria'])) ?></span><?php endif; ?>
         </span>
+        </div>
     </div>
     <div class="text-nowrap">
         <a href="<?= BASE_URL ?>/citas/create?paciente_id=<?= $id ?>" class="btn btn-outline-primary"><i class="bi bi-calendar-plus"></i> <?= et('Cita') ?></a>

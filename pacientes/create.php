@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../includes/functions.php';
 require_login();
+try { db()->exec("ALTER TABLE pacientes ADD COLUMN IF NOT EXISTS foto VARCHAR(255) DEFAULT NULL"); } catch (Throwable $e) {}
 
 $errores = [];
 $p = [];
@@ -14,6 +15,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!$errores) {
         $campos = paciente_post_campos($p);
+        $foto = guardar_foto_paciente($_FILES['foto'] ?? null);
+        if ($foto) $campos['foto'] = $foto;
         $cols   = array_keys($campos);
         $ph     = implode(',', array_fill(0, count($cols) + 1, '?'));
         $stmt = db()->prepare(
@@ -43,7 +46,7 @@ include __DIR__ . '/../includes/header.php';
     <div class="alert alert-danger"><ul class="mb-0"><?php foreach ($errores as $e) echo '<li>' . e($e) . '</li>'; ?></ul></div>
 <?php endif; ?>
 
-<form method="post" class="card">
+<form method="post" class="card" enctype="multipart/form-data">
     <div class="card-body">
         <?= csrf_field() ?>
         <?php include __DIR__ . '/_form.php'; ?>

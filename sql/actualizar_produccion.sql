@@ -451,6 +451,10 @@ CREATE TABLE IF NOT EXISTS egreso_categorias (
   id             INT AUTO_INCREMENT PRIMARY KEY,
   consultorio_id INT NOT NULL DEFAULT 1,
   nombre         VARCHAR(60) NOT NULL,
+  activo         TINYINT(1) NOT NULL DEFAULT 1,
   creado_en      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_egrcat_tenant (consultorio_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Foto del paciente (ruta relativa a la app)
+ALTER TABLE pacientes ADD COLUMN IF NOT EXISTS foto VARCHAR(255) DEFAULT NULL;
