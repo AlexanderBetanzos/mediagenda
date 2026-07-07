@@ -76,9 +76,11 @@ foreach ($planes as $clave => $p) { $planNombre[$clave] = $p['nombre']; $planPre
 /* ── Listado con métricas ───────────────────────────────────────────── */
 $consultorios = $pdo->query(
     "SELECT c.*,
-            (SELECT COUNT(*) FROM usuarios  u  WHERE u.consultorio_id  = c.id) n_usuarios,
-            (SELECT COUNT(*) FROM pacientes p  WHERE p.consultorio_id  = c.id) n_pacientes,
-            (SELECT COUNT(*) FROM citas     ci WHERE ci.consultorio_id = c.id) n_citas
+            (SELECT COUNT(*) FROM pacientes p WHERE p.consultorio_id = c.id) n_pacientes,
+            (SELECT COUNT(*) FROM usuarios  u WHERE u.consultorio_id = c.id AND u.rol='admin') n_admins,
+            (SELECT u.nombre FROM usuarios u WHERE u.consultorio_id = c.id AND u.rol='admin' ORDER BY u.es_superadmin DESC, u.id LIMIT 1) admin_nombre,
+            (SELECT u.email  FROM usuarios u WHERE u.consultorio_id = c.id AND u.rol='admin' ORDER BY u.es_superadmin DESC, u.id LIMIT 1) admin_email,
+            (SELECT MAX(u.es_superadmin) FROM usuarios u WHERE u.consultorio_id = c.id AND u.rol='admin') admin_super
      FROM consultorios c
      ORDER BY (c.estado='suspendida') DESC, c.creado_en DESC"
 )->fetchAll();
@@ -162,6 +164,22 @@ include __DIR__ . '/_head.php';
     </div></div>
 </div>
 
+<style>
+.plat-table th { font-size:.68rem; text-transform:uppercase; letter-spacing:.05em; white-space:nowrap; }
+.plat-table td { vertical-align:middle; }
+.slug-link { color:#ffb066; text-decoration:none; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.84rem; }
+.slug-link:hover { color:#ffc38a; text-decoration:underline; }
+.plat-pill { display:inline-flex; align-items:center; gap:.3rem; font-size:.64rem; font-weight:700; padding:.12rem .45rem; border-radius:999px; background:rgba(246,111,20,.18); color:#ffb066; }
+.act-btns { display:inline-flex; gap:.35rem; justify-content:flex-end; }
+.act-btn { width:34px; height:30px; display:inline-flex; align-items:center; justify-content:center; border-radius:8px; border:1px solid transparent; background:transparent; font-size:.9rem; line-height:1; padding:0; text-decoration:none; transition:filter .15s ease, background-color .15s ease; }
+.act-btn:hover { filter:brightness(1.25); }
+.act-btn.g { color:#22c55e; border-color:rgba(34,197,94,.45);  background:rgba(34,197,94,.12); }
+.act-btn.o { color:#f66f14; border-color:rgba(246,111,20,.45); background:rgba(246,111,20,.12); }
+.act-btn.b { color:#38bdf8; border-color:rgba(56,189,248,.45); background:rgba(56,189,248,.12); }
+.act-btn.y { color:#f59e0b; border-color:rgba(245,158,11,.45); background:rgba(245,158,11,.12); }
+.act-btn.r { color:#ef4444; border-color:rgba(239,68,68,.45);  background:rgba(239,68,68,.12); }
+</style>
+
 <!-- Listado de consultorios -->
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
@@ -169,52 +187,60 @@ include __DIR__ . '/_head.php';
         <input type="search" id="buscar" class="form-control form-control-sm" style="max-width:240px" placeholder="<?= e(t('Buscar consultorio…')) ?>">
     </div>
     <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0" id="tabla">
+        <table class="table table-hover align-middle mb-0 plat-table" id="tabla">
             <thead>
-                <tr><th><?= et('Consultorio') ?></th><th><?= et('Plan') ?></th><th><?= et('Estado') ?></th><th><?= et('Prueba/Vence') ?></th><th class="text-center"><?= et('Usuarios') ?></th><th class="text-center"><?= et('Pacientes') ?></th><th class="text-center"><?= et('Citas') ?></th><th class="text-end"><?= et('Acciones') ?></th></tr>
+                <tr>
+                    <th><?= et('Consultorio') ?></th><th><?= et('Slug') ?></th><th><?= et('Plan') ?></th>
+                    <th><?= et('Estado') ?></th><th><?= et('Vence') ?></th><th><?= et('Último pago') ?></th>
+                    <th class="text-center"><?= et('Pacientes') ?></th><th><?= et('Admins') ?></th>
+                    <th><?= et('Alta') ?></th><th class="text-end"><?= et('Acciones') ?></th>
+                </tr>
             </thead>
             <tbody>
             <?php if (!$consultorios): ?>
-                <tr><td colspan="8" class="text-center text-muted py-4"><?= et('Aún no hay consultorios registrados.') ?></td></tr>
+                <tr><td colspan="10" class="text-center text-muted py-4"><?= et('Aún no hay consultorios registrados.') ?></td></tr>
             <?php else: foreach ($consultorios as $c):
                 $dias = (int) floor((strtotime($c['trial_fin']) - strtotime('today')) / 86400); ?>
-                <tr data-buscar="<?= e(mb_strtolower($c['nombre'] . ' ' . $c['email'])) ?>">
+                <tr data-buscar="<?= e(mb_strtolower($c['nombre'] . ' ' . $c['email'] . ' ' . $c['slug'])) ?>">
                     <td>
                         <div class="fw-semibold"><?= e($c['nombre']) ?><?php if ($c['id'] == 1): ?> <span class="badge bg-secondary bg-opacity-50"><?= et('principal') ?></span><?php endif; ?></div>
-                        <div class="small text-muted"><i class="bi bi-envelope"></i> <?= e($c['email']) ?><?php if (!empty($c['telefono'])): ?> · <i class="bi bi-telephone"></i> <?= e($c['telefono']) ?><?php endif; ?></div>
+                        <div class="small text-muted"><i class="bi bi-envelope"></i> <?= e($c['email']) ?></div>
                     </td>
-                    <td class="small"><i class="bi bi-stars text-brand"></i> <?= e($planNombre[$c['plan']] ?? ucfirst($c['plan'])) ?><?php if (($planPrecio[$c['plan']] ?? 0) > 0): ?><div class="text-muted"><?= fmt_money($planPrecio[$c['plan']]) ?>/mes</div><?php endif; ?></td>
-                    <td><span class="badge bg-<?= $badge[$c['estado']] ?? 'secondary' ?>"><?= et(ucfirst($c['estado'])) ?></span></td>
+                    <td><a class="slug-link" href="<?= BASE_URL ?>/platform/consultorio?id=<?= $c['id'] ?>">/<?= e($c['slug']) ?></a></td>
+                    <td class="fw-semibold text-uppercase small"><?= e($planNombre[$c['plan']] ?? $c['plan']) ?></td>
+                    <td><span class="badge rounded-pill text-bg-<?= $badge[$c['estado']] ?? 'secondary' ?>"><?= et(ucfirst($c['estado'])) ?></span></td>
                     <td class="small">
                         <?php if ($c['estado'] === 'trial'): ?>
                             <?= fmt_fecha($c['trial_fin']) ?>
                             <span class="badge bg-<?= $dias < 0 ? 'danger' : ($dias <= 3 ? 'warning' : 'secondary') ?>"><?= $dias < 0 ? et('vencida') : $dias . ' ' . et('días') ?></span>
-                        <?php elseif ($c['estado'] === 'activa'): ?><span class="text-success"><?= et('Sin caducidad') ?></span>
-                        <?php else: ?>—<?php endif; ?>
+                        <?php else: ?><span class="text-muted">—</span><?php endif; ?>
                     </td>
-                    <td class="text-center"><?= (int) $c['n_usuarios'] ?></td>
+                    <td class="small text-muted">—</td>
                     <td class="text-center"><?= (int) $c['n_pacientes'] ?></td>
-                    <td class="text-center"><?= (int) $c['n_citas'] ?></td>
-                    <td class="text-end text-nowrap">
-                        <div class="btn-group">
-                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown"><?= et('Gestionar') ?></button>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li>
-                                    <form method="post" action="<?= BASE_URL ?>/platform/impersonar" class="m-0">
-                                        <?= csrf_field() ?><input type="hidden" name="id" value="<?= $c['id'] ?>">
-                                        <button class="dropdown-item"><i class="bi bi-box-arrow-in-right me-2"></i><?= et('Entrar como este consultorio') ?></button>
-                                    </form>
-                                </li>
-                                <li><a class="dropdown-item" href="<?= BASE_URL ?>/platform/consultorio?id=<?= $c['id'] ?>"><i class="bi bi-stars me-2"></i><?= et('Plan y módulos') ?></a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><button form="f<?= $c['id'] ?>" name="accion" value="extender" class="dropdown-item"><i class="bi bi-stopwatch me-2"></i><?= et('Extender prueba 15 días') ?></button></li>
-                                <li><button form="f<?= $c['id'] ?>" name="accion" value="activar" class="dropdown-item text-success"><i class="bi bi-check-circle me-2"></i><?= et('Activar membresía') ?></button></li>
-                                <?php if ($c['id'] != 1): ?>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><button form="f<?= $c['id'] ?>" name="accion" value="suspender" class="dropdown-item text-danger" onclick="return confirm('¿Suspender este consultorio? Perderá el acceso.');"><i class="bi bi-pause-circle me-2"></i><?= et('Suspender') ?></button></li>
-                                <li><button form="f<?= $c['id'] ?>" name="accion" value="eliminar" class="dropdown-item text-danger fw-semibold" onclick="return confirm('¿ELIMINAR «<?= e(addslashes($c['nombre'])) ?>» y TODOS sus datos?\n\nEsta acción NO se puede deshacer.');"><i class="bi bi-trash me-2"></i><?= et('Eliminar definitivamente') ?></button></li>
-                                <?php endif; ?>
-                            </ul>
+                    <td>
+                        <span class="plat-pill"><i class="bi bi-person-fill"></i> <?= (int) $c['n_admins'] ?> admin</span>
+                        <?php if ($c['admin_nombre']): ?>
+                            <div class="small fw-semibold mt-1"><?= e($c['admin_nombre']) ?><?php if (!empty($c['admin_super'])): ?> <span class="badge bg-secondary bg-opacity-50" style="font-size:.6rem">superadmin</span><?php endif; ?></div>
+                            <div class="small"><a class="slug-link" href="mailto:<?= e($c['admin_email']) ?>"><i class="bi bi-envelope"></i> <?= e($c['admin_email']) ?></a></div>
+                        <?php endif; ?>
+                    </td>
+                    <td class="small text-muted"><?= fmt_fecha($c['creado_en']) ?></td>
+                    <td class="text-end">
+                        <div class="act-btns">
+                            <form method="post" action="<?= BASE_URL ?>/platform/impersonar" class="d-inline m-0">
+                                <?= csrf_field() ?><input type="hidden" name="id" value="<?= $c['id'] ?>">
+                                <button class="act-btn g" title="<?= e(t('Entrar como este consultorio')) ?>"><i class="bi bi-box-arrow-in-right"></i></button>
+                            </form>
+                            <a class="act-btn o" href="<?= BASE_URL ?>/platform/consultorio?id=<?= $c['id'] ?>" title="<?= e(t('Plan y módulos')) ?>"><i class="bi bi-sliders2"></i></a>
+                            <button form="f<?= $c['id'] ?>" name="accion" value="extender" class="act-btn b" title="<?= e(t('Extender prueba 15 días')) ?>"><i class="bi bi-stopwatch"></i></button>
+                            <?php if ($c['estado'] === 'suspendida'): ?>
+                                <button form="f<?= $c['id'] ?>" name="accion" value="activar" class="act-btn g" title="<?= e(t('Activar membresía')) ?>"><i class="bi bi-play-fill"></i></button>
+                            <?php elseif ($c['id'] != 1): ?>
+                                <button form="f<?= $c['id'] ?>" name="accion" value="suspender" class="act-btn y" onclick="return confirm('¿Suspender este consultorio? Perderá el acceso.');" title="<?= e(t('Suspender')) ?>"><i class="bi bi-pause-fill"></i></button>
+                            <?php endif; ?>
+                            <?php if ($c['id'] != 1): ?>
+                                <button form="f<?= $c['id'] ?>" name="accion" value="eliminar" class="act-btn r" onclick="return confirm('¿ELIMINAR «<?= e(addslashes($c['nombre'])) ?>» y TODOS sus datos?\n\nEsta acción NO se puede deshacer.');" title="<?= e(t('Eliminar definitivamente')) ?>"><i class="bi bi-trash"></i></button>
+                            <?php endif; ?>
                         </div>
                         <form id="f<?= $c['id'] ?>" method="post" class="d-none"><?= csrf_field() ?><input type="hidden" name="id" value="<?= $c['id'] ?>"></form>
                     </td>

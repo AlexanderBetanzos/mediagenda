@@ -431,4 +431,5 @@ return [
     'La plataforma aún no tiene súper usuario. Inicia sesión en el sistema como súper-admin y vuelve a esta página para crearlo.'=>'The platform has no super user yet. Log in to the system as super-admin and come back here to create it.',
     'Plan contratado'=>'Current plan','Guardar plan'=>'Save plan','Módulos'=>'Modules','Guardar módulos'=>'Save modules',
     'en el plan'=>'in plan','desactivado'=>'disabled','Estado:'=>'Status:',
+    'Slug'=>'Slug','Vence'=>'Expires','Último pago'=>'Last payment','Admins'=>'Admins','Alta'=>'Signed up',
 ];
