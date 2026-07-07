@@ -444,4 +444,10 @@ return [
     'día(s) con movimientos'=>'day(s) with movements','Movimientos'=>'Movements','Total del día'=>"Day's total",
     'Neto'=>'Net','Ver corte'=>'View close','Sin cortes en el último mes.'=>'No closes in the last month.',
     'Venta'=>'Sale','Factura'=>'Invoice','En línea'=>'Online',
+    // Egresos (paridad GymOS)
+    'Filtrar'=>'Filter','Todas'=>'All','Ingresos del periodo'=>'Income for period','Egresos del periodo'=>'Expenses for period',
+    'Balance (utilidad)'=>'Balance (profit)','Egresos por categoría'=>'Expenses by category','Administrar'=>'Manage',
+    'Crea una categoría abajo'=>'Create a category below','Activa (aparece al registrar)'=>'Active (shown when adding)',
+    'Desactiva una categoría para ocultarla al registrar, sin perder su historial. Solo puedes eliminar categorías sin egresos.'=>'Deactivate a category to hide it when adding, without losing its history. You can only delete categories with no expenses.',
+    'Sin egresos en el periodo.'=>'No expenses in this period.','Buscar…'=>'Search…',
 ];
