@@ -2,6 +2,7 @@
 /** Cabecera del portal del paciente. Define $titulo antes de incluir. */
 $pac = current_paciente();
 $marca = marca_nombre();
+if (function_exists('track_pageview')) track_pageview('portal');
 ?>
 <!doctype html>
 <html lang="es" class="app-light" data-bs-theme="light">

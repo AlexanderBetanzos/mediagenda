@@ -6,6 +6,7 @@
  */
 require_once __DIR__ . '/functions.php';
 require_login();
+track_pageview('panel');
 
 $u      = current_user();
 $titulo = $titulo ?? APP_NAME;

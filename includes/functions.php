@@ -464,6 +464,94 @@ function ensure_plataforma_admins_table(): void
     );
 }
 
+/* --------------------------------------------------------------------
+ *  Analítica de tráfico (pageviews) — para las métricas de plataforma.
+ * ------------------------------------------------------------------ */
+
+/** Crea la tabla de visitas si no existe. */
+function ensure_pageviews_table(): void
+{
+    db()->exec(
+        "CREATE TABLE IF NOT EXISTS pageviews (
+            id BIGINT AUTO_INCREMENT PRIMARY KEY,
+            area VARCHAR(20) NOT NULL,
+            path VARCHAR(120) NOT NULL,
+            consultorio_id INT NULL,
+            actor_type VARCHAR(20) NOT NULL DEFAULT 'guest',
+            visitor CHAR(32) NULL,
+            ip VARCHAR(45) NULL,
+            ua VARCHAR(255) NULL,
+            referer VARCHAR(255) NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_created (created_at),
+            INDEX idx_area_created (area, created_at),
+            INDEX idx_visitor (visitor)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
+    );
+}
+
+/**
+ * Registra una visita (una vez por request GET). Áreas:
+ * 'publico' | 'panel' | 'portal' | 'plataforma'. Nunca rompe la página.
+ */
+function track_pageview(string $area): void
+{
+    static $done = false;
+    if ($done) return;
+    $done = true;
+    if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') return;
+
+    $ua = (string) ($_SERVER['HTTP_USER_AGENT'] ?? '');
+    if ($ua !== '' && preg_match('~bot|crawl|spider|slurp|bingpreview|facebookexternalhit|preview|monitor|headless|curl|wget|python-requests~i', $ua)) return;
+
+    try {
+        ensure_pageviews_table();
+        $vid = (string) ($_COOKIE['viz'] ?? '');
+        if (!preg_match('/^[a-f0-9]{32}$/', $vid)) {
+            $vid = bin2hex(random_bytes(16));
+            if (!headers_sent()) {
+                $https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+                    || (($_SERVER['SERVER_PORT'] ?? '') == 443)
+                    || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
+                setcookie('viz', $vid, ['expires' => time() + 31536000, 'path' => '/', 'secure' => $https, 'httponly' => true, 'samesite' => 'Lax']);
+            }
+        }
+        $path = trim(str_replace(BASE_URL, '', (string) ($_SERVER['SCRIPT_NAME'] ?? '')), '/') ?: 'index.php';
+        $actor = platform_admin() ? 'platform' : (is_logged_in() ? 'admin' : (current_paciente() ? 'member' : 'guest'));
+        $ip = (string) ($_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '');
+        if (strpos($ip, ',') !== false) $ip = trim(explode(',', $ip)[0]);
+        $ref = (string) ($_SERVER['HTTP_REFERER'] ?? '');
+        db()->prepare("INSERT INTO pageviews (area, path, consultorio_id, actor_type, visitor, ip, ua, referer) VALUES (?,?,?,?,?,?,?,?)")
+            ->execute([$area, substr($path, 0, 120), tenant_id(), $actor, $vid, substr($ip, 0, 45), substr($ua, 0, 255), substr($ref, 0, 255)]);
+    } catch (Throwable $e) { /* silencioso */ }
+}
+
+/** Nombre legible de un módulo a partir de su ruta, para reportes de tráfico. */
+function pageview_module_label(string $area, string $path): string
+{
+    if ($path === 'index.php' || $path === '') return $area === 'publico' ? 'Inicio' : ucfirst($area);
+    if ($path === 'dashboard.php') return 'Dashboard';
+    $folders = [
+        'citas' => 'Agenda', 'pacientes' => 'Pacientes', 'expediente' => 'Expediente', 'recetas' => 'Recetas',
+        'facturacion' => 'Facturación', 'crm' => 'CRM', 'inventario' => 'Inventario', 'reportes' => 'Reportes',
+        'corte' => 'Corte de caja', 'egresos' => 'Egresos', 'pos' => 'Punto de venta', 'reactivacion' => 'Reactivación',
+        'usuarios' => 'Personal', 'configuracion' => 'Configuración', 'pagos' => 'Suscripción', 'plantillas' => 'Plantillas',
+        'soporte' => 'Ayuda', 'feedback' => 'Comentarios', 'auth' => 'Acceso', 'portal' => 'Portal',
+        'admin' => 'Súper-admin', 'platform' => 'Plataforma', 'odontograma' => 'Odontograma',
+    ];
+    if (str_contains($path, '/')) {
+        $seg = explode('/', $path);
+        return $folders[$seg[0]] ?? ucfirst($seg[0]);
+    }
+    return ucfirst(str_replace(['_', '.php'], [' ', ''], $path));
+}
+
+/** Etiqueta legible de un área de tráfico. */
+function pageview_area_label(string $area): string
+{
+    return ['publico' => 'Sitio público', 'panel' => 'Panel del consultorio', 'portal' => 'Portal del paciente', 'plataforma' => 'Consola de plataforma'][$area] ?? ucfirst($area);
+}
+
 /** Exige uno de los roles indicados. */
 function require_role(string ...$roles): void
 {

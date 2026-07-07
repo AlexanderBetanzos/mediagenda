@@ -3,6 +3,7 @@ require_once __DIR__ . '/includes/functions.php';
 require_once __DIR__ . '/includes/mercadopago.php';
 $logged = is_logged_in();
 $marca  = marca_nombre();
+track_pageview('publico');
 ?>
 <!doctype html>
 <html lang="es">

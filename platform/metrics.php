@@ -93,6 +93,22 @@ foreach ($riskRows as $r) {
     if ($inactivo) $risk[] = $r;
 }
 
+/* ── Tráfico del sitio (pageviews) ──────────────────────────────────── */
+ensure_pageviews_table();
+$hasViews = (int) $pdo->query("SELECT COUNT(*) FROM pageviews")->fetchColumn();
+$visHoy   = (int) $pdo->query("SELECT COUNT(*) FROM pageviews WHERE area<>'plataforma' AND DATE(created_at)=CURDATE()")->fetchColumn();
+$vis7     = (int) $pdo->query("SELECT COUNT(*) FROM pageviews WHERE area<>'plataforma' AND created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)")->fetchColumn();
+$vis30    = (int) $pdo->query("SELECT COUNT(*) FROM pageviews WHERE area<>'plataforma' AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)")->fetchColumn();
+$uniq30   = (int) $pdo->query("SELECT COUNT(DISTINCT visitor) FROM pageviews WHERE area<>'plataforma' AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)")->fetchColumn();
+
+$viewsByDay = $pdo->query("SELECT DATE(created_at) d, COUNT(*) n FROM pageviews WHERE area<>'plataforma' AND created_at >= DATE_SUB(CURDATE(), INTERVAL 29 DAY) GROUP BY d")->fetchAll(PDO::FETCH_KEY_PAIR);
+$visLabels = $visData = [];
+for ($i = 29; $i >= 0; $i--) { $d = date('Y-m-d', strtotime("-$i day")); $visLabels[] = date('d/m', strtotime($d)); $visData[] = (int) ($viewsByDay[$d] ?? 0); }
+
+$topModules = $pdo->query("SELECT area, path, COUNT(*) n, COUNT(DISTINCT visitor) u FROM pageviews WHERE area<>'plataforma' AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) GROUP BY area, path ORDER BY n DESC LIMIT 12")->fetchAll();
+$byArea = $pdo->query("SELECT area, COUNT(*) n FROM pageviews WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) GROUP BY area ORDER BY n DESC")->fetchAll();
+$areaTotal = array_sum(array_column($byArea, 'n')) ?: 1;
+
 $titulo   = 'Métricas';
 $platNav  = 'metrics';
 include __DIR__ . '/_head.php';
@@ -217,6 +233,61 @@ include __DIR__ . '/_head.php';
     </table></div>
 </div>
 
+<!-- ── Tráfico del sitio ─────────────────────────────────────────────── -->
+<div class="d-flex align-items-center gap-2 mt-4 mb-3">
+    <h2 class="h4 fw-bold mb-0"><i class="bi bi-graph-up-arrow text-brand"></i> <?= et('Tráfico del sitio') ?></h2>
+    <span class="text-muted small"><?= et('excluye la consola de plataforma') ?></span>
+</div>
+
+<?php if (!$hasViews): ?>
+<div class="card"><div class="card-body text-center text-muted py-4">
+    <i class="bi bi-bar-chart-line fs-3 d-block mb-2"></i>
+    <?= et('Aún no hay datos de tráfico. Se registran automáticamente a partir de ahora.') ?>
+</div></div>
+<?php else: ?>
+
+<div class="row g-3 mb-3">
+    <?php foreach ([[et('Visitas hoy'), $visHoy], [et('Visitas 7 días'), $vis7], [et('Visitas 30 días'), $vis30], [et('Visitantes únicos 30d'), $uniq30]] as [$lbl, $val]): ?>
+    <div class="col-6 col-lg-3"><div class="card stat-card h-100"><div class="card-body">
+        <div class="stat-num" style="font-size:1.6rem"><?= number_format($val) ?></div><div class="stat-label mt-1"><?= e($lbl) ?></div>
+    </div></div></div>
+    <?php endforeach; ?>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header fw-semibold"><i class="bi bi-activity text-brand"></i> <?= et('Visitas por día · últimos 30 días') ?></div>
+    <div class="card-body"><div style="height:220px"><canvas id="chartVis"></canvas></div></div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-7"><div class="card h-100">
+        <div class="card-header fw-semibold"><i class="bi bi-fire text-brand"></i> <?= et('Módulos más visitados (30 días)') ?></div>
+        <div class="table-responsive"><table class="table align-middle mb-0">
+            <thead><tr><th><?= et('Área') ?></th><th><?= et('Módulo') ?></th><th class="text-end"><?= et('Visitas') ?></th><th class="text-end"><?= et('Únicos') ?></th></tr></thead>
+            <tbody>
+            <?php foreach ($topModules as $m): ?>
+                <tr>
+                    <td class="small text-muted"><?= e(pageview_area_label($m['area'])) ?></td>
+                    <td class="small fw-semibold"><?= e(pageview_module_label($m['area'], $m['path'])) ?></td>
+                    <td class="text-end fw-bold"><?= number_format($m['n']) ?></td>
+                    <td class="text-end text-muted"><?= number_format($m['u']) ?></td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table></div>
+    </div></div>
+    <div class="col-lg-5"><div class="card h-100">
+        <div class="card-header fw-semibold"><i class="bi bi-pie-chart text-brand"></i> <?= et('Tráfico por área (30 días)') ?></div>
+        <div class="card-body">
+            <?php foreach ($byArea as $a): $pct = round($a['n'] / $areaTotal * 100); ?>
+                <div class="d-flex justify-content-between small"><span><?= e(pageview_area_label($a['area'])) ?></span><strong><?= number_format($a['n']) ?> <span class="text-muted">(<?= $pct ?>%)</span></strong></div>
+                <div class="progress my-1" style="height:6px"><div class="progress-bar" style="width:<?= $pct ?>%;background:var(--brand)"></div></div>
+            <?php endforeach; ?>
+        </div>
+    </div></div>
+</div>
+<?php endif; ?>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
 (function () {
@@ -229,6 +300,13 @@ include __DIR__ . '/_head.php';
         data: { labels: <?= json_encode($actLabels) ?>, datasets: [{ label: 'Altas', data: <?= json_encode($actData) ?>, backgroundColor: '#f66f14', borderRadius: 6 }] },
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
             scales: { x: { grid: { color: grid }, border: { display: false } }, y: { grid: { color: grid }, border: { display: false }, beginAtZero: true, ticks: { precision: 0 } } } } });
+    var v = document.getElementById('chartVis');
+    if (v) { var g = v.getContext('2d').createLinearGradient(0, 0, 0, 200); g.addColorStop(0, 'rgba(246,111,20,.35)'); g.addColorStop(1, 'rgba(246,111,20,.02)');
+        new Chart(v, { type: 'line',
+            data: { labels: <?= json_encode($visLabels ?? []) ?>, datasets: [{ label: 'Visitas', data: <?= json_encode($visData ?? []) ?>, borderColor: '#f66f14', backgroundColor: g, fill: true, tension: .35, pointRadius: 0 }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+                scales: { x: { grid: { color: grid }, border: { display: false }, ticks: { maxTicksLimit: 10 } }, y: { grid: { color: grid }, border: { display: false }, beginAtZero: true, ticks: { precision: 0 } } } } });
+    }
 })();
 </script>
 

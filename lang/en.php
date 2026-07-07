@@ -461,4 +461,10 @@ return [
     'Consultorios en riesgo'=>'Clinics at risk','activos sin actividad en 30 días'=>'active with no activity in 30 days',
     'Última actividad'=>'Last activity','Nunca'=>'Never','Ningún consultorio activo en riesgo. ¡Bien!'=>'No active clinic at risk. Good!',
     'Sin datos.'=>'No data.','Expirados'=>'Expired',
+    // Tráfico del sitio
+    'Tráfico del sitio'=>'Site traffic','excluye la consola de plataforma'=>'excludes the platform console',
+    'Aún no hay datos de tráfico. Se registran automáticamente a partir de ahora.'=>'No traffic data yet. It is recorded automatically from now on.',
+    'Visitas hoy'=>'Visits today','Visitas 7 días'=>'Visits 7 days','Visitas 30 días'=>'Visits 30 days','Visitantes únicos 30d'=>'Unique visitors 30d',
+    'Visitas por día · últimos 30 días'=>'Visits per day · last 30 days','Módulos más visitados (30 días)'=>'Most visited modules (30 days)',
+    'Área'=>'Area','Módulo'=>'Module','Visitas'=>'Visits','Únicos'=>'Unique','Tráfico por área (30 días)'=>'Traffic by area (30 days)',
 ];

@@ -5,6 +5,7 @@
  */
 require_once __DIR__ . '/../includes/functions.php';
 require_platform();
+track_pageview('plataforma');
 
 $titulo = $titulo ?? 'Plataforma';
 $tema   = tema_actual();
