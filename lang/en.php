@@ -412,4 +412,14 @@ return [
     'Editar egreso'=>'Edit expense','Actualizar egreso'=>'Update expense','Cancelar'=>'Cancel',
     'Categorías'=>'Categories','Nueva categoría'=>'New category','Sin categorías.'=>'No categories.',
     '¿Eliminar esta categoría?'=>'Delete this category?','Editar'=>'Edit','Guardar'=>'Save','Acciones'=>'Actions',
+    // Plataforma (consola del dueño)
+    'Plataforma'=>'Platform','Consola de plataforma'=>'Platform console','Dueño del sistema'=>'System owner',
+    'Ir a mi consultorio'=>'Go to my clinic','MRR estimado'=>'Estimated MRR',
+    'Altas de consultorios · 12 meses'=>'New clinics · 12 months','Activos por plan'=>'Active by plan',
+    'Sin consultorios activos aún.'=>'No active clinics yet.','Buscar consultorio…'=>'Search clinic…',
+    'Entrar como este consultorio'=>'Enter as this clinic','Gestión de todos los consultorios suscritos a'=>'Manage all clinics subscribed to',
+    'Estás viendo como'=>'You are viewing as','modo plataforma'=>'platform mode','Volver a la plataforma'=>'Back to platform',
+    'Consultorios'=>'Clinics','Plan'=>'Plan','Prueba/Vence'=>'Trial/Expires','Alta'=>'Signed up',
+    'Gestionar'=>'Manage','Extender prueba 15 días'=>'Extend trial 15 days','Activar membresía'=>'Activate membership',
+    'Suspender'=>'Suspend','Eliminar definitivamente'=>'Delete permanently','Plan y módulos'=>'Plan & modules',
 ];

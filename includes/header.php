@@ -168,7 +168,7 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
                     <li class="nav-item"><a class="nav-link<?= nav_active('auditoria', $activo) ?>" href="<?= BASE_URL ?>/admin/auditoria"><i class="bi bi-clipboard-data"></i> <?= et('Auditoría') ?></a></li>
                     <?php endif; ?>
                     <?php if (es_superadmin()): ?>
-                    <li class="nav-item mt-2"><a class="nav-link<?= nav_active('admin', $activo) ?>" href="<?= BASE_URL ?>/admin/index"><i class="bi bi-shield-lock"></i> <?= et('Súper-admin') ?></a></li>
+                    <li class="nav-item mt-2"><a class="nav-link<?= nav_active('admin', $activo) ?>" href="<?= BASE_URL ?>/platform/index"><i class="bi bi-diagram-3"></i> <?= et('Plataforma') ?></a></li>
                     <li class="nav-item"><a class="nav-link<?= nav_active('feedback_admin', $activo) ?>" href="<?= BASE_URL ?>/admin/feedback"><i class="bi bi-chat-left-dots"></i> <?= et('Comentarios') ?></a></li>
                     <?php endif; ?>
                     <li class="nav-item mt-2"><a class="nav-link<?= nav_active('seguridad', $activo) ?>" href="<?= BASE_URL ?>/auth/seguridad"><i class="bi bi-shield-lock"></i> <?= et('Seguridad') ?></a></li>
@@ -179,6 +179,12 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
         </nav>
 
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+            <?php if (!empty($_SESSION['impersonando'])): $__imp = tenant(); ?>
+            <div class="alert alert-warning d-flex flex-wrap align-items-center justify-content-between gap-2 py-2">
+                <span><i class="bi bi-eye-fill"></i> <?= et('Estás viendo como') ?> <strong><?= e($__imp['nombre'] ?? ('#' . (int) $_SESSION['impersonando'])) ?></strong> · <?= et('modo plataforma') ?>.</span>
+                <a href="<?= BASE_URL ?>/platform/impersonar?salir=1" class="btn btn-sm btn-dark"><i class="bi bi-arrow-left"></i> <?= et('Volver a la plataforma') ?></a>
+            </div>
+            <?php endif; ?>
             <?php foreach (get_flash() as $f): ?>
                 <div class="alert alert-<?= e($f['tipo']) ?> alert-dismissible fade show" role="alert">
                     <?= e($f['msg']) ?>
