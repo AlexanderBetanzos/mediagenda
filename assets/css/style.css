@@ -4,10 +4,11 @@
    - Tema oscuro (.app-dark): panel interno estilo dashboard
    ===================================================================== */
 :root {
-    --brand:        #0b6fb8;
-    --brand-dark:   #075089;
-    --brand-light:  #e7f2fb;
-    --accent:       #14b8a6;
+    /* Marca MediAgenda (naranja cálido, igual que los módulos) */
+    --brand:        #f66f14;
+    --brand-dark:   #d9600f;
+    --brand-light:  #fff1e6;
+    --accent:       #f59e0b;
     --ink:          #1f2d3d;
     --muted:        #6b7c93;
 
@@ -352,6 +353,10 @@ html.app-light footer.border-top { color: var(--muted) !important; border-color:
    LANDING PRO  (página pública index.php)
    ===================================================================== */
 body.lp { background: #fff; overflow-x: hidden; }
+body.lp h1, body.lp h2, body.lp h3, body.lp h4,
+body.lp .section-title, body.lp .navbar-brand { font-family: 'Mulish', 'Inter', sans-serif; }
+/* Los badges/botones "primary" de Bootstrap en la landing usan la marca. */
+body.lp .bg-primary { background-color: var(--brand) !important; }
 .py-6 { padding-top: 5rem; padding-bottom: 5rem; }
 
 /* Barra de anuncio */
@@ -366,7 +371,7 @@ body.lp { background: #fff; overflow-x: hidden; }
 
 /* Hero banner (foto de fondo + overlay) */
 .lp-hero { position: relative; color: #fff; background-color: var(--brand-dark); background-size: cover; background-position: center right; background-repeat: no-repeat; }
-.lp-hero::before { content: ''; position: absolute; inset: 0; background: linear-gradient(100deg, rgba(7,80,137,.97) 0%, rgba(7,80,137,.90) 34%, rgba(11,111,184,.62) 58%, rgba(11,111,184,.30) 80%, rgba(20,184,166,.10) 100%); }
+.lp-hero::before { content: ''; position: absolute; inset: 0; background: linear-gradient(100deg, rgba(16,13,10,.95) 0%, rgba(28,17,9,.90) 34%, rgba(246,111,20,.55) 62%, rgba(246,111,20,.22) 82%, rgba(255,179,71,.10) 100%); }
 .lp-hero > .container { position: relative; z-index: 1; }
 .lp-hero-row { min-height: 540px; padding: 3.5rem 0; }
 .lp-hero-text { text-shadow: 0 1px 16px rgba(0,0,0,.18); }
@@ -383,7 +388,7 @@ body.lp { background: #fff; overflow-x: hidden; }
 .lp-ag-h { background: #eef2f7; border-radius: .35rem; padding: .05rem .35rem; font-size: .72rem; font-weight: 600; margin-right: .3rem; }
 @media (max-width: 991px) {
     .lp-hero { background-position: center; }
-    .lp-hero::before { background: linear-gradient(180deg, rgba(7,80,137,.93), rgba(11,111,184,.88)); }
+    .lp-hero::before { background: linear-gradient(180deg, rgba(16,13,10,.94), rgba(214,95,15,.9)); }
     .lp-hero-row { min-height: 0; }
     .lp-dash { margin: 0 auto; }
 }

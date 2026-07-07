@@ -13,7 +13,7 @@ $marca  = marca_nombre();
     <meta name="description" content="Agenda de citas, expediente clínico electrónico, recetas y facturación para consultorios médicos y dentales. Prueba 15 días gratis.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Mulish:wght@600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="<?= asset('assets/css/style.css') ?>" rel="stylesheet">
@@ -79,7 +79,7 @@ $marca  = marca_nombre();
                             <span class="badge bg-success">En vivo</span>
                         </div>
                         <div class="row g-2 mb-3">
-                            <?php foreach ([['Citas hoy','14','#0b6fb8'],['Pacientes','231','#14b8a6'],['Ingresos','$48k','#16a34a']] as [$l,$n,$c]): ?>
+                            <?php foreach ([['Citas hoy','14','#f66f14'],['Pacientes','231','#14b8a6'],['Ingresos','$48k','#16a34a']] as [$l,$n,$c]): ?>
                             <div class="col-4"><div class="lp-tile">
                                 <div class="lp-tile-n" style="color:<?= $c ?>"><?= $n ?></div>
                                 <div class="lp-tile-l"><?= $l ?></div>
@@ -131,7 +131,7 @@ $marca  = marca_nombre();
         <div class="row g-4">
             <?php
             $funcs = [
-                ['bi-calendar-check','Agenda de citas','Programa, confirma y da seguimiento. Filtra por médico, fecha y estado.','#0b6fb8'],
+                ['bi-calendar-check','Agenda de citas','Programa, confirma y da seguimiento. Filtra por médico, fecha y estado.','#f66f14'],
                 ['bi-folder2-open','Expediente clínico','Consultas, diagnósticos, tratamientos y signos vitales por paciente.','#14b8a6'],
                 ['bi-capsule','Recetas','Genera e imprime recetas con tus medicamentos e indicaciones.','#6366f1'],
                 ['bi-receipt','Facturación','Cobros, comprobantes y control de ingresos del consultorio.','#16a34a'],
