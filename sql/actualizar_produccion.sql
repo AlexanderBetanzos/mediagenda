@@ -427,3 +427,22 @@ CREATE TABLE IF NOT EXISTS feedback (
   INDEX idx_fb_estado (estado, creado_en),
   INDEX idx_fb_consultorio (consultorio_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============ sql/egresos.sql ============
+-- =====================================================================
+--  Egresos (módulo Egresos e ingresos) — para la utilidad real del mes.
+--  Los módulos Corte de caja, POS y Reactivación NO requieren tabla nueva:
+--  usan facturas, factura_items, inventario_movimientos, productos y pacientes.
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS egresos (
+  id             INT AUTO_INCREMENT PRIMARY KEY,
+  consultorio_id INT NOT NULL DEFAULT 1,
+  fecha          DATE NOT NULL,
+  categoria      VARCHAR(60) DEFAULT NULL,
+  concepto       VARCHAR(200) NOT NULL,
+  monto          DECIMAL(10,2) NOT NULL DEFAULT 0,
+  metodo_pago    VARCHAR(40) DEFAULT NULL,
+  usuario_id     INT DEFAULT NULL,
+  creado_en      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_egr_tenant (consultorio_id, fecha)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
