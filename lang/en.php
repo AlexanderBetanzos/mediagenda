@@ -432,4 +432,8 @@ return [
     'Plan contratado'=>'Current plan','Guardar plan'=>'Save plan','Módulos'=>'Modules','Guardar módulos'=>'Save modules',
     'en el plan'=>'in plan','desactivado'=>'disabled','Estado:'=>'Status:',
     'Slug'=>'Slug','Vence'=>'Expires','Último pago'=>'Last payment','Admins'=>'Admins','Alta'=>'Signed up',
+    'Editar consultorio'=>'Edit clinic','Editar (datos, plan y módulos)'=>'Edit (details, plan & modules)',
+    'Datos generales'=>'General info','Nombre del consultorio'=>'Clinic name','Correo de contacto'=>'Contact email',
+    'Guardar datos'=>'Save details','El consultorio principal no se puede suspender.'=>'The main clinic cannot be suspended.',
+    'Activa'=>'Active','Suspendida'=>'Suspended','Expirada'=>'Expired',
 ];

@@ -231,7 +231,7 @@ include __DIR__ . '/_head.php';
                                 <?= csrf_field() ?><input type="hidden" name="id" value="<?= $c['id'] ?>">
                                 <button class="act-btn g" title="<?= e(t('Entrar como este consultorio')) ?>"><i class="bi bi-box-arrow-in-right"></i></button>
                             </form>
-                            <a class="act-btn o" href="<?= BASE_URL ?>/platform/consultorio?id=<?= $c['id'] ?>" title="<?= e(t('Plan y módulos')) ?>"><i class="bi bi-sliders2"></i></a>
+                            <a class="act-btn o" href="<?= BASE_URL ?>/platform/consultorio?id=<?= $c['id'] ?>" title="<?= e(t('Editar (datos, plan y módulos)')) ?>"><i class="bi bi-pencil-square"></i></a>
                             <button form="f<?= $c['id'] ?>" name="accion" value="extender" class="act-btn b" title="<?= e(t('Extender prueba 15 días')) ?>"><i class="bi bi-stopwatch"></i></button>
                             <?php if ($c['estado'] === 'suspendida'): ?>
                                 <button form="f<?= $c['id'] ?>" name="accion" value="activar" class="act-btn g" title="<?= e(t('Activar membresía')) ?>"><i class="bi bi-play-fill"></i></button>
