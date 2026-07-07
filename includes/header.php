@@ -85,7 +85,16 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
         <span class="navbar-toggler-icon"></span>
     </button>
 
+    <!-- Título de la página (desktop): arranca sobre el contenido, tras el
+         ancho del sidebar, estilo GymOS. -->
+    <div class="d-none d-md-block col-md-3 col-lg-2"></div>
+    <h1 class="app-page-title h5 fw-bold mb-0 ps-1 d-none d-md-block text-truncate"><?= e($titulo) ?></h1>
+
     <div class="navbar-nav flex-row ms-auto align-items-center gap-3 px-3">
+        <div class="topbar-clock text-end lh-1 d-none d-sm-block">
+            <div id="clkTime" class="fw-bold"></div>
+            <div id="clkDate" class="small text-muted text-capitalize"></div>
+        </div>
         <div class="dropdown">
             <a href="#" class="icon-btn dropdown-toggle" data-bs-toggle="dropdown" title="Tema" aria-label="Cambiar tema">
                 <i class="bi bi-circle-half"></i>
@@ -134,7 +143,7 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
                     <small class="brand-sub"><i class="bi bi-lightning-charge-fill"></i> <?= strtoupper(et('Panel')) ?></small>
                 </a>
                 <ul class="nav flex-column">
-                    <li class="nav-item"><a class="nav-link<?= nav_active('dashboard', $activo) ?>" href="<?= BASE_URL ?>/dashboard"><i class="bi bi-grid-1x2-fill"></i> <?= et('Panel') ?></a></li>
+                    <li class="nav-item"><a class="nav-link<?= nav_active('dashboard', $activo) ?>" href="<?= BASE_URL ?>/dashboard"><i class="bi bi-grid-1x2-fill"></i> <?= et('Dashboard') ?></a></li>
                     <?php if (modulo_activo('citas')): ?><li class="nav-item"><a class="nav-link<?= nav_active('citas', $activo) ?>" href="<?= BASE_URL ?>/citas/index"><i class="bi bi-calendar-check"></i> <?= et('Agenda') ?></a></li><?php endif; ?>
                     <?php if (modulo_activo('pacientes')): ?><li class="nav-item"><a class="nav-link<?= nav_active('pacientes', $activo) ?>" href="<?= BASE_URL ?>/pacientes/index"><i class="bi bi-people"></i> <?= et('Pacientes') ?></a></li><?php endif; ?>
                     <?php if (modulo_activo('expediente')): ?><li class="nav-item"><a class="nav-link<?= nav_active('expediente', $activo) ?>" href="<?= BASE_URL ?>/expediente/index"><i class="bi bi-folder2-open"></i> <?= et('Expediente') ?></a></li><?php endif; ?>

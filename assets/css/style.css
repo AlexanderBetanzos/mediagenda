@@ -89,6 +89,15 @@ html.app-dark body, html.app-light body { background: transparent; }
     border-bottom: 1px solid var(--d-border);
 }
 .app-navbar .navbar-brand { font-weight: 700; letter-spacing: .2px; color: #fff; }
+/* Título de la página en el topbar (estilo GymOS) */
+.app-page-title { color: #fff; font-family: 'Mulish', 'Inter', sans-serif; letter-spacing: -.01em; }
+html.app-light .app-page-title { color: #14161a; }
+/* Reloj del topbar: hora grande + fecha pequeña, con cifras tabulares */
+.topbar-clock { color: #fff; font-variant-numeric: tabular-nums; }
+.topbar-clock #clkTime { font-size: 1.05rem; line-height: 1.05; }
+.topbar-clock #clkDate { color: var(--d-muted); }
+html.app-light .topbar-clock { color: #14161a; }
+html.app-light .topbar-clock #clkDate { color: var(--muted); }
 .top-menu .nav-link { color: rgba(255,255,255,.72); font-weight: 500; padding: .35rem .85rem; border-radius: .5rem; }
 .top-menu .nav-link:hover { color: #fff; background: rgba(255,255,255,.08); }
 .top-menu .nav-link.active { color: #fff; background: rgba(246,111,20,.20); }
@@ -101,6 +110,28 @@ html.app-dark body, html.app-light body { background: transparent; }
    Los forzamos a flotar como menú normal. */
 .app-navbar .navbar-nav .dropdown-menu { position: absolute; }
 .app-navbar .dropdown-menu-end { right: 0; left: auto; }
+
+/* ---- Scroll interno del sidebar ----
+   El navbar superior queda fijo (48px). El contenido del sidebar hace su
+   propio scroll para que las opciones no se corten en pantallas bajas
+   (antes crecían sin límite y las últimas quedaban fuera de vista). */
+.app-navbar { min-height: 48px; }
+@media (min-width: 768px) {
+    .sidebar .position-sticky {
+        top: 48px;
+        height: calc(100vh - 48px);
+        overflow-x: hidden;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255,255,255,.18) transparent;
+    }
+    .sidebar .position-sticky::-webkit-scrollbar { width: 7px; }
+    .sidebar .position-sticky::-webkit-scrollbar-thumb { background: rgba(255,255,255,.18); border-radius: 8px; }
+    .sidebar .position-sticky::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,.32); }
+    html.app-light .sidebar .position-sticky { scrollbar-color: rgba(0,0,0,.22) transparent; }
+    html.app-light .sidebar .position-sticky::-webkit-scrollbar-thumb { background: rgba(0,0,0,.20); }
+}
 
 /* ---- Ficha de marca en el sidebar (estilo GymOS) ---- */
 .sidebar .brand { text-align: center; padding: .35rem 1rem 1rem; display: block; }

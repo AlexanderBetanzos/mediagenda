@@ -23,6 +23,29 @@ function setIdioma(lang) {
     document.cookie = 'lang=' + lang + ';path=<?= BASE_URL ?>/;max-age=31536000;samesite=Lax';
     location.reload();
 }
+/* Reloj del topbar (hora + fecha), localizado al idioma activo (estilo GymOS). */
+(function () {
+    var t = document.getElementById('clkTime'), d = document.getElementById('clkDate');
+    if (!t || !d) return;
+    var lang = (document.documentElement.getAttribute('lang') || 'es').slice(0, 2);
+    var L = {
+        es: { d: ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'],
+              m: ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'],
+              fmt: function (n) { return this.d[n.getDay()] + ', ' + n.getDate() + ' ' + this.m[n.getMonth()] + ' ' + n.getFullYear(); } },
+        en: { d: ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
+              m: ['January','February','March','April','May','June','July','August','September','October','November','December'],
+              fmt: function (n) { return this.d[n.getDay()] + ', ' + this.m[n.getMonth()] + ' ' + n.getDate() + ', ' + n.getFullYear(); } }
+    };
+    var loc = L[lang] || L.es;
+    var p = function (x) { return x < 10 ? '0' + x : '' + x; };
+    function tick() {
+        var n = new Date();
+        t.textContent = p(n.getHours()) + ':' + p(n.getMinutes()) + ':' + p(n.getSeconds());
+        d.textContent = loc.fmt(n);
+    }
+    tick();
+    setInterval(tick, 1000);
+})();
 </script>
 </body>
 </html>

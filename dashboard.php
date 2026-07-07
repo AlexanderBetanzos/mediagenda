@@ -75,7 +75,7 @@ $ue = $pdo->prepare(
 $ue->execute([$tid]);
 $ultimos = $ue->fetchAll();
 
-$titulo = t('Panel');
+$titulo = t('Dashboard');
 $activo = 'dashboard';
 include __DIR__ . '/includes/header.php';
 ?>
