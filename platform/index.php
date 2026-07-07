@@ -234,9 +234,10 @@ include __DIR__ . '/_head.php';
                             </form>
                             <a class="act-btn o" href="<?= BASE_URL ?>/platform/consultorio?id=<?= $c['id'] ?>" title="<?= e(t('Editar (datos, plan y módulos)')) ?>"><i class="bi bi-pencil-square"></i></a>
                             <button form="f<?= $c['id'] ?>" name="accion" value="extender" class="act-btn b" title="<?= e(t('Extender prueba 15 días')) ?>"><i class="bi bi-stopwatch"></i></button>
-                            <?php if ($c['estado'] === 'suspendida'): ?>
+                            <?php if ($c['estado'] !== 'activa'): ?>
                                 <button form="f<?= $c['id'] ?>" name="accion" value="activar" class="act-btn g" title="<?= e(t('Activar membresía')) ?>"><i class="bi bi-play-fill"></i></button>
-                            <?php elseif ($c['id'] != 1): ?>
+                            <?php endif; ?>
+                            <?php if ($c['estado'] !== 'suspendida' && $c['id'] != 1): ?>
                                 <button form="f<?= $c['id'] ?>" name="accion" value="suspender" class="act-btn y" onclick="return confirm('¿Suspender este consultorio? Perderá el acceso.');" title="<?= e(t('Suspender')) ?>"><i class="bi bi-pause-fill"></i></button>
                             <?php endif; ?>
                             <?php if ($c['id'] != 1): ?>

@@ -83,6 +83,9 @@ function tenant_bloqueado(): bool
 {
     $t = tenant();
     if (!$t) return false;
+    // Membresía activa (incluye la activación manual desde la plataforma) manda:
+    // nunca se bloquea, aunque haya restos de una suscripción MP cancelada.
+    if (($t['estado'] ?? '') === 'activa') return false;
     if (in_array($t['estado'], ['suspendida', 'expirada'], true)) return true;
     if ($t['estado'] === 'trial' && (trial_dias_restantes() ?? 0) < 0) return true;
     // Suscripción cancelada/pausada: acceso hasta el fin del periodo ya pagado.
