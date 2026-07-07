@@ -11,17 +11,19 @@
     --ink:          #1f2d3d;
     --muted:        #6b7c93;
 
-    /* Paleta oscura del panel — estilo "glass" sobre negro con acento cálido */
-    --d-bg:      #060910;   /* fondo base (casi negro) */
-    --d-bg2:     #0e1016;   /* tono superior del degradado */
-    --d-panel:   rgba(255,255,255,.045);  /* superficie glass */
-    --d-panel2:  rgba(255,255,255,.075);  /* superficie glass elevada */
+    /* Paleta oscura del panel — estilo "glass" sobre negro con acento cálido
+       (homologada al panel GymOS). */
+    --d-bg:      #0c0d10;   /* fondo base (casi negro) */
+    --d-bg2:     #14161a;   /* tono superior del degradado */
+    --d-panel:   rgba(255,255,255,.05);   /* superficie glass */
+    --d-panel2:  rgba(255,255,255,.08);   /* superficie glass elevada */
     --d-border:  rgba(255,255,255,.10);
-    --d-ink:     #eef1f6;
-    --d-muted:   #98a0af;
+    --d-ink:     #e6e8ec;
+    --d-muted:   #9aa0aa;
     --d-accent:  #f66f14;   /* naranja primario */
     --d-accent2: #ff9a4d;   /* naranja claro (degradado / hover) */
-    --d-accent3: #ffad75;   /* durazno (detalles) */
+    --d-accent3: #ffb066;   /* naranja enlace */
+    --d-yellow:  #ffd60a;   /* acento cálido secundario (glow) */
     --d-teal:    #38bdf8;   /* azul de estado (citas confirmadas) */
     --d-green:   #22c55e;
 }
@@ -63,16 +65,19 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5 { font-weight: 700; letter-spaci
    ===================================================================== */
 html.app-dark {
     background:
-        radial-gradient(900px 520px at 100% -8%, rgba(246,111,20,.20), transparent 55%),
-        radial-gradient(760px 520px at -10% 108%, rgba(246,111,20,.08), transparent 55%),
-        linear-gradient(180deg, var(--d-bg2) 0%, var(--d-bg) 100%);
+        radial-gradient(circle at 12% -8%, rgba(246,111,20,.14), transparent 42%),
+        radial-gradient(circle at 108% 4%, rgba(255,214,10,.08), transparent 40%),
+        var(--d-bg);
     background-attachment: fixed;
     color: var(--d-ink);
 }
+/* Encabezados con la tipografía de despliegue (Mulish) como en GymOS. */
+html.app-dark h1, html.app-dark h2, html.app-dark h3,
+html.app-dark h4, html.app-dark h5, html.app-dark h6 { color: #fff; font-family: 'Mulish', 'Inter', sans-serif; }
 /* En el panel, el body es transparente para que se vea el fondo del tema. */
 html.app-dark body, html.app-light body { background: transparent; }
-.app-dark a { color: var(--d-accent2); }
-.app-dark a:hover { color: var(--d-accent3); }
+.app-dark a { color: var(--d-accent3); }
+.app-dark a:hover { color: #ffc38a; }
 .app-dark .text-muted { color: var(--d-muted) !important; }
 .app-dark .text-brand { color: var(--d-accent2) !important; }
 
@@ -103,7 +108,7 @@ html.app-dark body, html.app-light body { background: transparent; }
 .app-dark .sidebar .nav-link .bi { color: var(--d-muted); font-size: 1.05rem; }
 .app-dark .sidebar .nav-link:hover { background: rgba(255,255,255,.06); color: #fff; }
 .app-dark .sidebar .nav-link:hover .bi { color: var(--d-accent2); }
-.app-dark .sidebar .nav-link.active { background: linear-gradient(90deg, rgba(246,111,20,.22), rgba(246,111,20,.02)); color: #fff; box-shadow: inset 3px 0 0 var(--d-accent); }
+.app-dark .sidebar .nav-link.active { background: rgba(246,111,20,.18); color: #fff; box-shadow: inset 3px 0 0 var(--d-accent), inset 0 0 18px rgba(246,111,20,.12); }
 .app-dark .sidebar .nav-link.active .bi { color: var(--d-accent2); }
 .app-dark .sidebar .soon { margin-left: auto; font-size: .6rem; background: rgba(255,255,255,.08); color: var(--d-muted); padding: .1rem .4rem; border-radius: .4rem; }
 
@@ -111,9 +116,10 @@ html.app-dark body, html.app-light body { background: transparent; }
 .card { border-radius: .9rem; }
 .app-dark .card {
     background: var(--d-panel); border: 1px solid var(--d-border); color: var(--d-ink);
-    backdrop-filter: saturate(140%) blur(12px);
-    -webkit-backdrop-filter: saturate(140%) blur(12px);
-    box-shadow: 0 8px 30px rgba(0,0,0,.35);
+    border-radius: 16px;
+    backdrop-filter: saturate(140%) blur(14px);
+    -webkit-backdrop-filter: saturate(140%) blur(14px);
+    box-shadow: 0 18px 38px rgba(0,0,0,.32);
 }
 .app-dark .card-header, .app-dark .card-footer { background: transparent; border-color: var(--d-border); color: var(--d-ink); }
 
