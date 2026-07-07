@@ -242,7 +242,7 @@ new Chart(ctx, {
     options: {
         plugins: {
             legend: { display: false },
-            tooltip: { backgroundColor: '#0f2747', padding: 10, cornerRadius: 8, displayColors: false }
+            tooltip: { backgroundColor: isLight ? '#0f2747' : '#14161d', padding: 10, cornerRadius: 8, displayColors: false }
         },
         scales: {
             x: { grid: { display: false }, border: { display: false }, ticks: { color: tickColor, font: { weight: '500' } } },

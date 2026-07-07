@@ -57,15 +57,13 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="<?= asset('assets/css/style.css') ?>" rel="stylesheet">
     <style>
-        /* Color de acento configurable por consultorio (white-label). */
+        /* Color de acento configurable por consultorio (white-label). En el tema
+           claro y la landing manda el acento de marca; el panel oscuro usa el
+           skin cálido "GymOS" (naranja), donde --brand queda fijado al naranja
+           para que íconos de estadística, enlaces y la gráfica combinen. */
         :root { --brand: <?= $acento ?>; --brand-dark: color-mix(in srgb, <?= $acento ?> 78%, #000); }
-        html.app-dark .btn-primary {
-            --bs-btn-bg: <?= $acento ?>; --bs-btn-border-color: <?= $acento ?>;
-            --bs-btn-hover-bg: color-mix(in srgb, <?= $acento ?> 85%, #000);
-            --bs-btn-hover-border-color: color-mix(in srgb, <?= $acento ?> 85%, #000);
-            --bs-btn-active-bg: color-mix(in srgb, <?= $acento ?> 85%, #000);
-            --bs-btn-color: #fff; --bs-btn-hover-color: #fff;
-        }
+        html.app-dark { --brand: #f66f14; --brand-dark: #d85f0f; }
+        /* El botón primario oscuro (degradado naranja) se define en style.css. */
     </style>
 </head>
 <body>

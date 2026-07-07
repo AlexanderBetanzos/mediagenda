@@ -11,15 +11,18 @@
     --ink:          #1f2d3d;
     --muted:        #6b7c93;
 
-    /* Paleta oscura del panel */
-    --d-bg:      #081427;
-    --d-bg2:     #0a1b34;
-    --d-panel:   #0f2747;
-    --d-panel2:  #143057;
-    --d-border:  rgba(148,170,200,.16);
-    --d-ink:     #e7eefb;
-    --d-muted:   #93a6c4;
-    --d-teal:    #2bc4dd;
+    /* Paleta oscura del panel — estilo "glass" sobre negro con acento cálido */
+    --d-bg:      #060910;   /* fondo base (casi negro) */
+    --d-bg2:     #0e1016;   /* tono superior del degradado */
+    --d-panel:   rgba(255,255,255,.045);  /* superficie glass */
+    --d-panel2:  rgba(255,255,255,.075);  /* superficie glass elevada */
+    --d-border:  rgba(255,255,255,.10);
+    --d-ink:     #eef1f6;
+    --d-muted:   #98a0af;
+    --d-accent:  #f66f14;   /* naranja primario */
+    --d-accent2: #ff9a4d;   /* naranja claro (degradado / hover) */
+    --d-accent3: #ffad75;   /* durazno (detalles) */
+    --d-teal:    #38bdf8;   /* azul de estado (citas confirmadas) */
     --d-green:   #22c55e;
 }
 
@@ -60,30 +63,34 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5 { font-weight: 700; letter-spaci
    ===================================================================== */
 html.app-dark {
     background:
-        radial-gradient(1200px 600px at 80% -10%, rgba(43,196,221,.10), transparent 60%),
+        radial-gradient(900px 520px at 100% -8%, rgba(246,111,20,.20), transparent 55%),
+        radial-gradient(760px 520px at -10% 108%, rgba(246,111,20,.08), transparent 55%),
         linear-gradient(180deg, var(--d-bg2) 0%, var(--d-bg) 100%);
     background-attachment: fixed;
     color: var(--d-ink);
 }
 /* En el panel, el body es transparente para que se vea el fondo del tema. */
 html.app-dark body, html.app-light body { background: transparent; }
-.app-dark a { color: var(--d-teal); }
+.app-dark a { color: var(--d-accent2); }
+.app-dark a:hover { color: var(--d-accent3); }
 .app-dark .text-muted { color: var(--d-muted) !important; }
-.app-dark .text-brand { color: var(--d-teal) !important; }
+.app-dark .text-brand { color: var(--d-accent2) !important; }
 
 /* ---- Navbar superior ---- */
 .app-dark .app-navbar {
-    background: linear-gradient(90deg, #0a2a3a 0%, #0b2347 55%, #0c1f3f 100%);
+    background: rgba(10,12,18,.72);
+    backdrop-filter: saturate(160%) blur(14px);
+    -webkit-backdrop-filter: saturate(160%) blur(14px);
     border-bottom: 1px solid var(--d-border);
 }
 .app-navbar .navbar-brand { font-weight: 700; letter-spacing: .2px; color: #fff; }
 .top-menu .nav-link { color: rgba(255,255,255,.72); font-weight: 500; padding: .35rem .85rem; border-radius: .5rem; }
 .top-menu .nav-link:hover { color: #fff; background: rgba(255,255,255,.08); }
-.top-menu .nav-link.active { color: #fff; background: rgba(43,196,221,.18); }
+.top-menu .nav-link.active { color: #fff; background: rgba(246,111,20,.20); }
 .top-menu .nav-link .badge { font-size: .6rem; }
 .icon-btn { color: rgba(255,255,255,.85); font-size: 1.15rem; position: relative; text-decoration: none; }
-.icon-btn .dot { position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; border-radius: 50%; background: var(--d-green); border: 2px solid #0b2347; }
-.avatar-circle { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, var(--d-teal), #1b8fb0); color: #06222b; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+.icon-btn .dot { position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; border-radius: 50%; background: var(--d-green); border: 2px solid #0e1016; }
+.avatar-circle { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, var(--d-accent), var(--d-accent2)); color: #2a1400; display: flex; align-items: center; justify-content: center; font-weight: 700; }
 /* El navbar no usa .navbar-expand-*, así que Bootstrap deja los menús de
    .navbar-nav en posición estática (en flujo) y empujan el contenido al abrir.
    Los forzamos a flotar como menú normal. */
@@ -91,22 +98,30 @@ html.app-dark body, html.app-light body { background: transparent; }
 .app-navbar .dropdown-menu-end { right: 0; left: auto; }
 
 /* ---- Sidebar ---- */
-.app-dark .sidebar { background: rgba(8,20,40,.65); box-shadow: inset -1px 0 0 var(--d-border); min-height: calc(100vh - 48px); }
-.app-dark .sidebar .nav-link { color: var(--d-muted); border-radius: .5rem; margin: .15rem .5rem; padding: .6rem .85rem; font-weight: 500; display: flex; align-items: center; gap: .6rem; }
+.app-dark .sidebar { background: rgba(255,255,255,.02); box-shadow: inset -1px 0 0 var(--d-border); min-height: calc(100vh - 48px); }
+.app-dark .sidebar .nav-link { color: var(--d-muted); border-radius: .6rem; margin: .15rem .5rem; padding: .6rem .85rem; font-weight: 500; display: flex; align-items: center; gap: .6rem; transition: background-color .15s ease, color .15s ease; }
 .app-dark .sidebar .nav-link .bi { color: var(--d-muted); font-size: 1.05rem; }
-.app-dark .sidebar .nav-link:hover { background: rgba(255,255,255,.05); color: #fff; }
-.app-dark .sidebar .nav-link.active { background: linear-gradient(90deg, rgba(34,197,94,.20), rgba(34,197,94,.02)); color: #fff; box-shadow: inset 3px 0 0 var(--d-green); }
-.app-dark .sidebar .nav-link.active .bi { color: var(--d-green); }
+.app-dark .sidebar .nav-link:hover { background: rgba(255,255,255,.06); color: #fff; }
+.app-dark .sidebar .nav-link:hover .bi { color: var(--d-accent2); }
+.app-dark .sidebar .nav-link.active { background: linear-gradient(90deg, rgba(246,111,20,.22), rgba(246,111,20,.02)); color: #fff; box-shadow: inset 3px 0 0 var(--d-accent); }
+.app-dark .sidebar .nav-link.active .bi { color: var(--d-accent2); }
 .app-dark .sidebar .soon { margin-left: auto; font-size: .6rem; background: rgba(255,255,255,.08); color: var(--d-muted); padding: .1rem .4rem; border-radius: .4rem; }
 
 /* ---- Tarjetas ---- */
 .card { border-radius: .9rem; }
-.app-dark .card { background: var(--d-panel); border: 1px solid var(--d-border); color: var(--d-ink); box-shadow: 0 6px 24px rgba(0,0,0,.25); }
+.app-dark .card {
+    background: var(--d-panel); border: 1px solid var(--d-border); color: var(--d-ink);
+    backdrop-filter: saturate(140%) blur(12px);
+    -webkit-backdrop-filter: saturate(140%) blur(12px);
+    box-shadow: 0 8px 30px rgba(0,0,0,.35);
+}
 .app-dark .card-header, .app-dark .card-footer { background: transparent; border-color: var(--d-border); color: var(--d-ink); }
 
 /* ---- Tarjetas de estadística ---- */
 .stat-card { border: none; border-radius: .9rem; }
-.app-dark .stat-card { background: linear-gradient(180deg, var(--d-panel2), var(--d-panel)); }
+.app-dark .stat-card { background: linear-gradient(180deg, var(--d-panel2), var(--d-panel)); position: relative; overflow: hidden; }
+.app-dark .stat-card::after { content: ''; position: absolute; top: -40%; right: -20%; width: 180px; height: 180px; background: radial-gradient(circle, rgba(246,111,20,.16), transparent 62%); pointer-events: none; z-index: 0; }
+.app-dark .stat-card .card-body { position: relative; z-index: 1; }
 .stat-card .stat-icon { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: .75rem; font-size: 1.35rem; }
 .stat-card .stat-num { font-size: 2rem; font-weight: 700; line-height: 1; color: #fff; }
 .stat-label { font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color: var(--d-muted); }
@@ -120,25 +135,36 @@ html.app-dark body, html.app-light body { background: transparent; }
 .app-dark .table > :not(caption) > * > * { border-color: var(--d-border); background: transparent; }
 .app-dark .table-light { --bs-table-bg: rgba(255,255,255,.03); --bs-table-color: var(--d-muted); }
 .app-dark .table thead th { color: var(--d-muted); font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; }
-.app-dark .table-hover > tbody > tr:hover > * { background: rgba(255,255,255,.045); color: #fff; }
+.app-dark .table-hover > tbody > tr:hover > * { background: rgba(255,255,255,.05); color: #fff; }
 
 /* ---- Listas, badges, formularios ---- */
 .app-dark .list-group-item { background: transparent; border-color: var(--d-border); color: var(--d-ink); }
-.app-dark .form-control, .app-dark .form-select { background: #0b2143; border: 1px solid var(--d-border); color: var(--d-ink); }
-.app-dark .form-control::placeholder { color: #6f87a8; }
-.app-dark .form-control:focus, .app-dark .form-select:focus { background: #0b2143; color: var(--d-ink); border-color: var(--d-teal); box-shadow: 0 0 0 .2rem rgba(43,196,221,.2); }
-.app-dark .input-group-text { background: #0e2a52; border-color: var(--d-border); color: var(--d-muted); }
+.app-dark .form-control, .app-dark .form-select { background: rgba(255,255,255,.04); border: 1px solid var(--d-border); color: var(--d-ink); }
+.app-dark .form-control::placeholder { color: #7b8494; }
+.app-dark .form-control:focus, .app-dark .form-select:focus { background: rgba(255,255,255,.06); color: var(--d-ink); border-color: var(--d-accent); box-shadow: 0 0 0 .2rem rgba(246,111,20,.22); }
+.app-dark .input-group-text { background: rgba(255,255,255,.06); border-color: var(--d-border); color: var(--d-muted); }
 .app-dark .form-label { color: var(--d-muted); font-weight: 500; }
 
 /* ---- Botones ---- */
 .btn-primary { --bs-btn-bg: var(--brand); --bs-btn-border-color: var(--brand); --bs-btn-hover-bg: var(--brand-dark); --bs-btn-hover-border-color: var(--brand-dark); --bs-btn-active-bg: var(--brand-dark); }
-.app-dark .btn-primary { --bs-btn-bg: #22c55e; --bs-btn-border-color: #22c55e; --bs-btn-hover-bg: #1ca54f; --bs-btn-hover-border-color: #1ca54f; --bs-btn-active-bg: #1ca54f; --bs-btn-color: #06281a; --bs-btn-hover-color: #06281a; font-weight: 600; }
+/* Primario en oscuro: degradado naranja cálido (estilo GymOS). El fondo real
+   lo pinta ::before para poder mantener el degradado en hover/active. */
+.app-dark .btn-primary {
+    --bs-btn-bg: transparent; --bs-btn-border-color: transparent;
+    --bs-btn-hover-bg: transparent; --bs-btn-hover-border-color: transparent;
+    --bs-btn-active-bg: transparent; --bs-btn-active-border-color: transparent;
+    --bs-btn-color: #2a1400; --bs-btn-hover-color: #2a1400; --bs-btn-active-color: #2a1400;
+    position: relative; z-index: 0; font-weight: 600;
+    background-image: linear-gradient(135deg, var(--d-accent) 0%, var(--d-accent2) 100%);
+    box-shadow: 0 6px 18px rgba(246,111,20,.30);
+}
+.app-dark .btn-primary:hover { background-image: linear-gradient(135deg, var(--d-accent2) 0%, var(--d-accent) 100%); box-shadow: 0 8px 22px rgba(246,111,20,.38); }
 .app-dark .btn-light { background: rgba(255,255,255,.08); border-color: var(--d-border); color: var(--d-ink); }
 .app-dark .btn-light:hover { background: rgba(255,255,255,.15); color: #fff; }
 .app-dark .btn-outline-secondary { color: var(--d-muted); border-color: var(--d-border); }
 .app-dark .btn-outline-secondary:hover { background: rgba(255,255,255,.08); color: #fff; border-color: var(--d-border); }
-.app-dark .btn-outline-primary { color: var(--d-teal); border-color: rgba(43,196,221,.5); }
-.app-dark .btn-outline-primary:hover { background: var(--d-teal); border-color: var(--d-teal); color: #06222b; }
+.app-dark .btn-outline-primary { color: var(--d-accent2); border-color: rgba(246,111,20,.5); }
+.app-dark .btn-outline-primary:hover { background: var(--d-accent); border-color: var(--d-accent); color: #2a1400; }
 
 /* ---- Otros componentes en oscuro ---- */
 .app-dark .breadcrumb-item, .app-dark .breadcrumb-item a { color: var(--d-muted); }
@@ -146,8 +172,8 @@ html.app-dark body, html.app-light body { background: transparent; }
 .app-dark .nav-tabs { border-color: var(--d-border); }
 .app-dark .nav-tabs .nav-link { color: var(--d-muted); }
 .app-dark .nav-tabs .nav-link:hover { border-color: transparent; color: #fff; }
-.app-dark .nav-tabs .nav-link.active { background: var(--d-panel); border-color: var(--d-border) var(--d-border) var(--d-panel); color: #fff; }
-.app-dark .dropdown-menu { background: #0e2a52; border-color: var(--d-border); }
+.app-dark .nav-tabs .nav-link.active { background: rgba(255,255,255,.06); border-color: var(--d-border) var(--d-border) transparent; color: #fff; }
+.app-dark .dropdown-menu { background: #14161d; border-color: var(--d-border); box-shadow: 0 12px 34px rgba(0,0,0,.45); }
 .app-dark .dropdown-item { color: var(--d-ink); }
 .app-dark .dropdown-item:hover { background: rgba(255,255,255,.08); color: #fff; }
 .app-dark .dropdown-divider { border-color: var(--d-border); }
