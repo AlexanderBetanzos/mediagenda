@@ -450,4 +450,15 @@ return [
     'Crea una categoría abajo'=>'Create a category below','Activa (aparece al registrar)'=>'Active (shown when adding)',
     'Desactiva una categoría para ocultarla al registrar, sin perder su historial. Solo puedes eliminar categorías sin egresos.'=>'Deactivate a category to hide it when adding, without losing its history. You can only delete categories with no expenses.',
     'Sin egresos en el periodo.'=>'No expenses in this period.','Buscar…'=>'Search…',
+    // Métricas de plataforma
+    'Métricas'=>'Metrics','Métricas del negocio'=>'Business metrics','MRR (ingreso mensual)'=>'MRR (monthly revenue)',
+    'ARR (anualizado)'=>'ARR (annualized)','ARPU (por consultorio)'=>'ARPU (per clinic)','Churn (suspendidos)'=>'Churn (suspended)',
+    'GMV del mes'=>'GMV this month','Conversión prueba→pago'=>'Trial→paid conversion','Cartera'=>'Portfolio',
+    'Activaciones de consultorios · 12 meses'=>'Clinic activations · 12 months','altas este mes'=>'new this month',
+    'GMV 12m'=>'GMV 12m','MRR por plan'=>'MRR by plan','Uso de la plataforma'=>'Platform usage',
+    'Consultas 30d'=>'Visits 30d','Citas atendidas 30d'=>'Attended appts 30d','Top consultorios (por GMV del mes)'=>'Top clinics (by GMV this month)',
+    'Pruebas por vencer (15 días)'=>'Trials expiring (15 days)','Ninguna prueba vence pronto.'=>'No trials expiring soon.',
+    'Consultorios en riesgo'=>'Clinics at risk','activos sin actividad en 30 días'=>'active with no activity in 30 days',
+    'Última actividad'=>'Last activity','Nunca'=>'Never','Ningún consultorio activo en riesgo. ¡Bien!'=>'No active clinic at risk. Good!',
+    'Sin datos.'=>'No data.','Expirados'=>'Expired',
 ];
