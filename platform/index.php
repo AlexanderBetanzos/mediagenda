@@ -6,7 +6,7 @@
  */
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/mercadopago.php';
-require_superadmin();
+require_platform();
 
 $pdo = db();
 
@@ -205,7 +205,7 @@ include __DIR__ . '/_head.php';
                                         <button class="dropdown-item"><i class="bi bi-box-arrow-in-right me-2"></i><?= et('Entrar como este consultorio') ?></button>
                                     </form>
                                 </li>
-                                <li><a class="dropdown-item" href="<?= BASE_URL ?>/admin/consultorio?id=<?= $c['id'] ?>"><i class="bi bi-stars me-2"></i><?= et('Plan y módulos') ?></a></li>
+                                <li><a class="dropdown-item" href="<?= BASE_URL ?>/platform/consultorio?id=<?= $c['id'] ?>"><i class="bi bi-stars me-2"></i><?= et('Plan y módulos') ?></a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><button form="f<?= $c['id'] ?>" name="accion" value="extender" class="dropdown-item"><i class="bi bi-stopwatch me-2"></i><?= et('Extender prueba 15 días') ?></button></li>
                                 <li><button form="f<?= $c['id'] ?>" name="accion" value="activar" class="dropdown-item text-success"><i class="bi bi-check-circle me-2"></i><?= et('Activar membresía') ?></button></li>

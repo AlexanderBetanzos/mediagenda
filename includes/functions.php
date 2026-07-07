@@ -428,6 +428,42 @@ function require_superadmin(): void
     }
 }
 
+/* --------------------------------------------------------------------
+ *  Plataforma (consola del dueño) — sesión INDEPENDIENTE del consultorio.
+ *  Vive en $_SESSION['plataforma_admin'] (tabla plataforma_admins), aparte
+ *  de $_SESSION['usuario'] (personal de un consultorio).
+ * ------------------------------------------------------------------ */
+
+/** Súper usuario de plataforma en sesión, o null. */
+function platform_admin(): ?array
+{
+    return $_SESSION['plataforma_admin'] ?? null;
+}
+
+/** Exige sesión de plataforma; si no, manda al login de plataforma. */
+function require_platform(): void
+{
+    if (empty($_SESSION['plataforma_admin'])) {
+        redirect('/platform/login');
+    }
+}
+
+/** Crea la tabla de super usuarios de plataforma si aún no existe. */
+function ensure_plataforma_admins_table(): void
+{
+    db()->exec(
+        "CREATE TABLE IF NOT EXISTS plataforma_admins (
+            id            INT AUTO_INCREMENT PRIMARY KEY,
+            nombre        VARCHAR(120) NOT NULL,
+            email         VARCHAR(150) NOT NULL UNIQUE,
+            password_hash VARCHAR(255) NOT NULL,
+            activo        TINYINT(1) NOT NULL DEFAULT 1,
+            ultimo_acceso TIMESTAMP NULL DEFAULT NULL,
+            creado_en     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+    );
+}
+
 /** Exige uno de los roles indicados. */
 function require_role(string ...$roles): void
 {

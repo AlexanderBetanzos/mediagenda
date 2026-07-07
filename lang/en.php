@@ -422,4 +422,13 @@ return [
     'Consultorios'=>'Clinics','Plan'=>'Plan','Prueba/Vence'=>'Trial/Expires','Alta'=>'Signed up',
     'Gestionar'=>'Manage','Extender prueba 15 días'=>'Extend trial 15 days','Activar membresía'=>'Activate membership',
     'Suspender'=>'Suspend','Eliminar definitivamente'=>'Delete permanently','Plan y módulos'=>'Plan & modules',
+    // Login independiente de plataforma
+    'Acceso a plataforma'=>'Platform access','Acceso exclusivo del dueño del sistema.'=>'System owner access only.',
+    'Crea el primer súper usuario de la plataforma.'=>'Create the first platform super user.',
+    'Crear súper usuario'=>'Create super user','Entrar'=>'Log in','Volver al sitio'=>'Back to site',
+    'Correo'=>'Email','Contraseña'=>'Password','Repite la contraseña'=>'Repeat password','Nombre'=>'Name',
+    'Iniciar sesión en el sistema'=>'Log in to the system',
+    'La plataforma aún no tiene súper usuario. Inicia sesión en el sistema como súper-admin y vuelve a esta página para crearlo.'=>'The platform has no super user yet. Log in to the system as super-admin and come back here to create it.',
+    'Plan contratado'=>'Current plan','Guardar plan'=>'Save plan','Módulos'=>'Modules','Guardar módulos'=>'Save modules',
+    'en el plan'=>'in plan','desactivado'=>'disabled','Estado:'=>'Status:',
 ];

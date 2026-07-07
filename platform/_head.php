@@ -4,14 +4,14 @@
  * Layout propio (sin el sidebar del consultorio). Define $titulo antes.
  */
 require_once __DIR__ . '/../includes/functions.php';
-require_superadmin();
+require_platform();
 
 $titulo = $titulo ?? 'Plataforma';
 $tema   = tema_actual();
 $temaCss = $tema === 'light' ? 'app-light' : 'app-dark';
 $bsAttr  = $tema === 'light' ? ' data-bs-theme="light"' : '';
-$u = current_user();
-$parts = preg_split('/\s+/', trim($u['nombre'] ?? 'Admin'));
+$pa    = platform_admin();
+$parts = preg_split('/\s+/', trim($pa['nombre'] ?? 'Admin'));
 $ini   = strtoupper(mb_substr($parts[0] ?? '', 0, 1) . (isset($parts[1]) ? mb_substr($parts[1], 0, 1) : ''));
 ?>
 <!doctype html>
@@ -54,16 +54,14 @@ $ini   = strtoupper(mb_substr($parts[0] ?? '', 0, 1) . (isset($parts[1]) ? mb_su
             <div id="clkTime" class="fw-bold"></div>
             <div id="clkDate" class="small text-muted text-capitalize"></div>
         </div>
-        <a href="<?= BASE_URL ?>/dashboard" class="icon-btn" title="<?= e(t('Ir a mi consultorio')) ?>"><i class="bi bi-hospital"></i></a>
         <div class="dropdown">
             <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
                 <span class="avatar-circle"><?= e($ini) ?></span>
             </a>
             <ul class="dropdown-menu dropdown-menu-end">
-                <li class="dropdown-header"><?= e($u['nombre'] ?? '') ?><br><small class="text-muted"><?= et('Dueño del sistema') ?></small></li>
+                <li class="dropdown-header"><?= e($pa['nombre'] ?? '') ?><br><small class="text-muted"><?= et('Dueño del sistema') ?></small></li>
                 <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item" href="<?= BASE_URL ?>/dashboard"><i class="bi bi-hospital me-2"></i><?= et('Ir a mi consultorio') ?></a></li>
-                <li><a class="dropdown-item" href="<?= BASE_URL ?>/auth/logout"><i class="bi bi-box-arrow-right me-2"></i><?= et('Cerrar sesión') ?></a></li>
+                <li><a class="dropdown-item" href="<?= BASE_URL ?>/platform/logout"><i class="bi bi-box-arrow-right me-2"></i><?= et('Cerrar sesión') ?></a></li>
             </ul>
         </div>
     </div>

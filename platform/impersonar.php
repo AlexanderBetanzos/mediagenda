@@ -1,23 +1,19 @@
 <?php
 /**
  * Impersonación desde la plataforma: el dueño entra a un consultorio para dar
- * soporte, y luego vuelve a la consola. Cambia el consultorio activo en sesión
- * guardando el original. Solo súper-administradores.
+ * soporte, viéndolo tal como lo ve el cliente (según su plan). La sesión de
+ * plataforma se conserva; se abre una sesión temporal de consultorio.
  */
 require_once __DIR__ . '/../includes/functions.php';
-require_superadmin();
+require_platform();
 
 /* Salir de la impersonación (volver a la plataforma). */
 if (isset($_GET['salir'])) {
-    if (isset($_SESSION['plataforma_origen'])) {
-        $_SESSION['usuario']['consultorio_id'] = (int) $_SESSION['plataforma_origen'];
-        unset($_SESSION['plataforma_origen'], $_SESSION['impersonando']);
-        tenant(true); // limpia caché del tenant
-    }
+    unset($_SESSION['usuario'], $_SESSION['impersonando'], $_SESSION['impersonando_desde_plataforma']);
+    tenant(true);
     redirect('/platform/index');
 }
 
-/* Entrar como consultorio (POST). */
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') redirect('/platform/index');
 verify_csrf();
 
@@ -30,13 +26,22 @@ if ($nombre === false) {
     redirect('/platform/index');
 }
 
-/* Guarda el consultorio original (solo la primera vez) y cambia al destino. */
-if (!isset($_SESSION['plataforma_origen'])) {
-    $_SESSION['plataforma_origen'] = (int) ($_SESSION['usuario']['consultorio_id'] ?? 1);
-}
-$_SESSION['usuario']['consultorio_id'] = $cid;
+/* Toma un usuario admin del consultorio (o uno sintético) para la sesión. */
+$au = db()->prepare("SELECT id, nombre, email FROM usuarios WHERE consultorio_id = ? AND activo = 1 ORDER BY (rol='admin') DESC, id LIMIT 1");
+$au->execute([$cid]);
+$au = $au->fetch();
+
+$_SESSION['usuario'] = [
+    'id'             => $au ? (int) $au['id'] : 0,
+    'nombre'         => $au ? $au['nombre'] : 'Soporte plataforma',
+    'email'          => $au['email'] ?? '',
+    'rol'            => 'admin',   // vista completa del consultorio
+    'consultorio_id' => $cid,
+    'es_superadmin'  => 0,          // ve solo lo que el plan del cliente permite
+];
 $_SESSION['impersonando'] = $cid;
-tenant(true); // limpia caché del tenant
+$_SESSION['impersonando_desde_plataforma'] = 1;
+tenant(true);
 auditar('impersonar', 'consultorio', $cid, $nombre, $cid);
 flash('Estás viendo como «' . $nombre . '». Modo plataforma.');
 redirect('/dashboard');
