@@ -398,6 +398,13 @@ track_pageview('publico');
     </div>
 </footer>
 
+<!-- WhatsApp flotante -->
+<?php $waLanding = 'https://wa.me/' . SOPORTE_WHATSAPP . '?text=' . rawurlencode('Hola, me interesa ' . $marca . ' para mi consultorio.'); ?>
+<a href="<?= e($waLanding) ?>" class="lp-wa" target="_blank" rel="noopener"
+   aria-label="Escríbenos por WhatsApp" title="Escríbenos por WhatsApp">
+    <i class="bi bi-whatsapp"></i>
+</a>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

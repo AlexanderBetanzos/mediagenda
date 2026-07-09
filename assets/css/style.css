@@ -359,6 +359,19 @@ body.lp .section-title, body.lp .navbar-brand { font-family: 'Mulish', 'Inter', 
 body.lp .bg-primary { background-color: var(--brand) !important; }
 .py-6 { padding-top: 5rem; padding-bottom: 5rem; }
 
+/* Botón flotante de WhatsApp */
+.lp-wa {
+    position: fixed; right: 20px; bottom: 20px; z-index: 1030;
+    width: 56px; height: 56px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: #25d366; color: #fff; font-size: 1.75rem; line-height: 1;
+    box-shadow: 0 6px 20px rgba(37, 211, 102, .45);
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+.lp-wa:hover, .lp-wa:focus { color: #fff; transform: scale(1.08); box-shadow: 0 8px 26px rgba(37, 211, 102, .6); }
+@media (max-width: 575.98px) { .lp-wa { right: 14px; bottom: 14px; width: 52px; height: 52px; font-size: 1.6rem; } }
+@media (prefers-reduced-motion: reduce) { .lp-wa { transition: none; } .lp-wa:hover { transform: none; } }
+
 /* Barra de anuncio */
 .lp-announce { background: linear-gradient(90deg, var(--brand-dark), var(--brand)); color: #fff; font-size: .9rem; text-align: center; padding: .5rem 0; }
 .lp-announce a { color: #fff; font-weight: 600; text-decoration: none; margin-left: .4rem; white-space: nowrap; }
