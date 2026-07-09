@@ -120,6 +120,36 @@ foreach (['programada', 'confirmada', 'atendida', 'cancelada', 'no_asistio'] as 
     if (!empty($citasByEstado[$es])) { $estLabels[] = estado_label($es); $estData[] = (int) $citasByEstado[$es]; }
 }
 
+/* ── Tasa de inasistencia (no-show) de los últimos 90 días ───────────── */
+$ns = $pdo->query(
+    "SELECT SUM(estado='no_asistio') ns, COUNT(*) tot FROM citas
+     WHERE consultorio_id = $tid AND fecha >= DATE_SUB(CURDATE(), INTERVAL 90 DAY) AND fecha < CURDATE() $medFiltro"
+)->fetch();
+$noShow = ($ns && $ns['tot'] > 0) ? round(100 * $ns['ns'] / $ns['tot'], 1) : 0.0;
+
+/* ── Gráfica: horas pico (citas por hora) ────────────────────────────── */
+$horas = array_fill_keys(range(7, 20), 0);
+foreach ($pdo->query("SELECT HOUR(hora) h, COUNT(*) c FROM citas WHERE consultorio_id = $tid $medFiltro GROUP BY h") as $r) {
+    if (isset($horas[(int) $r['h']])) $horas[(int) $r['h']] = (int) $r['c'];
+}
+$horasLabels = array_map(fn($h) => sprintf('%02d:00', $h), array_keys($horas));
+
+/* ── Gráfica: pacientes por tipo ─────────────────────────────────────── */
+$porTipo = ['medico' => 0, 'dental' => 0];
+foreach ($pdo->query("SELECT tipo, COUNT(*) c FROM pacientes WHERE consultorio_id = $tid GROUP BY tipo") as $r) {
+    if (isset($porTipo[$r['tipo']])) $porTipo[$r['tipo']] = (int) $r['c'];
+}
+
+/* ── Médicos con más citas (solo admin: el médico ya ve solo lo suyo) ── */
+$topMedicos = [];
+if ($esAdmin) {
+    $topMedicos = $pdo->query(
+        "SELECT u.nombre, COUNT(*) c FROM citas ci JOIN usuarios u ON u.id = ci.medico_id
+         WHERE ci.consultorio_id = $tid
+         GROUP BY ci.medico_id ORDER BY c DESC LIMIT 5"
+    )->fetchAll();
+}
+
 /* ── Gráfica: ingresos del mes por método de pago ────────────────────── */
 $metodoLabels = $metodoData = [];
 if ($verFacturacion) {
@@ -250,20 +280,21 @@ include __DIR__ . '/includes/header.php';
     <?php
     $row2 = [];
     if ($verCitas) {
-        $row2[] = [et('Atendidas hoy'), $citasAtendHoy, 'bi-check2-circle', '#22c55e', BASE_URL.'/citas/index'];
-        $row2[] = [et('Por confirmar'), $citasPorConfirmar, 'bi-hourglass-split', '#f59e0b', BASE_URL.'/citas/index'];
+        $row2[] = [et('Atendidas hoy'), number_format($citasAtendHoy), 'bi-check2-circle', '#22c55e', BASE_URL.'/citas/index', false];
+        $row2[] = [et('Por confirmar'), number_format($citasPorConfirmar), 'bi-hourglass-split', '#f59e0b', BASE_URL.'/citas/index', false];
+        $row2[] = [et('Inasistencia (90 días)'), $noShow . '%', 'bi-person-x', '#ef4444', BASE_URL.'/citas/index', $noShow > 15];
     }
-    if ($verRecetas) $row2[] = [et('Recetas (mes)'), $recetasMes, 'bi-capsule', '#a78bfa', BASE_URL.'/recetas/index'];
-    $row2[] = [et('Nuevos este mes'), $pacientesMes, 'bi-person-plus', '#38bdf8', BASE_URL.'/pacientes/index'];
-    if ($verCitas) $row2[] = [et('Próximas citas'), $citasPend, 'bi-calendar-week', '#6366f1', BASE_URL.'/citas/index'];
+    if ($verRecetas) $row2[] = [et('Recetas (mes)'), number_format($recetasMes), 'bi-capsule', '#a78bfa', BASE_URL.'/recetas/index', false];
+    $row2[] = [et('Nuevos este mes'), number_format($pacientesMes), 'bi-person-plus', '#38bdf8', BASE_URL.'/pacientes/index', false];
+    if ($verCitas) $row2[] = [et('Próximas citas'), number_format($citasPend), 'bi-calendar-week', '#6366f1', BASE_URL.'/citas/index', false];
     $row2 = array_slice($row2, 0, 4);
-    foreach ($row2 as [$label, $value, $icon, $color, $link]): ?>
+    foreach ($row2 as [$label, $value, $icon, $color, $link, $alerta]): ?>
     <div class="col-6 col-xl-3">
         <a href="<?= $link ?>" class="text-decoration-none">
         <div class="card stat-card kpi-card h-100"><div class="card-body d-flex align-items-center gap-3">
             <div class="stat-icon" style="background:color-mix(in srgb,<?= $color ?> 16%,transparent);color:<?= $color ?>"><i class="bi <?= $icon ?>"></i></div>
             <div class="min-w-0">
-                <div class="stat-num"><?= number_format((int) $value) ?></div>
+                <div class="stat-num<?= $alerta ? ' text-danger' : '' ?>"><?= e($value) ?></div>
                 <div class="stat-label"><?= e($label) ?></div>
             </div>
         </div></div>
@@ -276,10 +307,8 @@ include __DIR__ . '/includes/header.php';
 <div class="row g-3 mb-3">
     <div class="col-lg-8">
         <div class="card h-100">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span class="fw-semibold"><i class="bi bi-bar-chart-fill text-brand"></i>
-                    <?= $verFacturacion ? et('Ingresos y pacientes nuevos · 12 meses') : et('Pacientes nuevos · 12 meses') ?></span>
-                <a href="<?= BASE_URL ?>/reportes/index" class="btn btn-sm btn-outline-secondary"><?= et('Reportes') ?></a>
+            <div class="card-header fw-semibold"><i class="bi bi-bar-chart-fill text-brand"></i>
+                <?= $verFacturacion ? et('Ingresos y pacientes nuevos · 12 meses') : et('Pacientes nuevos · 12 meses') ?>
             </div>
             <div class="card-body"><div style="height:300px"><canvas id="chartRevenue"></canvas></div></div>
         </div>
@@ -312,6 +341,40 @@ include __DIR__ . '/includes/header.php';
             </div>
         </div>
     </div>
+</div>
+
+<!-- ── Gráficas (fila 3): horas pico + tipo de paciente + top médicos ─ -->
+<div class="row g-3 mb-4">
+    <div class="col-lg-<?= $topMedicos ? '6' : '8' ?>">
+        <div class="card h-100">
+            <div class="card-header fw-semibold"><i class="bi bi-clock text-brand"></i> <?= et('Horas pico (citas por hora)') ?></div>
+            <div class="card-body"><div style="height:260px"><canvas id="chartHoras"></canvas></div></div>
+        </div>
+    </div>
+    <div class="col-lg-<?= $topMedicos ? '3' : '4' ?>">
+        <div class="card h-100">
+            <div class="card-header fw-semibold"><i class="bi bi-pie-chart text-brand"></i> <?= et('Pacientes por tipo') ?></div>
+            <div class="card-body d-flex align-items-center justify-content-center">
+                <?php if ($totPacientes): ?><div style="height:260px;width:100%"><canvas id="chartTipo"></canvas></div>
+                <?php else: ?><p class="text-muted small mb-0"><?= et('Sin pacientes registrados.') ?></p><?php endif; ?>
+            </div>
+        </div>
+    </div>
+    <?php if ($topMedicos): ?>
+    <div class="col-lg-3">
+        <div class="card h-100">
+            <div class="card-header fw-semibold"><i class="bi bi-award text-brand"></i> <?= et('Médicos con más citas') ?></div>
+            <ul class="list-group list-group-flush">
+                <?php foreach ($topMedicos as $m): ?>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span class="small"><?= e($m['nombre']) ?></span>
+                        <span class="badge rounded-pill text-bg-info"><?= number_format((int) $m['c']) ?></span>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+        </div>
+    </div>
+    <?php endif; ?>
 </div>
 
 <!-- ── Agenda de hoy + Próximas citas ───────────────────────────────── -->
@@ -496,6 +559,24 @@ html.app-light .welcome-banner {
                 scales: { x: { grid: { color: grid }, border: { display: false } }, y: { grid: { color: grid }, border: { display: false }, beginAtZero: true, ticks: { precision: 0 } } } }
         });
     }
+
+    // Horas pico (barras)
+    var elH = document.getElementById('chartHoras');
+    if (elH) new Chart(elH, {
+        type: 'bar',
+        data: { labels: <?= json_encode($horasLabels) ?>, datasets: [{ label: 'Citas', data: <?= json_encode(array_values($horas)) ?>, backgroundColor: '#6366f1', borderRadius: 5 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { backgroundColor: tipBg, cornerRadius: 8 } },
+            scales: { x: { grid: { color: grid }, border: { display: false } }, y: { grid: { color: grid }, border: { display: false }, beginAtZero: true, ticks: { precision: 0 } } } }
+    });
+
+    // Pacientes por tipo (doughnut)
+    var elT = document.getElementById('chartTipo');
+    if (elT) new Chart(elT, {
+        type: 'doughnut',
+        data: { labels: <?= json_encode([tipo_paciente_label('medico'), tipo_paciente_label('dental')]) ?>,
+            datasets: [{ data: <?= json_encode(array_values($porTipo)) ?>, backgroundColor: PALETTE, borderWidth: 0 }] },
+        options: { responsive: true, maintainAspectRatio: false, cutout: '62%', plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 12 } } } }
+    });
 
     // Métodos de pago (doughnut)
     var elM = document.getElementById('chartMetodos');

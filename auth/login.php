@@ -27,14 +27,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'es_superadmin'  => (int) ($user['es_superadmin'] ?? 0),
         ];
 
-        // Si el usuario tiene 2FA activo, exigimos el código antes de abrir
-        // la sesión completa (queda "a medias" en pre_2fa).
-        if (!empty($user['twofa_activo']) && !empty($user['twofa_secret'])) {
-            session_regenerate_id(true);
-            $_SESSION['pre_2fa'] = $datos + ['twofa_secret' => $user['twofa_secret']];
-            redirect('/auth/2fa');
-        }
-
         // Regenerar id de sesión para evitar fijación.
         session_regenerate_id(true);
         $_SESSION['usuario'] = $datos;

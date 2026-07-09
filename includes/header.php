@@ -156,7 +156,6 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
                     <?php if (modulo_activo('crm')): ?><li class="nav-item"><a class="nav-link<?= nav_active('crm', $activo) ?>" href="<?= BASE_URL ?>/crm/index"><i class="bi bi-people-fill"></i> <?= et('CRM') ?></a></li><?php endif; ?>
                     <?php if (modulo_activo('crm')): ?><li class="nav-item"><a class="nav-link<?= nav_active('reactivacion', $activo) ?>" href="<?= BASE_URL ?>/reactivacion/index"><i class="bi bi-arrow-repeat"></i> <?= et('Reactivación') ?></a></li><?php endif; ?>
                     <?php if (modulo_activo('farmacia')): ?><li class="nav-item"><a class="nav-link<?= nav_active('inventario', $activo) ?>" href="<?= BASE_URL ?>/inventario/index"><i class="bi bi-box-seam"></i> <?= et('Inventario') ?></a></li><?php endif; ?>
-                    <?php if (modulo_activo('reportes')): ?><li class="nav-item"><a class="nav-link<?= nav_active('reportes', $activo) ?>" href="<?= BASE_URL ?>/reportes/index"><i class="bi bi-bar-chart"></i> <?= et('Reportes') ?></a></li><?php endif; ?>
                     <?php if (has_role('admin')): ?>
                     <li class="nav-item mt-2"><a class="nav-link<?= nav_active('usuarios', $activo) ?>" href="<?= BASE_URL ?>/usuarios/index"><i class="bi bi-person-badge"></i> <?= et('Personal') ?></a></li>
                     <li class="nav-item"><a class="nav-link<?= nav_active('suscripcion', $activo) ?>" href="<?= BASE_URL ?>/pagos/index"><i class="bi bi-stars"></i> <?= et('Mi suscripción') ?></a></li>
@@ -165,15 +164,11 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
                     <?php if (has_role('medico', 'admin')): ?>
                     <?php if (modulo_activo('plantillas')): ?><li class="nav-item"><a class="nav-link<?= nav_active('plantillas', $activo) ?>" href="<?= BASE_URL ?>/plantillas/index"><i class="bi bi-file-earmark-text"></i> <?= et('Plantillas de consulta') ?></a></li><?php endif; ?>
                     <?php endif; ?>
-                    <?php if (has_role('admin')): ?>
-                    <li class="nav-item"><a class="nav-link<?= nav_active('auditoria', $activo) ?>" href="<?= BASE_URL ?>/admin/auditoria"><i class="bi bi-clipboard-data"></i> <?= et('Auditoría') ?></a></li>
-                    <?php endif; ?>
                     <?php if (es_superadmin()): ?>
                     <li class="nav-item mt-2"><a class="nav-link<?= nav_active('admin', $activo) ?>" href="<?= BASE_URL ?>/platform/index"><i class="bi bi-diagram-3"></i> <?= et('Plataforma') ?></a></li>
                     <li class="nav-item"><a class="nav-link<?= nav_active('feedback_admin', $activo) ?>" href="<?= BASE_URL ?>/admin/feedback"><i class="bi bi-chat-left-dots"></i> <?= et('Comentarios') ?></a></li>
                     <?php endif; ?>
-                    <li class="nav-item mt-2"><a class="nav-link<?= nav_active('seguridad', $activo) ?>" href="<?= BASE_URL ?>/auth/seguridad"><i class="bi bi-shield-lock"></i> <?= et('Seguridad') ?></a></li>
-                    <li class="nav-item"><a class="nav-link<?= nav_active('feedback', $activo) ?>" href="<?= BASE_URL ?>/feedback/index"><i class="bi bi-chat-left-dots"></i> <?= et('Enviar comentario') ?></a></li>
+                    <li class="nav-item mt-2"><a class="nav-link<?= nav_active('feedback', $activo) ?>" href="<?= BASE_URL ?>/feedback/index"><i class="bi bi-chat-left-dots"></i> <?= et('Enviar comentario') ?></a></li>
                     <li class="nav-item"><a class="nav-link<?= nav_active('soporte', $activo) ?>" href="<?= BASE_URL ?>/soporte/index"><i class="bi bi-life-preserver"></i> <?= et('Ayuda y soporte') ?></a></li>
                 </ul>
             </div>
