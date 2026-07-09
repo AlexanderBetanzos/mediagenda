@@ -3,9 +3,11 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/mercadopago.php';
 require_once __DIR__ . '/../includes/correo.php';
 
-// Si ya hay sesión, al panel.
+// Si ya hay sesión no se registra un consultorio nuevo: "Contratar ahora" es un
+// upgrade, así que va al checkout del plan elegido. Sin plan válido, al panel.
 if (is_logged_in()) {
-    redirect('/dashboard');
+    $planSel = preg_replace('/[^a-z]/', '', (string) ($_GET['plan'] ?? ''));
+    redirect(isset(planes_mp()[$planSel]) ? '/pagos/checkout?plan=' . $planSel : '/dashboard');
 }
 
 const TRIAL_DIAS = 15;

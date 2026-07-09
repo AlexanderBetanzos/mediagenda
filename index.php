@@ -306,7 +306,7 @@ track_pageview('publico');
                 $planes[] = [$pl['nombre'], '$' . number_format($pl['precio'], 0), $pl['descripcion'], $pl['items'], $pl['destacado'], $planKey];
             }
             foreach ($planes as [$nombre,$precio,$desc,$items,$feat,$planKey]):
-                $href = BASE_URL . '/auth/registro.php' . ($planKey ? '?plan=' . $planKey : '');
+                $href = BASE_URL . '/auth/registro' . ($planKey ? '?plan=' . $planKey : '');
                 $btn  = $planKey ? 'Contratar ahora' : 'Probar 15 días gratis'; ?>
             <div class="col-md-6 col-lg-4">
                 <div class="card price-card h-100 shadow-sm <?= $feat ? 'featured' : '' ?>">
