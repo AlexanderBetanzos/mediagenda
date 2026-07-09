@@ -39,15 +39,6 @@ $st = $pdo->prepare(
 $st->execute([$tid, $tid, $tid, $corte, $tid]);
 $pacientes = $st->fetchAll();
 
-/** Link de WhatsApp a partir del teléfono (México: +52). */
-function wa_link(?string $tel, string $msg): ?string
-{
-    $d = preg_replace('/\D+/', '', (string) $tel);
-    if (strlen($d) < 10) return null;
-    if (strlen($d) === 10) $d = '52' . $d;
-    return 'https://wa.me/' . $d . '?text=' . rawurlencode($msg);
-}
-
 $titulo = t('Reactivación');
 $activo = 'reactivacion';
 include __DIR__ . '/../includes/header.php';
