@@ -43,16 +43,6 @@ function tenant_id(): int
     return 1;
 }
 
-/** URL absoluta de una ruta del sitio (Mercado Pago exige URLs completas). */
-function url_absoluta(string $path): string
-{
-    $https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-        || (($_SERVER['SERVER_PORT'] ?? '') == 443)
-        || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
-    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-    return ($https ? 'https' : 'http') . '://' . $host . BASE_URL . $path;
-}
-
 /* --------------------------------------------------------------------
  *  Portal del paciente (sesión separada de la del personal)
  * ------------------------------------------------------------------ */
