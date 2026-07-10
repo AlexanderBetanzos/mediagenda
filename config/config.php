@@ -63,13 +63,16 @@ define('MONEDA', 'MXN');
 date_default_timezone_set('America/Mexico_City');
 
 // 4) Errores: visibles en local/CLI, ocultos en producción (salvo APP_DEBUG=1).
+//    En producción, APP_DEBUG se activa con `SetEnv APP_DEBUG 1` en .htaccess,
+//    que llega por $_SERVER (getenv() no lo ve), o como variable de entorno real.
 $__host  = $_SERVER['HTTP_HOST'] ?? '';
 $__local = (PHP_SAPI === 'cli')
     || in_array($__host, ['localhost', '127.0.0.1'], true)
     || strncmp($__host, 'localhost:', 10) === 0
     || strncmp($__host, '127.0.0.1:', 10) === 0;
+$__debug = (getenv('APP_DEBUG') === '1') || (($_SERVER['APP_DEBUG'] ?? '') === '1');
 error_reporting(E_ALL);
-ini_set('display_errors', (getenv('APP_DEBUG') === '1' || $__local) ? '1' : '0');
+ini_set('display_errors', ($__debug || $__local) ? '1' : '0');
 
 /**
  * Devuelve una única instancia de PDO (patrón singleton simple).
