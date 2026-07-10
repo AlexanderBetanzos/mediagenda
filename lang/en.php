@@ -560,4 +560,20 @@ return [
     'Necesaria para mostrar el formulario de pago en el sitio.'=>'Required to render the payment form on the site.',
     'Credenciales listas. El botón de pago para el paciente se conecta en la siguiente entrega.'=>'Credentials ready. The patient payment button ships in the next release.',
     'Activaste el pago en línea pero falta alguna credencial.'=>'You enabled online payments but a credential is missing.',
+
+    // Link de pago (cobros)
+    'Cobro en línea'=>'Online payment','Generar link'=>'Create link','Monto a cobrar'=>'Amount to charge',
+    'Esperando pago'=>'Awaiting payment','Abrir'=>'Open','Enviar'=>'Send',
+    'Genera un link para que el paciente pague con tarjeta desde su celular.'=>'Create a link so the patient can pay by card from their phone.',
+    'Configurar pago en línea'=>'Set up online payments',
+    'Credenciales de prueba: no se cobra dinero real.'=>'Test credentials: no real money is charged.',
+    'Link de pago generado. Compártelo con el paciente.'=>'Payment link created. Share it with the patient.',
+    'Link de pago cancelado.'=>'Payment link cancelled.','¿Cancelar este link de pago?'=>'Cancel this payment link?',
+    'Primero configura el pago en línea en Configuración.'=>'Set up online payments in Settings first.',
+    'No hay saldo por cobrar en este presupuesto.'=>'There is no outstanding balance on this quote.',
+    'El monto a cobrar debe estar entre cero y el saldo pendiente.'=>'The amount must be between zero and the outstanding balance.',
+    'puedes pagar aquí tu tratamiento'=>'you can pay for your treatment here',
+
+    // Bloque de soporte del menú
+    'Soporte'=>'Support','Hola, necesito ayuda con'=>'Hi, I need help with',
 ];

@@ -68,6 +68,19 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
         html.app-dark  { --brand: #f66f14; --brand-dark: #d85f0f; }
         html.app-light { --brand: #f66f14; --brand-dark: #d9600f; }
         /* El botón primario oscuro (degradado naranja) se define en style.css. */
+
+        /* Bloque de soporte al pie del menú. Hereda el color de texto del
+           sidebar, así funciona igual en tema claro y oscuro. */
+        .sidebar-soporte { margin-top: 1.25rem; padding: 1rem 1.25rem 1.5rem;
+                           border-top: 1px solid rgba(255,255,255,.10); }
+        html.app-light .sidebar-soporte { border-top-color: rgba(0,0,0,.08); }
+        .ss-titulo { font-size: .72rem; font-weight: 700; text-transform: uppercase;
+                     letter-spacing: .04em; opacity: .55; margin-bottom: .6rem; }
+        .ss-link { display: flex; align-items: center; gap: .55rem; padding: .22rem 0;
+                   color: var(--brand); text-decoration: none; font-size: .82rem; font-weight: 600; }
+        .ss-link:hover { filter: brightness(1.15); text-decoration: underline; }
+        .ss-mail { word-break: break-all; }
+        .ss-horario { display: flex; gap: .4rem; margin-top: .6rem; font-size: .7rem; opacity: .5; }
     </style>
 </head>
 <body>
@@ -173,6 +186,23 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
                     <li class="nav-item mt-2"><a class="nav-link<?= nav_active('feedback', $activo) ?>" href="<?= BASE_URL ?>/feedback/index"><i class="bi bi-chat-left-dots"></i> <?= et('Enviar comentario') ?></a></li>
                     <li class="nav-item"><a class="nav-link<?= nav_active('soporte', $activo) ?>" href="<?= BASE_URL ?>/soporte/index"><i class="bi bi-life-preserver"></i> <?= et('Ayuda y soporte') ?></a></li>
                 </ul>
+
+                <?php /* Datos del proveedor del sistema (no del consultorio): siempre visibles
+                         al pie del menú, para que nadie tenga que buscar cómo pedir ayuda. */ ?>
+                <div class="sidebar-soporte">
+                    <div class="ss-titulo"><i class="bi bi-headset"></i> <?= et('Soporte') ?> <?= e(APP_NAME) ?></div>
+                    <a href="<?= e(wa_link(SOPORTE_WHATSAPP, t('Hola, necesito ayuda con') . ' ' . APP_NAME . '.')) ?>"
+                       target="_blank" rel="noopener" class="ss-link">
+                        <i class="bi bi-whatsapp"></i> WhatsApp
+                    </a>
+                    <a href="tel:<?= e(preg_replace('/\s+/', '', SOPORTE_TEL)) ?>" class="ss-link">
+                        <i class="bi bi-telephone-fill"></i> <?= e(SOPORTE_TEL) ?>
+                    </a>
+                    <a href="mailto:<?= e(SOPORTE_EMAIL) ?>" class="ss-link">
+                        <i class="bi bi-envelope-fill"></i> <span class="ss-mail"><?= e(SOPORTE_EMAIL) ?></span>
+                    </a>
+                    <div class="ss-horario"><i class="bi bi-clock"></i> <?= e(SOPORTE_HORARIO) ?></div>
+                </div>
             </div>
         </nav>
 
