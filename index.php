@@ -4,12 +4,31 @@ require_once __DIR__ . '/includes/mercadopago.php';
 $logged = is_logged_in();
 $marca  = marca_nombre();
 track_pageview('publico');
+
+/* La landing está diseñada en claro: sin elección previa arranca en claro,
+   aunque el panel tenga el oscuro por defecto. Comparte la cookie `tema` con
+   el panel, así la preferencia viaja con el usuario. */
+$tema    = in_array($_COOKIE['tema'] ?? '', ['dark', 'light', 'auto'], true) ? $_COOKIE['tema'] : 'light';
+$temaCss = $tema === 'dark' ? 'lp-dark' : '';
 ?>
 <!doctype html>
-<html lang="es">
+<html lang="es" class="<?= $temaCss ?>"<?= $tema === 'dark' ? ' data-bs-theme="dark"' : '' ?>>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script>
+    /* Resuelve el tema antes de pintar, para que 'auto' no provoque parpadeo. */
+    (function () {
+        var pref = <?= json_encode($tema) ?>;
+        var oscuro = pref === 'auto'
+            ? matchMedia('(prefers-color-scheme: dark)').matches
+            : pref === 'dark';
+        var el = document.documentElement;
+        el.classList.toggle('lp-dark', oscuro);
+        if (oscuro) { el.setAttribute('data-bs-theme', 'dark'); }
+        else { el.removeAttribute('data-bs-theme'); }
+    })();
+    </script>
     <title><?= e($marca) ?> · Software para consultorios médicos y dentales</title>
     <meta name="description" content="Agenda de citas, expediente clínico electrónico, recetas y facturación para consultorios médicos y dentales. Prueba 15 días gratis.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -43,6 +62,13 @@ track_pageview('publico');
                 <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>/portal/login"><i class="bi bi-person-heart"></i> Portal del paciente</a></li>
             </ul>
             <ul class="navbar-nav align-items-lg-center gap-lg-2">
+                <li class="nav-item">
+                    <button type="button" id="lpTema" class="lp-tema" title="Cambiar entre modo claro y oscuro"
+                            aria-label="Cambiar entre modo claro y oscuro">
+                        <i class="bi bi-sun-fill lp-tema-sol"></i>
+                        <i class="bi bi-moon-stars-fill lp-tema-luna"></i>
+                    </button>
+                </li>
                 <?php if ($logged): ?>
                 <li class="nav-item"><a class="btn btn-primary px-3" href="<?= BASE_URL ?>/dashboard"><i class="bi bi-speedometer2"></i> Ir al panel</a></li>
                 <?php else: ?>
@@ -406,5 +432,21 @@ track_pageview('publico');
 </a>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+/* Alterna claro/oscuro y guarda la preferencia en la misma cookie que el panel. */
+(function () {
+    var boton = document.getElementById('lpTema');
+    if (!boton) return;
+    boton.addEventListener('click', function () {
+        var el = document.documentElement;
+        var oscuro = !el.classList.contains('lp-dark');
+        el.classList.toggle('lp-dark', oscuro);
+        if (oscuro) { el.setAttribute('data-bs-theme', 'dark'); }
+        else { el.removeAttribute('data-bs-theme'); }
+        document.cookie = 'tema=' + (oscuro ? 'dark' : 'light') +
+                          ';path=<?= BASE_URL ?>/;max-age=31536000;samesite=Lax';
+    });
+})();
+</script>
 </body>
 </html>

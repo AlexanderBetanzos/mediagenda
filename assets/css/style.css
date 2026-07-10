@@ -450,3 +450,63 @@ body.lp .bg-primary { background-color: var(--brand) !important; }
 /* Footer */
 .lp-foot-link { display: block; color: #cfd8e3; text-decoration: none; padding: .2rem 0; font-size: .92rem; }
 .lp-foot-link:hover { color: #fff; }
+
+/* =====================================================================
+   Landing en modo oscuro (html.lp-dark)
+
+   Bootstrap 5.3 se encarga solo de tarjetas, acordeón, bordes y textos
+   apagados gracias a data-bs-theme="dark". Aquí solo se corrigen las clases
+   .lp-* que llevan colores fijos. El hero, la barra de anuncio y el CTA son
+   degradados de marca: se ven bien sobre cualquier fondo y no se tocan.
+   ===================================================================== */
+
+/* Botón claro/oscuro de la navbar: muestra el tema al que se va a cambiar. */
+.lp-tema { width: 38px; height: 38px; border-radius: 10px; padding: 0;
+           border: 1px solid rgba(0,0,0,.10); background: transparent; color: #41506a;
+           display: inline-flex; align-items: center; justify-content: center; font-size: 1rem;
+           cursor: pointer; transition: color .15s ease, border-color .15s ease; }
+.lp-tema:hover { color: var(--brand); border-color: var(--brand); }
+.lp-tema-sol { display: none; }
+html.lp-dark .lp-tema { border-color: var(--d-border); color: var(--d-ink); }
+html.lp-dark .lp-tema-sol  { display: inline; }
+html.lp-dark .lp-tema-luna { display: none; }
+
+html.lp-dark body.lp { background: var(--d-bg); color: var(--d-ink); }
+html.lp-dark .landing-nav { background: rgba(14,16,20,.86); box-shadow: 0 1px 0 var(--d-border); }
+html.lp-dark .landing-nav .nav-link { color: var(--d-muted); }
+html.lp-dark .landing-nav .nav-link:hover { color: var(--brand); }
+
+html.lp-dark .section-title { color: var(--d-ink); }
+html.lp-dark .lp-eyebrow    { color: var(--d-accent2); }
+html.lp-dark .text-muted    { color: var(--d-muted) !important; }
+
+html.lp-dark .lp-trust { background: var(--d-bg2); border-top-color: var(--d-border); border-bottom-color: var(--d-border); }
+html.lp-dark .lp-tile  { background: var(--d-panel); border-color: var(--d-border); }
+html.lp-dark .lp-tile-l { color: var(--d-muted); }
+html.lp-dark .lp-ag    { border-color: var(--d-border); }
+html.lp-dark .lp-ag-h  { background: var(--d-panel2); }
+
+html.lp-dark .lp-feature,
+html.lp-dark .lp-quote { background: var(--d-panel); border-color: var(--d-border) !important; }
+html.lp-dark .lp-feature:hover { box-shadow: 0 16px 40px rgba(0,0,0,.55); }
+html.lp-dark .feature-icon { background: rgba(246,111,20,.14); }
+
+html.lp-dark .lp-checklist li,
+html.lp-dark .lp-compare-item { color: var(--d-muted); }
+html.lp-dark .lp-compare-bad  { background: rgba(220,53,69,.10); border-color: rgba(220,53,69,.32); }
+html.lp-dark .lp-compare-good { background: rgba(34,197,94,.10);  border-color: rgba(34,197,94,.32); }
+
+html.lp-dark .lp-faq .accordion-item { border-color: var(--d-border); }
+html.lp-dark .lp-faq .accordion-button:not(.collapsed) { background: rgba(246,111,20,.14); color: var(--d-accent3); }
+
+html.lp-dark .price-card:hover  { box-shadow: 0 10px 30px rgba(0,0,0,.5); }
+html.lp-dark .price-card.featured { border-color: var(--brand); }
+
+html.lp-dark .landing-footer { background: #06070a; }
+
+/* `bg-white` y `bg-light` no son sensibles al tema en Bootstrap 5.3: se quedan
+   claros aunque el resto de la página sea oscura. En claro estas secciones
+   coinciden con el fondo del body, así que en oscuro basta con dejarlas pasar. */
+html.lp-dark body.lp .bg-white { background: transparent !important; }
+html.lp-dark body.lp .badge.bg-light { background: var(--d-panel2) !important; border-color: var(--d-border) !important; }
+html.lp-dark body.lp .badge.bg-light.text-dark { color: var(--d-ink) !important; }
