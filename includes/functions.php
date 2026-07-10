@@ -12,12 +12,45 @@ if (session_status() === PHP_SESSION_NONE) {
  *  Multi-tenant: contexto del consultorio (tenant) activo
  * ------------------------------------------------------------------ */
 
-/** ID del consultorio activo: el del usuario o paciente en sesión, o 1 (público). */
+/**
+ * Fija el consultorio activo sin sesión. Lo usan las páginas públicas que sí
+ * pertenecen a un tenant (el link de pago, el webhook de cobros), donde el
+ * consultorio se deduce del token o de la URL, no de quién esté conectado.
+ * Invalida las cachés que dependen del tenant.
+ */
+function tenant_forzar(int $id): void
+{
+    tenant_override($id);
+    tenant(true);
+    cfg_all(true);
+    modulos_activos(true);
+}
+
+/** Getter/setter del override de tenant. Sin argumento, solo consulta. */
+function tenant_override(?int $id = null): ?int
+{
+    static $override = null;
+    if ($id !== null) $override = $id;
+    return $override;
+}
+
+/** ID del consultorio activo: el forzado, el del usuario o paciente en sesión, o 1 (público). */
 function tenant_id(): int
 {
+    if (($forzado = tenant_override()) !== null)         return $forzado;
     if (isset($_SESSION['usuario']['consultorio_id']))  return (int) $_SESSION['usuario']['consultorio_id'];
     if (isset($_SESSION['paciente']['consultorio_id'])) return (int) $_SESSION['paciente']['consultorio_id'];
     return 1;
+}
+
+/** URL absoluta de una ruta del sitio (Mercado Pago exige URLs completas). */
+function url_absoluta(string $path): string
+{
+    $https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || (($_SERVER['SERVER_PORT'] ?? '') == 443)
+        || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
+    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    return ($https ? 'https' : 'http') . '://' . $host . BASE_URL . $path;
 }
 
 /* --------------------------------------------------------------------
