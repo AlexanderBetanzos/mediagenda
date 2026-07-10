@@ -13,7 +13,7 @@ $plan   = preg_replace('/[^a-z]/', '', (string) ($_GET['plan'] ?? ''));
 $planes = planes_mp();
 
 // Sin Public Key no se puede renderizar el Brick: caemos al flujo con redirect.
-if (!mp_configurado() || MP_PUBLIC_KEY === '') {
+if (!mp_configurado() || mp_public_key() === '') {
     redirect('/pagos/suscribir?plan=' . $plan);
 }
 if (!isset($planes[$plan])) {
@@ -68,7 +68,7 @@ $u = current_user();
 
 <script src="https://sdk.mercadopago.com/js/v2"></script>
 <script>
-const mp = new MercadoPago(<?= json_encode(MP_PUBLIC_KEY) ?>, { locale: 'es-MX' });
+const mp = new MercadoPago(<?= json_encode(mp_public_key()) ?>, { locale: 'es-MX' });
 const bricksBuilder = mp.bricks();
 
 bricksBuilder.create('cardPayment', 'cardBrick_container', {

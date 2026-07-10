@@ -45,16 +45,41 @@ function planes_mp(): array
     ];
 }
 
+/**
+ * Credenciales de Mercado Pago. Manda lo guardado en `plataforma_config` desde
+ * la consola de plataforma; si ahí no hay nada, se cae al archivo de secretos.
+ * Lee la base directamente (sin functions.php) para servir también al webhook
+ * y a los procesos de consola, que no arrancan sesión.
+ */
+function mp_credencial(string $clave, string $fallback): string
+{
+    static $cache = null;
+    if ($cache === null) {
+        $cache = [];
+        try {
+            foreach (db()->query("SELECT clave, valor FROM plataforma_config
+                                  WHERE clave IN ('mp_access_token','mp_public_key')") as $row) {
+                $cache[$row['clave']] = (string) $row['valor'];
+            }
+        } catch (Throwable $e) { /* la tabla aún no existe */ }
+    }
+    $v = $cache[$clave] ?? '';
+    return $v !== '' ? $v : $fallback;
+}
+
+function mp_access_token(): string { return mp_credencial('mp_access_token', MP_ACCESS_TOKEN); }
+function mp_public_key():   string { return mp_credencial('mp_public_key',   MP_PUBLIC_KEY);   }
+
 /** ¿Hay credenciales de Mercado Pago configuradas? */
 function mp_configurado(): bool
 {
-    return MP_ACCESS_TOKEN !== '';
+    return mp_access_token() !== '';
 }
 
 /** ¿Las credenciales son de prueba (sandbox)? */
 function mp_es_sandbox(): bool
 {
-    return strpos(MP_ACCESS_TOKEN, 'TEST-') === 0;
+    return strpos(mp_access_token(), 'TEST-') === 0;
 }
 
 /** Petición genérica a la API de Mercado Pago. Devuelve el JSON decodificado. */
@@ -68,7 +93,7 @@ function mp_request(string $metodo, string $path, ?array $body = null): array
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_CUSTOMREQUEST  => $metodo,
         CURLOPT_HTTPHEADER     => [
-            'Authorization: Bearer ' . MP_ACCESS_TOKEN,
+            'Authorization: Bearer ' . mp_access_token(),
             'Content-Type: application/json',
         ],
         CURLOPT_TIMEOUT        => 30,

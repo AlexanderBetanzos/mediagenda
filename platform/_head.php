@@ -53,6 +53,7 @@ $ini   = strtoupper(mb_substr($parts[0] ?? '', 0, 1) . (isset($parts[1]) ? mb_su
     <ul class="navbar-nav flex-row top-menu gap-1 ms-2 d-none d-md-flex">
         <li class="nav-item"><a class="nav-link<?= ($platNav ?? '') === 'consultorios' ? ' active' : '' ?>" href="<?= BASE_URL ?>/platform/index"><i class="bi bi-buildings"></i> <?= et('Consultorios') ?></a></li>
         <li class="nav-item"><a class="nav-link<?= ($platNav ?? '') === 'metrics' ? ' active' : '' ?>" href="<?= BASE_URL ?>/platform/metrics"><i class="bi bi-graph-up-arrow"></i> <?= et('Métricas') ?></a></li>
+        <li class="nav-item"><a class="nav-link<?= ($platNav ?? '') === 'ajustes' ? ' active' : '' ?>" href="<?= BASE_URL ?>/platform/ajustes"><i class="bi bi-gear"></i> <?= et('Ajustes') ?></a></li>
     </ul>
     <div class="navbar-nav flex-row ms-auto align-items-center gap-3 px-3">
         <div class="topbar-clock text-end lh-1 d-none d-sm-block">

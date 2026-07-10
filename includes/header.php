@@ -154,7 +154,9 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
                     <?php if (modulo_activo('facturacion')): ?><li class="nav-item"><a class="nav-link<?= nav_active('corte', $activo) ?>" href="<?= BASE_URL ?>/corte/index"><i class="bi bi-cash-stack"></i> <?= et('Corte de caja') ?></a></li><?php endif; ?>
                     <?php if (modulo_activo('facturacion') && has_role('admin')): ?><li class="nav-item"><a class="nav-link<?= nav_active('egresos', $activo) ?>" href="<?= BASE_URL ?>/egresos/index"><i class="bi bi-arrow-left-right"></i> <?= et('Egresos e ingresos') ?></a></li><?php endif; ?>
                     <?php if (modulo_activo('crm')): ?><li class="nav-item"><a class="nav-link<?= nav_active('crm', $activo) ?>" href="<?= BASE_URL ?>/crm/index"><i class="bi bi-people-fill"></i> <?= et('CRM') ?></a></li><?php endif; ?>
-                    <?php if (modulo_activo('crm')): ?><li class="nav-item"><a class="nav-link<?= nav_active('reactivacion', $activo) ?>" href="<?= BASE_URL ?>/reactivacion/index"><i class="bi bi-arrow-repeat"></i> <?= et('Reactivación') ?></a></li><?php endif; ?>
+                    <?php /* Reactivación: oculta del menú. La pantalla existe (reactivacion/index.php)
+                             pero hoy sale vacía hasta que la base tenga pacientes sin visita en meses,
+                             y se solapa con las campañas por segmento del CRM. */ ?>
                     <?php if (modulo_activo('farmacia')): ?><li class="nav-item"><a class="nav-link<?= nav_active('inventario', $activo) ?>" href="<?= BASE_URL ?>/inventario/index"><i class="bi bi-box-seam"></i> <?= et('Inventario') ?></a></li><?php endif; ?>
                     <?php if (has_role('admin')): ?>
                     <li class="nav-item mt-2"><a class="nav-link<?= nav_active('usuarios', $activo) ?>" href="<?= BASE_URL ?>/usuarios/index"><i class="bi bi-person-badge"></i> <?= et('Personal') ?></a></li>

@@ -71,7 +71,8 @@ function trial_dias_restantes(): ?int
 /** ¿La fila $id de $tabla pertenece al consultorio activo? (anti cross-tenant) */
 function pertenece_al_tenant(string $tabla, int $id): bool
 {
-    $permitidas = ['pacientes', 'usuarios', 'citas', 'consultas', 'recetas', 'facturas', 'archivos', 'productos'];
+    $permitidas = ['pacientes', 'usuarios', 'citas', 'consultas', 'recetas', 'facturas', 'archivos', 'productos',
+                   'servicios', 'presupuestos'];
     if ($id <= 0 || !in_array($tabla, $permitidas, true)) return false;
     $st = db()->prepare("SELECT 1 FROM $tabla WHERE id = ? AND consultorio_id = ?");
     $st->execute([$id, tenant_id()]);
@@ -468,6 +469,64 @@ function ensure_plataforma_admins_table(): void
 }
 
 /* --------------------------------------------------------------------
+ *  Configuración GLOBAL de la plataforma (del dueño, no de un consultorio).
+ *  Vive en `plataforma_config`; la edita solo la consola de plataforma.
+ * ------------------------------------------------------------------ */
+
+/** Crea la tabla de configuración de plataforma si aún no existe. */
+function ensure_plataforma_config_table(): void
+{
+    db()->exec(
+        "CREATE TABLE IF NOT EXISTS plataforma_config (
+            clave          VARCHAR(60) PRIMARY KEY,
+            valor          TEXT DEFAULT NULL,
+            actualizado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+    );
+}
+
+/**
+ * Lee un ajuste global. Devuelve $default si está vacío, no existe, o la tabla
+ * aún no se ha creado: así el sistema arranca sin tocar la base.
+ */
+function plataforma_cfg(string $clave, string $default = '', bool $reset = false): string
+{
+    static $cache = null;
+    if ($reset) { $cache = null; return $default; }
+    if ($cache === null) {
+        $cache = [];
+        try {
+            foreach (db()->query('SELECT clave, valor FROM plataforma_config') as $row) {
+                $cache[$row['clave']] = (string) $row['valor'];
+            }
+        } catch (Throwable $e) { /* la tabla aún no existe */ }
+    }
+    $v = $cache[$clave] ?? '';
+    return $v !== '' ? $v : $default;
+}
+
+/** Guarda (upsert) ajustes globales de plataforma. */
+function guardar_plataforma_cfg(array $pares): void
+{
+    ensure_plataforma_config_table();
+    $stmt = db()->prepare(
+        'INSERT INTO plataforma_config (clave, valor) VALUES (?, ?)
+         ON DUPLICATE KEY UPDATE valor = VALUES(valor)'
+    );
+    foreach ($pares as $k => $v) { $stmt->execute([$k, $v]); }
+    plataforma_cfg('', '', true); // invalida la caché
+}
+
+/** Muestra solo los últimos 4 caracteres de un secreto: APP_USR-…3f2a. */
+function secreto_enmascarado(string $valor): string
+{
+    if ($valor === '') return '';
+    $cola = mb_substr($valor, -4);
+    $cabeza = str_contains($valor, '-') ? explode('-', $valor)[0] . '-' : '';
+    return $cabeza . str_repeat('•', 10) . $cola;
+}
+
+/* --------------------------------------------------------------------
  *  Analítica de tráfico (pageviews) — para las métricas de plataforma.
  * ------------------------------------------------------------------ */
 
@@ -541,6 +600,7 @@ function pageview_module_label(string $area, string $path): string
         'usuarios' => 'Personal', 'configuracion' => 'Configuración', 'pagos' => 'Suscripción', 'plantillas' => 'Plantillas',
         'soporte' => 'Ayuda', 'feedback' => 'Comentarios', 'auth' => 'Acceso', 'portal' => 'Portal',
         'admin' => 'Súper-admin', 'platform' => 'Plataforma', 'odontograma' => 'Odontograma',
+        'presupuestos' => 'Presupuestos', 'servicios' => 'Catálogo de servicios',
     ];
     if (str_contains($path, '/')) {
         $seg = explode('/', $path);
@@ -894,4 +954,99 @@ function estado_label(string $estado): string
         'cancelada'   => 'Cancelada',
         'no_asistio'  => 'No asistió',
     ][$estado] ?? $estado);
+}
+
+/* --------------------------------------------------------------------
+ *  Presupuestos / planes de tratamiento
+ * ------------------------------------------------------------------ */
+
+/** Estados de un presupuesto: clave => [etiqueta, color de badge]. */
+function presupuesto_estados(): array
+{
+    return [
+        'borrador'  => ['Borrador',  'secondary'],
+        'propuesto' => ['Propuesto', 'info'],
+        'aceptado'  => ['Aceptado',  'primary'],
+        'terminado' => ['Terminado', 'success'],
+        'rechazado' => ['Rechazado', 'danger'],
+        'cancelado' => ['Cancelado', 'dark'],
+    ];
+}
+
+function presupuesto_estado_label(string $estado): string
+{
+    return t(presupuesto_estados()[$estado][0] ?? $estado);
+}
+
+function presupuesto_estado_badge(string $estado): string
+{
+    return presupuesto_estados()[$estado][1] ?? 'secondary';
+}
+
+/**
+ * Un presupuesto cuenta como trabajo comprometido (y por tanto su saldo es
+ * cobrable) solo cuando el paciente ya lo aceptó.
+ */
+function presupuesto_es_cobrable(string $estado): bool
+{
+    return in_array($estado, ['aceptado', 'terminado'], true);
+}
+
+/** Suma de abonos registrados a un presupuesto. */
+function presupuesto_pagado(int $presupuesto_id): float
+{
+    $st = db()->prepare(
+        'SELECT COALESCE(SUM(monto),0) FROM presupuesto_pagos
+         WHERE presupuesto_id = ? AND consultorio_id = ?'
+    );
+    $st->execute([$presupuesto_id, tenant_id()]);
+    return (float) $st->fetchColumn();
+}
+
+/**
+ * Siguiente folio de presupuesto del consultorio, por año: PRE-2026-0007.
+ * Se calcula sobre el consecutivo ya usado en el año, no sobre el id, para que
+ * cada consultorio lleve su propia numeración corrida.
+ */
+function presupuesto_siguiente_folio(): string
+{
+    $prefijo = 'PRE-' . date('Y') . '-';
+    $desde   = strlen($prefijo) + 1; // posición del consecutivo dentro del folio
+    $st = db()->prepare(
+        "SELECT COALESCE(MAX(CAST(SUBSTRING(folio, $desde) AS UNSIGNED)), 0)
+         FROM presupuestos WHERE consultorio_id = ? AND folio LIKE ?"
+    );
+    $st->execute([tenant_id(), $prefijo . '%']);
+    $n = (int) $st->fetchColumn() + 1;
+    return $prefijo . str_pad((string) $n, 4, '0', STR_PAD_LEFT);
+}
+
+/** Caras de un diente: clave => etiqueta. Se guardan como "O,M,V". */
+function caras_dentales(): array
+{
+    return [
+        'O' => 'Oclusal',
+        'M' => 'Mesial',
+        'D' => 'Distal',
+        'V' => 'Vestibular',
+        'L' => 'Lingual/Palatina',
+    ];
+}
+
+/** Normaliza la lista de caras que llega de un formulario a "O,M,V" (o null). */
+function caras_normalizar($caras): ?string
+{
+    $validas = array_keys(caras_dentales());
+    $entrada = is_array($caras) ? $caras : explode(',', (string) $caras);
+    $limpias = array_values(array_intersect($validas, array_map('trim', $entrada)));
+    return $limpias ? implode(',', $limpias) : null;
+}
+
+/** Dientes válidos en notación FDI (permanentes), en orden de arcada. */
+function dientes_fdi(): array
+{
+    return array_merge(
+        [18,17,16,15,14,13,12,11], [21,22,23,24,25,26,27,28],
+        [48,47,46,45,44,43,42,41], [31,32,33,34,35,36,37,38]
+    );
 }
