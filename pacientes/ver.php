@@ -189,6 +189,9 @@ include __DIR__ . '/../includes/header.php';
         <?php if (has_role('medico', 'admin')): ?>
         <a href="<?= BASE_URL ?>/recetas/create?paciente_id=<?= $id ?>" class="btn btn-outline-primary"><i class="bi bi-capsule"></i> <?= et('Receta') ?></a>
         <?php endif; ?>
+        <?php if (modulo_activo('presupuestos')): ?>
+        <a href="<?= BASE_URL ?>/presupuestos/index?paciente_id=<?= $id ?>" class="btn btn-outline-primary"><i class="bi bi-clipboard2-check"></i> <?= et('Presupuestos') ?></a>
+        <?php endif; ?>
         <a href="<?= BASE_URL ?>/facturacion/create?paciente_id=<?= $id ?>" class="btn btn-outline-primary"><i class="bi bi-receipt"></i> <?= et('Factura') ?></a>
         <?php if (modulo_activo('especialidades') && has_role('medico', 'admin')): ?>
         <?php if ($p['tipo'] === 'dental'): ?>
