@@ -33,6 +33,7 @@ $temaCss = $tema === 'dark' ? 'lp-dark' : '';
     <meta name="description" content="Agenda de citas, expediente clínico electrónico, recetas y facturación para consultorios médicos y dentales. Prueba 15 días gratis.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://images.unsplash.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Mulish:wght@600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
@@ -87,39 +88,54 @@ $temaCss = $tema === 'dark' ? 'lp-dark' : '';
             <div class="col-lg-6 lp-hero-text">
                 <span class="lp-pill mb-3"><i class="bi bi-patch-check-fill"></i> Software médico y dental</span>
                 <h1 class="display-4 fw-bold mb-3">La forma simple de gestionar tu consultorio</h1>
-                <p class="lead mb-4">Agenda, expediente clínico, recetas y facturación en un solo lugar. Empieza en minutos, desde cualquier dispositivo.</p>
+                <p class="lead mb-4">Agenda, expediente clínico, recetas, presupuestos y cobros en un solo lugar. Empieza en minutos, desde cualquier dispositivo.</p>
                 <div class="d-flex flex-wrap gap-2">
                     <a href="<?= BASE_URL ?>/auth/registro" class="btn btn-light btn-lg px-4 text-brand fw-semibold"><i class="bi bi-rocket-takeoff"></i> Prueba gratis 15 días</a>
                     <a href="#funciones" class="btn btn-outline-light btn-lg px-4">Ver cómo funciona</a>
                 </div>
-                <div class="d-flex flex-wrap gap-4 mt-4 small">
+                <div class="d-flex align-items-center flex-wrap gap-3 mt-4">
+                    <div class="lp-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div>
+                    <span class="small">Pensado para consultorios de México 🇲🇽</span>
+                </div>
+                <div class="d-flex flex-wrap gap-4 mt-3 small opacity-75">
                     <span><i class="bi bi-check-circle-fill"></i> Sin tarjeta</span>
                     <span><i class="bi bi-check-circle-fill"></i> Acceso completo</span>
                     <span><i class="bi bi-check-circle-fill"></i> Cancela cuando quieras</span>
                 </div>
             </div>
             <div class="col-lg-6">
-                <div class="lp-dash card border-0 shadow-lg">
-                    <div class="card-body p-3 p-sm-4">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <span class="fw-semibold text-brand"><i class="bi bi-grid-1x2-fill"></i> Panel del consultorio</span>
-                            <span class="badge bg-success">En vivo</span>
-                        </div>
-                        <div class="row g-2 mb-3">
-                            <?php foreach ([['Citas hoy','14','#f66f14'],['Pacientes','231','#14b8a6'],['Ingresos','$48k','#16a34a']] as [$l,$n,$c]): ?>
-                            <div class="col-4"><div class="lp-tile">
-                                <div class="lp-tile-n" style="color:<?= $c ?>"><?= $n ?></div>
-                                <div class="lp-tile-l"><?= $l ?></div>
-                            </div></div>
+                <div class="lp-mock">
+                    <div class="lp-mock-bar"><span></span><span></span><span></span></div>
+                    <div class="lp-dash card border-0">
+                        <div class="card-body p-3 p-sm-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="fw-semibold text-brand"><i class="bi bi-grid-1x2-fill"></i> Panel del consultorio</span>
+                                <span class="badge bg-success">En vivo</span>
+                            </div>
+                            <div class="row g-2 mb-3">
+                                <?php foreach ([['Citas hoy','14','#f66f14'],['Pacientes','231','#14b8a6'],['Ingresos','$48k','#16a34a']] as [$l,$n,$c]): ?>
+                                <div class="col-4"><div class="lp-tile">
+                                    <div class="lp-tile-n" style="color:<?= $c ?>"><?= $n ?></div>
+                                    <div class="lp-tile-l"><?= $l ?></div>
+                                </div></div>
+                                <?php endforeach; ?>
+                            </div>
+                            <div class="small fw-semibold text-muted mb-2">Agenda de hoy</div>
+                            <?php foreach ([['09:00','Martínez García','Confirmada','info'],['10:30','López Pérez','Programada','secondary'],['11:15','Rodríguez Cruz','Atendida','success']] as [$h,$p,$e,$col]): ?>
+                            <div class="lp-ag d-flex justify-content-between align-items-center">
+                                <span><span class="lp-ag-h"><?= $h ?></span> <?= $p ?></span>
+                                <span class="badge bg-<?= $col ?>"><?= $e ?></span>
+                            </div>
                             <?php endforeach; ?>
                         </div>
-                        <div class="small fw-semibold text-muted mb-2">Agenda de hoy</div>
-                        <?php foreach ([['09:00','Martínez García','Confirmada','info'],['10:30','López Pérez','Programada','secondary'],['11:15','Rodríguez Cruz','Atendida','success']] as [$h,$p,$e,$col]): ?>
-                        <div class="lp-ag d-flex justify-content-between align-items-center">
-                            <span><span class="lp-ag-h"><?= $h ?></span> <?= $p ?></span>
-                            <span class="badge bg-<?= $col ?>"><?= $e ?></span>
+                    </div>
+                    <!-- Tarjeta flotante: pago en línea confirmado -->
+                    <div class="lp-float">
+                        <div class="lp-float-ic"><i class="bi bi-check-lg"></i></div>
+                        <div>
+                            <div class="lp-float-t">Pago recibido</div>
+                            <div class="lp-float-s">$1,200 · Mercado Pago</div>
                         </div>
-                        <?php endforeach; ?>
                     </div>
                 </div>
             </div>
@@ -196,19 +212,22 @@ $temaCss = $tema === 'dark' ? 'lp-dark' : '';
                 <a href="<?= BASE_URL ?>/auth/registro" class="btn btn-primary mt-2">Probar gratis <i class="bi bi-arrow-right"></i></a>
             </div>
             <div class="col-lg-6">
-                <div class="card shadow-sm border-0 lp-shot">
-                    <div class="card-body p-4">
-                        <div class="d-flex gap-2 mb-3">
-                            <span class="badge bg-primary">Todos</span>
-                            <span class="badge bg-light text-dark border">Dra. Laura</span>
-                            <span class="badge bg-light text-dark border">Dr. Carlos</span>
+                <div class="lp-photo-wrap">
+                    <div class="lp-photo" style="background-image:url('https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=1200&q=70&auto=format&fit=crop')"></div>
+                    <div class="card shadow border-0 lp-shot lp-shot-over">
+                        <div class="card-body p-4">
+                            <div class="d-flex gap-2 mb-3">
+                                <span class="badge bg-primary">Todos</span>
+                                <span class="badge bg-light text-dark border">Dra. Laura</span>
+                                <span class="badge bg-light text-dark border">Dr. Carlos</span>
+                            </div>
+                            <?php foreach ([['09:00','Confirmada','info'],['10:30','Programada','secondary'],['11:15','Atendida','success']] as [$h,$e,$c]): ?>
+                            <div class="d-flex justify-content-between align-items-center border rounded-3 p-2 mb-2">
+                                <span><span class="badge bg-light text-dark border me-2"><?= $h ?></span> Paciente</span>
+                                <span class="badge bg-<?= $c ?>"><?= $e ?></span>
+                            </div>
+                            <?php endforeach; ?>
                         </div>
-                        <?php foreach ([['09:00','Confirmada','info'],['10:30','Programada','secondary'],['11:15','Atendida','success'],['12:40','Programada','secondary']] as [$h,$e,$c]): ?>
-                        <div class="d-flex justify-content-between align-items-center border rounded-3 p-2 mb-2">
-                            <span><span class="badge bg-light text-dark border me-2"><?= $h ?></span> Paciente</span>
-                            <span class="badge bg-<?= $c ?>"><?= $e ?></span>
-                        </div>
-                        <?php endforeach; ?>
                     </div>
                 </div>
             </div>
@@ -384,11 +403,16 @@ $temaCss = $tema === 'dark' ? 'lp-dark' : '';
 </section>
 
 <!-- CTA final -->
-<section class="lp-cta">
-    <div class="container text-center">
+<section class="lp-cta" style="background-image:url('https://images.unsplash.com/photo-1666214280557-f1b5022eb634?w=1600&q=75&auto=format&fit=crop')">
+    <div class="container text-center position-relative">
         <h2 class="display-6 fw-bold mb-3">Empieza a digitalizar tu consultorio hoy</h2>
         <p class="lead mb-4">15 días gratis con acceso completo. Sin tarjeta, sin compromiso.</p>
         <a href="<?= BASE_URL ?>/auth/registro" class="btn btn-light btn-lg px-5 text-brand fw-semibold"><i class="bi bi-rocket-takeoff"></i> Crear mi cuenta gratis</a>
+        <div class="d-flex justify-content-center flex-wrap gap-4 mt-4 small opacity-75">
+            <span><i class="bi bi-check-circle-fill"></i> Configúralo en minutos</span>
+            <span><i class="bi bi-check-circle-fill"></i> Soporte en español</span>
+            <span><i class="bi bi-check-circle-fill"></i> Cancela cuando quieras</span>
+        </div>
     </div>
 </section>
 
