@@ -17,6 +17,12 @@ define('DB_USER', 'u840714983_mediagenda');      // usuario MySQL
 define('DB_PASS', 'TU_CONTRASEÑA_DE_LA_BD');     // contraseña MySQL
 define('BASE_URL', '');                          // '' si el sitio va en la raíz del dominio
 
+// --- Diagnóstico en producción (opcional; vacío = desactivado) ---
+// Con esto puedes ver el error real de una página añadiendo ?debug=LA_CLAVE a
+// su URL. Usa una cadena larga y aleatoria, y trátala como una contraseña:
+// quien la tenga puede leer rutas del servidor y fragmentos de consultas.
+define('APP_DEBUG_TOKEN', '');                   // p. ej. 'k7Fq2xR9vT4mZ8pL'
+
 // --- Mercado Pago (opcional; vacío = pagos deshabilitados) ---
 // Pruebas: usa las credenciales de PRUEBA (Access Token que empieza con TEST-).
 // Producción: las credenciales productivas. Panel: https://www.mercadopago.com.mx/developers

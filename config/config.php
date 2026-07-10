@@ -45,6 +45,9 @@ defined('BASE_URL')   || define('BASE_URL',   getenv('BASE_URL') ?: '/consultori
 defined('MP_ACCESS_TOKEN') || define('MP_ACCESS_TOKEN', getenv('MP_ACCESS_TOKEN') ?: '');
 defined('MP_PUBLIC_KEY')   || define('MP_PUBLIC_KEY',   getenv('MP_PUBLIC_KEY')   ?: '');
 
+// Clave para ver los errores en producción con ?debug=CLAVE. Vacía = desactivado.
+defined('APP_DEBUG_TOKEN') || define('APP_DEBUG_TOKEN', getenv('APP_DEBUG_TOKEN') ?: '');
+
 // Remitente de los correos (debe ser del dominio del sitio para buena entrega).
 defined('CORREO_FROM')      || define('CORREO_FROM',      getenv('CORREO_FROM') ?: 'no-reply@mediagenda.com.mx');
 defined('CORREO_FROM_NAME') || define('CORREO_FROM_NAME', 'MediAgenda');
@@ -62,15 +65,28 @@ define('APP_NAME', 'MediAgenda');
 define('MONEDA', 'MXN');
 date_default_timezone_set('America/Mexico_City');
 
-// 4) Errores: visibles en local/CLI, ocultos en producción (salvo APP_DEBUG=1).
-//    En producción, APP_DEBUG se activa con `SetEnv APP_DEBUG 1` en .htaccess,
-//    que llega por $_SERVER (getenv() no lo ve), o como variable de entorno real.
+/* 4) Errores: visibles en local/CLI, ocultos en producción.
+ *
+ * En producción se encienden de dos formas:
+ *   · `?debug=CLAVE` en cualquier URL, con la clave de APP_DEBUG_TOKEN.
+ *   · APP_DEBUG=1 como variable de entorno o `SetEnv APP_DEBUG 1` en .htaccess
+ *     (Apache la entrega por $_SERVER; getenv() no la ve).
+ *
+ * El token va en el archivo de secretos, fuera de public_html. Sin token no hay
+ * forma de activar el debug desde la URL: mostrar errores revela rutas del
+ * servidor y fragmentos de consultas a cualquiera que sepa provocarlos.
+ */
 $__host  = $_SERVER['HTTP_HOST'] ?? '';
 $__local = (PHP_SAPI === 'cli')
     || in_array($__host, ['localhost', '127.0.0.1'], true)
     || strncmp($__host, 'localhost:', 10) === 0
     || strncmp($__host, '127.0.0.1:', 10) === 0;
+
 $__debug = (getenv('APP_DEBUG') === '1') || (($_SERVER['APP_DEBUG'] ?? '') === '1');
+if (!$__debug && APP_DEBUG_TOKEN !== '' && isset($_GET['debug'])) {
+    $__debug = hash_equals(APP_DEBUG_TOKEN, (string) $_GET['debug']);
+}
+
 error_reporting(E_ALL);
 ini_set('display_errors', ($__debug || $__local) ? '1' : '0');
 
