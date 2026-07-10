@@ -42,7 +42,20 @@ Construido con **PHP 8 + MariaDB + Bootstrap 5** sobre XAMPP.
    $MYSQL -u root consultorios_db < sql/plantillas.sql
    $MYSQL -u root consultorios_db < sql/especialidades.sql
    $MYSQL -u root consultorios_db < sql/feedback.sql
+   $MYSQL -u root consultorios_db < sql/presupuestos.sql
+   $MYSQL -u root consultorios_db < sql/odontograma.sql
+   $MYSQL -u root consultorios_db < sql/cobros.sql
    ```
+
+   > `odontograma.sql` depende de `especialidades.sql` y de `presupuestos.sql`
+   > (les añade columnas), y `cobros.sql` depende de `presupuestos.sql`. Impórtalos
+   > en ese orden.
+
+   **Cobros en línea (opcional):** cada consultorio pega sus credenciales de
+   Mercado Pago en *Configuración → Pago en línea*. Con eso puede generar un link
+   de pago desde un presupuesto; el dinero cae en la cuenta del consultorio y el
+   abono se registra solo cuando Mercado Pago confirma. Requiere que el sitio sea
+   accesible por HTTPS desde internet (Mercado Pago llama a `/pago/webhook`).
 
    **Cron de recordatorios (opcional):** para enviar recordatorios de cita por
    correo automáticamente, programa una vez al día:

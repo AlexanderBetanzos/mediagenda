@@ -24,6 +24,8 @@ vendido como SaaS multi-tenant white-label, por **capas/planes**.
 | Pacientes (alta/edición/listado) | ✅ | |
 | Agenda y citas | 🟡 | CRUD + estados; **falta** drag&drop, recurrentes, vista calendario |
 | Expediente clínico + archivos adjuntos | ✅ | consultas, signos vitales, archivos seguros |
+| Catálogo de servicios (precios y duración) | ✅ | tabla `servicios`, `servicios/` |
+| Presupuestos / planes de tratamiento + abonos | ✅ | `presupuestos/`, saldo por paciente, imprimible |
 | Recetas | 🟡 | Cabecera + ítems; **falta** catálogo, firma, QR |
 | Facturación | 🟡 | Folio interno; **falta** CFDI/SAT real |
 | Reportes | 🟡 | Solo `index`, sin BI |
@@ -134,7 +136,10 @@ Objetivo: que un consultorio pague hoy. Completa el núcleo + comunicación.
 | Expediente inteligente | ✅ Identificación (CURP/RFC/INE/tipo sangre), contacto de emergencia, antecedentes (personales/familiares/cirugías/vacunas/crónicas/hábitos/alergias), **IMC automático** (de la última consulta), fotos/PDF/estudios ✅. ⬜ Falta: medicamentos actuales estructurados, gráficas de signos vitales | B | 3.2 NOM-024 | 🟡 |
 | Consulta avanzada | ✅ **Plantillas de consulta** (formatos reutilizables que pre-llenan el expediente, `plantillas/`), diagnósticos/tratamientos ✅. ⬜ Falta: plantillas por especialidad, notas rápidas, órdenes médicas, interconsultas, firma digital | B | Expediente | 🟡 |
 | Recetas electrónicas | Catálogo de medicamentos, recetas favoritas, dosis automáticas, firma electrónica, QR, reimpresión, historial | B (básico) / P (firma+QR) | 3.3 PDF | 🟡 |
+| Catálogo de servicios | ✅ Procedimientos con precio, duración por defecto y bandera "se cotiza por pieza dental" (`servicios/`). ⬜ Falta: usar `duracion_min` para pre-llenar la cita, importar/exportar catálogo | B | — | 🟢 |
+| Presupuestos / plan de tratamiento | ✅ Folio por año y por consultorio, conceptos con **diente (FDI) y caras**, descuento, estados (borrador→propuesto→aceptado→terminado / rechazado / cancelado), avance por procedimiento realizado, **abonos** con saldo y estado de cuenta, documento **imprimible** con membrete y firmas (`presupuestos/`). ⬜ Falta: ligar el item a la cita que lo ejecuta, generar factura desde el presupuesto, firma del paciente en tablet | B | Catálogo de servicios | 🟢 |
 | Facturación + caja | Métodos de pago, caja, cortes, pagos parciales, cuentas por cobrar; **CFDI/SAT** | B (simple) / C (CFDI) | 3.2 SAT | 🟡 |
+| Cobro en línea al paciente | ✅ Credenciales de Mercado Pago **por consultorio** (`configuracion/`, el dinero cae en su cuenta) · ✅ **link de pago** por presupuesto con token público (`pago/`), Checkout Pro, webhook idempotente que verifica importe y registra el abono solo. ⬜ Falta: cobro desde el portal del paciente, pago de facturas, reembolsos | P | Presupuestos | 🟢 |
 | Portal del paciente | ✅ Acceso propio (sesión separada), ver citas próximas/historial, **reagendar/cancelar** sus citas (`portal/cita.php`), ver/imprimir recetas, descargar estudios. Provisión desde `pacientes/ver`. ⬜ Falta: pagos, chat/video, auto-registro por token | P | 3.3 API | 🟢 |
 | Dashboard | KPIs configurables, agenda del día, pendientes, ingresos | B | — | 🟡 |
 
@@ -151,7 +156,7 @@ Objetivo: que un consultorio pague hoy. Completa el núcleo + comunicación.
 | App móvil paciente | Agenda, historial, estudios, chat, videollamada, notificaciones, ubicación | P | Portal + API | ⬜ |
 | App móvil médico | Agenda, consultas, expedientes, dictado por voz, firmar recetas, estadísticas | C | API + firma | ⬜ |
 | CRM médico | ✅ Seguimientos por paciente (tipo/fecha/estado, vencidos), cumpleaños del mes (felicitar por WhatsApp), **campañas de WhatsApp** por segmento (todos/tipo/cumpleaños) con enlaces wa.me (`crm/`). ⬜ Falta: embudos, correos automáticos, encuestas | P | Notificaciones | 🟡 |
-| Especialidades | ✅ **Odontograma interactivo** (`odontograma/index.php`, notación FDI, JSON por paciente) · ✅ **Curvas de crecimiento** pediátricas (`crecimiento/index.php`, peso/talla/IMC vs edad + mediana de referencia por sexo). ⬜ Falta: percentiles exactos, ginecología (prenatal/FUM/USG), psicología (sesiones/escalas), nutrición (planes/calorías), dermatología (comparativa fotos), cardiología (ECG), oftalmología | P (paquete) / Add-on | Consulta avanzada + plantillas | 🟡 |
+| Especialidades | ✅ **Odontograma por caras** (`odontograma/`, FDI, capas hallazgo/requerido/realizado, **historial** de versiones, **genera presupuesto** con lo requerido y marca la cara al ejecutarlo) · ✅ **Curvas de crecimiento** pediátricas (`crecimiento/index.php`, peso/talla/IMC vs edad + mediana de referencia por sexo). ⬜ Falta: periodontograma, dentición temporal (dientes 51-85), percentiles exactos, ginecología (prenatal/FUM/USG), psicología (sesiones/escalas), nutrición (planes/calorías), dermatología (comparativa fotos), cardiología (ECG), oftalmología | P (paquete) / Add-on | Consulta avanzada + plantillas | 🟢 |
 
 ---
 
@@ -199,6 +204,7 @@ e incapacidades · OCR de INE/CURP. → la mayoría cuelgan de **Flujo de sala**
 |---|:--:|:--:|:--:|
 | Citas + agenda pro | ✓ | ✓ | ✓ |
 | Expediente + recetas | ✓ | ✓ | ✓ |
+| Servicios + presupuestos y abonos | ✓ | ✓ | ✓ |
 | Facturación simple | ✓ | ✓ | ✓ |
 | Recordatorios correo | ✓ | ✓ | ✓ |
 | WhatsApp/SMS | — | ✓ | ✓ |
@@ -220,14 +226,19 @@ e incapacidades · OCR de INE/CURP. → la mayoría cuelgan de **Flujo de sala**
 
 1. ✅ **§3.1 Entitlements** (planes/módulos/gating) + `planes_mp()` migrado a 3 planes.
 2. ✅ **§3.2 Auditoría + 2FA** (bitácora + doble factor TOTP).
-3. **Fase 1**: agenda pro (drag&drop, recurrentes) → expediente inteligente →
-   recetas con firma/QR → recordatorios WhatsApp → portal paciente → dashboard KPIs.
-4. Ajustar **precios de planes** una vez Fase 1 tenga valor diferenciado por plan.
-5. **Fase 2** en adelante según demanda comercial.
+3. ✅ **Servicios + presupuestos + abonos**: la capa de dinero y tratamiento, sin
+   la cual un dentista no puede migrar su operación. Módulo `presupuestos`.
+4. ✅ **Odontograma real**: por caras, tres capas (hallazgo / a tratar / realizado),
+   historial de versiones y circuito cerrado con el presupuesto.
+5. **Siguiente**: consentimiento informado con firma → WhatsApp por API
+   (recordatorios automáticos y confirmación bidireccional).
+6. Después: recetas con firma/QR → portal paciente con pagos → dashboard KPIs.
+7. Ajustar **precios de planes** una vez Fase 1 tenga valor diferenciado por plan.
+8. **Fase 2** en adelante según demanda comercial.
 
 > Cada módulo que arranquemos: rama `feat/<modulo>`, migración SQL idempotente en
 > `sql/`, gating con `modulo_activo()`, y se marca su estado en este doc.
 
 ---
 
-_Última actualización: 2026-06-20._
+_Última actualización: 2026-07-09._

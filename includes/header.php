@@ -162,6 +162,7 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
                     <?php if (modulo_activo('pacientes')): ?><li class="nav-item"><a class="nav-link<?= nav_active('pacientes', $activo) ?>" href="<?= BASE_URL ?>/pacientes/index"><i class="bi bi-people"></i> <?= et('Pacientes') ?></a></li><?php endif; ?>
                     <?php if (modulo_activo('expediente')): ?><li class="nav-item"><a class="nav-link<?= nav_active('expediente', $activo) ?>" href="<?= BASE_URL ?>/expediente/index"><i class="bi bi-folder2-open"></i> <?= et('Expediente') ?></a></li><?php endif; ?>
                     <?php if (modulo_activo('recetas')): ?><li class="nav-item"><a class="nav-link<?= nav_active('recetas', $activo) ?>" href="<?= BASE_URL ?>/recetas/index"><i class="bi bi-capsule"></i> <?= et('Recetas') ?></a></li><?php endif; ?>
+                    <?php if (modulo_activo('presupuestos')): ?><li class="nav-item"><a class="nav-link<?= nav_active('presupuestos', $activo) ?>" href="<?= BASE_URL ?>/presupuestos/index"><i class="bi bi-clipboard2-check"></i> <?= et('Presupuestos') ?></a></li><?php endif; ?>
                     <?php if (modulo_activo('facturacion')): ?><li class="nav-item"><a class="nav-link<?= nav_active('facturacion', $activo) ?>" href="<?= BASE_URL ?>/facturacion/index"><i class="bi bi-receipt"></i> <?= et('Facturación') ?></a></li><?php endif; ?>
                     <?php if (modulo_activo('facturacion')): ?><li class="nav-item"><a class="nav-link<?= nav_active('pos', $activo) ?>" href="<?= BASE_URL ?>/pos/index"><i class="bi bi-shop"></i> <?= et('Punto de venta') ?></a></li><?php endif; ?>
                     <?php if (modulo_activo('facturacion')): ?><li class="nav-item"><a class="nav-link<?= nav_active('corte', $activo) ?>" href="<?= BASE_URL ?>/corte/index"><i class="bi bi-cash-stack"></i> <?= et('Corte de caja') ?></a></li><?php endif; ?>
@@ -172,7 +173,8 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
                              y se solapa con las campañas por segmento del CRM. */ ?>
                     <?php if (modulo_activo('farmacia')): ?><li class="nav-item"><a class="nav-link<?= nav_active('inventario', $activo) ?>" href="<?= BASE_URL ?>/inventario/index"><i class="bi bi-box-seam"></i> <?= et('Inventario') ?></a></li><?php endif; ?>
                     <?php if (has_role('admin')): ?>
-                    <li class="nav-item mt-2"><a class="nav-link<?= nav_active('usuarios', $activo) ?>" href="<?= BASE_URL ?>/usuarios/index"><i class="bi bi-person-badge"></i> <?= et('Personal') ?></a></li>
+                    <?php if (modulo_activo('presupuestos')): ?><li class="nav-item mt-2"><a class="nav-link<?= nav_active('servicios', $activo) ?>" href="<?= BASE_URL ?>/servicios/index"><i class="bi bi-tags"></i> <?= et('Catálogo de servicios') ?></a></li><?php endif; ?>
+                    <li class="nav-item<?= modulo_activo('presupuestos') ? '' : ' mt-2' ?>"><a class="nav-link<?= nav_active('usuarios', $activo) ?>" href="<?= BASE_URL ?>/usuarios/index"><i class="bi bi-person-badge"></i> <?= et('Personal') ?></a></li>
                     <li class="nav-item"><a class="nav-link<?= nav_active('suscripcion', $activo) ?>" href="<?= BASE_URL ?>/pagos/index"><i class="bi bi-stars"></i> <?= et('Mi suscripción') ?></a></li>
                     <li class="nav-item"><a class="nav-link<?= nav_active('configuracion', $activo) ?>" href="<?= BASE_URL ?>/configuracion/index"><i class="bi bi-gear"></i> <?= et('Configuración') ?></a></li>
                     <?php endif; ?>

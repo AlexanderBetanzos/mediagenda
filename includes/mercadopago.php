@@ -144,10 +144,70 @@ function mp_tenant_es_sandbox(): bool
     return strpos(mp_tenant_access_token(), 'TEST-') === 0;
 }
 
-/** Petición genérica a la API de Mercado Pago. Devuelve el JSON decodificado. */
-function mp_request(string $metodo, string $path, ?array $body = null): array
+/** Petición a la API con las credenciales del consultorio activo. */
+function mp_tenant_request(string $metodo, string $path, ?array $body = null): array
 {
-    if (!mp_configurado()) {
+    $token = mp_tenant_access_token();
+    if ($token === '') {
+        throw new MpException('Este consultorio no tiene configurado el pago en línea.');
+    }
+    return mp_request($metodo, $path, $body, $token);
+}
+
+/**
+ * Crea la preferencia de Checkout Pro de un cobro y devuelve
+ * ['id' => …, 'init_point' => url a la que mandar al paciente].
+ *
+ * `notification_url` lleva el consultorio en la query porque el webhook es
+ * público: sin él no sabríamos con qué token consultar el pago.
+ */
+function mp_crear_preferencia_cobro(array $cobro, array $paciente): array
+{
+    $tid = (int) $cobro['consultorio_id'];
+
+    $payload = [
+        'items' => [[
+            'title'       => mb_substr($cobro['concepto'], 0, 250),
+            'quantity'    => 1,
+            'unit_price'  => round((float) $cobro['monto'], 2),
+            'currency_id' => moneda(),
+        ]],
+        'external_reference' => 'cobro:' . (int) $cobro['id'],
+        'notification_url'   => url_absoluta('/pago/webhook?c=' . $tid),
+        'back_urls' => [
+            'success' => url_absoluta('/pago/retorno?t=' . $cobro['token']),
+            'pending' => url_absoluta('/pago/retorno?t=' . $cobro['token']),
+            'failure' => url_absoluta('/pago/retorno?t=' . $cobro['token']),
+        ],
+        'auto_return'  => 'approved',
+        'statement_descriptor' => mb_substr(marca_nombre(), 0, 22),
+    ];
+
+    $nombre = trim(($paciente['nombre'] ?? '') . ' ' . ($paciente['apellidos'] ?? ''));
+    if ($nombre !== '')            $payload['payer']['name']  = $nombre;
+    if (!empty($paciente['email'])) $payload['payer']['email'] = $paciente['email'];
+
+    $pref = mp_tenant_request('POST', '/checkout/preferences', $payload);
+
+    // En sandbox, Mercado Pago sirve el checkout desde otra URL.
+    $url = mp_tenant_es_sandbox()
+        ? ($pref['sandbox_init_point'] ?? $pref['init_point'] ?? '')
+        : ($pref['init_point'] ?? '');
+    if ($url === '') {
+        throw new MpException('Mercado Pago no devolvió una URL de pago.');
+    }
+    return ['id' => (string) ($pref['id'] ?? ''), 'init_point' => $url];
+}
+
+/**
+ * Petición genérica a la API de Mercado Pago. Devuelve el JSON decodificado.
+ * Sin $token usa el de la plataforma (suscripciones); con él, el del
+ * consultorio (cobros a pacientes).
+ */
+function mp_request(string $metodo, string $path, ?array $body = null, ?string $token = null): array
+{
+    $token = $token ?? mp_access_token();
+    if ($token === '') {
         throw new MpException('Mercado Pago no está configurado.');
     }
     $ch = curl_init('https://api.mercadopago.com' . $path);
@@ -155,7 +215,7 @@ function mp_request(string $metodo, string $path, ?array $body = null): array
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_CUSTOMREQUEST  => $metodo,
         CURLOPT_HTTPHEADER     => [
-            'Authorization: Bearer ' . mp_access_token(),
+            'Authorization: Bearer ' . $token,
             'Content-Type: application/json',
         ],
         CURLOPT_TIMEOUT        => 30,
