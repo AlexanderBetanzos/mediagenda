@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/mercadopago.php';
 require_role('admin');
 
 $temas = ['dark' => 'Oscuro', 'light' => 'Claro', 'auto' => 'Automático (según el sistema)'];
@@ -76,6 +77,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'recordatorio_plantilla' => trim($_POST['recordatorio_plantilla'] ?? ''),
         'recordatorio_auto'      => !empty($_POST['recordatorio_auto']) ? '1' : '0',
     ]);
+    /* Pago en línea: credenciales de Mercado Pago DEL CONSULTORIO, con las que
+       cobra a sus propios pacientes. Un campo vacío no borra el que ya había. */
+    ['nuevos' => $mpNuevos, 'errores' => $mpErrores] =
+        mp_credenciales_desde_post($_POST, mp_tenant_access_token(), mp_tenant_public_key());
+
+    if ($mpErrores) {
+        foreach ($mpErrores as $err) { flash($err, 'danger'); }
+    } else {
+        $mpNuevos['mp_pago_habilitado'] = !empty($_POST['mp_pago_habilitado']) ? '1' : '0';
+        guardar_cfg($mpNuevos);
+        if (array_diff_key($mpNuevos, ['mp_pago_habilitado' => 1])) {
+            auditar('config_mp_editar', 'configuracion', null, 'credenciales de pago en línea');
+        }
+    }
+
     auditar('config_editar');
     flash('Configuración guardada correctamente.');
     redirect('/configuracion/index');
@@ -242,6 +258,58 @@ include __DIR__ . '/../includes/header.php';
         </div>
     </div>
     <?php endif; ?>
+
+    <!-- Pago en línea: credenciales del propio consultorio -->
+    <div class="card mb-4">
+        <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-credit-card text-brand"></i> <?= et('Pago en línea — Mercado Pago') ?></span>
+            <?php if (mp_tenant_habilitado() && mp_tenant_es_sandbox()): ?>
+                <span class="badge bg-warning text-dark"><?= et('Modo pruebas') ?></span>
+            <?php elseif (mp_tenant_habilitado()): ?>
+                <span class="badge bg-success"><?= et('Producción') ?></span>
+            <?php endif; ?>
+        </div>
+        <div class="card-body">
+            <p class="text-muted">
+                <?= et('Conecta tu cuenta de Mercado Pago para cobrar en línea a tus pacientes. El dinero cae en TU cuenta.') ?>
+                <?= et('Obtén tus credenciales en') ?>
+                <a href="https://www.mercadopago.com.mx/developers/panel/app" target="_blank" rel="noopener"><?= et('tu panel de desarrollador') ?></a>.
+                <?= et('Usa credenciales de prueba (TEST-) para probar y de producción (APP_USR-) para cobrar de verdad.') ?>
+            </p>
+
+            <div class="form-check form-switch mb-3">
+                <input class="form-check-input" type="checkbox" role="switch" id="mpHabilitado"
+                       name="mp_pago_habilitado" value="1" <?= cfg('mp_pago_habilitado', '0') === '1' ? 'checked' : '' ?>>
+                <label class="form-check-label" for="mpHabilitado"><?= et('Habilitar pago en línea para mis pacientes') ?></label>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label"><?= et('Access Token') ?> <span class="text-muted small">(<?= et('privado') ?>)</span></label>
+                <input type="text" name="mp_access_token" class="form-control font-monospace" autocomplete="off"
+                       value="<?= e(mp_tenant_access_token()) ?>" placeholder="APP_USR-… o TEST-…">
+                <div class="form-text"><?= et('No lo compartas. Se usa para crear los cobros desde el servidor.') ?></div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label"><?= et('Public Key') ?> <span class="text-muted small">(<?= et('frontend, requerida') ?>)</span></label>
+                <input type="text" name="mp_public_key" class="form-control font-monospace" autocomplete="off"
+                       value="<?= e(mp_tenant_public_key()) ?>" placeholder="APP_USR-… o TEST-…">
+                <div class="form-text"><?= et('Necesaria para mostrar el formulario de pago en el sitio.') ?></div>
+            </div>
+
+            <?php if (mp_tenant_habilitado()): ?>
+            <div class="alert alert-success mb-0 py-2">
+                <i class="bi bi-check-circle"></i>
+                <?= et('Credenciales listas. El botón de pago para el paciente se conecta en la siguiente entrega.') ?>
+            </div>
+            <?php elseif (cfg('mp_pago_habilitado', '0') === '1'): ?>
+            <div class="alert alert-warning mb-0 py-2">
+                <i class="bi bi-exclamation-triangle"></i>
+                <?= et('Activaste el pago en línea pero falta alguna credencial.') ?>
+            </div>
+            <?php endif; ?>
+        </div>
+    </div>
 
     <div class="text-end mb-4">
         <button class="btn btn-primary"><i class="bi bi-check-lg"></i> <?= et('Guardar configuración') ?></button>

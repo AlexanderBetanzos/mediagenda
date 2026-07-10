@@ -82,6 +82,68 @@ function mp_es_sandbox(): bool
     return strpos(mp_access_token(), 'TEST-') === 0;
 }
 
+/**
+ * Valida las credenciales que llegan de un formulario. Sirve tanto para las de
+ * la plataforma como para las de un consultorio: los valores actuales se pasan
+ * como argumento en vez de leerlos aquí.
+ *
+ * Un campo vacío significa "no lo toques": así se puede cambiar la Public Key
+ * sin volver a teclear el Access Token, y nada se borra por descuido.
+ *
+ * @return array{nuevos: array<string,string>, errores: string[]}
+ */
+function mp_credenciales_desde_post(array $post, string $tokenActual = '', string $publicActual = ''): array
+{
+    $etiquetas = ['mp_access_token' => 'Access Token', 'mp_public_key' => 'Public Key'];
+    $nuevos = $errores = [];
+
+    foreach ($etiquetas as $clave => $etiqueta) {
+        $valor = trim((string) ($post[$clave] ?? ''));
+        if ($valor === '') continue;
+        if (!preg_match('/^(TEST|APP_USR)-[A-Za-z0-9._-]{10,}$/', $valor)) {
+            $errores[] = "El $etiqueta no tiene el formato de Mercado Pago (TEST-… o APP_USR-…).";
+            continue;
+        }
+        $nuevos[$clave] = $valor;
+    }
+
+    // Mezclar producción con pruebas no falla de forma ruidosa: los cobros
+    // simplemente dejan de pasar. Se rechaza antes de guardar.
+    $token  = $nuevos['mp_access_token'] ?? $tokenActual;
+    $public = $nuevos['mp_public_key']   ?? $publicActual;
+    if (!$errores && $token !== '' && $public !== ''
+        && (strpos($token, 'TEST-') === 0) !== (strpos($public, 'TEST-') === 0)) {
+        $errores[] = 'Las dos credenciales deben ser del mismo entorno: ambas de pruebas (TEST-) o ambas productivas (APP_USR-).';
+    }
+
+    return ['nuevos' => $nuevos, 'errores' => $errores];
+}
+
+/* --------------------------------------------------------------------
+ *  Credenciales DEL CONSULTORIO (pago en línea de sus pacientes).
+ *
+ *  Distintas de las de la plataforma: estas viven en `configuracion`, son de
+ *  cada tenant, y el dinero cae en la cuenta del consultorio. Las de arriba
+ *  (`plataforma_config`) son con las que MediAgenda cobra las suscripciones.
+ * ------------------------------------------------------------------ */
+
+function mp_tenant_access_token(): string { return (string) cfg('mp_access_token', ''); }
+function mp_tenant_public_key():   string { return (string) cfg('mp_public_key', ''); }
+
+/** ¿El consultorio puede cobrar en línea a sus pacientes? */
+function mp_tenant_habilitado(): bool
+{
+    return cfg('mp_pago_habilitado', '0') === '1'
+        && mp_tenant_access_token() !== ''
+        && mp_tenant_public_key()   !== '';
+}
+
+/** ¿Las credenciales del consultorio son de prueba (sandbox)? */
+function mp_tenant_es_sandbox(): bool
+{
+    return strpos(mp_tenant_access_token(), 'TEST-') === 0;
+}
+
 /** Petición genérica a la API de Mercado Pago. Devuelve el JSON decodificado. */
 function mp_request(string $metodo, string $path, ?array $body = null): array
 {

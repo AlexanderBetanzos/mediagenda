@@ -29,26 +29,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($accion === 'guardar') {
-        // Campo vacío = no se toca. Así no hay que reescribir el token para
-        // cambiar solo la public key, ni se borra nada por descuido.
-        $nuevos = [];
-        foreach (['mp_access_token' => 'Access Token', 'mp_public_key' => 'Public Key'] as $clave => $etiqueta) {
-            $valor = trim((string) ($_POST[$clave] ?? ''));
-            if ($valor === '') continue;
-            if (!preg_match('/^(TEST|APP_USR)-[A-Za-z0-9._-]{10,}$/', $valor)) {
-                $errores[] = "El $etiqueta no tiene el formato de Mercado Pago (TEST-… o APP_USR-…).";
-                continue;
-            }
-            $nuevos[$clave] = $valor;
-        }
-
-        // Mezclar producción con pruebas rompe los cobros de forma silenciosa.
-        $tokenFinal  = $nuevos['mp_access_token'] ?? plataforma_cfg('mp_access_token', MP_ACCESS_TOKEN);
-        $publicFinal = $nuevos['mp_public_key']   ?? plataforma_cfg('mp_public_key',   MP_PUBLIC_KEY);
-        if ($tokenFinal !== '' && $publicFinal !== ''
-            && (strpos($tokenFinal, 'TEST-') === 0) !== (strpos($publicFinal, 'TEST-') === 0)) {
-            $errores[] = 'Las dos credenciales deben ser del mismo entorno: ambas de pruebas (TEST-) o ambas productivas (APP_USR-).';
-        }
+        ['nuevos' => $nuevos, 'errores' => $errores] =
+            mp_credenciales_desde_post($_POST, mp_access_token(), mp_public_key());
 
         if (!$errores && $nuevos) {
             guardar_plataforma_cfg($nuevos);
