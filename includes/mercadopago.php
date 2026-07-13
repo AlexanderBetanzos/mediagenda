@@ -384,20 +384,6 @@ function mp_notificar_activacion(int $cid, string $plan, ?string $proximo): void
     }
 }
 
-/**
- * Construye una URL absoluta del sitio (Mercado Pago exige back/notification
- * URL completas, y rechaza las que no son https).
- *
- * Tras un proxy o balanceador (Hostinger, Cloudflare) la conexión al servidor
- * es HTTP y `$_SERVER['HTTPS']` viene vacío: el esquema real lo dice
- * X-Forwarded-Proto. Sin mirarlo, las URLs saldrían como http:// y Mercado
- * Pago rechazaría la preferencia.
- */
-function url_absoluta(string $path): string
-{
-    $https = (($_SERVER['HTTPS'] ?? '') !== '' && $_SERVER['HTTPS'] !== 'off')
-        || ($_SERVER['SERVER_PORT'] ?? '') == 443
-        || ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https';
-    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-    return ($https ? 'https://' : 'http://') . $host . BASE_URL . $path;
-}
+/* url_absoluta() vive en functions.php: la usan también los cobros, los
+   recordatorios de cita y la agenda en línea, no solo Mercado Pago. */
+

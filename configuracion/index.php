@@ -76,6 +76,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'pais_lada'              => preg_replace('/\D/', '', $_POST['pais_lada'] ?? '') ?: '52',
         'recordatorio_plantilla' => trim($_POST['recordatorio_plantilla'] ?? ''),
         'recordatorio_auto'      => !empty($_POST['recordatorio_auto']) ? '1' : '0',
+        'agenda_online'          => !empty($_POST['agenda_online']) ? '1' : '0',
+        'agenda_online_dias'     => (string) max(1, min(180, (int) ($_POST['agenda_online_dias'] ?? 30))),
+        'agenda_online_duracion' => (string) max(10, min(180, (int) ($_POST['agenda_online_duracion'] ?? 30))),
+        'agenda_online_aviso'    => trim($_POST['agenda_online_aviso'] ?? ''),
     ]);
     /* Pago en línea: credenciales de Mercado Pago DEL CONSULTORIO, con las que
        cobra a sus propios pacientes. Un campo vacío no borra el que ya había. */
@@ -237,6 +241,65 @@ include __DIR__ . '/../includes/header.php';
         </div>
     </div>
 
+    <?php if (modulo_activo('agenda_online')): ?>
+    <!-- Agenda en línea (página pública de reservas) -->
+    <div class="card mb-4">
+        <div class="card-header fw-semibold"><i class="bi bi-calendar-plus text-brand"></i> <?= et('Agenda en línea') ?></div>
+        <div class="card-body">
+            <div class="form-check form-switch mb-3">
+                <input class="form-check-input" type="checkbox" role="switch" id="agenda_online" name="agenda_online" value="1"
+                       <?= cfg('agenda_online', '0') === '1' ? 'checked' : '' ?>>
+                <label class="form-check-label" for="agenda_online">
+                    <?= et('Permitir que los pacientes agenden solos desde internet') ?>
+                </label>
+            </div>
+
+            <?php $slugTen = tenant()['slug'] ?? ''; ?>
+            <?php if (cfg('agenda_online', '0') === '1' && $slugTen): ?>
+            <div class="alert alert-info py-2">
+                <div class="small fw-semibold mb-1"><i class="bi bi-link-45deg"></i> <?= et('Comparte este enlace con tus pacientes') ?></div>
+                <input type="text" class="form-control form-control-sm font-monospace" readonly
+                       onclick="this.select()" value="<?= e(agenda_online_url($slugTen)) ?>">
+                <div class="form-text mb-0"><?= et('Ponlo en tu Google Maps, en tu Instagram o en tu firma de correo.') ?></div>
+            </div>
+            <?php endif; ?>
+
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label"><?= et('Se puede reservar hasta con') ?></label>
+                    <div class="input-group">
+                        <input type="number" min="1" max="180" name="agenda_online_dias" class="form-control"
+                               value="<?= e(cfg('agenda_online_dias', '30')) ?>">
+                        <span class="input-group-text"><?= et('días') ?></span>
+                    </div>
+                    <div class="form-text"><?= et('de anticipación.') ?></div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label"><?= et('Duración de cada cita') ?></label>
+                    <div class="input-group">
+                        <input type="number" min="10" max="180" step="5" name="agenda_online_duracion" class="form-control"
+                               value="<?= e(cfg('agenda_online_duracion', '30')) ?>">
+                        <span class="input-group-text">min</span>
+                    </div>
+                    <div class="form-text"><?= et('Define el tamaño de los huecos que se ofrecen.') ?></div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label"><?= et('Aviso al paciente') ?></label>
+                    <input name="agenda_online_aviso" class="form-control" maxlength="255"
+                           placeholder="<?= e(t('Ej. Llega 10 minutos antes')) ?>"
+                           value="<?= e(cfg('agenda_online_aviso')) ?>">
+                </div>
+            </div>
+
+            <div class="form-text mt-2">
+                <i class="bi bi-info-circle"></i>
+                <?= et('Solo se ofrecen huecos reales: salen del horario de cada médico, menos sus bloqueos y menos las citas ya tomadas. Si un médico no tiene horario configurado, no aparece.') ?>
+                <a href="<?= BASE_URL ?>/citas/horarios"><?= et('Configurar horarios') ?></a>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
+
     <?php if (modulo_activo('whatsapp')): ?>
     <!-- Recordatorios / WhatsApp -->
     <div class="card mb-4">
@@ -253,7 +316,10 @@ include __DIR__ . '/../includes/header.php';
             <div class="col-12">
                 <label class="form-label"><?= et('Plantilla del mensaje') ?></label>
                 <textarea name="recordatorio_plantilla" class="form-control" rows="3" maxlength="500"><?= e(cfg('recordatorio_plantilla', 'Hola {paciente}, le recordamos su cita en {consultorio} el {fecha} a las {hora}. Por favor confirme su asistencia. ¡Gracias!')) ?></textarea>
-                <div class="form-text"><?= et('Marcadores:') ?> <code>{paciente}</code> <code>{consultorio}</code> <code>{fecha}</code> <code>{hora}</code>.</div>
+                <div class="form-text">
+                    <?= et('Marcadores:') ?> <code>{paciente}</code> <code>{consultorio}</code> <code>{fecha}</code> <code>{hora}</code> <code>{enlace}</code>.
+                    <br><?= et('El {enlace} deja que el paciente confirme o cancele con un clic. Si no lo pones, se agrega al final igualmente.') ?>
+                </div>
             </div>
         </div>
     </div>

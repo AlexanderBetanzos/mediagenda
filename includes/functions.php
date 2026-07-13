@@ -1130,16 +1130,30 @@ function tel_e164(?string $tel): string
 }
 
 /** Plantilla de recordatorio con marcadores reemplazados. */
-function mensaje_recordatorio(string $paciente, string $fecha, string $hora): string
+function mensaje_recordatorio(string $paciente, string $fecha, string $hora, ?string $enlace = null): string
 {
-    $plantilla = cfg('recordatorio_plantilla',
-        'Hola {paciente}, le recordamos su cita en {consultorio} el {fecha} a las {hora}. '
-        . 'Por favor confirme su asistencia. ¡Gracias!');
+    // Con enlace, la plantilla por omisión pide confirmar con un clic. Es la
+    // diferencia entre "por favor confirme" (que nadie hace) y un botón.
+    $porOmision = $enlace
+        ? 'Hola {paciente}, le recordamos su cita en {consultorio} el {fecha} a las {hora}. '
+          . 'Confirme o cancele aquí: {enlace}'
+        : 'Hola {paciente}, le recordamos su cita en {consultorio} el {fecha} a las {hora}. '
+          . 'Por favor confirme su asistencia. ¡Gracias!';
+
+    $plantilla = cfg('recordatorio_plantilla', $porOmision);
+
+    // Si el consultorio personalizó su plantilla y no puso {enlace}, se agrega
+    // al final: la confirmación no debe perderse por olvidar un marcador.
+    if ($enlace && strpos($plantilla, '{enlace}') === false) {
+        $plantilla .= ' ' . t('Confirme o cancele aquí') . ': {enlace}';
+    }
+
     return strtr($plantilla, [
         '{paciente}'    => $paciente,
         '{consultorio}' => marca_nombre(),
         '{fecha}'       => $fecha,
         '{hora}'        => $hora,
+        '{enlace}'      => $enlace ?? '',
     ]);
 }
 
@@ -1241,6 +1255,160 @@ function presupuesto_siguiente_folio(): string
     $st->execute([tenant_id(), $prefijo . '%']);
     $n = (int) $st->fetchColumn() + 1;
     return $prefijo . str_pad((string) $n, 4, '0', STR_PAD_LEFT);
+}
+
+/**
+ * Construye una URL absoluta del sitio (Mercado Pago exige back/notification
+ * URL completas, y rechaza las que no son https).
+ *
+ * Tras un proxy o balanceador (Hostinger, Cloudflare) la conexión al servidor
+ * es HTTP y `$_SERVER['HTTPS']` viene vacío: el esquema real lo dice
+ * X-Forwarded-Proto. Sin mirarlo, las URLs saldrían como http:// y Mercado
+ * Pago rechazaría la preferencia.
+ */
+function url_absoluta(string $path): string
+{
+    // Por CLI (el cron de recordatorios) no hay HTTP_HOST: el enlace saldría
+    // como http://localhost y llegaría roto al correo del paciente. La variable
+    // de entorno SITIO_URL da el dominio real en ese caso.
+    if (PHP_SAPI === 'cli' || empty($_SERVER['HTTP_HOST'])) {
+        $base = rtrim((string) (getenv('SITIO_URL') ?: ''), '/');
+        if ($base !== '') return $base . BASE_URL . $path;
+    }
+
+    $https = (($_SERVER['HTTPS'] ?? '') !== '' && $_SERVER['HTTPS'] !== 'off')
+        || ($_SERVER['SERVER_PORT'] ?? '') == 443
+        || ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https';
+    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    return ($https ? 'https://' : 'http://') . $host . BASE_URL . $path;
+}
+
+/* --------------------------------------------------------------------
+ *  Agenda en línea y confirmación de cita
+ * ------------------------------------------------------------------ */
+
+/**
+ * Token del enlace que se le manda al paciente para confirmar o cancelar.
+ * Se genera una vez y vive en la propia cita: muere con ella, así que el enlace
+ * se invalida solo cuando la cita se borra.
+ */
+function cita_token(int $cita_id): string
+{
+    $st = db()->prepare('SELECT token FROM citas WHERE id = ? AND consultorio_id = ?');
+    $st->execute([$cita_id, tenant_id()]);
+    $token = (string) ($st->fetchColumn() ?: '');
+
+    if ($token === '') {
+        $token = bin2hex(random_bytes(16));
+        db()->prepare('UPDATE citas SET token = ? WHERE id = ? AND consultorio_id = ?')
+            ->execute([$token, $cita_id, tenant_id()]);
+    }
+    return $token;
+}
+
+/** URL pública para que el paciente confirme o cancele su cita. */
+function cita_enlace(int $cita_id): string
+{
+    return url_absoluta('/agenda/confirmar?t=' . cita_token($cita_id));
+}
+
+/** URL pública de la página de reservas de un consultorio. */
+function agenda_online_url(string $slug): string
+{
+    return url_absoluta('/agenda/reservar?c=' . rawurlencode($slug));
+}
+
+/**
+ * Huecos libres de un médico en un día.
+ *
+ * Un hueco se ofrece solo si: cae dentro del horario que el médico configuró
+ * para ese día de la semana, no choca con un bloqueo (vacaciones, comida), no
+ * choca con una cita ya agendada, y no está en el pasado. Ofrecer un hueco que
+ * no existe es peor que no ofrecer nada: el paciente se presenta y no hay lugar.
+ *
+ * @return string[] Horas 'HH:MM' disponibles, en orden.
+ */
+function agenda_huecos(int $medico_id, string $fecha, int $duracion = 30): array
+{
+    $tid = tenant_id();
+    $dia = (int) date('w', strtotime($fecha));   // 0=domingo, como medico_horarios
+
+    // 1) Horario del médico ese día. Sin horario configurado, no atiende.
+    $st = db()->prepare(
+        'SELECT hora_inicio, hora_fin FROM medico_horarios
+         WHERE medico_id = ? AND consultorio_id = ? AND dia_semana = ?'
+    );
+    $st->execute([$medico_id, $tid, $dia]);
+    $franjas = $st->fetchAll();
+    if (!$franjas) return [];
+
+    // 2) Citas ya agendadas ese día (las canceladas y las faltas no ocupan).
+    $st = db()->prepare(
+        "SELECT hora, duracion FROM citas
+         WHERE medico_id = ? AND consultorio_id = ? AND fecha = ?
+           AND estado NOT IN ('cancelada','no_asistio')"
+    );
+    $st->execute([$medico_id, $tid, $fecha]);
+    $ocupadas = $st->fetchAll();
+
+    // 3) Bloqueos que pisan ese día (del médico o de todo el consultorio).
+    $st = db()->prepare(
+        'SELECT inicio, fin FROM bloqueos
+         WHERE consultorio_id = ? AND (medico_id = ? OR medico_id IS NULL)
+           AND DATE(inicio) <= ? AND DATE(fin) >= ?'
+    );
+    $st->execute([$tid, $medico_id, $fecha, $fecha]);
+    $bloqueos = $st->fetchAll();
+
+    $ahora  = time();
+    $huecos = [];
+    $paso   = max(5, $duracion) * 60;
+
+    foreach ($franjas as $f) {
+        $ini = strtotime($fecha . ' ' . $f['hora_inicio']);
+        $cierre = strtotime($fecha . ' ' . $f['hora_fin']);
+
+        for ($t = $ini; $t + $duracion * 60 <= $cierre; $t += $paso) {
+            if ($t <= $ahora) continue;                    // nadie reserva en el pasado
+            if (hueco_ocupado($t, $t + $duracion * 60, $ocupadas, $bloqueos, $fecha)) continue;
+            $huecos[] = date('H:i', $t);
+        }
+    }
+
+    sort($huecos);
+    return array_values(array_unique($huecos));
+}
+
+/**
+ * ¿El hueco [$ini, $fin) pisa una cita ya agendada o un bloqueo?
+ *
+ * Dos intervalos se solapan si cada uno empieza antes de que termine el otro.
+ * La comparación es con < y > (no <=): una cita que TERMINA a las 10:00 no
+ * estorba a un hueco que EMPIEZA a las 10:00; si no, se perdería un hueco bueno
+ * en cada frontera.
+ *
+ * Función aparte (y pura) porque es donde se agenda a dos pacientes en la misma
+ * hora si uno se equivoca: se puede probar sola.
+ */
+function hueco_ocupado(int $ini, int $fin, array $ocupadas, array $bloqueos, string $fecha): bool
+{
+    foreach ($ocupadas as $c) {
+        $ci = strtotime($fecha . ' ' . $c['hora']);
+        $cf = $ci + (((int) $c['duracion']) ?: 30) * 60;
+        if ($ini < $cf && $fin > $ci) return true;
+    }
+    foreach ($bloqueos as $b) {
+        $bi = strtotime($b['inicio']);
+        $bf = strtotime($b['fin']);
+        if ($ini < $bf && $fin > $bi) return true;
+    }
+    return false;
+}
+
+/** ¿El consultorio tiene abierta su página pública de reservas? */
+function agenda_online_activa(): bool
+{
+    return modulo_activo('agenda_online') && cfg('agenda_online', '0') === '1';
 }
 
 /* --------------------------------------------------------------------

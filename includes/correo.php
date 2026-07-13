@@ -66,16 +66,53 @@ function correo_bienvenida_trial(string $email, string $nombre, int $dias): bool
 }
 
 /** Recordatorio de cita próxima. */
-function correo_recordatorio_cita(string $email, string $nombre, string $fecha, string $hora, ?string $medico): bool
+function correo_recordatorio_cita(string $email, string $nombre, string $fecha, string $hora,
+                                 ?string $medico, ?string $enlace = null): bool
 {
+    // El botón es lo que convierte un recordatorio en una confirmación. Sin él,
+    // el paciente lee el correo, piensa "ok" y no pasa nada: la falta se
+    // descubre cuando el hueco ya se perdió.
+    $botones = $enlace
+        ? '<br><table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 0">'
+          . '<tr><td style="padding-right:8px">'
+          . '<a href="' . e($enlace) . '" style="display:inline-block;background:#22c55e;color:#fff;'
+          . 'text-decoration:none;padding:12px 22px;border-radius:10px;font-weight:600">Confirmar asistencia</a>'
+          . '</td><td>'
+          . '<a href="' . e($enlace) . '" style="display:inline-block;background:#eef1f5;color:#334155;'
+          . 'text-decoration:none;padding:12px 22px;border-radius:10px;font-weight:600">No puedo asistir</a>'
+          . '</td></tr></table>'
+          . '<div style="font-size:13px;color:#64748b">Si no puedes venir, avísanos desde aquí: '
+          . 'así podemos ofrecer tu horario a otro paciente.</div>'
+        : '<br>Si no puedes asistir, por favor avísanos para reagendar. ¡Te esperamos!';
+
     $cuerpo = 'Hola <strong>' . e($nombre) . '</strong>,<br><br>'
         . 'Te recordamos tu próxima cita en <strong>' . e(marca_nombre()) . '</strong>:'
         . '<br><br><div style="background:#f4f7fb;border-radius:10px;padding:16px;font-size:15px">'
         . '📅 <strong>' . e($fecha) . '</strong><br>🕐 <strong>' . e($hora) . '</strong>'
         . ($medico ? '<br>👩‍⚕️ ' . e($medico) : '')
-        . '</div><br>Si no puedes asistir, por favor avísanos para reagendar. ¡Te esperamos!';
+        . '</div>' . $botones;
+
     $html = correo_layout('Recordatorio de tu cita', $cuerpo);
     return enviar_correo($email, 'Recordatorio de tu cita en ' . marca_nombre() . ' · ' . $fecha, $html);
+}
+
+/** Comprobante de una cita agendada por el propio paciente (agenda en línea). */
+function correo_cita_agendada(string $email, string $nombre, string $fecha, string $hora,
+                              ?string $medico, string $enlace): bool
+{
+    $cuerpo = 'Hola <strong>' . e($nombre) . '</strong>,<br><br>'
+        . 'Tu cita en <strong>' . e(marca_nombre()) . '</strong> quedó agendada:'
+        . '<br><br><div style="background:#f4f7fb;border-radius:10px;padding:16px;font-size:15px">'
+        . '📅 <strong>' . e($fecha) . '</strong><br>🕐 <strong>' . e($hora) . '</strong>'
+        . ($medico ? '<br>👩‍⚕️ ' . e($medico) : '')
+        . '</div><br>'
+        . '<a href="' . e($enlace) . '" style="display:inline-block;background:#eef1f5;color:#334155;'
+        . 'text-decoration:none;padding:12px 22px;border-radius:10px;font-weight:600">Ver o cancelar mi cita</a>'
+        . '<div style="font-size:13px;color:#64748b;margin-top:10px">Guarda este correo: desde ese enlace '
+        . 'puedes cancelar si te surge algo.</div>';
+
+    $html = correo_layout('Tu cita quedó agendada', $cuerpo);
+    return enviar_correo($email, 'Tu cita en ' . marca_nombre() . ' · ' . $fecha, $html);
 }
 
 /** Correo de confirmación cuando se activa la suscripción de pago. */

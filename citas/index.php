@@ -112,7 +112,21 @@ include __DIR__ . '/../includes/header.php';
                     <td>
                         <div class="d-flex align-items-center gap-2">
                             <?= avatar_paciente((int) $c['paciente_id'], $c['pac_nombre'], $c['pac_ape'], $c['pac_foto'] ?? null, 32) ?>
-                            <a href="<?= BASE_URL ?>/pacientes/ver?id=<?= $c['paciente_id'] ?>"><?= e($c['pac_nombre'].' '.$c['pac_ape']) ?></a>
+                            <div>
+                                <a href="<?= BASE_URL ?>/pacientes/ver?id=<?= $c['paciente_id'] ?>"><?= e($c['pac_nombre'].' '.$c['pac_ape']) ?></a>
+                                <?php /* Que el paciente confirmara ÉL MISMO no es lo mismo que
+                                         confirmarlo en el mostrador: es la señal de que sí va a venir. */ ?>
+                                <?php if (!empty($c['confirmada_en'])): ?>
+                                    <br><span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25">
+                                        <i class="bi bi-check2-circle"></i> <?= et('Confirmó el paciente') ?>
+                                    </span>
+                                <?php endif; ?>
+                                <?php if (($c['origen'] ?? '') === 'online'): ?>
+                                    <span class="badge bg-info bg-opacity-25 text-info border border-info border-opacity-25">
+                                        <i class="bi bi-globe"></i> <?= et('En línea') ?>
+                                    </span>
+                                <?php endif; ?>
+                            </div>
                         </div>
                     </td>
                     <td class="small"><?= e($c['med_nombre']) ?></td>
@@ -137,7 +151,9 @@ include __DIR__ . '/../includes/header.php';
                             </ul>
                         </div>
                         <?php if (modulo_activo('whatsapp')):
-                            $wa = wa_link($c['pac_tel'], mensaje_recordatorio($c['pac_nombre'].' '.$c['pac_ape'], fmt_fecha($c['fecha']), fmt_hora($c['hora'])));
+                            $wa = wa_link($c['pac_tel'], mensaje_recordatorio(
+                                $c['pac_nombre'].' '.$c['pac_ape'], fmt_fecha($c['fecha']), fmt_hora($c['hora']),
+                                cita_enlace((int) $c['id'])));
                             if ($wa): ?>
                         <a href="<?= e($wa) ?>" target="_blank" rel="noopener" class="btn btn-sm btn-outline-success" title="Recordatorio por WhatsApp"><i class="bi bi-whatsapp"></i></a>
                         <?php endif; endif; ?>

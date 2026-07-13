@@ -95,7 +95,12 @@ include __DIR__ . '/../includes/header.php';
                     <div class="d-flex align-items-center gap-2 mb-2">
                         <?= avatar_paciente((int) $c['paciente_id'], $c['pac_nombre'], $c['pac_ape'], $c['pac_foto'] ?? null, 34) ?>
                         <div class="min-w-0">
-                            <div class="small text-truncate"><?= e($c['pac_nombre'].' '.$c['pac_ape']) ?></div>
+                            <div class="small text-truncate">
+                                <?= e($c['pac_nombre'].' '.$c['pac_ape']) ?>
+                                <?php if (!empty($c['confirmada_en'])): ?>
+                                    <i class="bi bi-check2-circle text-success" title="<?= e(t('El paciente confirmó su asistencia')) ?>"></i>
+                                <?php endif; ?>
+                            </div>
                             <div class="small text-muted text-truncate"><?= e($c['med_nombre']) ?></div>
                         </div>
                     </div>

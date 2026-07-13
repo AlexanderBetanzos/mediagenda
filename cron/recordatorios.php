@@ -54,8 +54,11 @@ foreach ($consultorios as $cid) {
     foreach ($citas as $c) {
         $proc++;
         if (filter_var($c['email'] ?? '', FILTER_VALIDATE_EMAIL)) {
+            // El enlace es lo que convierte el recordatorio en una confirmación:
+            // el paciente responde con un clic, sin llamar ni iniciar sesión.
+            $enlace = cita_enlace((int) $c['id']);
             if (correo_recordatorio_cita($c['email'], $c['nombre'] . ' ' . $c['apellidos'],
-                    fmt_fecha($c['fecha']), fmt_hora($c['hora']), $c['med_nombre'])) {
+                    fmt_fecha($c['fecha']), fmt_hora($c['hora']), $c['med_nombre'], $enlace)) {
                 $mail++;
             }
         }
