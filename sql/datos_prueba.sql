@@ -9,6 +9,10 @@
 --    2. Corre el archivo completo. Es idempotente: se puede correr dos veces
 --       sin duplicar nada.
 --
+--  Nota técnica: los INSERT ... SELECT de literales llevan FROM DUAL. MySQL lo
+--  exige cuando hay WHERE sin tabla (PostgreSQL no); sin eso el import muere en
+--  el primer paciente y ya no ejecuta nada de lo que viene después.
+--
 --  Nota técnica: los SELECT de cada bloque llevan alias (c1, c2…) porque MySQL
 --  nombra las columnas de una tabla derivada con el LITERAL que contienen, y dos
 --  literales iguales (la adición 1.50 en ambos ojos) chocan con "Duplicate column".
@@ -122,6 +126,7 @@ WHERE p.consultorio_id = @tid AND p.categoria = 'Armazón'
 INSERT INTO pacientes (consultorio_id, nombre, apellidos, fecha_nacimiento, sexo, telefono, email, tipo, alergias, antecedentes)
 SELECT @tid, 'Prueba', 'Óptica', '1978-04-12', 'F', '5551234567', 'prueba.optica@example.com',
        'optica', 'Penicilina', 'Hipertensión controlada'
+FROM DUAL
 WHERE NOT EXISTS (
     SELECT 1 FROM pacientes p WHERE p.consultorio_id = @tid AND p.nombre = 'Prueba' AND p.apellidos = 'Óptica'
 );
@@ -291,6 +296,7 @@ WHERE @pac_optica IS NOT NULL AND @grad IS NOT NULL
 INSERT INTO pacientes (consultorio_id, nombre, apellidos, fecha_nacimiento, sexo, telefono, email, tipo, alergias, antecedentes)
 SELECT @tid, 'Prueba', 'Laboratorio', '1969-11-03', 'M', '5559876543', 'prueba.lab@example.com',
        'medico', 'Sulfas', 'Diabetes tipo 2, hipertensión'
+FROM DUAL
 WHERE NOT EXISTS (
     SELECT 1 FROM pacientes p WHERE p.consultorio_id = @tid AND p.nombre = 'Prueba' AND p.apellidos = 'Laboratorio'
 );
@@ -304,6 +310,7 @@ SELECT @tid, @pac_lab, @medico, DATE_SUB(NOW(), INTERVAL 3 DAY),
        'Control de diabetes', 'Paciente estable, sin datos de descompensación aguda.',
        'Diabetes mellitus tipo 2 en control', 'Continuar metformina 850 mg cada 12 h. Solicito laboratorios.',
        88.5, 1.72, '135/85'
+FROM DUAL
 WHERE @pac_lab IS NOT NULL
   AND NOT EXISTS (SELECT 1 FROM consultas c WHERE c.consultorio_id = @tid AND c.paciente_id = @pac_lab);
 
@@ -312,6 +319,7 @@ INSERT INTO lab_ordenes (consultorio_id, folio, paciente_id, medico_id, fecha, e
 SELECT @tid, CONCAT('LAB-', YEAR(CURDATE()), '-9001'), @pac_lab, @medico, CURDATE(),
        'solicitada', 'urgente', 'Laboratorio Clínico Central',
        'Diabetes mellitus tipo 2', 'Paciente en ayuno desde anoche.', 0
+FROM DUAL
 WHERE @pac_lab IS NOT NULL
   AND NOT EXISTS (SELECT 1 FROM lab_ordenes o WHERE o.consultorio_id = @tid);
 
@@ -333,6 +341,7 @@ WHERE id = @lab1;
 INSERT INTO lab_ordenes (consultorio_id, folio, paciente_id, medico_id, fecha, estado, prioridad, proveedor, diagnostico, total)
 SELECT @tid, CONCAT('LAB-', YEAR(CURDATE()), '-9002'), @pac_lab, @medico, DATE_SUB(CURDATE(), INTERVAL 2 DAY),
        'en_proceso', 'normal', 'Laboratorio Clínico Central', 'Control anual', 0
+FROM DUAL
 WHERE @pac_lab IS NOT NULL
   AND NOT EXISTS (SELECT 1 FROM lab_ordenes o WHERE o.consultorio_id = @tid
                   AND o.folio = CONCAT('LAB-', YEAR(CURDATE()), '-9002'));
@@ -355,6 +364,7 @@ WHERE id = @lab2;
 INSERT INTO lab_ordenes (consultorio_id, folio, paciente_id, medico_id, fecha, estado, prioridad, proveedor, diagnostico, total)
 SELECT @tid, CONCAT('LAB-', YEAR(CURDATE()), '-9003'), @pac_lab, @medico, DATE_SUB(CURDATE(), INTERVAL 8 DAY),
        'lista', 'normal', 'Laboratorio Clínico Central', 'Diabetes mellitus tipo 2', 0
+FROM DUAL
 WHERE @pac_lab IS NOT NULL
   AND NOT EXISTS (SELECT 1 FROM lab_ordenes o WHERE o.consultorio_id = @tid
                   AND o.folio = CONCAT('LAB-', YEAR(CURDATE()), '-9003'));
