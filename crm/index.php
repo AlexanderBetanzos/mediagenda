@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Pendientes (vencidos primero, luego por fecha; sin fecha al final).
 $pend = db()->prepare(
-    "SELECT s.*, p.nombre, p.apellidos, p.telefono, p.foto
+    "SELECT s.*, p.nombre, p.apellidos, p.telefono, COALESCE(p.foto_mime, p.foto) AS foto
      FROM seguimientos s JOIN pacientes p ON p.id = s.paciente_id
      WHERE s.consultorio_id = ? AND s.estado = 'pendiente'
      ORDER BY s.fecha_objetivo IS NULL, s.fecha_objetivo ASC, s.id DESC"
@@ -47,7 +47,7 @@ $pendientes = $pend->fetchAll();
 
 // Cumpleaños del mes actual.
 $cumple = db()->prepare(
-    "SELECT id, nombre, apellidos, telefono, fecha_nacimiento, foto
+    "SELECT id, nombre, apellidos, telefono, fecha_nacimiento, COALESCE(foto_mime, foto) AS foto
      FROM pacientes WHERE consultorio_id = ? AND fecha_nacimiento IS NOT NULL
        AND MONTH(fecha_nacimiento) = MONTH(CURDATE())
      ORDER BY DAY(fecha_nacimiento)"

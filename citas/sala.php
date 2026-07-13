@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $st = db()->prepare(
-    "SELECT c.*, p.nombre AS pac_nombre, p.apellidos AS pac_ape, p.foto AS pac_foto, u.nombre AS med_nombre
+    "SELECT c.*, p.nombre AS pac_nombre, p.apellidos AS pac_ape, COALESCE(p.foto_mime, p.foto) AS pac_foto, u.nombre AS med_nombre
      FROM citas c
      JOIN pacientes p ON p.id = c.paciente_id
      JOIN usuarios  u ON u.id = c.medico_id

@@ -19,7 +19,7 @@ if ($estado !== '' && array_key_exists($estado, ['programada'=>1,'confirmada'=>1
 }
 if ($medico !== '' && ctype_digit($medico)) { $where[] = 'c.medico_id = ?'; $params[] = (int) $medico; }
 
-$sql = "SELECT c.*, p.nombre AS pac_nombre, p.apellidos AS pac_ape, p.telefono AS pac_tel, p.foto AS pac_foto, u.nombre AS med_nombre
+$sql = "SELECT c.*, p.nombre AS pac_nombre, p.apellidos AS pac_ape, p.telefono AS pac_tel, COALESCE(p.foto_mime, p.foto) AS pac_foto, u.nombre AS med_nombre
         FROM citas c
         JOIN pacientes p ON p.id = c.paciente_id
         JOIN usuarios  u ON u.id = c.medico_id

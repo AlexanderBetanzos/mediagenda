@@ -812,31 +812,104 @@ function archivo_max_bytes(): int
 }
 
 /**
- * Guarda la foto de un paciente (imagen jpg/png/webp). Devuelve la ruta
- * relativa (usable con BASE_URL) o null si no vino o no es válida.
+ * Reduce una imagen para guardarla como foto de perfil: recorta al cuadrado por
+ * el centro y la deja en $lado px. Una foto de celular de 5 MB acaba pesando
+ * unos 50 KB, que es lo que hace viable guardarla en la base de datos.
+ * Devuelve [bytes, mime]; si GD no está disponible, devuelve el original.
  */
-function guardar_foto_paciente(?array $f): ?string
+function foto_redimensionar(string $bytes, string $mime, int $lado = 400): array
+{
+    if (!function_exists('imagecreatefromstring')) return [$bytes, $mime];
+
+    $img = @imagecreatefromstring($bytes);
+    if (!$img) return [$bytes, $mime];
+
+    $w = imagesx($img);
+    $h = imagesy($img);
+    $corte = min($w, $h);                 // lado del cuadrado a recortar
+    $destino = min($lado, $corte);        // no agrandar una foto pequeña
+
+    $out = imagecreatetruecolor($destino, $destino);
+    imagecopyresampled(
+        $out, $img,
+        0, 0,
+        (int) (($w - $corte) / 2), (int) (($h - $corte) / 2),   // centrado
+        $destino, $destino, $corte, $corte
+    );
+
+    ob_start();
+    imagejpeg($out, null, 82);            // JPEG: la foto de perfil no necesita alfa
+    $nuevo = (string) ob_get_clean();
+
+    imagedestroy($img);
+    imagedestroy($out);
+
+    return $nuevo !== '' ? [$nuevo, 'image/jpeg'] : [$bytes, $mime];
+}
+
+/**
+ * Guarda la foto de un paciente EN LA BASE DE DATOS (tabla paciente_fotos).
+ *
+ * Antes se guardaba en uploads/, pero esa carpeta no estaba en .gitignore y el
+ * despliegue (git clean) borraba las fotos en cada subida de cambios. En la base
+ * entran en los respaldos y ya no dependen de cómo se comporte el deploy.
+ *
+ * Devuelve el mime guardado, o null si no vino archivo o no es una imagen válida.
+ * Actualiza también pacientes.foto_mime, que es la marca barata que consultan los
+ * listados para saber si hay foto sin cargar el blob.
+ */
+function guardar_foto_paciente(?array $f, int $paciente_id): ?string
 {
     if (!$f || ($f['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) return null;
     if ($f['error'] !== UPLOAD_ERR_OK || !is_uploaded_file($f['tmp_name'])) return null;
-    if ($f['size'] > 6 * 1024 * 1024) return null; // 6 MB
+    if ($f['size'] > 6 * 1024 * 1024) return null; // 6 MB de entrada
+
     $mime = (new finfo(FILEINFO_MIME_TYPE))->file($f['tmp_name']) ?: '';
-    $ext  = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'][$mime] ?? null;
-    if (!$ext) return null;
-    $dir = __DIR__ . '/../uploads/pacientes/' . tenant_id();
-    if (!is_dir($dir)) { @mkdir($dir, 0775, true); }
-    $nombre = bin2hex(random_bytes(12)) . '.' . $ext;
-    if (!move_uploaded_file($f['tmp_name'], $dir . '/' . $nombre)) return null;
-    return 'uploads/pacientes/' . tenant_id() . '/' . $nombre;
+    if (!isset(['image/jpeg' => 1, 'image/png' => 1, 'image/webp' => 1][$mime])) return null;
+
+    $bytes = (string) file_get_contents($f['tmp_name']);
+    if ($bytes === '') return null;
+    [$bytes, $mime] = foto_redimensionar($bytes, $mime);
+
+    return paciente_foto_escribir($paciente_id, $bytes, $mime) ? $mime : null;
 }
 
-/** Borra del disco la foto de un paciente (si existe). */
-function eliminar_foto_paciente(?string $ruta): void
+/** Escribe (o reemplaza) los bytes de la foto de un paciente del consultorio activo. */
+function paciente_foto_escribir(int $paciente_id, string $bytes, string $mime): bool
 {
-    if (!$ruta) return;
-    $ruta = str_replace(['..', "\0"], '', $ruta);
-    $abs  = __DIR__ . '/../' . ltrim($ruta, '/');
-    if (is_file($abs)) { @unlink($abs); }
+    if (!$paciente_id || !pertenece_al_tenant('pacientes', $paciente_id)) return false;
+
+    $st = db()->prepare(
+        'INSERT INTO paciente_fotos (paciente_id, consultorio_id, mime, bytes)
+         VALUES (?,?,?,?)
+         ON DUPLICATE KEY UPDATE mime = VALUES(mime), bytes = VALUES(bytes)'
+    );
+    $st->bindValue(1, $paciente_id, PDO::PARAM_INT);
+    $st->bindValue(2, tenant_id(), PDO::PARAM_INT);
+    $st->bindValue(3, $mime);
+    $st->bindValue(4, $bytes, PDO::PARAM_LOB);
+    $st->execute();
+
+    db()->prepare('UPDATE pacientes SET foto_mime = ? WHERE id = ? AND consultorio_id = ?')
+        ->execute([$mime, $paciente_id, tenant_id()]);
+
+    return true;
+}
+
+/** Borra la foto de un paciente (de la base y, si quedaba, del disco). */
+function eliminar_foto_paciente(int $paciente_id, ?string $ruta_vieja = null): void
+{
+    db()->prepare('DELETE FROM paciente_fotos WHERE paciente_id = ? AND consultorio_id = ?')
+        ->execute([$paciente_id, tenant_id()]);
+    db()->prepare('UPDATE pacientes SET foto_mime = NULL, foto = NULL WHERE id = ? AND consultorio_id = ?')
+        ->execute([$paciente_id, tenant_id()]);
+
+    // Restos de la época en que la foto vivía en disco.
+    if ($ruta_vieja) {
+        $ruta = str_replace(['..', "\0"], '', $ruta_vieja);
+        $abs  = __DIR__ . '/../' . ltrim($ruta, '/');
+        if (is_file($abs)) { @unlink($abs); }
+    }
 }
 
 /**
@@ -851,9 +924,11 @@ function eliminar_foto_paciente(?string $ruta): void
  */
 function foto_paciente_url(?array $p): string
 {
-    if (empty($p['id']) || empty($p['foto'])) return '';
-    return BASE_URL . '/pacientes/foto?id=' . (int) $p['id']
-         . '&v=' . substr(md5((string) $p['foto']), 0, 8);
+    // 'foto_mime' es la marca actual (foto en la base); 'foto' es la ruta vieja
+    // en disco, que sigue valiendo hasta que se migre sola al abrirla.
+    $marca = $p['foto_mime'] ?? $p['foto'] ?? null;
+    if (empty($p['id']) || empty($marca)) return '';
+    return BASE_URL . '/pacientes/foto?id=' . (int) $p['id'];
 }
 
 /**

@@ -69,7 +69,7 @@ include __DIR__ . '/../includes/header.php';
                 <tr>
                     <td>
                         <div class="d-flex align-items-center gap-2">
-                            <?= avatar_paciente((int) $p['id'], $p['nombre'], $p['apellidos'], $p['foto'] ?? null) ?>
+                            <?= avatar_paciente((int) $p['id'], $p['nombre'], $p['apellidos'], ($p['foto_mime'] ?? null) ?: ($p['foto'] ?? null)) ?>
                             <a href="<?= BASE_URL ?>/pacientes/ver?id=<?= $p['id'] ?>" class="fw-semibold text-decoration-none">
                                 <?= e($p['apellidos'] . ', ' . $p['nombre']) ?>
                             </a>

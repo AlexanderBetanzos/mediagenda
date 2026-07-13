@@ -16,8 +16,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!$errores) {
         $campos = paciente_post_campos($p);
-        $foto = guardar_foto_paciente($_FILES['foto'] ?? null);
-        if ($foto) $campos['foto'] = $foto;
         $cols   = array_keys($campos);
         $ph     = implode(',', array_fill(0, count($cols) + 1, '?'));
         $stmt = db()->prepare(
@@ -25,6 +23,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         );
         $stmt->execute(array_merge([tenant_id()], array_values($campos)));
         $nuevoId = (int) db()->lastInsertId();
+        // La foto va en su propia tabla y necesita el id, así que se guarda ya
+        // insertado el paciente.
+        guardar_foto_paciente($_FILES['foto'] ?? null, $nuevoId);
         auditar('crear', 'paciente', $nuevoId, trim(($p['nombre'] ?? '') . ' ' . ($p['apellidos'] ?? '')));
         flash('Paciente registrado correctamente.');
         redirect('/pacientes/ver?id=' . $nuevoId);

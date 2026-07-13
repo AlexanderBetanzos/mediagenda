@@ -169,7 +169,7 @@ include __DIR__ . '/../includes/header.php';
 
 <div class="d-flex flex-wrap justify-content-between align-items-start mb-3 gap-2">
     <div class="d-flex align-items-center gap-3">
-        <?= avatar_paciente((int) $p['id'], $p['nombre'], $p['apellidos'], $p['foto'] ?? null, 72) ?>
+        <?= avatar_paciente((int) $p['id'], $p['nombre'], $p['apellidos'], ($p['foto_mime'] ?? null) ?: ($p['foto'] ?? null), 72) ?>
         <div>
         <h1 class="h3 mb-1">
             <?= e($p['nombre'].' '.$p['apellidos']) ?>

@@ -21,11 +21,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!$errores) {
         $campos = paciente_post_campos($p);
-        $foto = guardar_foto_paciente($_FILES['foto'] ?? null);
-        if ($foto) { eliminar_foto_paciente($p['foto'] ?? null); $campos['foto'] = $foto; }
         $set    = implode(' = ?, ', array_keys($campos)) . ' = ?';
         $stmt = db()->prepare("UPDATE pacientes SET $set WHERE id = ? AND consultorio_id = ?");
         $stmt->execute(array_merge(array_values($campos), [$id, tenant_id()]));
+        // La foto reemplaza a la anterior en paciente_fotos (no se acumulan).
+        // Subir una foto gana sobre la casilla de quitarla.
+        if (!guardar_foto_paciente($_FILES['foto'] ?? null, $id) && !empty($_POST['quitar_foto'])) {
+            eliminar_foto_paciente($id, $p['foto'] ?? null);
+        }
         auditar('editar', 'paciente', $id, trim(($p['nombre'] ?? '') . ' ' . ($p['apellidos'] ?? '')));
         flash('Datos del paciente actualizados.');
         redirect('/pacientes/ver?id=' . $id);

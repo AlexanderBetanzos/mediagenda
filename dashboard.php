@@ -183,7 +183,7 @@ endif; /* fin de las gráficas */
 
 /* ── Agenda de hoy ───────────────────────────────────────────────────── */
 $ag = $pdo->prepare(
-    "SELECT c.*, p.id AS pac_id, p.nombre, p.apellidos, p.foto FROM citas c
+    "SELECT c.*, p.id AS pac_id, p.nombre, p.apellidos, COALESCE(p.foto_mime, p.foto) AS foto FROM citas c
      JOIN pacientes p ON p.id = c.paciente_id
      WHERE c.consultorio_id = ? AND c.fecha = CURDATE() AND c.estado <> 'cancelada' $medFiltro
      ORDER BY c.hora LIMIT 8"
@@ -193,7 +193,7 @@ $agendaHoy = $ag->fetchAll();
 
 /* ── Próximas citas (próximos 7 días) ────────────────────────────────── */
 $px = $pdo->prepare(
-    "SELECT c.fecha, c.hora, c.estado, p.id AS pac_id, p.nombre, p.apellidos, p.foto FROM citas c
+    "SELECT c.fecha, c.hora, c.estado, p.id AS pac_id, p.nombre, p.apellidos, COALESCE(p.foto_mime, p.foto) AS foto FROM citas c
      JOIN pacientes p ON p.id = c.paciente_id
      WHERE c.consultorio_id = ? AND c.fecha BETWEEN DATE_ADD(CURDATE(), INTERVAL 1 DAY) AND DATE_ADD(CURDATE(), INTERVAL 7 DAY)
        AND c.estado IN ('programada','confirmada') $medFiltro
@@ -204,7 +204,7 @@ $proximas = $px->fetchAll();
 
 /* ── Últimos expedientes (últimas consultas) ─────────────────────────── */
 $ue = $pdo->prepare(
-    "SELECT co.fecha, co.diagnostico, p.id pid, p.nombre, p.apellidos, p.foto,
+    "SELECT co.fecha, co.diagnostico, p.id pid, p.nombre, p.apellidos, COALESCE(p.foto_mime, p.foto) AS foto,
             (SELECT COUNT(*) FROM citas ci WHERE ci.paciente_id=p.id
              AND ci.fecha>=CURDATE() AND ci.estado IN('programada','confirmada')) futuras
      FROM consultas co JOIN pacientes p ON p.id = co.paciente_id

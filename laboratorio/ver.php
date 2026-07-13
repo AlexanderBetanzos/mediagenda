@@ -15,7 +15,7 @@ $id = (int) ($_GET['id'] ?? 0);
 $u  = current_user();
 
 $st = db()->prepare(
-    'SELECT o.*, p.nombre AS pac_nombre, p.apellidos AS pac_ape, p.telefono AS pac_tel, p.foto AS pac_foto,
+    'SELECT o.*, p.nombre AS pac_nombre, p.apellidos AS pac_ape, p.telefono AS pac_tel, COALESCE(p.foto_mime, p.foto) AS pac_foto,
             p.email AS pac_email, u.nombre AS med_nombre
      FROM lab_ordenes o
      JOIN pacientes p ON p.id = o.paciente_id

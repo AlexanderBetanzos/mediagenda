@@ -8,7 +8,7 @@ $medFiltro = $u['rol'] === 'medico' ? ' AND r.medico_id = ' . (int) $u['id'] : '
 
 $q = trim($_GET['q'] ?? '');
 $params = [tenant_id()];
-$sql = "SELECT r.*, p.nombre AS pac_nombre, p.apellidos AS pac_ape, p.foto AS pac_foto, u.nombre AS med_nombre,
+$sql = "SELECT r.*, p.nombre AS pac_nombre, p.apellidos AS pac_ape, COALESCE(p.foto_mime, p.foto) AS pac_foto, u.nombre AS med_nombre,
                (SELECT COUNT(*) FROM receta_items ri WHERE ri.receta_id = r.id) AS n_items
         FROM recetas r
         JOIN pacientes p ON p.id = r.paciente_id

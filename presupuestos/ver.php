@@ -14,7 +14,7 @@ $u  = current_user();
 
 $cargar = function (int $id) {
     $st = db()->prepare(
-        'SELECT pr.*, p.nombre AS pac_nombre, p.apellidos AS pac_ape, p.telefono AS pac_tel, p.foto AS pac_foto,
+        'SELECT pr.*, p.nombre AS pac_nombre, p.apellidos AS pac_ape, p.telefono AS pac_tel, COALESCE(p.foto_mime, p.foto) AS pac_foto,
                 m.nombre AS medico_nombre
          FROM presupuestos pr
          JOIN pacientes p ON p.id = pr.paciente_id

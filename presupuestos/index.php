@@ -11,7 +11,7 @@ $estado  = (string) ($_GET['estado'] ?? '');
 $pacFil  = (int) ($_GET['paciente_id'] ?? 0);
 $estados = presupuesto_estados();
 
-$sql = "SELECT pr.*, p.nombre AS pac_nombre, p.apellidos AS pac_ape, p.foto AS pac_foto,
+$sql = "SELECT pr.*, p.nombre AS pac_nombre, p.apellidos AS pac_ape, COALESCE(p.foto_mime, p.foto) AS pac_foto,
                COALESCE(pg.pagado, 0)  AS pagado,
                COALESCE(it.n, 0)       AS items_total,
                COALESCE(it.hechos, 0)  AS items_hechos

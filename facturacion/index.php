@@ -5,7 +5,7 @@ require_modulo('facturacion');
 
 $estado = $_GET['estado'] ?? '';
 $params = [tenant_id()];
-$sql = "SELECT f.*, p.nombre AS pac_nombre, p.apellidos AS pac_ape, p.foto AS pac_foto
+$sql = "SELECT f.*, p.nombre AS pac_nombre, p.apellidos AS pac_ape, COALESCE(p.foto_mime, p.foto) AS pac_foto
         FROM facturas f JOIN pacientes p ON p.id = f.paciente_id WHERE f.consultorio_id = ?";
 if (in_array($estado, ['pendiente','pagada','cancelada'], true)) {
     $sql .= " AND f.estado = ?"; $params[] = $estado;

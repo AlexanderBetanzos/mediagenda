@@ -21,7 +21,7 @@ $corte = date('Y-m-d', strtotime("-$meses months"));
 
 $pdo = db();
 $st = $pdo->prepare(
-    "SELECT p.id, p.nombre, p.apellidos, p.telefono, p.email, p.foto,
+    "SELECT p.id, p.nombre, p.apellidos, p.telefono, p.email, COALESCE(p.foto_mime, p.foto) AS foto,
             GREATEST(COALESCE(uc.f,'1900-01-01'), COALESCE(uco.f,'1900-01-01')) AS ultima
      FROM pacientes p
      LEFT JOIN (SELECT paciente_id, MAX(fecha) f FROM citas WHERE consultorio_id = ? $medCitas GROUP BY paciente_id) uc ON uc.paciente_id = p.id

@@ -15,7 +15,7 @@ if ($q !== '') {
 }
 
 // Por cada paciente: nº de consultas y datos de la última (fecha y diagnóstico).
-$sql = 'SELECT p.id, p.nombre, p.apellidos, p.tipo, p.foto,
+$sql = 'SELECT p.id, p.nombre, p.apellidos, p.tipo, COALESCE(p.foto_mime, p.foto) AS foto,
                (SELECT COUNT(*) FROM consultas c WHERE c.paciente_id = p.id) AS num,
                (SELECT c.fecha FROM consultas c WHERE c.paciente_id = p.id
                   ORDER BY c.fecha DESC LIMIT 1) AS ultima,
