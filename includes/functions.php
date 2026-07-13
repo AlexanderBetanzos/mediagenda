@@ -473,10 +473,10 @@ function require_login(): void
         flash('Debes iniciar sesión.', 'warning');
         redirect('/auth/login');
     }
-    // El panel consulta pacientes.foto_mime en casi todos sus listados: si el
-    // código llegó antes que la migración, el esquema se crea aquí en vez de
-    // dejar el sitio caído.
+    // Si el código llegó antes que la migración, el esquema se crea aquí en vez
+    // de dejar el sitio caído (fotos) o el módulo invisible (agenda en línea).
     asegurar_esquema_fotos();
+    asegurar_esquema_agenda();
     // Gating de suscripción: si la prueba venció o el consultorio está suspendido,
     // se bloquea el acceso (salvo páginas que declaran ALLOW_INACTIVE, p. ej.
     // la pantalla de suscripción o el cierre de sesión).
@@ -857,6 +857,52 @@ function asegurar_esquema_fotos(): void
         guardar_cfg(['esquema_fotos' => '1']);
     } catch (Throwable $e) {
         // Sin permisos de DDL: queda la vía manual (sql/foto_paciente.sql).
+    }
+}
+
+/**
+ * Crea, si faltan, las columnas y el módulo de la agenda en línea.
+ *
+ * Sin esto, un despliegue sin migración deja dos daños: la tarjeta de "Agenda en
+ * línea" no aparece en Configuración (el módulo no existe en el catálogo) y, peor,
+ * la agenda truena al generar los enlaces de WhatsApp (citas.token no existe).
+ * Una migración pendiente no debe romper el sistema.
+ */
+function asegurar_esquema_agenda(): void
+{
+    static $listo = false;
+    if ($listo) return;
+    $listo = true;
+
+    try {
+        if (cfg('esquema_agenda') === '1') return;
+
+        $col = db()->query("SHOW COLUMNS FROM citas LIKE 'token'")->fetch();
+        if (!$col) {
+            db()->exec(
+                "ALTER TABLE citas
+                   ADD COLUMN token         VARCHAR(32) DEFAULT NULL,
+                   ADD COLUMN confirmada_en DATETIME    DEFAULT NULL,
+                   ADD COLUMN cancelada_en  DATETIME    DEFAULT NULL,
+                   ADD COLUMN cancelada_por ENUM('paciente','consultorio') DEFAULT NULL,
+                   ADD COLUMN origen        ENUM('mostrador','online') NOT NULL DEFAULT 'mostrador',
+                   ADD UNIQUE INDEX uq_cita_token (token)"
+            );
+        }
+
+        // El módulo y su plan: sin la fila en `modulos`, modulo_activo() lo niega
+        // y la agenda en línea queda invisible aunque el código esté desplegado.
+        db()->exec("INSERT INTO modulos (clave, nombre, fase, orden)
+                    VALUES ('agenda_online', 'Agenda en línea', 2, 21)
+                    ON DUPLICATE KEY UPDATE nombre = VALUES(nombre)");
+        db()->exec("INSERT INTO plan_modulos (plan_clave, modulo_clave)
+                    VALUES ('profesional','agenda_online'), ('clinica','agenda_online')
+                    ON DUPLICATE KEY UPDATE plan_clave = VALUES(plan_clave)");
+
+        guardar_cfg(['esquema_agenda' => '1']);
+        modulos_activos(true);   // invalida la caché: el módulo ya existe
+    } catch (Throwable $e) {
+        // Sin permisos de DDL: queda la vía manual (sql/agenda_online.sql).
     }
 }
 
