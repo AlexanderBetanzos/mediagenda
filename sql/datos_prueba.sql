@@ -283,6 +283,109 @@ WHERE @pac_optica IS NOT NULL AND @grad IS NOT NULL
 
 
 -- =====================================================================
+--  10. LABORATORIO — un paciente clínico y tres órdenes
+--      Una URGENTE recién solicitada, otra en proceso, y una LISTA con sus
+--      resultados capturados (incluida una glucosa fuera de rango, que es lo que
+--      el módulo existe para hacer saltar a la vista).
+-- =====================================================================
+INSERT INTO pacientes (consultorio_id, nombre, apellidos, fecha_nacimiento, sexo, telefono, email, tipo, alergias, antecedentes)
+SELECT @tid, 'Prueba', 'Laboratorio', '1969-11-03', 'M', '5559876543', 'prueba.lab@example.com',
+       'medico', 'Sulfas', 'Diabetes tipo 2, hipertensión'
+WHERE NOT EXISTS (
+    SELECT 1 FROM pacientes p WHERE p.consultorio_id = @tid AND p.nombre = 'Prueba' AND p.apellidos = 'Laboratorio'
+);
+
+SET @pac_lab := (SELECT id FROM pacientes
+                 WHERE consultorio_id = @tid AND nombre = 'Prueba' AND apellidos = 'Laboratorio' LIMIT 1);
+
+-- Consulta previa: así el generador de documentos ya tiene un {diagnostico} que poner.
+INSERT INTO consultas (consultorio_id, paciente_id, medico_id, fecha, motivo, exploracion, diagnostico, tratamiento, peso, estatura, presion)
+SELECT @tid, @pac_lab, @medico, DATE_SUB(NOW(), INTERVAL 3 DAY),
+       'Control de diabetes', 'Paciente estable, sin datos de descompensación aguda.',
+       'Diabetes mellitus tipo 2 en control', 'Continuar metformina 850 mg cada 12 h. Solicito laboratorios.',
+       88.5, 1.72, '135/85'
+WHERE @pac_lab IS NOT NULL
+  AND NOT EXISTS (SELECT 1 FROM consultas c WHERE c.consultorio_id = @tid AND c.paciente_id = @pac_lab);
+
+-- --- Orden 1: URGENTE, recién solicitada -----------------------------------
+INSERT INTO lab_ordenes (consultorio_id, folio, paciente_id, medico_id, fecha, estado, prioridad, proveedor, diagnostico, notas, total)
+SELECT @tid, CONCAT('LAB-', YEAR(CURDATE()), '-9001'), @pac_lab, @medico, CURDATE(),
+       'solicitada', 'urgente', 'Laboratorio Clínico Central',
+       'Diabetes mellitus tipo 2', 'Paciente en ayuno desde anoche.', 0
+WHERE @pac_lab IS NOT NULL
+  AND NOT EXISTS (SELECT 1 FROM lab_ordenes o WHERE o.consultorio_id = @tid);
+
+SET @lab1 := (SELECT id FROM lab_ordenes WHERE consultorio_id = @tid
+              AND folio = CONCAT('LAB-', YEAR(CURDATE()), '-9001') LIMIT 1);
+
+INSERT INTO lab_orden_items (orden_id, estudio_id, nombre, precio, unidad, referencia)
+SELECT @lab1, e.id, e.nombre, e.precio, e.unidad, e.referencia
+FROM lab_estudios e
+WHERE e.consultorio_id = @tid
+  AND e.nombre IN ('Glucosa en ayuno', 'Hemoglobina glucosilada (HbA1c)', 'Perfil de lípidos')
+  AND @lab1 IS NOT NULL
+  AND NOT EXISTS (SELECT 1 FROM lab_orden_items i WHERE i.orden_id = @lab1);
+
+UPDATE lab_ordenes SET total = (SELECT COALESCE(SUM(precio),0) FROM lab_orden_items WHERE orden_id = @lab1)
+WHERE id = @lab1;
+
+-- --- Orden 2: en proceso ----------------------------------------------------
+INSERT INTO lab_ordenes (consultorio_id, folio, paciente_id, medico_id, fecha, estado, prioridad, proveedor, diagnostico, total)
+SELECT @tid, CONCAT('LAB-', YEAR(CURDATE()), '-9002'), @pac_lab, @medico, DATE_SUB(CURDATE(), INTERVAL 2 DAY),
+       'en_proceso', 'normal', 'Laboratorio Clínico Central', 'Control anual', 0
+WHERE @pac_lab IS NOT NULL
+  AND NOT EXISTS (SELECT 1 FROM lab_ordenes o WHERE o.consultorio_id = @tid
+                  AND o.folio = CONCAT('LAB-', YEAR(CURDATE()), '-9002'));
+
+SET @lab2 := (SELECT id FROM lab_ordenes WHERE consultorio_id = @tid
+              AND folio = CONCAT('LAB-', YEAR(CURDATE()), '-9002') LIMIT 1);
+
+INSERT INTO lab_orden_items (orden_id, estudio_id, nombre, precio, unidad, referencia)
+SELECT @lab2, e.id, e.nombre, e.precio, e.unidad, e.referencia
+FROM lab_estudios e
+WHERE e.consultorio_id = @tid
+  AND e.nombre IN ('Biometría hemática completa', 'Examen general de orina')
+  AND @lab2 IS NOT NULL
+  AND NOT EXISTS (SELECT 1 FROM lab_orden_items i WHERE i.orden_id = @lab2);
+
+UPDATE lab_ordenes SET total = (SELECT COALESCE(SUM(precio),0) FROM lab_orden_items WHERE orden_id = @lab2)
+WHERE id = @lab2;
+
+-- --- Orden 3: LISTA, con resultados capturados ------------------------------
+INSERT INTO lab_ordenes (consultorio_id, folio, paciente_id, medico_id, fecha, estado, prioridad, proveedor, diagnostico, total)
+SELECT @tid, CONCAT('LAB-', YEAR(CURDATE()), '-9003'), @pac_lab, @medico, DATE_SUB(CURDATE(), INTERVAL 8 DAY),
+       'lista', 'normal', 'Laboratorio Clínico Central', 'Diabetes mellitus tipo 2', 0
+WHERE @pac_lab IS NOT NULL
+  AND NOT EXISTS (SELECT 1 FROM lab_ordenes o WHERE o.consultorio_id = @tid
+                  AND o.folio = CONCAT('LAB-', YEAR(CURDATE()), '-9003'));
+
+SET @lab3 := (SELECT id FROM lab_ordenes WHERE consultorio_id = @tid
+              AND folio = CONCAT('LAB-', YEAR(CURDATE()), '-9003') LIMIT 1);
+
+-- Glucosa y HbA1c ALTAS (fuera_rango = 1): en la pantalla salen en rojo y en el
+-- informe impreso también. Colesterol normal, para que se vea el contraste.
+INSERT INTO lab_orden_items (orden_id, estudio_id, nombre, precio, unidad, referencia, resultado, fuera_rango)
+SELECT * FROM (
+  SELECT @lab3 AS c1,
+         (SELECT id FROM lab_estudios WHERE consultorio_id = @tid AND nombre = 'Glucosa en ayuno' LIMIT 1) AS c2,
+         'Glucosa en ayuno' AS c3, 90.00 AS c4, 'mg/dL' AS c5, '70 - 100' AS c6, '148' AS c7, 1 AS c8
+  UNION ALL
+  SELECT @lab3,
+         (SELECT id FROM lab_estudios WHERE consultorio_id = @tid AND nombre = 'Hemoglobina glucosilada (HbA1c)' LIMIT 1),
+         'Hemoglobina glucosilada (HbA1c)', 320.00, '%', '< 5.7', '7.8', 1
+  UNION ALL
+  SELECT @lab3,
+         (SELECT id FROM lab_estudios WHERE consultorio_id = @tid AND nombre = 'Colesterol total' LIMIT 1),
+         'Colesterol total', 110.00, 'mg/dL', '< 200', '176', 0
+) x
+WHERE @lab3 IS NOT NULL
+  AND NOT EXISTS (SELECT 1 FROM lab_orden_items i WHERE i.orden_id = @lab3);
+
+UPDATE lab_ordenes SET total = (SELECT COALESCE(SUM(precio),0) FROM lab_orden_items WHERE orden_id = @lab3)
+WHERE id = @lab3;
+
+
+-- =====================================================================
 --  LISTO. Copia los enlaces de confirmación de aquí:
 -- =====================================================================
 SELECT c.fecha, c.hora,
