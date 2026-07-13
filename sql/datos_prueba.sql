@@ -241,6 +241,48 @@ WHERE @pac_optica IS NOT NULL AND @medico IS NOT NULL
 
 
 -- =====================================================================
+--  9. ÓPTICA — dos órdenes de trabajo, para que el tablero no nazca vacío
+--     Una ATRASADA (se prometió para ayer y sigue en el laboratorio: sale en
+--     rojo y hasta arriba, que es el punto del tablero) y otra ya recibida,
+--     esperando a que el paciente pase a recogerla.
+-- =====================================================================
+SET @grad := (SELECT id FROM optica_graduaciones
+              WHERE consultorio_id = @tid AND paciente_id = @pac_optica
+              ORDER BY fecha DESC LIMIT 1);
+SET @mica := (SELECT id FROM optica_micas
+              WHERE consultorio_id = @tid AND tipo_lente = 'progresivo' ORDER BY precio LIMIT 1);
+SET @armazon := (SELECT id FROM productos
+                 WHERE consultorio_id = @tid AND sku = 'ARM-001' LIMIT 1);
+
+INSERT INTO optica_trabajos
+  (consultorio_id, folio, paciente_id, graduacion_id, vendedor_id, fecha, fecha_promesa, estado,
+   armazon_producto_id, armazon_desc, armazon_precio,
+   mica_id, mica_desc, mica_precio, tratamientos, laboratorio,
+   descuento, total, anticipo, notas)
+SELECT * FROM (
+  SELECT @tid AS c1, CONCAT('OPT-', YEAR(CURDATE()), '-9001') AS c2, @pac_optica AS c3, @grad AS c4,
+         @medico AS c5, DATE_SUB(CURDATE(), INTERVAL 6 DAY) AS c6, DATE_SUB(CURDATE(), INTERVAL 1 DAY) AS c7,
+         'en_laboratorio' AS c8,
+         @armazon AS c9, 'Ray-Ban RB5154 Clubmaster · Negro' AS c10, 2890.00 AS c11,
+         @mica AS c12, 'Progresivo estándar CR-39 AR' AS c13, 2490.00 AS c14,
+         'Antirreflejante' AS c15, 'Laboratorio Óptico del Centro' AS c16,
+         380.00 AS c17, 5000.00 AS c18, 2000.00 AS c19,
+         'El laboratorio prometió para ayer y no ha llegado: hay que llamarles.' AS c20
+  UNION ALL
+  SELECT @tid, CONCAT('OPT-', YEAR(CURDATE()), '-9002'), @pac_optica, @grad,
+         @medico, DATE_SUB(CURDATE(), INTERVAL 9 DAY), DATE_SUB(CURDATE(), INTERVAL 2 DAY),
+         'recibido',
+         NULL, 'Armazón del cliente (Vogue, aro completo)', 0.00,
+         @mica, 'Progresivo estándar CR-39 AR', 2490.00,
+         'Antirreflejante', 'Laboratorio Óptico del Centro',
+         0.00, 2490.00, 1000.00,
+         'Ya llegaron: avisar al paciente que pase a recogerlos.'
+) x
+WHERE @pac_optica IS NOT NULL AND @grad IS NOT NULL
+  AND NOT EXISTS (SELECT 1 FROM optica_trabajos t WHERE t.consultorio_id = @tid);
+
+
+-- =====================================================================
 --  LISTO. Copia los enlaces de confirmación de aquí:
 -- =====================================================================
 SELECT c.fecha, c.hora,
