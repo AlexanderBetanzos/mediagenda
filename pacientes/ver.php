@@ -143,6 +143,16 @@ foreach ($archivos as $a) {
     if ($a['consulta_id']) { $archivos_por_consulta[$a['consulta_id']][] = $a; }
 }
 
+// Graduaciones (óptica). El historial es el valor clínico: se ve cómo avanza
+// la miopía año con año, así que se listan todas, de la más nueva a la más vieja.
+$graduaciones = [];
+if (modulo_activo('optica')) {
+    $sg = db()->prepare('SELECT * FROM optica_graduaciones WHERE paciente_id = ? AND consultorio_id = ?
+                         ORDER BY fecha DESC, id DESC');
+    $sg->execute([$id, tenant_id()]);
+    $graduaciones = $sg->fetchAll();
+}
+
 // Plantillas de consulta (para pre-llenar el formulario; solo médico/admin).
 $plantillas = [];
 if (has_role('medico', 'admin')) {
@@ -195,6 +205,9 @@ include __DIR__ . '/../includes/header.php';
         <?php endif; ?>
         <?php if (modulo_activo('laboratorio')): ?>
         <a href="<?= BASE_URL ?>/laboratorio/index?paciente_id=<?= $id ?>" class="btn btn-outline-primary"><i class="bi bi-eyedropper"></i> <?= et('Laboratorio') ?></a>
+        <?php endif; ?>
+        <?php if (modulo_activo('optica')): ?>
+        <a href="<?= BASE_URL ?>/optica/graduacion?paciente_id=<?= $id ?>" class="btn btn-outline-primary"><i class="bi bi-eyeglasses"></i> <?= et('Graduación') ?></a>
         <?php endif; ?>
         <a href="<?= BASE_URL ?>/facturacion/create?paciente_id=<?= $id ?>" class="btn btn-outline-primary"><i class="bi bi-receipt"></i> <?= et('Factura') ?></a>
         <?php if (modulo_activo('especialidades') && has_role('medico', 'admin')): ?>
@@ -294,6 +307,9 @@ include __DIR__ . '/../includes/header.php';
             <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-exp"><i class="bi bi-file-medical"></i> <?= et('Expediente') ?> (<?= count($cons) ?>)</button></li>
             <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-archivos"><i class="bi bi-paperclip"></i> <?= et('Archivos') ?> (<?= count($archivos) ?>)</button></li>
             <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-citas"><i class="bi bi-calendar-check"></i> <?= et('Citas') ?> (<?= count($citas) ?>)</button></li>
+            <?php if (modulo_activo('optica')): ?>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-grad"><i class="bi bi-eyeglasses"></i> <?= et('Graduaciones') ?> (<?= count($graduaciones) ?>)</button></li>
+            <?php endif; ?>
         </ul>
 
         <div class="tab-content">
@@ -513,6 +529,55 @@ include __DIR__ . '/../includes/header.php';
                     </div>
                 </div>
             </div>
+
+            <?php if (modulo_activo('optica')): ?>
+            <!-- Graduaciones (óptica) -->
+            <div class="tab-pane fade" id="tab-grad">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted small">
+                        <?= et('Cada revisión es una graduación nueva: el historial muestra cómo cambia la vista.') ?>
+                    </span>
+                    <a href="<?= BASE_URL ?>/optica/graduacion?paciente_id=<?= $id ?>" class="btn btn-sm btn-primary">
+                        <i class="bi bi-plus-lg"></i> <?= et('Nueva graduación') ?>
+                    </a>
+                </div>
+                <div class="card">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead><tr>
+                                <th><?= et('Fecha') ?></th>
+                                <th><?= et('Graduación') ?></th>
+                                <th><?= et('Tipo') ?></th>
+                                <th><?= et('Diagnóstico') ?></th>
+                                <th class="text-end"></th>
+                            </tr></thead>
+                            <tbody>
+                            <?php if (!$graduaciones): ?>
+                                <tr><td colspan="5" class="text-center text-muted py-4">
+                                    <?= et('Sin graduaciones registradas.') ?>
+                                </td></tr>
+                            <?php else: foreach ($graduaciones as $g): ?>
+                                <tr>
+                                    <td class="small"><?= fmt_fecha($g['fecha']) ?></td>
+                                    <td class="small font-monospace"><?= e(optica_graduacion_resumen($g)) ?></td>
+                                    <td class="small text-muted">
+                                        <?= $g['tipo_lente'] ? et(optica_tipos_lente()[$g['tipo_lente']]) : '—' ?>
+                                    </td>
+                                    <td class="small text-muted"><?= e($g['diagnostico'] ?: '—') ?></td>
+                                    <td class="text-end">
+                                        <a href="<?= BASE_URL ?>/optica/trabajo?paciente_id=<?= $id ?>&graduacion_id=<?= (int) $g['id'] ?>"
+                                           class="btn btn-sm btn-outline-primary py-0" title="<?= e(t('Armar el trabajo')) ?>">
+                                            <i class="bi bi-bag-plus"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            <?php endforeach; endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
         </div>
     </div>
 </div>

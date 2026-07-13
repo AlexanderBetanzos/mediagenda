@@ -173,6 +173,7 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
                              y se solapa con las campañas por segmento del CRM. */ ?>
                     <?php if (modulo_activo('farmacia')): ?><li class="nav-item"><a class="nav-link<?= nav_active('inventario', $activo) ?>" href="<?= BASE_URL ?>/inventario/index"><i class="bi bi-box-seam"></i> <?= et('Inventario') ?></a></li><?php endif; ?>
                     <?php if (modulo_activo('laboratorio')): ?><li class="nav-item"><a class="nav-link<?= nav_active('laboratorio', $activo) ?>" href="<?= BASE_URL ?>/laboratorio/index"><i class="bi bi-eyedropper"></i> <?= et('Laboratorio') ?></a></li><?php endif; ?>
+                    <?php if (modulo_activo('optica')): ?><li class="nav-item"><a class="nav-link<?= nav_active('optica', $activo) ?>" href="<?= BASE_URL ?>/optica/index"><i class="bi bi-eyeglasses"></i> <?= et('Óptica') ?></a></li><?php endif; ?>
                     <?php if (has_role('admin')): ?>
                     <?php if (modulo_activo('presupuestos')): ?><li class="nav-item mt-2"><a class="nav-link<?= nav_active('servicios', $activo) ?>" href="<?= BASE_URL ?>/servicios/index"><i class="bi bi-tags"></i> <?= et('Catálogo de servicios') ?></a></li><?php endif; ?>
                     <li class="nav-item<?= modulo_activo('presupuestos') ? '' : ' mt-2' ?>"><a class="nav-link<?= nav_active('usuarios', $activo) ?>" href="<?= BASE_URL ?>/usuarios/index"><i class="bi bi-person-badge"></i> <?= et('Personal') ?></a></li>

@@ -700,6 +700,7 @@ function has_role(string ...$roles): bool
 function tipo_paciente_label(string $tipo): string
 {
     if ($tipo === 'dental') return t('Dental');
+    if ($tipo === 'optica') return t('Óptica');
     return idioma_actual() === 'en' ? 'Medical' : 'Médico';
 }
 
@@ -1240,6 +1241,172 @@ function presupuesto_siguiente_folio(): string
     $st->execute([tenant_id(), $prefijo . '%']);
     $n = (int) $st->fetchColumn() + 1;
     return $prefijo . str_pad((string) $n, 4, '0', STR_PAD_LEFT);
+}
+
+/* --------------------------------------------------------------------
+ *  Óptica (graduaciones, micas y órdenes de trabajo)
+ * ------------------------------------------------------------------ */
+
+/**
+ * Formatea una dioptría como la escribe un optometrista: SIEMPRE con signo y
+ * dos decimales (-0.75, +1.25, 0.00). El signo importa: +2.00 y -2.00 son
+ * graduaciones opuestas, y un "2.00" a secas es ambiguo en una receta.
+ */
+function fmt_dioptria($v): string
+{
+    if ($v === null || $v === '') return '—';
+    return sprintf('%+.2f', (float) $v);
+}
+
+/** Eje del cilindro: 0 a 180 grados, como "85°". */
+function fmt_eje($v): string
+{
+    return ($v === null || $v === '') ? '—' : ((int) $v) . '°';
+}
+
+/** Tipos de lente que se pueden recetar. */
+function optica_tipos_lente(): array
+{
+    return [
+        'monofocal'   => 'Monofocal',
+        'bifocal'     => 'Bifocal',
+        'progresivo'  => 'Progresivo',
+        'ocupacional' => 'Ocupacional',
+    ];
+}
+
+/** Estados de una orden de trabajo: clave => [etiqueta, color de badge]. */
+function optica_estados(): array
+{
+    return [
+        'pedido'         => ['Pedido',          'secondary'],
+        'en_laboratorio' => ['En laboratorio',  'info'],
+        'recibido'       => ['Recibido',        'primary'],
+        'entregado'      => ['Entregado',       'success'],
+        'cancelado'      => ['Cancelado',       'dark'],
+    ];
+}
+
+function optica_estado_label(string $estado): string
+{
+    return t(optica_estados()[$estado][0] ?? $estado);
+}
+
+function optica_estado_badge(string $estado): string
+{
+    return optica_estados()[$estado][1] ?? 'secondary';
+}
+
+/**
+ * Un trabajo va tarde si ya pasó la fecha que se le prometió al cliente y
+ * todavía no se entrega. Es LA métrica del mostrador: el cliente que viene por
+ * sus lentes y no están es el que no vuelve.
+ */
+function optica_trabajo_atrasado(array $t): bool
+{
+    if (in_array($t['estado'], ['entregado', 'cancelado'], true)) return false;
+    return !empty($t['fecha_promesa']) && $t['fecha_promesa'] < date('Y-m-d');
+}
+
+/** Siguiente folio de orden de trabajo del consultorio, por año: OPT-2026-0007. */
+function optica_siguiente_folio(): string
+{
+    $prefijo = 'OPT-' . date('Y') . '-';
+    $desde   = strlen($prefijo) + 1;
+    $st = db()->prepare(
+        "SELECT COALESCE(MAX(CAST(SUBSTRING(folio, $desde) AS UNSIGNED)), 0)
+         FROM optica_trabajos WHERE consultorio_id = ? AND folio LIKE ?"
+    );
+    $st->execute([tenant_id(), $prefijo . '%']);
+    $n = (int) $st->fetchColumn() + 1;
+    return $prefijo . str_pad((string) $n, 4, '0', STR_PAD_LEFT);
+}
+
+/**
+ * Resumen de una graduación en una línea, como se dicta al laboratorio:
+ *   OD -1.25 -0.50 x 90°  ·  OI -1.00 -0.75 x 85°  ·  ADD +2.00  ·  DIP 62
+ */
+function optica_graduacion_resumen(array $g): string
+{
+    $ojo = function (string $p) use ($g): string {
+        $s = fmt_dioptria($g[$p . '_esfera'] ?? null);
+        $c = $g[$p . '_cilindro'] ?? null;
+        $txt = $s;
+        if ($c !== null && $c !== '') {
+            $txt .= ' ' . fmt_dioptria($c) . ' x ' . fmt_eje($g[$p . '_eje'] ?? null);
+        }
+        return $txt;
+    };
+
+    $partes = ['OD ' . $ojo('od'), 'OI ' . $ojo('oi')];
+
+    $add = $g['od_adicion'] ?? $g['oi_adicion'] ?? null;
+    if ($add !== null && $add !== '') $partes[] = 'ADD ' . fmt_dioptria($add);
+    if (!empty($g['dip']))            $partes[] = 'DIP ' . rtrim(rtrim((string) $g['dip'], '0'), '.');
+
+    return implode(' · ', $partes);
+}
+
+/**
+ * Micas del catálogo que cubren una graduación.
+ *
+ * El precio de una mica NO es fijo: depende del rango de graduación (tallar un
+ * -6.00 cuesta más que un -1.00). Aquí se filtra el catálogo por la esfera más
+ * fuerte de los dos ojos y por el cilindro más alto, para no ofrecerle al
+ * vendedor una mica que no se puede fabricar con esa receta.
+ */
+function optica_micas_para(array $g, ?string $tipo_lente = null): array
+{
+    // La esfera "que manda" es la de mayor valor absoluto entre ambos ojos.
+    $esferas = array_filter([$g['od_esfera'] ?? null, $g['oi_esfera'] ?? null],
+                            fn($v) => $v !== null && $v !== '');
+    $cils    = array_filter([$g['od_cilindro'] ?? null, $g['oi_cilindro'] ?? null],
+                            fn($v) => $v !== null && $v !== '');
+
+    $esfera = 0.0;
+    foreach ($esferas as $v) { if (abs((float) $v) > abs($esfera)) $esfera = (float) $v; }
+    $cil = 0.0;
+    foreach ($cils as $v) { if (abs((float) $v) > abs($cil)) $cil = (float) $v; }
+
+    $sql = 'SELECT * FROM optica_micas
+            WHERE consultorio_id = ? AND activo = 1
+              AND (esfera_min   IS NULL OR ? >= esfera_min)
+              AND (esfera_max   IS NULL OR ? <= esfera_max)
+              AND (cilindro_max IS NULL OR ? <= cilindro_max)';
+    $params = [tenant_id(), $esfera, $esfera, abs($cil)];
+
+    $tipo = $tipo_lente ?: ($g['tipo_lente'] ?? null);
+    if ($tipo && isset(optica_tipos_lente()[$tipo])) {
+        $sql .= ' AND tipo_lente = ?';
+        $params[] = $tipo;
+    }
+    $sql .= ' ORDER BY precio';
+
+    $st = db()->prepare($sql);
+    $st->execute($params);
+    return $st->fetchAll();
+}
+
+/**
+ * Micas de arranque, para que el catálogo no nazca vacío. Precios en 0 a
+ * propósito: los pone la óptica según lo que le cobre su laboratorio.
+ * [nombre, tipo, material, tratamientos, esfera_min, esfera_max, cil_max, días]
+ */
+function optica_micas_comunes(): array
+{
+    return [
+        ['Monofocal CR-39',                    'monofocal',  'CR-39',            null,                        -4,  4, 2, 2],
+        ['Monofocal CR-39 antirreflejante',    'monofocal',  'CR-39',            'Antirreflejante',           -4,  4, 2, 3],
+        ['Monofocal policarbonato AR',         'monofocal',  'Policarbonato',    'Antirreflejante',           -8,  6, 4, 3],
+        ['Monofocal alto índice 1.67 AR',      'monofocal',  'Alto índice 1.67', 'Antirreflejante',          -12,  8, 6, 5],
+        ['Monofocal fotocromático AR',         'monofocal',  'Policarbonato',    'Fotocromático, AR',         -8,  6, 4, 5],
+        ['Monofocal filtro azul AR',           'monofocal',  'CR-39',            'Filtro azul, AR',           -6,  6, 4, 4],
+        ['Bifocal flat-top CR-39',             'bifocal',    'CR-39',            null,                        -6,  6, 4, 4],
+        ['Progresivo estándar CR-39 AR',       'progresivo', 'CR-39',            'Antirreflejante',           -6,  6, 4, 5],
+        ['Progresivo digital policarbonato AR','progresivo', 'Policarbonato',    'Antirreflejante',           -8,  6, 4, 7],
+        ['Progresivo premium alto índice AR',  'progresivo', 'Alto índice 1.67', 'Antirreflejante, filtro azul', -12, 8, 6, 10],
+        ['Ocupacional (oficina) AR',           'ocupacional','CR-39',            'Antirreflejante',           -6,  6, 4, 6],
+    ];
 }
 
 /* --------------------------------------------------------------------
