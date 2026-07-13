@@ -579,3 +579,26 @@ html.lp-dark .lp-float-t { color: var(--d-ink); }
 .lp-trust > .container .col-6:hover .lp-trust-ic,
 .lp-trust > .container [class*="col-"]:hover .lp-trust-ic { transform: translateY(-3px); }
 .section-title { font-size: clamp(1.6rem, 3.2vw, 2.3rem); }
+
+/* ── Ordenar tablas por encabezado (assets/js/tabla-orden.js) ─────────── */
+.th-orden {
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+}
+.th-orden:hover { color: var(--brand); }
+.sort-arrow {
+    margin-left: .3rem;
+    font-size: .8em;
+    opacity: .35;
+    transition: opacity .15s ease;
+}
+.th-orden:hover .sort-arrow { opacity: .7; }
+.th-orden-activo { color: var(--brand); }
+.th-orden-activo .sort-arrow { opacity: 1; }
+/* Foco visible al navegar con teclado (los th son role="button"). */
+.th-orden:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: -2px;
+    border-radius: 4px;
+}

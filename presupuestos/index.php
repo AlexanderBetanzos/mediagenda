@@ -126,7 +126,7 @@ include __DIR__ . '/../includes/header.php';
                     <td class="fw-semibold"><?= e($p['folio']) ?></td>
                     <td class="text-muted"><?= fmt_fecha($p['fecha']) ?></td>
                     <td><?= e($p['pac_ape'] . ', ' . $p['pac_nombre']) ?></td>
-                    <td style="min-width:120px">
+                    <td style="min-width:120px" data-orden="<?= $pct ?>">
                         <div class="progress" style="height:6px">
                             <div class="progress-bar bg-success" style="width:<?= $pct ?>%"></div>
                         </div>

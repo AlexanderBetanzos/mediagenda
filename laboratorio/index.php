@@ -134,7 +134,7 @@ include __DIR__ . '/../includes/header.php';
                     <td class="text-muted"><?= fmt_fecha($o['fecha']) ?></td>
                     <td><?= e($o['pac_ape'] . ', ' . $o['pac_nombre']) ?></td>
                     <td class="small text-muted"><?= e($o['med_nombre'] ?: '—') ?></td>
-                    <td style="min-width:130px">
+                    <td style="min-width:130px" data-orden="<?= $pct ?>">
                         <div class="progress" style="height:6px">
                             <div class="progress-bar bg-success" style="width:<?= $pct ?>%"></div>
                         </div>

@@ -5,6 +5,10 @@
     <?= e(marca_nombre()) ?> &middot; <?= date('Y') ?>
 </footer>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<?php /* Ordenar tablas por encabezado. Necesita el formato de fecha del
+         consultorio: "13/07/2026" ordenado como texto quedaría mal. */ ?>
+<script>window.APP_FORMATO_FECHA = <?= json_encode(cfg('formato_fecha', 'd/m/Y')) ?>;</script>
+<script src="<?= asset('assets/js/tabla-orden.js') ?>"></script>
 <script>
 /* Guarda la preferencia de tema del usuario y la aplica al instante. */
 function setTema(pref) {
