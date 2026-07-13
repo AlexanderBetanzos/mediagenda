@@ -320,6 +320,74 @@ VALUES
   'Revisión de resultados', 'programada', 'mostrador', REPLACE(UUID(), '-', ''));
 
 
+
+-- =====================================================================
+--  12. SERVICIOS — catálogo de precios del consultorio
+--      Alimenta a Presupuestos y al Punto de venta. `duracion_min` pre-llena la
+--      cita; `aplica_diente` marca lo que se cotiza por pieza dental.
+-- =====================================================================
+DELETE FROM servicios WHERE consultorio_id = @tid;
+
+INSERT INTO servicios (consultorio_id, nombre, codigo, categoria, precio, duracion_min, aplica_diente) VALUES
+ (@tid, 'Consulta general',                 'CON-01', 'Consulta',    600.00,  30, 0),
+ (@tid, 'Consulta de primera vez',          'CON-02', 'Consulta',    900.00,  45, 0),
+ (@tid, 'Consulta de seguimiento',          'CON-03', 'Consulta',    450.00,  20, 0),
+ (@tid, 'Certificado médico',               'CON-04', 'Consulta',    350.00,  15, 0),
+ (@tid, 'Aplicación de inyección',          'PRO-01', 'Procedimiento', 200.00, 15, 0),
+ (@tid, 'Curación de herida',               'PRO-02', 'Procedimiento', 450.00, 30, 0),
+ (@tid, 'Retiro de puntos',                 'PRO-03', 'Procedimiento', 300.00, 20, 0),
+ (@tid, 'Electrocardiograma',               'EST-01', 'Estudio',       500.00, 30, 0),
+ (@tid, 'Limpieza dental (profilaxis)',     'DEN-01', 'Preventivo',    800.00, 40, 0),
+ (@tid, 'Aplicación de flúor',              'DEN-02', 'Preventivo',    350.00, 20, 0),
+ (@tid, 'Resina (una superficie)',          'DEN-03', 'Restauración',  900.00, 45, 1),
+ (@tid, 'Resina (dos o más superficies)',   'DEN-04', 'Restauración', 1300.00, 60, 1),
+ (@tid, 'Incrustación',                     'DEN-05', 'Restauración', 3200.00, 60, 1),
+ (@tid, 'Endodoncia unirradicular',         'DEN-06', 'Endodoncia',   3500.00, 90, 1),
+ (@tid, 'Endodoncia multirradicular',       'DEN-07', 'Endodoncia',   4800.00, 120, 1),
+ (@tid, 'Corona de zirconia',               'DEN-08', 'Prótesis',     7500.00, 90, 1),
+ (@tid, 'Extracción simple',                'DEN-09', 'Cirugía',      1200.00, 45, 1),
+ (@tid, 'Extracción de tercer molar',       'DEN-10', 'Cirugía',      3800.00, 90, 1),
+ (@tid, 'Blanqueamiento dental',            'DEN-11', 'Estética',     4500.00, 60, 0);
+
+
+-- =====================================================================
+--  13. PRESUPUESTO de ejemplo (plan de tratamiento)
+--      Aceptado y a medio hacer: un procedimiento ya realizado y dos pendientes,
+--      con dos abonos. Así se ve el avance y el SALDO, que es de lo que vive
+--      esta pantalla.
+-- =====================================================================
+DELETE FROM presupuestos WHERE consultorio_id = @tid AND folio LIKE CONCAT('PRE-', YEAR(CURDATE()), '-90%');
+
+INSERT INTO presupuestos
+ (consultorio_id, folio, paciente_id, medico_id, fecha, vigencia, estado,
+  subtotal, descuento, total, notas, aceptado_en, creado_por)
+VALUES
+ (@tid, CONCAT('PRE-', YEAR(CURDATE()), '-9001'), @pac_lab, @medico,
+  DATE_SUB(CURDATE(), INTERVAL 12 DAY), DATE_ADD(CURDATE(), INTERVAL 18 DAY), 'aceptado',
+  9600.00, 600.00, 9000.00,
+  'El paciente aceptó el plan completo. Pagará en tres abonos.',
+  DATE_SUB(NOW(), INTERVAL 10 DAY), @medico);
+
+SET @pre := LAST_INSERT_ID();
+
+INSERT INTO presupuesto_items
+ (presupuesto_id, servicio_id, descripcion, diente, cantidad, precio, importe, estado, realizado_en, realizado_por, orden)
+VALUES
+ (@pre, (SELECT id FROM servicios WHERE consultorio_id = @tid AND codigo = 'DEN-01' LIMIT 1),
+  'Limpieza dental (profilaxis)', NULL, 1,  800.00,  800.00, 'realizado', DATE_SUB(NOW(), INTERVAL 9 DAY), @medico, 1),
+ (@pre, (SELECT id FROM servicios WHERE consultorio_id = @tid AND codigo = 'DEN-06' LIMIT 1),
+  'Endodoncia unirradicular', '21', 1, 3500.00, 3500.00, 'pendiente', NULL, NULL, 2),
+ (@pre, (SELECT id FROM servicios WHERE consultorio_id = @tid AND codigo = 'DEN-08' LIMIT 1),
+  'Corona de zirconia', '21', 1, 5300.00, 5300.00, 'pendiente', NULL, NULL, 3);
+
+-- Dos abonos: quedan $4,000 de saldo. Eso es lo que el mostrador tiene que cobrar.
+INSERT INTO presupuesto_pagos
+ (consultorio_id, presupuesto_id, fecha, monto, metodo, notas, usuario_id)
+VALUES
+ (@tid, @pre, DATE_SUB(CURDATE(), INTERVAL 10 DAY), 3000.00, 'efectivo',   'Anticipo al aceptar el plan.', @medico),
+ (@tid, @pre, DATE_SUB(CURDATE(), INTERVAL 3 DAY),  2000.00, 'transferencia', 'Segundo abono.',            @medico);
+
+
 -- =====================================================================
 --  LISTO. Comprobación: TODOS los números deben salir mayores que cero.
 -- =====================================================================
@@ -331,7 +399,9 @@ SELECT
   (SELECT COUNT(*) FROM optica_trabajos      WHERE consultorio_id = @tid) AS trabajos_optica,
   (SELECT COUNT(*) FROM lab_estudios         WHERE consultorio_id = @tid) AS estudios_lab,
   (SELECT COUNT(*) FROM lab_ordenes          WHERE consultorio_id = @tid) AS ordenes_lab,
-  (SELECT COUNT(*) FROM documento_plantillas WHERE consultorio_id = @tid) AS plantillas;
+  (SELECT COUNT(*) FROM documento_plantillas WHERE consultorio_id = @tid) AS plantillas,
+  (SELECT COUNT(*) FROM servicios            WHERE consultorio_id = @tid) AS servicios,
+  (SELECT COUNT(*) FROM presupuestos         WHERE consultorio_id = @tid) AS presupuestos;
 
 -- Enlaces para probar el flujo del paciente:
 SELECT CONCAT('/agenda/confirmar?t=', c.token) AS confirmar_cita, c.fecha, c.hora
