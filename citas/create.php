@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../includes/functions.php';
 require_login();
+require_modulo('citas');
 
 $errores = [];
 $c = ['paciente_id' => $_GET['paciente_id'] ?? ''];

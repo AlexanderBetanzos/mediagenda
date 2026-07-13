@@ -69,7 +69,7 @@ include __DIR__ . '/../includes/header.php';
                 $dias  = (int) floor((time() - strtotime($p['ultima'])) / 86400);
                 $mesesInact = (int) floor($dias / 30);
                 $msg   = t('Hola') . ' ' . $p['nombre'] . ', ' . t('te escribimos de') . ' ' . marca_nombre() . '. ' . t('Queremos saber cómo sigues y agendar tu próxima consulta.');
-                $wa    = wa_link($p['telefono'], $msg);
+                $wa    = modulo_activo('whatsapp') ? wa_link($p['telefono'], $msg) : '';
             ?>
                 <tr>
                     <td>

@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../includes/functions.php';
 require_role('admin', 'recepcion');
+require_modulo('citas');
 verify_csrf();
 
 $id = (int) ($_POST['id'] ?? 0);

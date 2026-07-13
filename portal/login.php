@@ -9,6 +9,10 @@ require_once __DIR__ . '/../includes/functions.php';
 if (isset($_SESSION['paciente'])) { redirect('/portal/index'); }
 
 $error = '';
+$aviso = isset($_GET['inactivo'])
+    ? 'El portal no está disponible por ahora. Pregunta en tu consultorio.'
+    : '';
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
     $email = trim($_POST['email'] ?? '');
@@ -18,6 +22,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $st->execute([$email]);
     $encontrado = null;
     foreach ($st->fetchAll() as $p) {
+        // El portal es un módulo de plan: si el consultorio ya no lo incluye,
+        // ese paciente no entra aunque su acceso siga marcado como activo.
+        if (!modulo_activo_en((int) $p['consultorio_id'], 'portal')) continue;
         if ($p['portal_password_hash'] && password_verify($pass, $p['portal_password_hash'])) {
             $encontrado = $p; break;
         }
@@ -60,6 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <p class="text-muted small">Consulta tus citas, recetas y estudios.</p>
             </div>
 
+            <?php if ($aviso): ?><div class="alert alert-warning py-2"><?= e($aviso) ?></div><?php endif; ?>
             <?php if ($error): ?><div class="alert alert-danger py-2"><?= e($error) ?></div><?php endif; ?>
 
             <form method="post" novalidate>

@@ -87,8 +87,18 @@ acceso total, para no bloquear a nadie por accidente.
 `consultorio_modulos` con semántica de solo-deltas). Enlace "Plan y módulos"
 en `admin/index.php`.
 
-Pendiente (siguiente iteración): aplicar `require_modulo()` dentro de cada
-controlador nuevo (hoy solo se gatea el menú).
+✅ `require_modulo()` aplicado en cada controlador, no solo en el menú: los
+índices de módulo y también sus sub-acciones (`create`/`edit`/`delete`/
+`estado`/`feed`/`mover`/`ver`), para que un POST directo no salte el plan.
+El portal del paciente se gatea en `require_paciente()` y en el login
+(`modulo_activo_en()`, porque ahí aún no hay sesión ni tenant).
+
+Verificación en producción: `sql/verificar_planes.sql` (solo lectura). Detecta
+planes sin módulos mapeados y consultorios con plan desconocido, que hacen
+*fail-open* y abren todo, y lista los overrides manuales por consultorio.
+
+Cuidado al probar: con `estado='trial'` el código devuelve `'*'` y todo se ve
+abierto. Los gates solo se notan con un consultorio fuera de prueba.
 
 ### 3.2 Seguridad y cumplimiento (México) 🟡
 - ✅ **Auditoría / logs de actividad**: tabla `auditoria` + helper `auditar()`.
@@ -152,7 +162,7 @@ Objetivo: que un consultorio pague hoy. Completa el núcleo + comunicación.
 | Telemedicina | Videollamada, sala de espera virtual, chat en vivo, compartir estudios/pantalla, grabación | P (básica) / C (grabación) | Portal, integración Zoom/WebRTC | ⬜ |
 | Farmacia | ✅ Catálogo de productos, stock por **lotes con caducidad**, entradas/salidas (**FEFO**), movimientos (bitácora), alertas de stock bajo y caducidad (`inventario/`). ⬜ Falta: POS/venta ligada a factura, código de barras (escáner), compras/proveedores formales, transferencias entre sucursales | C | Multi-sucursal | 🟡 |
 | Inventario general | Material médico, insumos, alertas, compras, proveedores | P | — | ⬜ |
-| Reportes / BI | ✅ KPIs (ingresos del mes + variación, citas, pacientes nuevos, tasa de no-show), ingresos/citas por mes, citas por estado, pacientes por tipo, top médicos, **horas pico**, **pacientes nuevos por mes** (Chart.js). Gateado `require_modulo('reportes')`. ⬜ Falta: exportar CSV, gastos, filtros por rango | P | — | 🟢 |
+| Reportes / BI | ✅ KPIs (ingresos del mes + variación, citas, pacientes nuevos, tasa de no-show), ingresos/citas por mes, citas por estado, pacientes por tipo, top médicos, **horas pico**, **pacientes nuevos por mes** (Chart.js). Gateado con `modulo_activo('reportes')` en `dashboard.php`: sin el módulo no se renderizan las gráficas ni se carga Chart.js, y en su lugar sale una tarjeta para mejorar de plan. ⬜ Falta: exportar CSV, gastos, filtros por rango | P | — | 🟢 |
 | App móvil paciente | Agenda, historial, estudios, chat, videollamada, notificaciones, ubicación | P | Portal + API | ⬜ |
 | App móvil médico | Agenda, consultas, expedientes, dictado por voz, firmar recetas, estadísticas | C | API + firma | ⬜ |
 | CRM médico | ✅ Seguimientos por paciente (tipo/fecha/estado, vencidos), cumpleaños del mes (felicitar por WhatsApp), **campañas de WhatsApp** por segmento (todos/tipo/cumpleaños) con enlaces wa.me (`crm/`). ⬜ Falta: embudos, correos automáticos, encuestas | P | Notificaciones | 🟡 |
@@ -179,7 +189,7 @@ Objetivo: que un consultorio pague hoy. Completa el núcleo + comunicación.
 
 | Módulo | Qué incluye | Plan | Depende de | Estado |
 |---|---|---|---|---|
-| Laboratorio | Solicitud de estudios, resultados PDF, valores automáticos, rangos, comparación histórica, integración con equipos | C | Expediente | ⬜ |
+| Laboratorio | ✅ Catálogo de estudios (precio, muestra, preparación, unidad y rango de referencia, con carga inicial de 18 estudios comunes), órdenes con folio `LAB-AAAA-####`, prioridad urgente, laboratorio externo, flujo de estados (solicitada → en proceso → lista → entregada), captura de resultados con marca de **fuera de rango**, PDF/imagen del resultado que se guarda en el expediente (`archivos.lab_orden_id`) y por tanto se publica solo en el portal del paciente, orden e informe imprimibles con membrete, aviso por WhatsApp cuando está lista (`laboratorio/`). Gateado `require_modulo('laboratorio')` (solo plan Clínica). ⬜ Falta: comparación histórica de un mismo estudio, integración con equipos, cobro ligado a factura | C | Expediente | 🟢 |
 | Radiología / DICOM | Subir DICOM, **visor DICOM**, comparación histórica, reportes | C / Add-on | Almacenamiento grande | ⬜ |
 | Multi-sucursal | Sucursales dentro de un mismo tenant, transferencias, consolidado | C | Entitlements + modelo de datos | ⬜ |
 | Recursos Humanos | Médicos, enfermería, recepción, horarios, **nómina**, comisiones, asistencias | C | — | ⬜ |

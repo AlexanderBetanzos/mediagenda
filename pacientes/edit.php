@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../includes/functions.php';
 require_login();
+require_modulo('pacientes');
 try { db()->exec("ALTER TABLE pacientes ADD COLUMN IF NOT EXISTS foto VARCHAR(255) DEFAULT NULL"); } catch (Throwable $e) {}
 
 $id = (int) ($_GET['id'] ?? $_POST['id'] ?? 0);

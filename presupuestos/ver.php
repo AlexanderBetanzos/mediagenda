@@ -396,8 +396,10 @@ include __DIR__ . '/../includes/header.php';
             <?php if ($cobros): ?>
             <ul class="list-group list-group-flush">
                 <?php foreach ($cobros as $c): $url = cobro_url($c);
-                    $wa = wa_link($pre['pac_tel'], t('Hola') . ' ' . $pre['pac_nombre'] . ', '
-                        . t('puedes pagar aquí tu tratamiento') . ': ' . $url); ?>
+                    $wa = modulo_activo('whatsapp')
+                        ? wa_link($pre['pac_tel'], t('Hola') . ' ' . $pre['pac_nombre'] . ', '
+                            . t('puedes pagar aquí tu tratamiento') . ': ' . $url)
+                        : ''; ?>
                 <li class="list-group-item">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <strong><?= fmt_money($c['monto']) ?></strong>

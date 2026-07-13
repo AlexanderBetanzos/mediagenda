@@ -86,6 +86,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'porta
     verify_csrf();
     if (!has_role('admin', 'medico', 'recepcion')) { http_response_code(403); die('Sin permiso.'); }
 
+    // Provisionar acceso requiere el módulo; desactivarlo siempre se permite.
+    if (($_POST['sub'] ?? '') !== 'desactivar') { require_modulo('portal'); }
+
     if (($_POST['sub'] ?? '') === 'desactivar') {
         db()->prepare('UPDATE pacientes SET portal_activo = 0 WHERE id = ? AND consultorio_id = ?')
             ->execute([$id, tenant_id()]);
@@ -191,6 +194,9 @@ include __DIR__ . '/../includes/header.php';
         <?php endif; ?>
         <?php if (modulo_activo('presupuestos')): ?>
         <a href="<?= BASE_URL ?>/presupuestos/index?paciente_id=<?= $id ?>" class="btn btn-outline-primary"><i class="bi bi-clipboard2-check"></i> <?= et('Presupuestos') ?></a>
+        <?php endif; ?>
+        <?php if (modulo_activo('laboratorio')): ?>
+        <a href="<?= BASE_URL ?>/laboratorio/index?paciente_id=<?= $id ?>" class="btn btn-outline-primary"><i class="bi bi-eyedropper"></i> <?= et('Laboratorio') ?></a>
         <?php endif; ?>
         <a href="<?= BASE_URL ?>/facturacion/create?paciente_id=<?= $id ?>" class="btn btn-outline-primary"><i class="bi bi-receipt"></i> <?= et('Factura') ?></a>
         <?php if (modulo_activo('especialidades') && has_role('medico', 'admin')): ?>

@@ -15,6 +15,7 @@ $medFiltro = $esMedico ? ' AND medico_id = ' . (int) $u['id'] : '';
 $verFacturacion = modulo_activo('facturacion');
 $verRecetas     = modulo_activo('recetas');
 $verCitas       = modulo_activo('citas');
+$verReportes    = modulo_activo('reportes');   // gráficas y BI: plan Profesional+
 
 $MESES = ['', 'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
@@ -65,6 +66,17 @@ if ($verFacturacion) {
         "SELECT COALESCE(SUM(total),0) FROM facturas WHERE consultorio_id = $tid AND estado='pendiente' $medFiltro"
     )->fetchColumn();
 }
+
+/* ── Gráficas (solo si el plan incluye Reportes y BI) ─────────────────
+ * Todo lo que sigue alimenta únicamente a Chart.js. Sin el módulo no se
+ * renderiza ni una gráfica, así que tampoco se pagan las agregaciones.
+ */
+$revLabels = $revData = $newData = $consLabels = $consData = [];
+$estLabels = $estData = $horasLabels = $metodoLabels = $metodoData = [];
+$horas = $porTipo = [];
+$topMedicos = [];
+
+if ($verReportes):
 
 /* ── Gráfica: ingresos + pacientes nuevos (últimos 12 meses) ─────────── */
 $firstOfMonth = date('Y-m-01');
@@ -120,12 +132,17 @@ foreach (['programada', 'confirmada', 'atendida', 'cancelada', 'no_asistio'] as 
     if (!empty($citasByEstado[$es])) { $estLabels[] = estado_label($es); $estData[] = (int) $citasByEstado[$es]; }
 }
 
+endif; /* fin del primer bloque de gráficas */
+
 /* ── Tasa de inasistencia (no-show) de los últimos 90 días ───────────── */
+/* Es un KPI, no una gráfica: se calcula para todos los planes. */
 $ns = $pdo->query(
     "SELECT SUM(estado='no_asistio') ns, COUNT(*) tot FROM citas
      WHERE consultorio_id = $tid AND fecha >= DATE_SUB(CURDATE(), INTERVAL 90 DAY) AND fecha < CURDATE() $medFiltro"
 )->fetch();
 $noShow = ($ns && $ns['tot'] > 0) ? round(100 * $ns['ns'] / $ns['tot'], 1) : 0.0;
+
+if ($verReportes):
 
 /* ── Gráfica: horas pico (citas por hora) ────────────────────────────── */
 $horas = array_fill_keys(range(7, 20), 0);
@@ -161,6 +178,8 @@ if ($verFacturacion) {
     $pm->execute([$tid]);
     foreach ($pm->fetchAll(PDO::FETCH_KEY_PAIR) as $m => $t) { $metodoLabels[] = ucfirst($m); $metodoData[] = round((float) $t, 2); }
 }
+
+endif; /* fin de las gráficas */
 
 /* ── Agenda de hoy ───────────────────────────────────────────────────── */
 $ag = $pdo->prepare(
@@ -303,6 +322,7 @@ include __DIR__ . '/includes/header.php';
     <?php endforeach; ?>
 </div>
 
+<?php if ($verReportes): ?>
 <!-- ── Gráficas (fila 1): ingresos+altas + citas por estado ─────────── -->
 <div class="row g-3 mb-3">
     <div class="col-lg-8">
@@ -376,6 +396,20 @@ include __DIR__ . '/includes/header.php';
     </div>
     <?php endif; ?>
 </div>
+<?php else: ?>
+<!-- ── Reportes y BI: no incluidos en el plan ───────────────────────── -->
+<div class="card mb-4">
+    <div class="card-body d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div>
+            <div class="fw-semibold"><i class="bi bi-bar-chart-fill text-brand"></i> <?= et('Reportes y BI') ?></div>
+            <p class="text-muted small mb-0"><?= et('Ingresos por mes, horas pico, citas por estado y más. Disponible desde el plan Profesional.') ?></p>
+        </div>
+        <?php if ($esAdmin): ?>
+        <a href="<?= BASE_URL ?>/pagos/index" class="btn btn-primary btn-sm"><i class="bi bi-stars"></i> <?= et('Mejorar plan') ?></a>
+        <?php endif; ?>
+    </div>
+</div>
+<?php endif; ?>
 
 <!-- ── Agenda de hoy + Próximas citas ───────────────────────────────── -->
 <div class="row g-3 mb-3">
@@ -493,6 +527,7 @@ html.app-light .welcome-banner {
 .min-w-0 { min-width: 0; }
 </style>
 
+<?php if ($verReportes): ?>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
 (function () {
@@ -589,5 +624,6 @@ html.app-light .welcome-banner {
     });
 })();
 </script>
+<?php endif; ?>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>

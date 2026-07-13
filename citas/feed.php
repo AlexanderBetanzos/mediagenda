@@ -6,6 +6,7 @@
  */
 require_once __DIR__ . '/../includes/functions.php';
 require_login();
+require_modulo_json('citas');
 
 header('Content-Type: application/json; charset=utf-8');
 

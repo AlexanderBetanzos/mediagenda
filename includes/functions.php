@@ -27,10 +27,11 @@ function tenant_forzar(int $id): void
 }
 
 /** Getter/setter del override de tenant. Sin argumento, solo consulta. */
-function tenant_override(?int $id = null): ?int
+function tenant_override(?int $id = null, bool $limpiar = false): ?int
 {
     static $override = null;
-    if ($id !== null) $override = $id;
+    if ($limpiar)         $override = null;
+    elseif ($id !== null) $override = $id;
     return $override;
 }
 
@@ -58,6 +59,12 @@ function require_paciente(): void
 {
     if (!isset($_SESSION['paciente'])) {
         redirect('/portal/login');
+    }
+    // El portal es un módulo de plan: si el consultorio deja de incluirlo (p. ej.
+    // al terminar la prueba y quedarse en Básico), la sesión del paciente muere.
+    if (!modulo_activo('portal')) {
+        unset($_SESSION['paciente']);
+        redirect('/portal/login?inactivo=1');
     }
 }
 
@@ -175,12 +182,41 @@ function modulo_activo(string $clave): bool
     return in_array('*', $m, true) || in_array($clave, $m, true);
 }
 
+/**
+ * ¿El consultorio $cid tiene contratado el módulo $clave?
+ * Para contextos donde aún no hay sesión y por tanto tenant_id() no sirve:
+ * el login del portal resuelve el consultorio a partir del paciente.
+ */
+function modulo_activo_en(int $cid, string $clave): bool
+{
+    $previo = tenant_override();
+    tenant_override($cid);
+    $ok = modulo_activo($clave);
+    $previo === null ? tenant_override(null, true) : tenant_override($previo);
+    return $ok;
+}
+
 /** Exige que el módulo esté activo; si no, redirige a la página de planes. */
 function require_modulo(string $clave): void
 {
     if (!modulo_activo($clave)) {
         flash('Esa función no está incluida en tu plan. Mejora tu plan para activarla.', 'warning');
         redirect('/pagos/index');
+    }
+}
+
+/**
+ * Igual que require_modulo(), pero para endpoints que responden JSON: un
+ * redirect 302 llegaría al fetch como HTML y reventaría el parseo sin decir
+ * por qué. Aquí el front recibe un 403 que sí puede mostrar.
+ */
+function require_modulo_json(string $clave): void
+{
+    if (!modulo_activo($clave)) {
+        http_response_code(403);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['ok' => false, 'error' => t('Esa función no está incluida en tu plan.')]);
+        exit;
     }
 }
 
@@ -874,7 +910,10 @@ function guardar_archivo_expediente(?array $f, int $paciente_id, int $usuario_id
         mb_substr($f['name'], 0, 255), $nombre_guardado, $mime, (int) $f['size'],
         ($descripcion = trim((string) $descripcion)) !== '' ? $descripcion : null,
     ]);
-    return ['estado' => 'ok', 'mensaje' => 'Archivo agregado al expediente.'];
+    // El id se devuelve para que el llamador pueda ligar el archivo a otra cosa
+    // (p. ej. laboratorio marca el PDF del resultado con su orden).
+    return ['estado' => 'ok', 'mensaje' => 'Archivo agregado al expediente.',
+            'id' => (int) db()->lastInsertId()];
 }
 
 /**
@@ -1042,6 +1081,75 @@ function presupuesto_siguiente_folio(): string
     $st->execute([tenant_id(), $prefijo . '%']);
     $n = (int) $st->fetchColumn() + 1;
     return $prefijo . str_pad((string) $n, 4, '0', STR_PAD_LEFT);
+}
+
+/* --------------------------------------------------------------------
+ *  Laboratorio (órdenes de estudio y resultados)
+ * ------------------------------------------------------------------ */
+
+/** Estados de una orden de laboratorio: clave => [etiqueta, color de badge]. */
+function lab_estados(): array
+{
+    return [
+        'solicitada' => ['Solicitada',  'secondary'],
+        'en_proceso' => ['En proceso',  'info'],
+        'lista'      => ['Lista',       'primary'],
+        'entregada'  => ['Entregada',   'success'],
+        'cancelada'  => ['Cancelada',   'dark'],
+    ];
+}
+
+function lab_estado_label(string $estado): string
+{
+    return t(lab_estados()[$estado][0] ?? $estado);
+}
+
+function lab_estado_badge(string $estado): string
+{
+    return lab_estados()[$estado][1] ?? 'secondary';
+}
+
+/** Siguiente folio de orden de laboratorio del consultorio, por año: LAB-2026-0007. */
+function lab_siguiente_folio(): string
+{
+    $prefijo = 'LAB-' . date('Y') . '-';
+    $desde   = strlen($prefijo) + 1;
+    $st = db()->prepare(
+        "SELECT COALESCE(MAX(CAST(SUBSTRING(folio, $desde) AS UNSIGNED)), 0)
+         FROM lab_ordenes WHERE consultorio_id = ? AND folio LIKE ?"
+    );
+    $st->execute([tenant_id(), $prefijo . '%']);
+    $n = (int) $st->fetchColumn() + 1;
+    return $prefijo . str_pad((string) $n, 4, '0', STR_PAD_LEFT);
+}
+
+/**
+ * Estudios de laboratorio de arranque, para que el catálogo no nazca vacío.
+ * El consultorio los carga con un botón y luego ajusta precios a su realidad:
+ * los de aquí van en 0 a propósito, para que nadie cobre un precio inventado.
+ */
+function lab_estudios_comunes(): array
+{
+    return [
+        ['Biometría hemática completa', 'Sangre', 'Sangre venosa', 'Ayuno de 8 h',  '', ''],
+        ['Química sanguínea (6 elementos)', 'Sangre', 'Sangre venosa', 'Ayuno de 8 h', '', ''],
+        ['Glucosa en ayuno',            'Sangre', 'Sangre venosa', 'Ayuno de 8 h',  'mg/dL', '70 - 100'],
+        ['Hemoglobina glucosilada (HbA1c)', 'Sangre', 'Sangre venosa', '',           '%',     '< 5.7'],
+        ['Perfil de lípidos',           'Sangre', 'Sangre venosa', 'Ayuno de 12 h', '', ''],
+        ['Colesterol total',            'Sangre', 'Sangre venosa', 'Ayuno de 12 h', 'mg/dL', '< 200'],
+        ['Triglicéridos',               'Sangre', 'Sangre venosa', 'Ayuno de 12 h', 'mg/dL', '< 150'],
+        ['Ácido úrico',                 'Sangre', 'Sangre venosa', 'Ayuno de 8 h',  'mg/dL', '3.4 - 7.0'],
+        ['Creatinina',                  'Sangre', 'Sangre venosa', '',              'mg/dL', '0.6 - 1.2'],
+        ['Urea / BUN',                  'Sangre', 'Sangre venosa', '',              'mg/dL', '7 - 20'],
+        ['Pruebas de función hepática', 'Sangre', 'Sangre venosa', 'Ayuno de 8 h',  '', ''],
+        ['Perfil tiroideo (TSH, T3, T4)', 'Sangre', 'Sangre venosa', '',            '', ''],
+        ['Examen general de orina',     'Orina',  'Orina',         'Primera micción del día', '', ''],
+        ['Coprológico',                 'Heces',  'Heces',         '',              '', ''],
+        ['Prueba de embarazo (BhCG)',   'Sangre', 'Sangre venosa', '',              '', ''],
+        ['Radiografía de tórax',        'Imagen', '—',             '',              '', ''],
+        ['Ultrasonido abdominal',       'Imagen', '—',             'Ayuno de 6 h',  '', ''],
+        ['Electrocardiograma',          'Imagen', '—',             '',              '', ''],
+    ];
 }
 
 /** Caras de un diente: clave => etiqueta. Se guardan como "O,M,V". */
