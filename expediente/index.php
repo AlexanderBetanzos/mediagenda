@@ -75,12 +75,7 @@ include __DIR__ . '/../includes/header.php';
                 <tr>
                     <td>
                         <div class="d-flex align-items-center gap-2">
-                            <?php $fu = foto_paciente_url($p); $ini = strtoupper(mb_substr($p['nombre'], 0, 1) . mb_substr($p['apellidos'], 0, 1)); ?>
-                            <?php if ($fu): ?>
-                                <img src="<?= e($fu) ?>" class="rounded-circle flex-shrink-0" style="width:40px;height:40px;object-fit:cover" alt="">
-                            <?php else: ?>
-                                <span class="rounded-circle d-inline-flex align-items-center justify-content-center fw-semibold flex-shrink-0" style="width:40px;height:40px;background:color-mix(in srgb,var(--brand) 18%,transparent);color:var(--brand);font-size:.82rem"><?= e($ini) ?></span>
-                            <?php endif; ?>
+                            <?= avatar_paciente((int) $p['id'], $p['nombre'], $p['apellidos'], $p['foto'] ?? null) ?>
                             <a href="<?= BASE_URL ?>/pacientes/ver?id=<?= $p['id'] ?>" class="fw-semibold text-decoration-none">
                                 <?= e($p['apellidos'] . ', ' . $p['nombre']) ?>
                             </a>

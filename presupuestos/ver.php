@@ -14,7 +14,7 @@ $u  = current_user();
 
 $cargar = function (int $id) {
     $st = db()->prepare(
-        'SELECT pr.*, p.nombre AS pac_nombre, p.apellidos AS pac_ape, p.telefono AS pac_tel,
+        'SELECT pr.*, p.nombre AS pac_nombre, p.apellidos AS pac_ape, p.telefono AS pac_tel, p.foto AS pac_foto,
                 m.nombre AS medico_nombre
          FROM presupuestos pr
          JOIN pacientes p ON p.id = pr.paciente_id
@@ -205,7 +205,9 @@ include __DIR__ . '/../includes/header.php';
 </ol></nav>
 
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-    <div>
+    <div class="d-flex align-items-center gap-3">
+        <?= avatar_paciente((int) $pre['paciente_id'], $pre['pac_nombre'], $pre['pac_ape'], $pre['pac_foto'] ?? null, 56) ?>
+        <div>
         <h1 class="h3 mb-1"><?= e($pre['folio']) ?>
             <span class="badge bg-<?= presupuesto_estado_badge($pre['estado']) ?> align-middle"><?= e(presupuesto_estado_label($pre['estado'])) ?></span>
         </h1>
@@ -213,6 +215,7 @@ include __DIR__ . '/../includes/header.php';
             <a href="<?= BASE_URL ?>/pacientes/ver?id=<?= (int) $pre['paciente_id'] ?>"><?= e($pre['pac_nombre'] . ' ' . $pre['pac_ape']) ?></a>
             · <?= fmt_fecha($pre['fecha']) ?>
             <?php if ($pre['medico_nombre']): ?> · <?= e($pre['medico_nombre']) ?><?php endif; ?>
+        </div>
         </div>
     </div>
     <div class="d-flex flex-wrap gap-2">

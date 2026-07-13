@@ -12,7 +12,7 @@ $estado  = (string) ($_GET['estado'] ?? '');
 $pacFil  = (int) ($_GET['paciente_id'] ?? 0);
 $estados = lab_estados();
 
-$sql = "SELECT o.*, p.nombre AS pac_nombre, p.apellidos AS pac_ape,
+$sql = "SELECT o.*, p.nombre AS pac_nombre, p.apellidos AS pac_ape, p.foto AS pac_foto,
                u.nombre AS med_nombre,
                COALESCE(it.n, 0)         AS items_total,
                COALESCE(it.con_res, 0)   AS items_con_resultado,
@@ -132,7 +132,12 @@ include __DIR__ . '/../includes/header.php';
                         <?php endif; ?>
                     </td>
                     <td class="text-muted"><?= fmt_fecha($o['fecha']) ?></td>
-                    <td><?= e($o['pac_ape'] . ', ' . $o['pac_nombre']) ?></td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <?= avatar_paciente((int) $o['paciente_id'], $o['pac_nombre'], $o['pac_ape'], $o['pac_foto'] ?? null, 32) ?>
+                            <span><?= e($o['pac_ape'] . ', ' . $o['pac_nombre']) ?></span>
+                        </div>
+                    </td>
                     <td class="small text-muted"><?= e($o['med_nombre'] ?: '—') ?></td>
                     <td style="min-width:130px" data-orden="<?= $pct ?>">
                         <div class="progress" style="height:6px">

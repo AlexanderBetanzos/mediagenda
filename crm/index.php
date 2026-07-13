@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Pendientes (vencidos primero, luego por fecha; sin fecha al final).
 $pend = db()->prepare(
-    "SELECT s.*, p.nombre, p.apellidos, p.telefono
+    "SELECT s.*, p.nombre, p.apellidos, p.telefono, p.foto
      FROM seguimientos s JOIN pacientes p ON p.id = s.paciente_id
      WHERE s.consultorio_id = ? AND s.estado = 'pendiente'
      ORDER BY s.fecha_objetivo IS NULL, s.fecha_objetivo ASC, s.id DESC"
@@ -47,7 +47,7 @@ $pendientes = $pend->fetchAll();
 
 // Cumpleaños del mes actual.
 $cumple = db()->prepare(
-    "SELECT id, nombre, apellidos, telefono, fecha_nacimiento
+    "SELECT id, nombre, apellidos, telefono, fecha_nacimiento, foto
      FROM pacientes WHERE consultorio_id = ? AND fecha_nacimiento IS NOT NULL
        AND MONTH(fecha_nacimiento) = MONTH(CURDATE())
      ORDER BY DAY(fecha_nacimiento)"
@@ -154,10 +154,13 @@ include __DIR__ . '/../includes/header.php';
                     $msg = '¡Feliz cumpleaños, ' . $c['nombre'] . '! Te deseamos un excelente día. — ' . marca_nombre();
                     $wa = modulo_activo('whatsapp') ? wa_link($c['telefono'], $msg) : ''; ?>
                 <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <div>
+                    <div class="d-flex align-items-center gap-2">
+                        <?= avatar_paciente((int) $c['id'], $c['nombre'], $c['apellidos'], $c['foto'] ?? null, 36) ?>
+                        <div>
                         <div class="fw-semibold"><?= e($c['nombre'].' '.$c['apellidos']) ?></div>
                         <?php $mesesC = ['','ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic']; $tc = strtotime($c['fecha_nacimiento']); ?>
                         <small class="text-muted"><i class="bi bi-calendar-heart"></i> <?= (int) date('j', $tc) ?> <?= $mesesC[(int) date('n', $tc)] ?> · <?= e(edad($c['fecha_nacimiento'])) ?></small>
+                        </div>
                     </div>
                     <?php if ($wa): ?><a href="<?= e($wa) ?>" target="_blank" rel="noopener" class="btn btn-sm btn-outline-success" title="<?= et('Felicitar por WhatsApp') ?>"><i class="bi bi-whatsapp"></i></a><?php endif; ?>
                 </li>

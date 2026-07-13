@@ -183,7 +183,7 @@ endif; /* fin de las gráficas */
 
 /* ── Agenda de hoy ───────────────────────────────────────────────────── */
 $ag = $pdo->prepare(
-    "SELECT c.*, p.nombre, p.apellidos FROM citas c
+    "SELECT c.*, p.id AS pac_id, p.nombre, p.apellidos, p.foto FROM citas c
      JOIN pacientes p ON p.id = c.paciente_id
      WHERE c.consultorio_id = ? AND c.fecha = CURDATE() AND c.estado <> 'cancelada' $medFiltro
      ORDER BY c.hora LIMIT 8"
@@ -193,7 +193,7 @@ $agendaHoy = $ag->fetchAll();
 
 /* ── Próximas citas (próximos 7 días) ────────────────────────────────── */
 $px = $pdo->prepare(
-    "SELECT c.fecha, c.hora, c.estado, p.nombre, p.apellidos FROM citas c
+    "SELECT c.fecha, c.hora, c.estado, p.id AS pac_id, p.nombre, p.apellidos, p.foto FROM citas c
      JOIN pacientes p ON p.id = c.paciente_id
      WHERE c.consultorio_id = ? AND c.fecha BETWEEN DATE_ADD(CURDATE(), INTERVAL 1 DAY) AND DATE_ADD(CURDATE(), INTERVAL 7 DAY)
        AND c.estado IN ('programada','confirmada') $medFiltro
@@ -204,7 +204,7 @@ $proximas = $px->fetchAll();
 
 /* ── Últimos expedientes (últimas consultas) ─────────────────────────── */
 $ue = $pdo->prepare(
-    "SELECT co.fecha, co.diagnostico, p.id pid, p.nombre, p.apellidos,
+    "SELECT co.fecha, co.diagnostico, p.id pid, p.nombre, p.apellidos, p.foto,
             (SELECT COUNT(*) FROM citas ci WHERE ci.paciente_id=p.id
              AND ci.fecha>=CURDATE() AND ci.estado IN('programada','confirmada')) futuras
      FROM consultas co JOIN pacientes p ON p.id = co.paciente_id
@@ -426,7 +426,10 @@ include __DIR__ . '/includes/header.php';
                     <ul class="list-group list-group-flush">
                     <?php foreach ($agendaHoy as $c): ?>
                         <li class="list-group-item d-flex align-items-center justify-content-between px-3">
-                            <span><span class="text-brand fw-semibold me-2"><?= fmt_hora($c['hora']) ?></span><?= e($c['apellidos'] . ', ' . $c['nombre']) ?></span>
+                            <span class="d-flex align-items-center gap-2">
+                                <?= avatar_paciente((int) $c['pac_id'], $c['nombre'], $c['apellidos'], $c['foto'] ?? null, 30) ?>
+                                <span><span class="text-brand fw-semibold me-2"><?= fmt_hora($c['hora']) ?></span><?= e($c['apellidos'] . ', ' . $c['nombre']) ?></span>
+                            </span>
                             <span class="dot-estado dot-<?= e($c['estado']) ?>" title="<?= estado_label($c['estado']) ?>"></span>
                         </li>
                     <?php endforeach; ?>
@@ -443,7 +446,10 @@ include __DIR__ . '/includes/header.php';
                     <p class="text-muted small mb-0 py-2"><?= et('Nada agendado esta semana.') ?></p>
                 <?php else: foreach ($proximas as $c): ?>
                     <div class="d-flex justify-content-between align-items-center py-1 border-bottom border-opacity-10">
-                        <span class="small"><?= e($c['apellidos'] . ', ' . $c['nombre']) ?></span>
+                        <span class="small d-flex align-items-center gap-2">
+                            <?= avatar_paciente((int) $c['pac_id'], $c['nombre'], $c['apellidos'], $c['foto'] ?? null, 26) ?>
+                            <?= e($c['apellidos'] . ', ' . $c['nombre']) ?>
+                        </span>
                         <span class="small text-muted text-capitalize"><?= e(fmt_fecha($c['fecha'])) ?> · <?= fmt_hora($c['hora']) ?></span>
                     </div>
                 <?php endforeach; endif; ?>
@@ -463,7 +469,12 @@ include __DIR__ . '/includes/header.php';
                 <tr><td colspan="4" class="text-center text-muted py-4"><?= et('Aún no hay consultas registradas.') ?></td></tr>
             <?php else: foreach ($ultimos as $r): ?>
                 <tr>
-                    <td><a href="<?= BASE_URL ?>/pacientes/ver?id=<?= $r['pid'] ?>" class="fw-semibold text-decoration-none"><?= e($r['nombre'] . ' ' . $r['apellidos']) ?></a></td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <?= avatar_paciente((int) $r['pid'], $r['nombre'], $r['apellidos'], $r['foto'] ?? null, 32) ?>
+                            <a href="<?= BASE_URL ?>/pacientes/ver?id=<?= $r['pid'] ?>" class="fw-semibold text-decoration-none"><?= e($r['nombre'] . ' ' . $r['apellidos']) ?></a>
+                        </div>
+                    </td>
                     <td><?= fmt_fecha($r['fecha']) ?></td>
                     <td><?= e($r['diagnostico'] ?: '—') ?></td>
                     <td class="text-end">

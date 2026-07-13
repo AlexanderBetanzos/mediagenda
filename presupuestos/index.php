@@ -11,7 +11,7 @@ $estado  = (string) ($_GET['estado'] ?? '');
 $pacFil  = (int) ($_GET['paciente_id'] ?? 0);
 $estados = presupuesto_estados();
 
-$sql = "SELECT pr.*, p.nombre AS pac_nombre, p.apellidos AS pac_ape,
+$sql = "SELECT pr.*, p.nombre AS pac_nombre, p.apellidos AS pac_ape, p.foto AS pac_foto,
                COALESCE(pg.pagado, 0)  AS pagado,
                COALESCE(it.n, 0)       AS items_total,
                COALESCE(it.hechos, 0)  AS items_hechos
@@ -125,7 +125,12 @@ include __DIR__ . '/../includes/header.php';
                 <tr onclick="location='<?= BASE_URL ?>/presupuestos/ver?id=<?= $p['id'] ?>'" style="cursor:pointer">
                     <td class="fw-semibold"><?= e($p['folio']) ?></td>
                     <td class="text-muted"><?= fmt_fecha($p['fecha']) ?></td>
-                    <td><?= e($p['pac_ape'] . ', ' . $p['pac_nombre']) ?></td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <?= avatar_paciente((int) $p['paciente_id'], $p['pac_nombre'], $p['pac_ape'], $p['pac_foto'] ?? null, 32) ?>
+                            <span><?= e($p['pac_ape'] . ', ' . $p['pac_nombre']) ?></span>
+                        </div>
+                    </td>
                     <td style="min-width:120px" data-orden="<?= $pct ?>">
                         <div class="progress" style="height:6px">
                             <div class="progress-bar bg-success" style="width:<?= $pct ?>%"></div>

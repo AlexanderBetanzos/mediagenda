@@ -21,7 +21,7 @@ $corte = date('Y-m-d', strtotime("-$meses months"));
 
 $pdo = db();
 $st = $pdo->prepare(
-    "SELECT p.id, p.nombre, p.apellidos, p.telefono, p.email,
+    "SELECT p.id, p.nombre, p.apellidos, p.telefono, p.email, p.foto,
             GREATEST(COALESCE(uc.f,'1900-01-01'), COALESCE(uco.f,'1900-01-01')) AS ultima
      FROM pacientes p
      LEFT JOIN (SELECT paciente_id, MAX(fecha) f FROM citas WHERE consultorio_id = ? $medCitas GROUP BY paciente_id) uc ON uc.paciente_id = p.id
@@ -73,8 +73,13 @@ include __DIR__ . '/../includes/header.php';
             ?>
                 <tr>
                     <td>
-                        <a href="<?= BASE_URL ?>/pacientes/ver?id=<?= (int) $p['id'] ?>" class="fw-semibold text-decoration-none"><?= e($p['nombre'] . ' ' . $p['apellidos']) ?></a>
-                        <?php if ($p['email']): ?><br><span class="small text-muted"><?= e($p['email']) ?></span><?php endif; ?>
+                        <div class="d-flex align-items-center gap-2">
+                            <?= avatar_paciente((int) $p['id'], $p['nombre'], $p['apellidos'], $p['foto'] ?? null, 36) ?>
+                            <div>
+                                <a href="<?= BASE_URL ?>/pacientes/ver?id=<?= (int) $p['id'] ?>" class="fw-semibold text-decoration-none"><?= e($p['nombre'] . ' ' . $p['apellidos']) ?></a>
+                                <?php if ($p['email']): ?><br><span class="small text-muted"><?= e($p['email']) ?></span><?php endif; ?>
+                            </div>
+                        </div>
                     </td>
                     <td class="small"><?= fmt_fecha($p['ultima']) ?></td>
                     <td><span class="badge bg-warning bg-opacity-25 text-warning"><?= $mesesInact ?> <?= et('meses') ?></span></td>

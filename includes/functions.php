@@ -856,6 +856,31 @@ function foto_paciente_url(?array $p): string
          . '&v=' . substr(md5((string) $p['foto']), 0, 8);
 }
 
+/**
+ * Avatar del paciente: su foto, o un círculo con sus iniciales si no tiene.
+ * Devuelve el HTML listo para imprimir, para no repetir el mismo bloque en cada
+ * listado. Los nombres de columna varían entre módulos (p.nombre vs pac_nombre),
+ * por eso recibe los valores sueltos y no la fila entera.
+ *
+ * @param int $px Diámetro en píxeles (40 en listados, 72 en encabezados).
+ */
+function avatar_paciente(?int $id, ?string $nombre, ?string $apellidos, ?string $foto, int $px = 40): string
+{
+    $url = foto_paciente_url(['id' => $id, 'foto' => $foto]);
+    $lado = (int) $px;
+
+    if ($url) {
+        return '<img src="' . e($url) . '" class="rounded-circle flex-shrink-0" alt=""'
+             . ' style="width:' . $lado . 'px;height:' . $lado . 'px;object-fit:cover">';
+    }
+
+    $ini = strtoupper(mb_substr((string) $nombre, 0, 1) . mb_substr((string) $apellidos, 0, 1));
+    return '<span class="rounded-circle d-inline-flex align-items-center justify-content-center fw-semibold flex-shrink-0"'
+         . ' style="width:' . $lado . 'px;height:' . $lado . 'px;font-size:' . round($lado * 0.36) . 'px;'
+         . 'background:color-mix(in srgb,var(--brand) 18%,transparent);color:var(--brand)">'
+         . e($ini) . '</span>';
+}
+
 /** Carpeta física donde se guardan los archivos de un paciente (la crea si falta). */
 function archivo_dir(int $paciente_id): string
 {

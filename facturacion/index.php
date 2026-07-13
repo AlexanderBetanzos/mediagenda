@@ -5,7 +5,7 @@ require_modulo('facturacion');
 
 $estado = $_GET['estado'] ?? '';
 $params = [tenant_id()];
-$sql = "SELECT f.*, p.nombre AS pac_nombre, p.apellidos AS pac_ape
+$sql = "SELECT f.*, p.nombre AS pac_nombre, p.apellidos AS pac_ape, p.foto AS pac_foto
         FROM facturas f JOIN pacientes p ON p.id = f.paciente_id WHERE f.consultorio_id = ?";
 if (in_array($estado, ['pendiente','pagada','cancelada'], true)) {
     $sql .= " AND f.estado = ?"; $params[] = $estado;
@@ -65,7 +65,12 @@ include __DIR__ . '/../includes/header.php';
                 <tr>
                     <td class="fw-semibold"><?= e($f['folio']) ?></td>
                     <td><?= fmt_fecha($f['fecha']) ?></td>
-                    <td><a href="<?= BASE_URL ?>/pacientes/ver?id=<?= $f['paciente_id'] ?>"><?= e($f['pac_nombre'].' '.$f['pac_ape']) ?></a></td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <?= avatar_paciente((int) $f['paciente_id'], $f['pac_nombre'], $f['pac_ape'], $f['pac_foto'] ?? null, 32) ?>
+                            <a href="<?= BASE_URL ?>/pacientes/ver?id=<?= $f['paciente_id'] ?>"><?= e($f['pac_nombre'].' '.$f['pac_ape']) ?></a>
+                        </div>
+                    </td>
                     <td class="text-end fw-semibold"><?= fmt_money($f['total']) ?></td>
                     <td><span class="badge bg-<?= $badge ?>"><?= et(ucfirst($f['estado'])) ?></span></td>
                     <td class="text-end text-nowrap">

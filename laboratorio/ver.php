@@ -15,7 +15,7 @@ $id = (int) ($_GET['id'] ?? 0);
 $u  = current_user();
 
 $st = db()->prepare(
-    'SELECT o.*, p.nombre AS pac_nombre, p.apellidos AS pac_ape, p.telefono AS pac_tel,
+    'SELECT o.*, p.nombre AS pac_nombre, p.apellidos AS pac_ape, p.telefono AS pac_tel, p.foto AS pac_foto,
             p.email AS pac_email, u.nombre AS med_nombre
      FROM lab_ordenes o
      JOIN pacientes p ON p.id = o.paciente_id
@@ -120,7 +120,9 @@ include __DIR__ . '/../includes/header.php';
 </ol></nav>
 
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-    <div>
+    <div class="d-flex align-items-center gap-3">
+        <?= avatar_paciente((int) $o['paciente_id'], $o['pac_nombre'], $o['pac_ape'], $o['pac_foto'] ?? null, 56) ?>
+        <div>
         <h1 class="h3 mb-1">
             <i class="bi bi-eyedropper text-brand"></i> <?= e($o['folio']) ?>
             <span class="badge bg-<?= lab_estado_badge($o['estado']) ?> align-middle"><?= e(lab_estado_label($o['estado'])) ?></span>
@@ -135,6 +137,7 @@ include __DIR__ . '/../includes/header.php';
             · <?= fmt_fecha($o['fecha']) ?>
             <?php if ($o['med_nombre']): ?> · <?= et('Solicita') ?>: <?= e($o['med_nombre']) ?><?php endif; ?>
             <?php if ($o['proveedor']): ?> · <?= et('Laboratorio') ?>: <?= e($o['proveedor']) ?><?php endif; ?>
+        </div>
         </div>
     </div>
     <div class="d-flex flex-wrap gap-2">

@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $st = db()->prepare(
-    "SELECT c.*, p.nombre AS pac_nombre, p.apellidos AS pac_ape, u.nombre AS med_nombre
+    "SELECT c.*, p.nombre AS pac_nombre, p.apellidos AS pac_ape, p.foto AS pac_foto, u.nombre AS med_nombre
      FROM citas c
      JOIN pacientes p ON p.id = c.paciente_id
      JOIN usuarios  u ON u.id = c.medico_id
@@ -92,8 +92,13 @@ include __DIR__ . '/../includes/header.php';
                 <?php else: foreach ($porLlegar as $c): ?>
                 <li class="list-group-item">
                     <div class="d-flex justify-content-between"><span class="fw-semibold"><?= fmt_hora($c['hora']) ?></span><span class="badge bg-<?= estado_badge($c['estado']) ?>"><?= estado_label($c['estado']) ?></span></div>
-                    <div class="small"><?= e($c['pac_nombre'].' '.$c['pac_ape']) ?></div>
-                    <div class="small text-muted mb-2"><?= e($c['med_nombre']) ?></div>
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <?= avatar_paciente((int) $c['paciente_id'], $c['pac_nombre'], $c['pac_ape'], $c['pac_foto'] ?? null, 34) ?>
+                        <div class="min-w-0">
+                            <div class="small text-truncate"><?= e($c['pac_nombre'].' '.$c['pac_ape']) ?></div>
+                            <div class="small text-muted text-truncate"><?= e($c['med_nombre']) ?></div>
+                        </div>
+                    </div>
                     <?= btn('checkin', $c['id'], 'btn-warning', 'bi-box-arrow-in-right', t('Check-in')) ?>
                     <?= btn('no_asistio', $c['id'], 'btn-outline-danger', 'bi-x', t('No asistió')) ?>
                 </li>
@@ -113,8 +118,13 @@ include __DIR__ . '/../includes/header.php';
                         <span class="fw-semibold"><?= fmt_hora($c['hora']) ?></span>
                         <span class="badge bg-<?= $m >= 30 ? 'danger' : 'warning' ?> text-dark"><?= et('esperando') ?> <?= $m ?> min</span>
                     </div>
-                    <div class="small"><?= e($c['pac_nombre'].' '.$c['pac_ape']) ?></div>
-                    <div class="small text-muted mb-2"><?= e($c['med_nombre']) ?></div>
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <?= avatar_paciente((int) $c['paciente_id'], $c['pac_nombre'], $c['pac_ape'], $c['pac_foto'] ?? null, 34) ?>
+                        <div class="min-w-0">
+                            <div class="small text-truncate"><?= e($c['pac_nombre'].' '.$c['pac_ape']) ?></div>
+                            <div class="small text-muted text-truncate"><?= e($c['med_nombre']) ?></div>
+                        </div>
+                    </div>
                     <?= btn('consulta', $c['id'], 'btn-primary', 'bi-door-open', t('Pasar a consulta')) ?>
                 </li>
                 <?php endforeach; endif; ?>
@@ -130,8 +140,13 @@ include __DIR__ . '/../includes/header.php';
                 <?php else: foreach ($enConsulta as $c): $m = mins_desde($c['atencion_en']); ?>
                 <li class="list-group-item">
                     <div class="d-flex justify-content-between"><span class="fw-semibold"><?= fmt_hora($c['hora']) ?></span><span class="badge bg-primary"><?= et('en consulta') ?> <?= $m ?> min</span></div>
-                    <div class="small"><?= e($c['pac_nombre'].' '.$c['pac_ape']) ?></div>
-                    <div class="small text-muted mb-2"><?= e($c['med_nombre']) ?></div>
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <?= avatar_paciente((int) $c['paciente_id'], $c['pac_nombre'], $c['pac_ape'], $c['pac_foto'] ?? null, 34) ?>
+                        <div class="min-w-0">
+                            <div class="small text-truncate"><?= e($c['pac_nombre'].' '.$c['pac_ape']) ?></div>
+                            <div class="small text-muted text-truncate"><?= e($c['med_nombre']) ?></div>
+                        </div>
+                    </div>
                     <?= btn('finalizar', $c['id'], 'btn-success', 'bi-check2-circle', t('Finalizar')) ?>
                     <a href="<?= BASE_URL ?>/pacientes/ver?id=<?= $c['paciente_id'] ?>" class="btn btn-sm btn-outline-secondary"><i class="bi bi-folder2-open"></i> <?= et('Expediente') ?></a>
                 </li>
