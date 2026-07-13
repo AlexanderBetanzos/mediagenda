@@ -69,7 +69,7 @@ include __DIR__ . '/../includes/header.php';
                 <tr>
                     <td>
                         <div class="d-flex align-items-center gap-2">
-                            <?php $fu = foto_paciente_url($p['foto'] ?? null); $ini = strtoupper(mb_substr($p['nombre'], 0, 1) . mb_substr($p['apellidos'], 0, 1)); ?>
+                            <?php $fu = foto_paciente_url($p); $ini = strtoupper(mb_substr($p['nombre'], 0, 1) . mb_substr($p['apellidos'], 0, 1)); ?>
                             <?php if ($fu): ?>
                                 <img src="<?= e($fu) ?>" class="rounded-circle flex-shrink-0" style="width:40px;height:40px;object-fit:cover" alt="">
                             <?php else: ?>

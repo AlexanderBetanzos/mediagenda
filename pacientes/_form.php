@@ -8,7 +8,7 @@ $v = fn(string $k) => e($p[$k] ?? '');
     <div class="col-12 text-center pb-2">
         <label class="form-label d-block"><?= et('Foto del paciente') ?></label>
         <div class="d-inline-flex flex-column align-items-center">
-            <img id="fotoPreview" src="<?= foto_paciente_url($p['foto'] ?? null) ?>" alt="foto" class="rounded-circle border <?= !empty($p['foto']) ? '' : 'd-none' ?>" style="width:110px;height:110px;object-fit:cover">
+            <img id="fotoPreview" src="<?= foto_paciente_url($p) ?>" alt="foto" class="rounded-circle border <?= !empty($p['foto']) ? '' : 'd-none' ?>" style="width:110px;height:110px;object-fit:cover">
             <div id="fotoPlaceholder" class="rounded-circle border d-flex align-items-center justify-content-center <?= !empty($p['foto']) ? 'd-none' : '' ?>" style="width:110px;height:110px;background:rgba(127,127,127,.14)"><i class="bi bi-person fs-1 text-muted"></i></div>
             <div class="d-flex flex-column gap-2 mt-2" style="max-width:340px;width:100%">
                 <input type="file" name="foto" id="fotoInput" class="form-control form-control-sm" accept="image/*" capture="environment">

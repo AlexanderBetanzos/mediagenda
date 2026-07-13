@@ -839,10 +839,21 @@ function eliminar_foto_paciente(?string $ruta): void
     if (is_file($abs)) { @unlink($abs); }
 }
 
-/** URL pública de la foto de un paciente (o '' si no tiene). */
-function foto_paciente_url(?string $ruta): string
+/**
+ * URL de la foto de un paciente (o '' si no tiene).
+ *
+ * NO se enlaza a /uploads directo: esa carpeta está bloqueada por .htaccess y
+ * devolvía 403 (la imagen salía rota). Se sirve por pacientes/foto.php, que
+ * verifica sesión y consultorio. El sufijo ?v= es para que el navegador note
+ * el cambio cuando el paciente se cambia la foto.
+ *
+ * @param array|null $p Fila del paciente (necesita 'id' y 'foto').
+ */
+function foto_paciente_url(?array $p): string
 {
-    return $ruta ? BASE_URL . '/' . ltrim($ruta, '/') : '';
+    if (empty($p['id']) || empty($p['foto'])) return '';
+    return BASE_URL . '/pacientes/foto?id=' . (int) $p['id']
+         . '&v=' . substr(md5((string) $p['foto']), 0, 8);
 }
 
 /** Carpeta física donde se guardan los archivos de un paciente (la crea si falta). */

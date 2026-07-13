@@ -169,7 +169,7 @@ include __DIR__ . '/../includes/header.php';
 
 <div class="d-flex flex-wrap justify-content-between align-items-start mb-3 gap-2">
     <div class="d-flex align-items-center gap-3">
-        <?php $fu = foto_paciente_url($p['foto'] ?? null); $ini = strtoupper(mb_substr($p['nombre'], 0, 1) . mb_substr($p['apellidos'], 0, 1)); ?>
+        <?php $fu = foto_paciente_url($p); $ini = strtoupper(mb_substr($p['nombre'], 0, 1) . mb_substr($p['apellidos'], 0, 1)); ?>
         <?php if ($fu): ?><img src="<?= e($fu) ?>" class="rounded-circle border flex-shrink-0" style="width:72px;height:72px;object-fit:cover" alt="">
         <?php else: ?><span class="rounded-circle d-inline-flex align-items-center justify-content-center fw-bold flex-shrink-0" style="width:72px;height:72px;background:color-mix(in srgb,var(--brand) 18%,transparent);color:var(--brand);font-size:1.4rem"><?= e($ini) ?></span><?php endif; ?>
         <div>

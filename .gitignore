@@ -21,6 +21,8 @@ Thumbs.db
 # --- Archivos subidos por usuarios (NO versionar el contenido) ---
 uploads/expedientes/*
 !uploads/expedientes/.gitkeep
+uploads/pacientes/*
+!uploads/pacientes/.gitkeep
 
 # Logos subidos por cada consultorio (no versionar el contenido)
 assets/logos/*
