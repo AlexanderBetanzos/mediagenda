@@ -473,6 +473,10 @@ function require_login(): void
         flash('Debes iniciar sesión.', 'warning');
         redirect('/auth/login');
     }
+    // El panel consulta pacientes.foto_mime en casi todos sus listados: si el
+    // código llegó antes que la migración, el esquema se crea aquí en vez de
+    // dejar el sitio caído.
+    asegurar_esquema_fotos();
     // Gating de suscripción: si la prueba venció o el consultorio está suspendido,
     // se bloquea el acceso (salvo páginas que declaran ALLOW_INACTIVE, p. ej.
     // la pantalla de suscripción o el cierre de sesión).
@@ -809,6 +813,50 @@ function archivo_tipos_permitidos(): array
 function archivo_max_bytes(): int
 {
     return 10 * 1024 * 1024; // 10 MB
+}
+
+/**
+ * Crea, si faltan, la tabla y la columna donde vive la foto del paciente.
+ *
+ * Las vistas consultan pacientes.foto_mime; si el código se despliega antes de
+ * correr sql/foto_paciente.sql, esa columna no existe y MySQL tumba TODAS las
+ * páginas que listan pacientes. Un despliegue no debe poder tirar el sitio por
+ * una migración pendiente, así que el esquema se asegura solo.
+ *
+ * Se ejecuta una vez por petición como mucho, y deja de comprobar en cuanto la
+ * marca queda guardada en `configuracion`.
+ */
+function asegurar_esquema_fotos(): void
+{
+    static $listo = false;
+    if ($listo) return;
+    $listo = true;
+
+    try {
+        if (cfg('esquema_fotos') === '1') return;
+
+        db()->exec(
+            'CREATE TABLE IF NOT EXISTS paciente_fotos (
+               paciente_id    INT PRIMARY KEY,
+               consultorio_id INT NOT NULL DEFAULT 1,
+               mime           VARCHAR(40) NOT NULL,
+               bytes          LONGBLOB    NOT NULL,
+               actualizado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+               CONSTRAINT fk_pfoto_paciente FOREIGN KEY (paciente_id)
+                   REFERENCES pacientes(id) ON DELETE CASCADE,
+               INDEX idx_pfoto_tenant (consultorio_id)
+             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
+        );
+
+        $col = db()->query("SHOW COLUMNS FROM pacientes LIKE 'foto_mime'")->fetch();
+        if (!$col) {
+            db()->exec('ALTER TABLE pacientes ADD COLUMN foto_mime VARCHAR(40) DEFAULT NULL');
+        }
+
+        guardar_cfg(['esquema_fotos' => '1']);
+    } catch (Throwable $e) {
+        // Sin permisos de DDL: queda la vía manual (sql/foto_paciente.sql).
+    }
 }
 
 /**
