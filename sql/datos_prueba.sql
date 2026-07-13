@@ -9,6 +9,10 @@
 --    2. Corre el archivo completo. Es idempotente: se puede correr dos veces
 --       sin duplicar nada.
 --
+--  Nota técnica: los SELECT de cada bloque llevan alias (c1, c2…) porque MySQL
+--  nombra las columnas de una tabla derivada con el LITERAL que contienen, y dos
+--  literales iguales (la adición 1.50 en ambos ojos) chocan con "Duplicate column".
+--
 --  NO borra nada de lo que ya tienes. Solo agrega catálogos y un paciente de
 --  prueba llamado "Prueba Óptica" (fácil de encontrar y borrar después).
 -- =====================================================================
@@ -69,7 +73,8 @@ ON DUPLICATE KEY UPDATE valor = VALUES(valor);
 INSERT INTO optica_micas
   (consultorio_id, nombre, tipo_lente, material, tratamientos, esfera_min, esfera_max, cilindro_max, precio, dias_entrega)
 SELECT * FROM (
-  SELECT @tid, 'Monofocal CR-39',                     'monofocal',   'CR-39',            NULL,                            -4.00,  4.00, 2.00,  450.00, 2 UNION ALL
+  SELECT @tid AS c1, 'Monofocal CR-39' AS c2, 'monofocal' AS c3, 'CR-39' AS c4, NULL AS c5,
+         -4.00 AS c6, 4.00 AS c7, 2.00 AS c8, 450.00 AS c9, 2 AS c10 UNION ALL
   SELECT @tid, 'Monofocal CR-39 antirreflejante',     'monofocal',   'CR-39',            'Antirreflejante',               -4.00,  4.00, 2.00,  790.00, 3 UNION ALL
   SELECT @tid, 'Monofocal policarbonato AR',          'monofocal',   'Policarbonato',    'Antirreflejante',               -8.00,  6.00, 4.00, 1190.00, 3 UNION ALL
   SELECT @tid, 'Monofocal alto índice 1.67 AR',       'monofocal',   'Alto índice 1.67', 'Antirreflejante',              -12.00,  8.00, 6.00, 2290.00, 5 UNION ALL
@@ -89,7 +94,8 @@ WHERE NOT EXISTS (SELECT 1 FROM optica_micas m WHERE m.consultorio_id = @tid);
 -- =====================================================================
 INSERT INTO productos (consultorio_id, nombre, sku, categoria, unidad, precio, stock_minimo)
 SELECT * FROM (
-  SELECT @tid, 'Ray-Ban RB5154 Clubmaster · Negro', 'ARM-001', 'Armazón', 'pieza', 2890.00, 1 UNION ALL
+  SELECT @tid AS c1, 'Ray-Ban RB5154 Clubmaster · Negro' AS c2, 'ARM-001' AS c3, 'Armazón' AS c4,
+         'pieza' AS c5, 2890.00 AS c6, 1 AS c7 UNION ALL
   SELECT @tid, 'Oakley OX8046 Airdrop · Gris',      'ARM-002', 'Armazón', 'pieza', 2490.00, 1 UNION ALL
   SELECT @tid, 'Vogue VO5028 · Carey',              'ARM-003', 'Armazón', 'pieza', 1590.00, 1 UNION ALL
   SELECT @tid, 'Armazón económico metal · Dorado',  'ARM-004', 'Armazón', 'pieza',  590.00, 2
@@ -132,10 +138,12 @@ INSERT INTO optica_graduaciones
    oi_esfera, oi_cilindro, oi_eje, oi_adicion, oi_av, oi_dip, oi_altura,
    dip, tipo_lente, diagnostico, notas)
 SELECT * FROM (
-  SELECT @tid, @pac_optica, @medico, DATE_SUB(CURDATE(), INTERVAL 1 YEAR), DATE_SUB(CURDATE(), INTERVAL 1 DAY),
-         -1.75, -0.50,  95, 1.50, '20/25', 31.0, 18.0,
-         -1.50, -0.75,  85, 1.50, '20/25', 31.0, 18.0,
-         62.0, 'progresivo', 'Miopía con astigmatismo, presbicia incipiente', 'Primera graduación progresiva.'
+  SELECT @tid AS c1, @pac_optica AS c2, @medico AS c3,
+         DATE_SUB(CURDATE(), INTERVAL 1 YEAR) AS c4, DATE_SUB(CURDATE(), INTERVAL 1 DAY) AS c5,
+         -1.75 AS c6, -0.50 AS c7, 95 AS c8, 1.50 AS c9, '20/25' AS c10, 31.0 AS c11, 18.0 AS c12,
+         -1.50 AS c13, -0.75 AS c14, 85 AS c15, 1.50 AS c16, '20/25' AS c17, 31.0 AS c18, 18.0 AS c19,
+         62.0 AS c20, 'progresivo' AS c21,
+         'Miopía con astigmatismo, presbicia incipiente' AS c22, 'Primera graduación progresiva.' AS c23
   UNION ALL
   SELECT @tid, @pac_optica, @medico, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 1 YEAR),
          -2.25, -0.75,  95, 2.00, '20/20', 31.0, 18.0,
@@ -151,7 +159,8 @@ WHERE @pac_optica IS NOT NULL
 -- =====================================================================
 INSERT INTO lab_estudios (consultorio_id, nombre, categoria, muestra, preparacion, unidad, referencia, precio)
 SELECT * FROM (
-  SELECT @tid, 'Biometría hemática completa',      'Sangre', 'Sangre venosa', 'Ayuno de 8 h',   NULL,    NULL,        180.00 UNION ALL
+  SELECT @tid AS c1, 'Biometría hemática completa' AS c2, 'Sangre' AS c3, 'Sangre venosa' AS c4,
+         'Ayuno de 8 h' AS c5, NULL AS c6, NULL AS c7, 180.00 AS c8 UNION ALL
   SELECT @tid, 'Química sanguínea (6 elementos)',  'Sangre', 'Sangre venosa', 'Ayuno de 8 h',   NULL,    NULL,        250.00 UNION ALL
   SELECT @tid, 'Glucosa en ayuno',                 'Sangre', 'Sangre venosa', 'Ayuno de 8 h',   'mg/dL', '70 - 100',   90.00 UNION ALL
   SELECT @tid, 'Hemoglobina glucosilada (HbA1c)',  'Sangre', 'Sangre venosa', NULL,             '%',     '< 5.7',     320.00 UNION ALL
@@ -174,14 +183,14 @@ WHERE NOT EXISTS (SELECT 1 FROM lab_estudios e WHERE e.consultorio_id = @tid);
 -- =====================================================================
 INSERT INTO documento_plantillas (consultorio_id, nombre, cuerpo, orden)
 SELECT * FROM (
-  SELECT @tid, 'Constancia de buena salud',
+  SELECT @tid AS c1, 'Constancia de buena salud' AS c2,
     CONCAT('A QUIEN CORRESPONDA:\n\n',
            'Por medio de la presente hago constar que {paciente}, de {edad}, fue valorado(a) ',
            'clínicamente en este consultorio el día de hoy, encontrándose en buen estado de salud ',
            'general, sin datos de enfermedad infectocontagiosa activa ni impedimento aparente para ',
            'realizar sus actividades habituales.\n\n',
            'Se extiende la presente a petición del interesado(a) para los fines legales que a este ',
-           'convengan, en {consultorio}, a {fecha}.\n'), 1
+           'convengan, en {consultorio}, a {fecha}.\n') AS c3, 1 AS c4
   UNION ALL
   SELECT @tid, 'Justificante / incapacidad',
     CONCAT('A QUIEN CORRESPONDA:\n\n',
@@ -217,8 +226,9 @@ WHERE NOT EXISTS (SELECT 1 FROM documento_plantillas d WHERE d.consultorio_id = 
 -- =====================================================================
 INSERT INTO citas (consultorio_id, paciente_id, medico_id, fecha, hora, duracion, tipo, motivo, estado, origen, token)
 SELECT * FROM (
-  SELECT @tid, @pac_optica, @medico, DATE_ADD(CURDATE(), INTERVAL 1 DAY), '10:00:00', 30, 'medica',
-         'Revisión de graduación', 'programada', 'mostrador', REPLACE(UUID(), '-', '')
+  SELECT @tid AS c1, @pac_optica AS c2, @medico AS c3, DATE_ADD(CURDATE(), INTERVAL 1 DAY) AS c4,
+         '10:00:00' AS c5, 30 AS c6, 'medica' AS c7, 'Revisión de graduación' AS c8,
+         'programada' AS c9, 'mostrador' AS c10, REPLACE(UUID(), '-', '') AS c11
   UNION ALL
   SELECT @tid, @pac_optica, @medico, DATE_ADD(CURDATE(), INTERVAL 2 DAY), '11:30:00', 30, 'medica',
          'Entrega de lentes', 'programada', 'mostrador', REPLACE(UUID(), '-', '')
