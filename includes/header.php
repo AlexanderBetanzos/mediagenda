@@ -182,6 +182,7 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
                     <?php endif; ?>
                     <?php if (has_role('medico', 'admin')): ?>
                     <?php if (modulo_activo('plantillas')): ?><li class="nav-item"><a class="nav-link<?= nav_active('plantillas', $activo) ?>" href="<?= BASE_URL ?>/plantillas/index"><i class="bi bi-file-earmark-text"></i> <?= et('Plantillas de consulta') ?></a></li><?php endif; ?>
+                    <?php if (modulo_activo('documentos')): ?><li class="nav-item"><a class="nav-link<?= nav_active('documentos', $activo) ?>" href="<?= BASE_URL ?>/documentos/index"><i class="bi bi-file-earmark-medical"></i> <?= et('Documentos') ?></a></li><?php endif; ?>
                     <?php endif; ?>
                     <?php if (es_superadmin()): ?>
                     <li class="nav-item mt-2"><a class="nav-link<?= nav_active('admin', $activo) ?>" href="<?= BASE_URL ?>/platform/index"><i class="bi bi-diagram-3"></i> <?= et('Plataforma') ?></a></li>

@@ -1244,6 +1244,180 @@ function presupuesto_siguiente_folio(): string
 }
 
 /* --------------------------------------------------------------------
+ *  Documentos clínicos (constancias, incapacidades, resúmenes)
+ * ------------------------------------------------------------------ */
+
+/** Siguiente folio de documento del consultorio, por año: DOC-2026-0007. */
+function documento_siguiente_folio(): string
+{
+    $prefijo = 'DOC-' . date('Y') . '-';
+    $desde   = strlen($prefijo) + 1;
+    $st = db()->prepare(
+        "SELECT COALESCE(MAX(CAST(SUBSTRING(folio, $desde) AS UNSIGNED)), 0)
+         FROM documentos WHERE consultorio_id = ? AND folio LIKE ?"
+    );
+    $st->execute([tenant_id(), $prefijo . '%']);
+    $n = (int) $st->fetchColumn() + 1;
+    return $prefijo . str_pad((string) $n, 4, '0', STR_PAD_LEFT);
+}
+
+/** Marcadores disponibles en una plantilla: clave => para qué sirve. */
+function documento_marcadores(): array
+{
+    return [
+        '{paciente}'    => 'Nombre completo del paciente',
+        '{edad}'        => 'Edad del paciente',
+        '{sexo}'        => 'Sexo (masculino / femenino)',
+        '{fecha}'       => 'Fecha de hoy, en letra',
+        '{diagnostico}' => 'Diagnóstico de su última consulta',
+        '{medico}'      => 'Nombre del médico que firma',
+        '{especialidad}'=> 'Especialidad del médico',
+        '{consultorio}' => 'Nombre del consultorio',
+        '{dias}'        => 'Días de reposo (se pregunta al generar)',
+    ];
+}
+
+/**
+ * Resuelve los marcadores de una plantilla con los datos que el sistema YA
+ * tiene. El médico corrige después lo que quiera: esto solo le ahorra teclear
+ * lo que ya está capturado.
+ */
+function documento_resolver(string $cuerpo, array $paciente, ?array $medico = null,
+                            ?string $diagnostico = null, array $extra = []): string
+{
+    $sexo = ['M' => 'masculino', 'F' => 'femenino'][$paciente['sexo'] ?? ''] ?? '';
+
+    $mapa = [
+        '{paciente}'     => trim(($paciente['nombre'] ?? '') . ' ' . ($paciente['apellidos'] ?? '')),
+        '{edad}'         => edad($paciente['fecha_nacimiento'] ?? null),
+        '{sexo}'         => $sexo,
+        '{fecha}'        => fecha_larga(),
+        '{diagnostico}'  => $diagnostico ?: '—',
+        '{medico}'       => $medico['nombre'] ?? '',
+        '{especialidad}' => $medico['especialidad'] ?? '',
+        '{consultorio}'  => marca_nombre(),
+    ];
+    foreach ($extra as $k => $v) { $mapa['{' . $k . '}'] = (string) $v; }
+
+    return strtr($cuerpo, $mapa);
+}
+
+/** Fecha de hoy en letra: "13 de julio de 2026" (así se escribe en un oficio). */
+function fecha_larga(?string $f = null): string
+{
+    $t = $f ? strtotime($f) : time();
+    $meses = ['', 'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+              'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+    return (int) date('j', $t) . ' de ' . $meses[(int) date('n', $t)] . ' de ' . date('Y', $t);
+}
+
+/**
+ * Plantillas de arranque: los cuatro papeles que un consultorio extiende todas
+ * las semanas. Se cargan con un botón y se editan como cualquier plantilla.
+ */
+function documento_plantillas_comunes(): array
+{
+    return [
+        ['Constancia de buena salud',
+         "A QUIEN CORRESPONDA:\n\n" .
+         "Por medio de la presente hago constar que {paciente}, de {edad}, " .
+         "fue valorado(a) clínicamente en este consultorio el día de hoy, encontrándose " .
+         "en buen estado de salud general, sin datos de enfermedad infectocontagiosa " .
+         "activa ni impedimento aparente para realizar sus actividades habituales.\n\n" .
+         "Se extiende la presente a petición del interesado(a) para los fines legales " .
+         "que a este convengan, en {consultorio}, a {fecha}.\n"],
+
+        ['Justificante / incapacidad',
+         "A QUIEN CORRESPONDA:\n\n" .
+         "Hago constar que {paciente}, de {edad}, acudió a consulta médica " .
+         "el día de hoy con diagnóstico de {diagnostico}, por lo cual se indica " .
+         "reposo domiciliario por {dias} días a partir de esta fecha.\n\n" .
+         "Se extiende la presente para los fines que al interesado(a) convengan, " .
+         "en {consultorio}, a {fecha}.\n"],
+
+        ['Referencia a especialista',
+         "ESTIMADO(A) COLEGA:\n\n" .
+         "Le envío a {paciente}, de {edad}, con diagnóstico de {diagnostico}, " .
+         "para su valoración y manejo especializado.\n\n" .
+         "Resumen del caso:\n\n\n" .
+         "Agradezco de antemano su atención y quedo a sus órdenes para cualquier " .
+         "información adicional.\n\n" .
+         "Atentamente,\n{medico} · {especialidad}\n{consultorio}, a {fecha}.\n"],
+
+        ['Resumen clínico',
+         "RESUMEN CLÍNICO\n\n" .
+         "Paciente: {paciente}\nEdad: {edad}\nFecha: {fecha}\n\n" .
+         "Antecedentes de importancia:\n\n\n" .
+         "Padecimiento actual:\n\n\n" .
+         "Exploración física:\n\n\n" .
+         "Diagnóstico: {diagnostico}\n\n" .
+         "Plan de tratamiento:\n\n\n" .
+         "Atentamente,\n{medico} · {especialidad}\n"],
+    ];
+}
+
+/**
+ * Resumen clínico del paciente: lo que un médico necesita saber ANTES de
+ * entrar, sin leerse el expediente completo. Todo sale de datos que ya están
+ * capturados; no hay nada que adivinar aquí.
+ *
+ * Lo primero son las alergias, y a propósito: es el dato que, si se pasa por
+ * alto, hace daño de verdad.
+ */
+function paciente_resumen(int $paciente_id, array $p): array
+{
+    $tid = tenant_id();
+
+    $q = db()->prepare(
+        "SELECT COUNT(*) AS consultas,
+                MAX(fecha) AS ultima
+         FROM consultas WHERE paciente_id = ? AND consultorio_id = ?"
+    );
+    $q->execute([$paciente_id, $tid]);
+    $c = $q->fetch() ?: [];
+
+    // Próxima cita agendada (la que el paciente pregunta al llegar).
+    $q = db()->prepare(
+        "SELECT fecha, hora FROM citas
+         WHERE paciente_id = ? AND consultorio_id = ? AND fecha >= CURDATE()
+           AND estado IN ('programada','confirmada')
+         ORDER BY fecha, hora LIMIT 1"
+    );
+    $q->execute([$paciente_id, $tid]);
+    $prox = $q->fetch() ?: null;
+
+    // Diagnósticos que más se repiten: el padecimiento crónico sale solo.
+    $q = db()->prepare(
+        "SELECT diagnostico, COUNT(*) n FROM consultas
+         WHERE paciente_id = ? AND consultorio_id = ? AND diagnostico IS NOT NULL AND diagnostico <> ''
+         GROUP BY diagnostico ORDER BY n DESC, MAX(fecha) DESC LIMIT 3"
+    );
+    $q->execute([$paciente_id, $tid]);
+    $dx = $q->fetchAll();
+
+    // Últimos signos vitales capturados (peso, estatura, presión).
+    $q = db()->prepare(
+        "SELECT peso, estatura, presion, temperatura, fecha FROM consultas
+         WHERE paciente_id = ? AND consultorio_id = ?
+           AND (peso IS NOT NULL OR presion IS NOT NULL)
+         ORDER BY fecha DESC LIMIT 1"
+    );
+    $q->execute([$paciente_id, $tid]);
+    $vitales = $q->fetch() ?: null;
+
+    return [
+        'alergias'     => trim((string) ($p['alergias'] ?? '')),
+        'antecedentes' => trim((string) ($p['antecedentes'] ?? '')),
+        'consultas'    => (int) ($c['consultas'] ?? 0),
+        'ultima'       => $c['ultima'] ?? null,
+        'proxima'      => $prox,
+        'diagnosticos' => $dx,
+        'vitales'      => $vitales,
+        'imc'          => $vitales ? imc($vitales['peso'] ?? 0, $vitales['estatura'] ?? 0) : null,
+    ];
+}
+
+/* --------------------------------------------------------------------
  *  Óptica (graduaciones, micas y órdenes de trabajo)
  * ------------------------------------------------------------------ */
 
