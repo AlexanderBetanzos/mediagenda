@@ -6,6 +6,7 @@ require_modulo('recetas');
 $id = (int) ($_GET['id'] ?? 0);
 $stmt = db()->prepare(
     'SELECT r.*, p.nombre AS pac_nombre, p.apellidos AS pac_ape, p.fecha_nacimiento,
+            COALESCE(p.foto_mime, p.foto) AS pac_foto,
             u.nombre AS med_nombre, u.especialidad
      FROM recetas r
      JOIN pacientes p ON p.id = r.paciente_id
@@ -56,8 +57,16 @@ include __DIR__ . '/../includes/header.php';
 
         <div class="row mb-3">
             <div class="col-6">
-                <strong><?= et('Paciente') ?>:</strong> <?= e($r['pac_nombre'].' '.$r['pac_ape']) ?><br>
-                <small class="text-muted"><?= e(edad($r['fecha_nacimiento'])) ?></small>
+                <div class="d-flex align-items-center gap-2">
+                    <?php /* Solo en pantalla: en la receta impresa la foto no aporta. */ ?>
+                    <span class="d-print-none">
+                        <?= avatar_paciente((int) $r['paciente_id'], $r['pac_nombre'], $r['pac_ape'], $r['pac_foto'] ?? null, 40) ?>
+                    </span>
+                    <div>
+                        <strong><?= et('Paciente') ?>:</strong> <?= e($r['pac_nombre'].' '.$r['pac_ape']) ?><br>
+                        <small class="text-muted"><?= e(edad($r['fecha_nacimiento'])) ?></small>
+                    </div>
+                </div>
             </div>
             <div class="col-6 text-end">
                 <strong><?= e($r['med_nombre']) ?></strong><br>
