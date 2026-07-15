@@ -280,8 +280,8 @@ function moneda(): string
 /** Color de acento validado (#rrggbb); cae al de marca por defecto. */
 function color_acento(): string
 {
-    $c = cfg('color_acento', '#0b6fb8');
-    return preg_match('/^#[0-9a-fA-F]{6}$/', $c) ? $c : '#0b6fb8';
+    $c = cfg('color_acento', '#1f6b73');
+    return preg_match('/^#[0-9a-fA-F]{6}$/', $c) ? $c : '#1f6b73';
 }
 
 /** Tema activo: preferencia del usuario (cookie) o el default del consultorio. */

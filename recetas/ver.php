@@ -46,7 +46,7 @@ include __DIR__ . '/../includes/header.php';
     <div class="card-body p-4" style="color:#1f2d3d;background:#fff">
         <div class="d-flex justify-content-between border-bottom pb-3 mb-3">
             <div>
-                <h2 class="h4 mb-0" style="color:#0b6fb8"><i class="bi bi-heart-pulse-fill"></i> <?= e(marca_nombre()) ?></h2>
+                <h2 class="h4 mb-0" style="color:#1f6b73"><i class="bi bi-heart-pulse-fill"></i> <?= e(marca_nombre()) ?></h2>
                 <small class="text-muted"><?= et('Receta médica') ?></small>
             </div>
             <div class="text-end">
@@ -78,7 +78,7 @@ include __DIR__ . '/../includes/header.php';
             <p><strong><?= et('Diagnóstico') ?>:</strong> <?= e($r['diagnostico']) ?></p>
         <?php endif; ?>
 
-        <h3 class="h6 mt-4" style="color:#0b6fb8"><i class="bi bi-capsule"></i> <?= et('Medicamentos') ?></h3>
+        <h3 class="h6 mt-4" style="color:#1f6b73"><i class="bi bi-capsule"></i> <?= et('Medicamentos') ?></h3>
         <table class="table table-bordered">
             <thead><tr><th><?= et('Medicamento') ?></th><th><?= et('Dosis') ?></th><th><?= et('Frecuencia') ?></th><th><?= et('Duración') ?></th></tr></thead>
             <tbody>

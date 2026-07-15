@@ -297,8 +297,8 @@ include __DIR__ . '/../includes/header.php';
 /* `.d-flex` lleva !important y ganaría al atributo `hidden`. */
 .paleta[hidden]{display:none!important}
 .paleta-btn{font-weight:600;border-radius:8px;opacity:.6}
-.paleta-btn.active{opacity:1;outline:3px solid var(--brand,#0b6fb8);outline-offset:2px;box-shadow:0 2px 8px rgba(0,0,0,.18)}
-#btnBorrar.active,#btnNota.active{color:#fff;background:var(--brand,#0b6fb8);border-color:var(--brand,#0b6fb8)}
+.paleta-btn.active{opacity:1;outline:3px solid var(--brand,#1f6b73);outline-offset:2px;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+#btnBorrar.active,#btnNota.active{color:#fff;background:var(--brand,#1f6b73);border-color:var(--brand,#1f6b73)}
 </style>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>

@@ -65,8 +65,8 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
         :root { --brand: <?= $acento ?>; --brand-dark: color-mix(in srgb, <?= $acento ?> 78%, #000); }
         /* El panel (claro y oscuro) usa el acento azul GymOS; la landing
            pública conserva el color de marca de :root. */
-        html.app-dark  { --brand: #0b6fb8; --brand-dark: #085a97; }
-        html.app-light { --brand: #0b6fb8; --brand-dark: #085a97; }
+        html.app-dark  { --brand: #1f6b73; --brand-dark: #164e55; }
+        html.app-light { --brand: #1f6b73; --brand-dark: #164e55; }
         /* El botón primario oscuro (degradado azul) se define en style.css. */
 
         /* Bloque de soporte al pie del menú. Hereda el color de texto del

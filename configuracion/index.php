@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Color de acento: solo se acepta #rrggbb válido.
     $acento = trim($_POST['color_acento'] ?? '');
     if (!preg_match('/^#[0-9a-fA-F]{6}$/', $acento)) {
-        $acento = cfg('color_acento', '#0b6fb8');
+        $acento = cfg('color_acento', '#1f6b73');
     }
 
     $tema = $_POST['tema_default'] ?? 'dark';

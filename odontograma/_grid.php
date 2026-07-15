@@ -88,7 +88,7 @@ function odo_cuadrante(array $dientes, string $arco): string
                        line-height:1;pointer-events:none}
 
 .tiene-nota .num::after{content:'';display:inline-block;width:6px;height:6px;margin-left:3px;
-                        border-radius:50%;background:var(--brand,#0b6fb8)}
+                        border-radius:50%;background:var(--brand,#1f6b73)}
 
 @media print{
   .app-navbar,.sidebar,.breadcrumb,.no-print,footer{display:none!important}

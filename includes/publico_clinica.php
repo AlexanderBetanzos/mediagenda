@@ -62,6 +62,7 @@ include __DIR__ . '/publico_header.php';
 <style>
     .pub-wrap { max-width: none; padding: 0; }
     .clx { --cl-brand: <?= $acento ?>;
+           --cl-cta: #e07a5f;   /* coral: botones de acción, como la referencia */
            --cl-soft: color-mix(in srgb, <?= $acento ?> 6%, #fff);
            --cl-ink: #223a52; --cl-mut: #6b7c93; }
     html.lp-dark .clx { --cl-soft: rgba(255,255,255,.035); --cl-ink: #e6e8ec; --cl-mut: #9aa0aa; }
@@ -83,7 +84,7 @@ include __DIR__ . '/publico_header.php';
     .clx .hero p { color: var(--cl-mut); font-size: 1.12rem; max-width: 52ch; margin: 0 auto 1.6rem; }
 
     /* Botones suaves y redondeados */
-    .clx .btn-cl { background: var(--cl-brand); color: #fff; border: 0; border-radius: 999px;
+    .clx .btn-cl { background: var(--cl-cta); color: #fff; border: 0; border-radius: 999px;
                    padding: .8rem 1.8rem; font-weight: 600; }
     .clx .btn-cl:hover { filter: brightness(1.07); color: #fff; }
     .clx .btn-cl-o { background: transparent; color: var(--cl-brand); border: 1.5px solid var(--cl-brand);
@@ -130,7 +131,7 @@ include __DIR__ . '/publico_header.php';
         background: rgba(255,255,255,.05); }
     .clx .cl-form .form-control:focus, .clx .cl-form .form-select:focus {
         border-color: var(--cl-brand); box-shadow: 0 0 0 .18rem color-mix(in srgb, var(--cl-brand) 20%, transparent); }
-    .clx .cl-form .btn-primary { background: var(--cl-brand); border-color: var(--cl-brand); border-radius: 999px; }
+    .clx .cl-form .btn-primary { background: var(--cl-cta); border-color: var(--cl-cta); border-radius: 999px; }
     .clx .cl-form .foto-lado { border-radius: 20px; width: 100%; height: 100%; min-height: 320px;
                                object-fit: cover; }
 
