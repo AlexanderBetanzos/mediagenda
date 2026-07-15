@@ -113,7 +113,7 @@ $temaCss = $tema === 'dark' ? 'lp-dark' : '';
                                 <span class="badge bg-success">En vivo</span>
                             </div>
                             <div class="row g-2 mb-3">
-                                <?php foreach ([['Citas hoy','14','#f66f14'],['Pacientes','231','#14b8a6'],['Ingresos','$48k','#16a34a']] as [$l,$n,$c]): ?>
+                                <?php foreach ([['Citas hoy','14','#0b6fb8'],['Pacientes','231','#14b8a6'],['Ingresos','$48k','#16a34a']] as [$l,$n,$c]): ?>
                                 <div class="col-4"><div class="lp-tile">
                                     <div class="lp-tile-n" style="color:<?= $c ?>"><?= $n ?></div>
                                     <div class="lp-tile-l"><?= $l ?></div>
@@ -174,11 +174,11 @@ $temaCss = $tema === 'dark' ? 'lp-dark' : '';
         <div class="row g-4">
             <?php
             $funcs = [
-                ['bi-calendar-check','Agenda de citas','Programa, confirma y da seguimiento. Filtra por médico, fecha y estado.','#f66f14'],
+                ['bi-calendar-check','Agenda de citas','Programa, confirma y da seguimiento. Filtra por médico, fecha y estado.','#0b6fb8'],
                 ['bi-folder2-open','Expediente clínico','Consultas, diagnósticos, tratamientos y signos vitales por paciente.','#14b8a6'],
                 ['bi-capsule','Recetas','Genera e imprime recetas con tus medicamentos e indicaciones.','#6366f1'],
                 ['bi-receipt','Facturación','Cobros, comprobantes y control de ingresos del consultorio.','#16a34a'],
-                ['bi-bar-chart','Reportes','Citas, ingresos y métricas clave para tomar decisiones.','#f59e0b'],
+                ['bi-bar-chart','Reportes','Citas, ingresos y métricas clave para tomar decisiones.','#38a3e8'],
                 ['bi-person-badge','Acceso por roles','Permisos para administrador, médicos/dentistas y recepción.','#ef4444'],
             ];
             foreach ($funcs as [$icon,$t,$d,$c]): ?>

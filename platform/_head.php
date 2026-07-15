@@ -39,15 +39,15 @@ $ini   = strtoupper(mb_substr($parts[0] ?? '', 0, 1) . (isset($parts[1]) ? mb_su
     <link href="<?= asset('assets/css/style.css') ?>" rel="stylesheet">
     <style>
         :root { --brand: #0b6fb8; --brand-dark: #075089; }
-        html.app-dark, html.app-light { --brand: #f66f14; --brand-dark: #d9600f; }
+        html.app-dark, html.app-light { --brand: #0b6fb8; --brand-dark: #085a97; }
         .plat-badge { font-size:.6rem; letter-spacing:1.5px; font-weight:800; padding:.15rem .5rem; border-radius:6px;
-            background:rgba(246,111,20,.18); color:#ffb066; }
+            background:rgba(46,144,224,.18); color:#7cc2f5; }
     </style>
 </head>
 <body>
 <nav class="navbar navbar-dark app-navbar sticky-top flex-md-nowrap p-0">
     <a class="navbar-brand d-flex me-0 px-3 fs-6 align-items-center gap-2" href="<?= BASE_URL ?>/platform/index">
-        <i class="bi bi-diagram-3-fill" style="color:#f66f14"></i>
+        <i class="bi bi-diagram-3-fill" style="color:#0b6fb8"></i>
         <span><?= e(APP_NAME) ?></span> <span class="plat-badge">PLATAFORMA</span>
     </a>
     <ul class="navbar-nav flex-row top-menu gap-1 ms-2 d-none d-md-flex">

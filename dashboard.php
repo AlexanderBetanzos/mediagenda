@@ -262,7 +262,7 @@ include __DIR__ . '/includes/header.php';
         </div>
         <div class="row g-3 text-center">
             <div class="col-md-4"><div class="p-2"><div class="fw-bold" style="font-size:1.5rem;color:#22c55e"><?= fmt_money($ingresosMes) ?></div><div class="text-muted small"><?= et('Cobrado') ?></div></div></div>
-            <div class="col-md-4"><div class="p-2"><div class="fw-bold" style="font-size:1.5rem;color:#f59e0b"><?= fmt_money($pendienteCobrar) ?></div><div class="text-muted small"><?= et('Pendiente por cobrar') ?></div></div></div>
+            <div class="col-md-4"><div class="p-2"><div class="fw-bold" style="font-size:1.5rem;color:#38a3e8"><?= fmt_money($pendienteCobrar) ?></div><div class="text-muted small"><?= et('Pendiente por cobrar') ?></div></div></div>
             <div class="col-md-4"><div class="p-2"><div class="fw-bold" style="font-size:1.5rem;color:var(--brand)"><?= fmt_money($ticketProm) ?></div><div class="text-muted small"><?= et('Ticket promedio') ?></div></div></div>
         </div>
     </div>
@@ -300,7 +300,7 @@ include __DIR__ . '/includes/header.php';
     $row2 = [];
     if ($verCitas) {
         $row2[] = [et('Atendidas hoy'), number_format($citasAtendHoy), 'bi-check2-circle', '#22c55e', BASE_URL.'/citas/index', false];
-        $row2[] = [et('Por confirmar'), number_format($citasPorConfirmar), 'bi-hourglass-split', '#f59e0b', BASE_URL.'/citas/index', false];
+        $row2[] = [et('Por confirmar'), number_format($citasPorConfirmar), 'bi-hourglass-split', '#38a3e8', BASE_URL.'/citas/index', false];
         $row2[] = [et('Inasistencia (90 días)'), $noShow . '%', 'bi-person-x', '#ef4444', BASE_URL.'/citas/index', $noShow > 15];
     }
     if ($verRecetas) $row2[] = [et('Recetas (mes)'), number_format($recetasMes), 'bi-capsule', '#a78bfa', BASE_URL.'/recetas/index', false];
@@ -519,10 +519,10 @@ include __DIR__ . '/includes/header.php';
 <?php endif; ?>
 
 <style>
-/* Banner de bienvenida (glass cálido, estilo GymOS) */
+/* Banner de bienvenida (glass azul, estilo GymOS) */
 .welcome-banner { border-radius: 16px; padding: 1.25rem 1.5rem; }
 html.app-dark .welcome-banner {
-    background: linear-gradient(135deg, rgba(246,111,20,.16), rgba(255,214,10,.05));
+    background: linear-gradient(135deg, rgba(46,144,224,.16), rgba(255,214,10,.05));
     border: 1px solid var(--d-border);
     backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
 }
@@ -544,12 +544,12 @@ html.app-light .welcome-banner {
 (function () {
     if (typeof Chart === 'undefined') return;
     var css     = getComputedStyle(document.documentElement);
-    var brand   = (css.getPropertyValue('--brand').trim() || '#f66f14');
+    var brand   = (css.getPropertyValue('--brand').trim() || '#0b6fb8');
     var isLight = document.documentElement.classList.contains('app-light');
     var tick    = isLight ? '#6b7c93' : '#9aa0aa';
     var grid    = isLight ? 'rgba(15,39,71,.07)' : 'rgba(255,255,255,.07)';
     var tipBg   = isLight ? '#ffffff' : '#14161d';
-    var PALETTE = [brand, '#ff9a4d', '#ffd60a', '#38bdf8', '#22c55e', '#a78bfa', '#ef4444', '#f59e0b', '#14b8a6', '#ec4899'];
+    var PALETTE = [brand, '#5eb3f2', '#ffd60a', '#38bdf8', '#22c55e', '#a78bfa', '#ef4444', '#38a3e8', '#14b8a6', '#ec4899'];
     var moneyFmt = function (v) { return '$' + Number(v).toLocaleString('es-MX'); };
     Chart.defaults.color = tick;
     Chart.defaults.font.family = "'Inter', sans-serif";
