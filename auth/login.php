@@ -60,7 +60,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="card shadow login-card">
         <div class="card-body p-4 p-sm-5">
             <div class="text-center mb-4">
-                <div class="display-5 text-brand"><i class="bi bi-heart-pulse-fill"></i></div>
+                <?php if (cfg('marca_logo')): ?>
+                    <img src="<?= e(cfg('marca_logo')) ?>" alt="<?= e(marca_nombre()) ?>" style="max-height:56px;width:auto">
+                <?php else: ?>
+                    <div class="display-5 text-brand"><i class="bi bi-heart-pulse-fill"></i></div>
+                <?php endif; ?>
                 <h1 class="h4 mt-2 mb-0"><?= e(marca_nombre()) ?></h1>
                 <p class="text-muted small"><?= e(cfg('marca_lema', 'Sistema de gestión médica y dental')) ?></p>
             </div>
