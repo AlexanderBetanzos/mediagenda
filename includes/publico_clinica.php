@@ -56,9 +56,12 @@ $nServicios = array_sum(array_map('count', $servicios));
 $especialidades = array_values(array_unique(array_filter(array_map(fn($m) => $m['especialidad'] ?: null, $medicos))));
 $anios = max(0, (int) floor((time() - strtotime($con['creado_en'] ?? 'now')) / 31556952));
 
+// El WhatsApp de la página lo pone el admin en Configuración. Si no puso uno
+// dedicado, se usa el teléfono general.
 $wa = '';
-if ($tel) {
-    $num = preg_replace('/\D+/', '', $tel);
+$waNum = cfg('whatsapp') ?: $tel;
+if ($waNum) {
+    $num = preg_replace('/\D+/', '', $waNum);
     if (strlen($num) <= 10) $num = cfg('pais_lada', '52') . $num;
     $wa = 'https://wa.me/' . $num . '?text=' . rawurlencode(t('Hola') . ', ' . t('me interesa información de') . ' ' . $marca . '.');
 }

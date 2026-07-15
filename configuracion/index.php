@@ -69,6 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'razon_social'  => trim($_POST['razon_social'] ?? ''),
         'direccion'     => trim($_POST['direccion'] ?? ''),
         'telefono'      => trim($_POST['telefono'] ?? ''),
+        'whatsapp'      => trim($_POST['whatsapp'] ?? ''),
         'email'         => trim($_POST['email'] ?? ''),
         'rfc'           => trim($_POST['rfc'] ?? ''),
         // Regional
@@ -218,11 +219,17 @@ include __DIR__ . '/../includes/header.php';
                 <label class="form-label"><?= et('Dirección') ?></label>
                 <input type="text" name="direccion" class="form-control" value="<?= e(cfg('direccion')) ?>">
             </div>
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <label class="form-label"><?= et('Teléfono') ?></label>
                 <input type="text" name="telefono" class="form-control" value="<?= e(cfg('telefono')) ?>">
             </div>
-            <div class="col-md-6">
+            <div class="col-md-4">
+                <label class="form-label"><i class="bi bi-whatsapp text-success"></i> WhatsApp</label>
+                <input type="text" name="whatsapp" class="form-control" value="<?= e(cfg('whatsapp')) ?>"
+                       placeholder="<?= e(t('Si es distinto al teléfono')) ?>">
+                <div class="form-text"><?= et('El botón de WhatsApp de tu página pública. Si lo dejas vacío, se usa el teléfono.') ?></div>
+            </div>
+            <div class="col-md-4">
                 <label class="form-label"><?= et('Correo de contacto') ?></label>
                 <input type="email" name="email" class="form-control" value="<?= e(cfg('email')) ?>">
             </div>
