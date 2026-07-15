@@ -40,10 +40,13 @@ try {
     foreach ($st->fetchAll() as $s) { $servicios[$s['categoria'] ?: t('Servicios')][] = $s; }
 } catch (Throwable $e) {}
 
+// Equipo = el catálogo de médicos (rol 'medico'), igual que /medicos/index. NO
+// se incluye 'admin': el dueño/administrador es personal, no necesariamente un
+// médico que atiende, y mezclarlo mostraba datos de personal en vez de médicos.
 $medicos = [];
 try {
     $st = db()->prepare("SELECT nombre, especialidad FROM usuarios
-                         WHERE consultorio_id = ? AND activo = 1 AND rol IN ('medico','admin') ORDER BY nombre");
+                         WHERE consultorio_id = ? AND activo = 1 AND rol = 'medico' ORDER BY nombre");
     $st->execute([(int) $con['id']]);
     $medicos = $st->fetchAll();
 } catch (Throwable $e) {}
