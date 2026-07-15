@@ -1457,6 +1457,77 @@ function agenda_online_activa(): bool
     return modulo_activo('agenda_online') && cfg('agenda_online', '0') === '1';
 }
 
+/**
+ * Resuelve un consultorio por su slug para mostrar su MICROSITIO público.
+ * Solo consultorios vigentes (activa o en prueba): uno suspendido o expirado no
+ * debe tener una página pública en pie. Devuelve la fila o null.
+ */
+function consultorio_publico(string $slug): ?array
+{
+    $slug = preg_replace('/[^a-z0-9\-_]/i', '', $slug);
+    if ($slug === '') return null;
+
+    try {
+        $st = db()->prepare(
+            "SELECT * FROM consultorios WHERE slug = ? AND estado IN ('activa','trial') LIMIT 1"
+        );
+        $st->execute([$slug]);
+        return $st->fetch() ?: null;
+    } catch (Throwable $e) {
+        return null;
+    }
+}
+
+/**
+ * Horario de atención en texto, resumido a partir de medico_horarios.
+ * Agrupa los días que comparten el mismo horario ("Lun a Vie: 9:00–14:00,
+ * 16:00–19:00") porque nadie quiere leer siete renglones idénticos. Toma la
+ * UNIÓN de las franjas de todos los médicos: es el horario en que el consultorio
+ * abre, no el de una persona.
+ */
+function horario_atencion_texto(int $consultorio_id): array
+{
+    try {
+        $st = db()->prepare(
+            'SELECT DISTINCT dia_semana, hora_inicio, hora_fin FROM medico_horarios
+             WHERE consultorio_id = ? ORDER BY dia_semana, hora_inicio'
+        );
+        $st->execute([$consultorio_id]);
+        $filas = $st->fetchAll();
+    } catch (Throwable $e) {
+        return [];
+    }
+    if (!$filas) return [];
+
+    $hm = fn($h) => date('G:i', strtotime($h));   // "9:00", "16:00"
+    // Firma de cada día = sus franjas concatenadas, para saber cuáles son iguales.
+    $porDia = [];
+    foreach ($filas as $f) {
+        $porDia[(int) $f['dia_semana']][] = $hm($f['hora_inicio']) . '–' . $hm($f['hora_fin']);
+    }
+
+    $dias = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    $orden = [1, 2, 3, 4, 5, 6, 0];   // arranca en lunes, domingo al final
+    $out = [];
+    $grupo = null;
+    foreach ($orden as $d) {
+        if (!isset($porDia[$d])) { if ($grupo) { $out[] = $grupo; $grupo = null; } continue; }
+        $franjas = implode(', ', $porDia[$d]);
+        if ($grupo && $grupo['franjas'] === $franjas) {
+            $grupo['fin'] = $dias[$d];   // extiende el rango de días
+        } else {
+            if ($grupo) $out[] = $grupo;
+            $grupo = ['ini' => $dias[$d], 'fin' => $dias[$d], 'franjas' => $franjas];
+        }
+    }
+    if ($grupo) $out[] = $grupo;
+
+    return array_map(function ($g) {
+        $dias = $g['ini'] === $g['fin'] ? $g['ini'] : $g['ini'] . ' a ' . $g['fin'];
+        return ['dias' => $dias, 'horas' => $g['franjas']];
+    }, $out);
+}
+
 /* --------------------------------------------------------------------
  *  Documentos clínicos (constancias, incapacidades, resúmenes)
  * ------------------------------------------------------------------ */

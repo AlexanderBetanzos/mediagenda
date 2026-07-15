@@ -1,6 +1,17 @@
 <?php
 require_once __DIR__ . '/includes/functions.php';
 require_once __DIR__ . '/includes/mercadopago.php';
+
+// Micrositio por consultorio: igual que GymOS con ?t=slug. La raíz del dominio es
+// la landing del PRODUCTO; cuando llega el slug de un consultorio vigente, se
+// muestra SU página (marca, servicios, médicos, contacto) en vez de la de aquí.
+$slugPublico = (string) ($_GET['c'] ?? $_GET['t'] ?? '');
+if ($slugPublico !== '' && ($con = consultorio_publico($slugPublico))) {
+    track_pageview('clinica');
+    require __DIR__ . '/includes/publico_clinica.php';
+    exit;
+}
+
 $logged = is_logged_in();
 $marca  = marca_nombre();
 track_pageview('publico');

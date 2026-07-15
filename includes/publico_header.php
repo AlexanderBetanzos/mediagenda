@@ -39,7 +39,9 @@ $temaCss = $tema === 'dark' ? 'lp-dark' : '';
     })();
     </script>
     <title><?= e($titulo) ?> · <?= e($marca) ?></title>
-    <meta name="robots" content="noindex">
+    <?php /* El micrositio del consultorio SÍ debe salir en Google (es su cara);
+             las páginas de agendar/confirmar no. El micrositio pone $indexable. */ ?>
+    <meta name="robots" content="<?= (isset($indexable) && $indexable) ? 'index,follow' : 'noindex' ?>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Mulish:wght@600;700;800&display=swap" rel="stylesheet">

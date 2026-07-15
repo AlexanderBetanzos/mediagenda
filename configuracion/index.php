@@ -158,6 +158,23 @@ include __DIR__ . '/../includes/header.php';
                 <div class="mt-2"><img src="<?= e(cfg('marca_logo')) ?>" alt="logo" style="max-height:40px;max-width:160px" class="border rounded p-1 bg-white"></div>
                 <?php endif; ?>
             </div>
+
+            <?php $slugTen = tenant()['slug'] ?? ''; ?>
+            <?php if ($slugTen): ?>
+            <div class="col-12">
+                <div class="alert alert-info mb-0">
+                    <div class="small fw-semibold mb-1">
+                        <i class="bi bi-globe"></i> <?= et('Tu página pública') ?>
+                    </div>
+                    <input type="text" class="form-control form-control-sm font-monospace" readonly
+                           onclick="this.select()" value="<?= e(url_absoluta('/c/' . $slugTen)) ?>">
+                    <div class="form-text mb-0">
+                        <?= et('Es la cara de tu consultorio: marca, servicios, equipo y contacto. Compártela en tu Google Maps, Instagram o firma de correo. Se ve aunque no tengas la agenda en línea activada.') ?>
+                        <a href="<?= e(url_absoluta('/c/' . $slugTen)) ?>" target="_blank" rel="noopener"><?= et('Verla') ?> <i class="bi bi-box-arrow-up-right"></i></a>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
         </div>
     </div>
 

@@ -18,7 +18,11 @@ Options -MultiViews
     RewriteCond %{REQUEST_URI} !^/pagos/webhook\.php$ [NC]
     RewriteRule ^ /%1 [R=301,L]
 
-    # 2) Sirve internamente la URL limpia desde el archivo .php real.
+    # 2) Micrositio bonito de cada consultorio:  /c/<slug>  ->  index con ?c=<slug>
+    #    (la versión fea /?c=<slug> también funciona; esto solo la embellece).
+    RewriteRule ^c/([A-Za-z0-9_-]+)/?$ index.php?c=$1 [L,QSA]
+
+    # 3) Sirve internamente la URL limpia desde el archivo .php real.
     #    Ej: /pacientes/index  ->  /pacientes/index.php
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
