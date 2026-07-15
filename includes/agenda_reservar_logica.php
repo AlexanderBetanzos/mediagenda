@@ -24,12 +24,14 @@ $agMaxDias = max(1, (int) cfg('agenda_online_dias', '30'));
 $agPrecio = round((float) cfg('agenda_online_precio', '0'), 2);
 $agCobra  = $agPrecio > 0 && mp_tenant_habilitado();
 
-/* Médicos con horario configurado: sin horario no hay huecos que ofrecer. */
+/* Médicos con horario configurado: sin horario no hay huecos que ofrecer.
+   Solo rol 'medico' (el catálogo de /medicos), NO el admin/personal: el paciente
+   agenda con un médico que atiende, no con el dueño administrador. */
 $agMedicos = db()->prepare(
     "SELECT DISTINCT u.id, u.nombre, u.especialidad
      FROM usuarios u
      JOIN medico_horarios h ON h.medico_id = u.id AND h.consultorio_id = u.consultorio_id
-     WHERE u.consultorio_id = ? AND u.activo = 1 AND u.rol IN ('medico','admin')
+     WHERE u.consultorio_id = ? AND u.activo = 1 AND u.rol = 'medico'
      ORDER BY u.nombre"
 );
 $agMedicos->execute([(int) $con['id']]);
@@ -61,9 +63,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'reser
 
     if ($nombre === '' || $apellidos === '' || $tel === '') {
         $agError = t('Necesitamos tu nombre, apellidos y teléfono.');
-    } elseif (!in_array($hora, $agHuecos, true)) {
-        // El hueco se revalida: entre que se pintó la página y el envío, otro pudo
-        // tomarlo. Sin esto se agendan dos pacientes a la misma hora.
+    } elseif (!agenda_hora_disponible($agMedId, $agFecha, $hora, $duracion)) {
+        // Se revalida SOLO por conflicto real (otra cita a esa hora), no por
+        // "ya pasó la hora": si el paciente tardó en llenar el formulario, su
+        // horario no debe invalidarse por eso.
         $agError = t('Ese horario acaba de ocuparse. Elige otro, por favor.');
         $agHuecos = agenda_huecos($agMedId, $agFecha, $duracion);
     } else {
@@ -113,7 +116,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'reser
                                      fmt_hora($hora), $med, url_absoluta('/agenda/confirmar?t=' . $token));
             }
 
-            $agHecho = ['fecha' => $agFecha, 'hora' => $hora, 'token' => $token, 'pago' => null];
+            $agHecho = ['fecha' => $agFecha, 'hora' => $hora, 'token' => $token,
+                        'precio' => $agPrecio, 'pago' => null];
 
             // Pago en línea de la reserva (opcional). Si el consultorio cobra por
             // reservar y tiene Mercado Pago configurado, se genera el cobro y su
@@ -129,7 +133,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'reser
                     $st = db()->prepare('SELECT * FROM cobros WHERE id = ? AND consultorio_id = ?');
                     $st->execute([$cid, (int) $con['id']]);
                     if ($cobro = $st->fetch()) {
-                        $agHecho['pago'] = ['url' => cobro_url($cobro), 'monto' => $precio];
+                        $agHecho['pago'] = ['url' => cobro_url($cobro), 'monto' => $agPrecio];
                     }
                 } catch (Throwable $e) { /* pago no disponible: la cita queda igual */ }
             }

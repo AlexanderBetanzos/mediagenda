@@ -1505,6 +1505,51 @@ function agenda_online_activa(): bool
 }
 
 /**
+ * ¿La hora exacta ($hora "HH:MM") sigue libre para ese médico ese día?
+ *
+ * Se usa al CONFIRMAR la reserva (no al mostrar los huecos). A diferencia de
+ * agenda_huecos(), NO rechaza por "ya pasó la hora": si el paciente tardó unos
+ * minutos en llenar el formulario, el hueco que eligió no debe invalidarse por
+ * eso. Solo importa que no choque con otra cita ya agendada — que es el conflicto
+ * real que evita agendar a dos personas a la misma hora.
+ */
+function agenda_hora_disponible(int $medico_id, string $fecha, string $hora, int $duracion = 30): bool
+{
+    if (!preg_match('/^\d{1,2}:\d{2}$/', $hora)) return false;
+
+    $tid = tenant_id();
+    $ini = strtotime($fecha . ' ' . $hora);
+    if (!$ini) return false;
+    $fin = $ini + $duracion * 60;
+
+    // 1) Debe caer dentro de una franja del horario del médico ese día.
+    $dia = (int) date('w', $ini);
+    $st = db()->prepare('SELECT hora_inicio, hora_fin FROM medico_horarios
+                         WHERE medico_id = ? AND consultorio_id = ? AND dia_semana = ?');
+    $st->execute([$medico_id, $tid, $dia]);
+    $dentro = false;
+    foreach ($st->fetchAll() as $f) {
+        if ($ini >= strtotime($fecha . ' ' . $f['hora_inicio'])
+            && $fin <= strtotime($fecha . ' ' . $f['hora_fin'])) { $dentro = true; break; }
+    }
+    if (!$dentro) return false;
+
+    // 2) No debe chocar con una cita ya agendada (canceladas/faltas no cuentan).
+    $st = db()->prepare(
+        "SELECT hora, duracion FROM citas
+         WHERE medico_id = ? AND consultorio_id = ? AND fecha = ?
+           AND estado NOT IN ('cancelada','no_asistio')"
+    );
+    $st->execute([$medico_id, $tid, $fecha]);
+    foreach ($st->fetchAll() as $c) {
+        $ci = strtotime($fecha . ' ' . $c['hora']);
+        $cf = $ci + (((int) $c['duracion']) ?: 30) * 60;
+        if ($ini < $cf && $fin > $ci) return false;   // se encima
+    }
+    return true;
+}
+
+/**
  * Resuelve un consultorio por su slug para mostrar su MICROSITIO público.
  * Solo consultorios vigentes (activa o en prueba): uno suspendido o expirado no
  * debe tener una página pública en pie. Devuelve la fila o null.

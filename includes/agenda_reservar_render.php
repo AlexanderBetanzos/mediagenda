@@ -21,17 +21,27 @@ $agAccion = $agAccion ?? '';
         </p>
 
         <?php if (!empty($agHecho['pago'])): ?>
-            <?php /* Pagar en línea deja la cita CONFIRMADA sola (webhook). Es
-                     opcional: quien no pague aquí, paga en el consultorio. */ ?>
-            <div class="alert alert-info py-2 small mb-3">
-                <?= et('Puedes dejar tu cita pagada desde ahora') ?>:
-                <strong><?= fmt_money($agHecho['pago']['monto']) ?></strong>.
+            <?php /* Hay pago en línea: pagar deja la cita CONFIRMADA sola (webhook).
+                     Y siempre la alternativa de pagar en el consultorio. */ ?>
+            <div class="alert alert-info py-2 mb-3">
+                <?= et('Costo de la cita') ?>: <strong><?= fmt_money($agHecho['pago']['monto']) ?></strong>.
+                <?= et('¿Cómo prefieres pagar?') ?>
             </div>
             <a href="<?= e($agHecho['pago']['url']) ?>" class="btn btn-primary btn-lg w-100 mb-2 py-3 fw-semibold">
-                <i class="bi bi-credit-card"></i> <?= et('Pagar mi cita en línea') ?>
+                <i class="bi bi-credit-card"></i> <?= et('Pagar en línea ahora') ?>
             </a>
-            <a href="<?= BASE_URL ?>/agenda/confirmar?t=<?= e($agHecho['token']) ?>" class="btn btn-link">
-                <?= et('Prefiero pagar en el consultorio') ?>
+            <a href="<?= BASE_URL ?>/agenda/confirmar?t=<?= e($agHecho['token']) ?>" class="btn btn-outline-secondary w-100">
+                <i class="bi bi-cash-coin"></i> <?= et('Pagar en el consultorio') ?>
+            </a>
+        <?php elseif (!empty($agHecho['precio']) && (float) $agHecho['precio'] > 0): ?>
+            <?php /* Hay costo pero sin pago en línea configurado: se paga al llegar. */ ?>
+            <div class="alert alert-info py-2 mb-3">
+                <i class="bi bi-cash-coin"></i>
+                <?= et('Costo de la cita') ?>: <strong><?= fmt_money($agHecho['precio']) ?></strong>.
+                <?= et('Lo pagas en el consultorio al llegar.') ?>
+            </div>
+            <a href="<?= BASE_URL ?>/agenda/confirmar?t=<?= e($agHecho['token']) ?>" class="btn btn-outline-secondary">
+                <?= et('Ver o cancelar mi cita') ?>
             </a>
         <?php else: ?>
             <a href="<?= BASE_URL ?>/agenda/confirmar?t=<?= e($agHecho['token']) ?>" class="btn btn-outline-secondary">
