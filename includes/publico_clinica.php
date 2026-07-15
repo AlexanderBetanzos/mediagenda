@@ -84,8 +84,8 @@ include __DIR__ . '/publico_header.php';
            font-family: 'Inter', system-ui, sans-serif; }
     html.lp-dark .clx { --ink: #e6e8ec; --mut: #9aa0aa; --soft: rgba(255,255,255,.035); }
 
-    .clx section { padding: 4.5rem 1.25rem; }
-    .clx .wrap { max-width: 1080px; margin: 0 auto; }
+    .clx section { padding: 4.5rem 1.5rem; }
+    .clx .wrap { max-width: 1200px; margin: 0 auto; }
     .clx h2.t { font-family: 'Mulish', sans-serif; color: var(--ink); font-weight: 800;
                 font-size: clamp(1.6rem, 3.4vw, 2.25rem); margin: 0; }
     .clx .sub { color: var(--mut); max-width: 56ch; margin: .8rem auto 0; }
@@ -98,18 +98,22 @@ include __DIR__ . '/publico_header.php';
                     border-radius: 999px; padding: .85rem 1.7rem; font-weight: 600; }
     .clx .btn-gho:hover { background: rgba(255,255,255,.14); color: #fff; }
 
-    /* ===== HERO (banner profesional con imagen) ===== */
-    .clx .hero { position: relative; color: #fff; overflow: hidden; background: var(--cl-d); }
+    /* ===== HERO (banner profesional a TODO el ancho) =====
+       Se rompe fuera de cualquier contenedor con 100vw, así ocupa la pantalla
+       completa aunque el envoltorio esté limitado. */
+    .clx .hero { position: relative; color: #fff; overflow: hidden; background: var(--cl-d);
+                 width: 100vw; margin-left: calc(50% - 50vw); }
     .clx .hero::before { content: ''; position: absolute; inset: 0; z-index: 0;
-        background: linear-gradient(105deg, var(--cl-d) 0%, color-mix(in srgb, var(--cl-d) 82%, transparent) 46%,
-                    color-mix(in srgb, var(--cl) 35%, transparent) 78%, rgba(0,0,0,.15) 100%),
-                    url('<?= e($foto ?: 'https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?w=1600&q=80&auto=format&fit=crop') ?>') center/cover no-repeat; }
-    .clx .hero .wrap { position: relative; z-index: 1; padding: 5rem 1.25rem; }
+        background: linear-gradient(100deg, var(--cl-d) 0%, color-mix(in srgb, var(--cl-d) 80%, transparent) 42%,
+                    color-mix(in srgb, var(--cl) 30%, transparent) 74%, rgba(0,0,0,.20) 100%),
+                    url('<?= e($foto ?: 'https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?w=1920&q=80&auto=format&fit=crop') ?>') center/cover no-repeat; }
+    .clx .hero .wrap { position: relative; z-index: 1; min-height: 520px; display: flex; flex-direction: column;
+                       justify-content: center; padding: 5.5rem 1.5rem; }
     .clx .hero .pill { display: inline-flex; align-items: center; gap: .45rem; background: rgba(255,255,255,.16);
                        padding: .34rem .85rem; border-radius: 999px; font-weight: 600; font-size: .8rem; }
-    .clx .hero h1 { font-family: 'Mulish', sans-serif; font-weight: 800; font-size: clamp(2rem, 4.8vw, 3.1rem);
-                    line-height: 1.1; margin: 1rem 0 .8rem; }
-    .clx .hero .lead { font-size: 1.12rem; opacity: .94; max-width: 40ch; }
+    .clx .hero h1 { font-family: 'Mulish', sans-serif; font-weight: 800; font-size: clamp(2.4rem, 5.2vw, 4rem);
+                    line-height: 1.06; margin: 1.1rem 0 .9rem; text-shadow: 0 2px 20px rgba(0,0,0,.25); }
+    .clx .hero .lead { font-size: 1.2rem; opacity: .95; max-width: 42ch; text-shadow: 0 1px 12px rgba(0,0,0,.25); }
     .clx .hero .logo { max-height: 46px; background: #fff; border-radius: 10px; padding: .35rem .6rem; margin-bottom: 1rem; }
     .clx .hero .trust { display: flex; flex-wrap: wrap; gap: 1.6rem; margin-top: 2rem; }
     .clx .hero .trust .n { font-family: 'Mulish', sans-serif; font-weight: 800; font-size: 1.7rem; line-height: 1; }
@@ -138,16 +142,28 @@ include __DIR__ . '/publico_header.php';
     .clx .bene p { color: #4b5560; font-size: .93rem; margin: 0; }
     html.lp-dark .clx .bene p { color: #b8bcc4; }
 
-    /* ===== Servicios ===== */
+    /* ===== Servicios (tarjetas con ícono) ===== */
     .clx .soft { background: var(--soft); }
-    .clx .cat { color: var(--cl); font-weight: 700; text-transform: uppercase; letter-spacing: .05em;
-                font-size: .8rem; margin: 1.6rem 0 .8rem; }
-    .clx .serv { background: var(--bs-body-bg); border: 1px solid color-mix(in srgb, var(--cl) 14%, #fff);
-                 border-radius: 14px; padding: 1rem 1.25rem; height: 100%; display: flex;
-                 justify-content: space-between; align-items: baseline; gap: 1rem; transition: border-color .15s, transform .15s; }
-    .clx .serv:hover { border-color: var(--cl); transform: translateY(-2px); }
+    .clx .catrow { display: flex; align-items: center; gap: .7rem; margin: 2.2rem 0 1.1rem; }
+    .clx .catrow .cico { width: 40px; height: 40px; border-radius: 11px; display: flex; align-items: center;
+                         justify-content: center; font-size: 1.15rem;
+                         background: color-mix(in srgb, var(--cl) 12%, #fff); color: var(--cl); }
+    html.lp-dark .clx .catrow .cico { background: color-mix(in srgb, var(--cl) 24%, transparent); }
+    .clx .catrow .ctxt { color: var(--ink); font-weight: 800; font-size: 1.05rem; }
+    .clx .catrow::after { content: ''; flex: 1; height: 1px; background: color-mix(in srgb, var(--cl) 14%, transparent); }
+    .clx .serv { background: var(--bs-body-bg); border: 1px solid color-mix(in srgb, var(--cl) 13%, #fff);
+                 border-radius: 16px; padding: 1.15rem 1.3rem; height: 100%; display: flex; align-items: center;
+                 gap: .9rem; transition: border-color .15s, transform .15s, box-shadow .15s; }
+    .clx .serv:hover { border-color: var(--cl); transform: translateY(-3px); box-shadow: 0 12px 28px rgba(31,107,115,.12); }
     html.lp-dark .clx .serv { border-color: rgba(255,255,255,.08); }
-    .clx .serv .n { color: var(--ink); } .clx .serv .p { color: var(--cta); font-weight: 800; white-space: nowrap; }
+    .clx .serv .si { width: 40px; height: 40px; flex-shrink: 0; border-radius: 11px; display: flex; align-items: center;
+                     justify-content: center; font-size: 1.15rem;
+                     background: color-mix(in srgb, var(--cta) 14%, #fff); color: var(--cta); }
+    html.lp-dark .clx .serv .si { background: color-mix(in srgb, var(--cta) 26%, transparent); }
+    .clx .serv .n { color: var(--ink); font-weight: 600; flex: 1; }
+    .clx .serv .p { color: var(--cta); font-weight: 800; white-space: nowrap; background: color-mix(in srgb, var(--cta) 10%, #fff);
+                    padding: .25rem .7rem; border-radius: 999px; font-size: .92rem; }
+    html.lp-dark .clx .serv .p { background: color-mix(in srgb, var(--cta) 20%, transparent); }
 
     /* ===== Equipo (tarjeta por médico, con su horario) ===== */
     .clx .medcard { background: var(--bs-body-bg); border: 1px solid color-mix(in srgb, var(--cl) 14%, #fff);
@@ -257,12 +273,30 @@ include __DIR__ . '/publico_header.php';
             <span class="eyebrow"><?= et('Lo que ofrecemos') ?></span>
             <h2 class="t"><?= et('Nuestros servicios') ?></h2>
         </div>
+        <?php
+        // Ícono según la categoría (heurística por palabras); genérico si no cuadra.
+        $catIcon = function (string $c): string {
+            $c = mb_strtolower($c);
+            foreach ([
+                'cirug' => 'bi-scissors', 'consult' => 'bi-clipboard2-pulse', 'dental' => 'bi-emoji-smile',
+                'odont' => 'bi-emoji-smile', 'limpiez' => 'bi-stars', 'estud' => 'bi-clipboard2-data',
+                'labor' => 'bi-eyedropper', 'imagen' => 'bi-camera', 'rayos' => 'bi-camera',
+                'estét' => 'bi-gem', 'prevent' => 'bi-shield-check', 'urgen' => 'bi-heart-pulse',
+                'pediatr' => 'bi-emoji-laughing', 'ginec' => 'bi-gender-female', 'ópt' => 'bi-eyeglasses',
+            ] as $k => $ic) { if (str_contains($c, $k)) return $ic; }
+            return 'bi-plus-circle';
+        };
+        ?>
         <?php foreach ($servicios as $categoria => $items): ?>
-            <div class="cat"><?= e($categoria) ?></div>
+            <div class="catrow">
+                <span class="cico"><i class="bi <?= $catIcon((string) $categoria) ?>"></i></span>
+                <span class="ctxt"><?= e($categoria) ?></span>
+            </div>
             <div class="row g-3">
                 <?php foreach ($items as $s): ?>
-                <div class="col-md-6">
+                <div class="col-md-6 col-lg-4">
                     <div class="serv">
+                        <span class="si"><i class="bi <?= $catIcon((string) $categoria) ?>"></i></span>
                         <span class="n"><?= e($s['nombre']) ?></span>
                         <?php if ((float) $s['precio'] > 0): ?><span class="p"><?= fmt_money($s['precio']) ?></span><?php endif; ?>
                     </div>
