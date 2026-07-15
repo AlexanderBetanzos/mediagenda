@@ -80,6 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'agenda_online_dias'     => (string) max(1, min(180, (int) ($_POST['agenda_online_dias'] ?? 30))),
         'agenda_online_duracion' => (string) max(10, min(180, (int) ($_POST['agenda_online_duracion'] ?? 30))),
         'agenda_online_aviso'    => trim($_POST['agenda_online_aviso'] ?? ''),
+        'agenda_online_precio'   => (string) max(0, round((float) ($_POST['agenda_online_precio'] ?? 0), 2)),
     ]);
     /* Pago en línea: credenciales de Mercado Pago DEL CONSULTORIO, con las que
        cobra a sus propios pacientes. Un campo vacío no borra el que ya había. */
@@ -301,6 +302,22 @@ include __DIR__ . '/../includes/header.php';
                     <div class="form-text"><?= et('Define el tamaño de los huecos que se ofrecen.') ?></div>
                 </div>
                 <div class="col-md-4">
+                    <label class="form-label"><?= et('Costo de la cita') ?></label>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input type="number" min="0" step="0.01" name="agenda_online_precio" class="form-control"
+                               value="<?= e(cfg('agenda_online_precio', '0')) ?>">
+                    </div>
+                    <div class="form-text">
+                        <?= et('0 = no se cobra por reservar.') ?>
+                        <?php if (!mp_tenant_habilitado()): ?>
+                            <span class="text-warning"><?= et('Requiere activar el pago en línea (más abajo).') ?></span>
+                        <?php else: ?>
+                            <?= et('El paciente podrá pagar al agendar.') ?>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                <div class="col-md-8">
                     <label class="form-label"><?= et('Aviso al paciente') ?></label>
                     <input name="agenda_online_aviso" class="form-control" maxlength="255"
                            placeholder="<?= e(t('Ej. Llega 10 minutos antes')) ?>"

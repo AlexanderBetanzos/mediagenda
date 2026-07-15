@@ -7,14 +7,18 @@
 require_once __DIR__ . '/functions.php';
 require_once __DIR__ . '/mercadopago.php';
 
-/** Crea un cobro pendiente y devuelve su id. */
-function cobro_crear(int $paciente_id, float $monto, string $concepto, ?int $presupuesto_id = null): int
+/**
+ * Crea un cobro pendiente y devuelve su id.
+ * $cita_id liga el cobro a una cita: al pagarse, la cita se confirma sola.
+ */
+function cobro_crear(int $paciente_id, float $monto, string $concepto,
+                     ?int $presupuesto_id = null, ?int $cita_id = null): int
 {
     db()->prepare(
-        'INSERT INTO cobros (consultorio_id, paciente_id, presupuesto_id, token, concepto, monto, creado_por)
-         VALUES (?,?,?,?,?,?,?)'
+        'INSERT INTO cobros (consultorio_id, paciente_id, presupuesto_id, cita_id, token, concepto, monto, creado_por)
+         VALUES (?,?,?,?,?,?,?,?)'
     )->execute([
-        tenant_id(), $paciente_id, $presupuesto_id ?: null,
+        tenant_id(), $paciente_id, $presupuesto_id ?: null, $cita_id ?: null,
         bin2hex(random_bytes(16)),
         mb_substr(trim($concepto), 0, 160),
         round($monto, 2),
@@ -84,6 +88,15 @@ function cobro_marcar_pagado(array $cobro, string $payment_id): bool
                 (int) $cobro['consultorio_id'], (int) $cobro['presupuesto_id'], date('Y-m-d'),
                 $cobro['monto'], 'Mercado Pago', $payment_id, 'Pago en línea', (int) $cobro['id'],
             ]);
+        }
+
+        // Cobro de una reserva en línea: al pagar, la cita se confirma sola —
+        // el paciente que ya pagó es el que sí va a venir.
+        if (!empty($cobro['cita_id'])) {
+            $pdo->prepare(
+                "UPDATE citas SET estado = 'confirmada', confirmada_en = NOW()
+                 WHERE id = ? AND consultorio_id = ? AND estado = 'programada'"
+            )->execute([(int) $cobro['cita_id'], (int) $cobro['consultorio_id']]);
         }
 
         $pdo->commit();

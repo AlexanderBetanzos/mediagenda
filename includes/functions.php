@@ -875,7 +875,7 @@ function asegurar_esquema_agenda(): void
     $listo = true;
 
     try {
-        if (cfg('esquema_agenda') === '1') return;
+        if (cfg('esquema_agenda') === '2') return;
 
         $col = db()->query("SHOW COLUMNS FROM citas LIKE 'token'")->fetch();
         if (!$col) {
@@ -890,6 +890,18 @@ function asegurar_esquema_agenda(): void
             );
         }
 
+        // Liga cobro→cita para el pago en línea de la reserva. Sin esto,
+        // cobro_crear() con cita_id fallaría al cobrar una cita agendada.
+        $c2 = db()->query("SHOW COLUMNS FROM cobros LIKE 'cita_id'")->fetch();
+        if (!$c2) {
+            db()->exec('ALTER TABLE cobros ADD COLUMN cita_id INT DEFAULT NULL AFTER presupuesto_id');
+            // La FK va aparte: si falla (motor sin soporte), la columna basta.
+            try {
+                db()->exec('ALTER TABLE cobros ADD CONSTRAINT fk_cobro_cita
+                            FOREIGN KEY (cita_id) REFERENCES citas(id) ON DELETE SET NULL');
+            } catch (Throwable $e) { /* la columna ya sirve sin la FK */ }
+        }
+
         // El módulo y su plan: sin la fila en `modulos`, modulo_activo() lo niega
         // y la agenda en línea queda invisible aunque el código esté desplegado.
         db()->exec("INSERT INTO modulos (clave, nombre, fase, orden)
@@ -899,7 +911,7 @@ function asegurar_esquema_agenda(): void
                     VALUES ('profesional','agenda_online'), ('clinica','agenda_online')
                     ON DUPLICATE KEY UPDATE plan_clave = VALUES(plan_clave)");
 
-        guardar_cfg(['esquema_agenda' => '1']);
+        guardar_cfg(['esquema_agenda' => '2']);
         modulos_activos(true);   // invalida la caché: el módulo ya existe
     } catch (Throwable $e) {
         // Sin permisos de DDL: queda la vía manual (sql/agenda_online.sql).

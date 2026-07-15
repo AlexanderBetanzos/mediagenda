@@ -21,6 +21,15 @@ $correo  = cfg('email');
 $reservar = agenda_online_activa();
 $horario  = horario_atencion_texto((int) $con['id']);
 
+// Reserva integrada: la lógica corre AQUÍ, antes de imprimir nada, porque un
+// POST crea el paciente y la cita. El formulario se pinta más abajo, en la
+// sección #agendar, sin sacar al paciente de la página del consultorio.
+if ($reservar) {
+    require_once __DIR__ . '/correo.php';
+    $agAccion = BASE_URL . '/c/' . $con['slug'];
+    require __DIR__ . '/agenda_reservar_logica.php';
+}
+
 // Servicios: se muestran los del catálogo, agrupados por categoría. Es la carta
 // de precios que el paciente quiere ver antes de llamar.
 $servicios = [];
@@ -89,7 +98,7 @@ include __DIR__ . '/publico_header.php';   // navbar con la marca del consultori
 
     <div class="d-flex flex-wrap justify-content-center gap-2">
         <?php if ($reservar): ?>
-            <a href="<?= BASE_URL ?>/agenda/reservar?c=<?= e($con['slug']) ?>" class="btn btn-light btn-lg fw-semibold px-4">
+            <a href="#agendar" class="btn btn-light btn-lg fw-semibold px-4">
                 <i class="bi bi-calendar-plus"></i> <?= et('Agendar cita en línea') ?>
             </a>
         <?php endif; ?>
@@ -190,11 +199,11 @@ include __DIR__ . '/publico_header.php';   // navbar con la marca del consultori
 </div>
 
 <?php if ($reservar): ?>
-<!-- Cierre: repite el CTA, que es lo que el paciente vino a hacer -->
-<div class="text-center pb-5">
-    <a href="<?= BASE_URL ?>/agenda/reservar?c=<?= e($con['slug']) ?>" class="btn btn-primary btn-lg px-5 py-3 fw-semibold">
-        <i class="bi bi-calendar-plus"></i> <?= et('Agendar mi cita') ?>
-    </a>
+<!-- Agendar: el formulario de reserva, en la misma página -->
+<div id="agendar" class="cl-sec pt-0" style="max-width:640px">
+    <h2 class="h3 fw-bold text-center mb-1"><?= et('Agenda tu cita') ?></h2>
+    <p class="text-muted text-center mb-4"><?= et('Elige el día y la hora que mejor te queden. Sin llamadas y sin esperas.') ?></p>
+    <?php include __DIR__ . '/agenda_reservar_render.php'; ?>
 </div>
 <?php endif; ?>
 
