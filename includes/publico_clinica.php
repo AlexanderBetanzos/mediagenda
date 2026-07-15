@@ -24,7 +24,6 @@ $tel      = cfg('telefono');
 $correo   = cfg('email');
 $acento   = color_acento();
 $reservar = agenda_online_activa();
-$horario  = horario_atencion_texto((int) $con['id']);
 
 if ($reservar) {
     require_once __DIR__ . '/correo.php';
@@ -42,13 +41,15 @@ try {
 
 // Equipo = el catálogo de médicos (rol 'medico'), igual que /medicos/index. NO
 // se incluye 'admin': el dueño/administrador es personal, no necesariamente un
-// médico que atiende, y mezclarlo mostraba datos de personal en vez de médicos.
+// médico que atiende. Cada médico trae SU propio horario (cada quien su agenda).
 $medicos = [];
 try {
-    $st = db()->prepare("SELECT nombre, especialidad FROM usuarios
+    $st = db()->prepare("SELECT id, nombre, especialidad FROM usuarios
                          WHERE consultorio_id = ? AND activo = 1 AND rol = 'medico' ORDER BY nombre");
     $st->execute([(int) $con['id']]);
     $medicos = $st->fetchAll();
+    foreach ($medicos as &$m) { $m['horario'] = horario_atencion_texto((int) $con['id'], (int) $m['id']); }
+    unset($m);
 } catch (Throwable $e) {}
 
 $nServicios = array_sum(array_map('count', $servicios));
@@ -97,12 +98,13 @@ include __DIR__ . '/publico_header.php';
                     border-radius: 999px; padding: .85rem 1.7rem; font-weight: 600; }
     .clx .btn-gho:hover { background: rgba(255,255,255,.14); color: #fff; }
 
-    /* ===== HERO ===== */
-    .clx .hero { position: relative; background: linear-gradient(120deg, var(--cl-d), var(--cl) 62%,
-                 color-mix(in srgb, var(--cl) 55%, #3f9aa3) 120%); color: #fff; overflow: hidden; }
-    .clx .hero::after { content: ''; position: absolute; right: -140px; top: -140px; width: 420px; height: 420px;
-                        border-radius: 50%; background: rgba(255,255,255,.06); }
-    .clx .hero .wrap { position: relative; z-index: 1; padding: 4.5rem 1.25rem; }
+    /* ===== HERO (banner profesional con imagen) ===== */
+    .clx .hero { position: relative; color: #fff; overflow: hidden; background: var(--cl-d); }
+    .clx .hero::before { content: ''; position: absolute; inset: 0; z-index: 0;
+        background: linear-gradient(105deg, var(--cl-d) 0%, color-mix(in srgb, var(--cl-d) 82%, transparent) 46%,
+                    color-mix(in srgb, var(--cl) 35%, transparent) 78%, rgba(0,0,0,.15) 100%),
+                    url('<?= e($foto ?: 'https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?w=1600&q=80&auto=format&fit=crop') ?>') center/cover no-repeat; }
+    .clx .hero .wrap { position: relative; z-index: 1; padding: 5rem 1.25rem; }
     .clx .hero .pill { display: inline-flex; align-items: center; gap: .45rem; background: rgba(255,255,255,.16);
                        padding: .34rem .85rem; border-radius: 999px; font-weight: 600; font-size: .8rem; }
     .clx .hero h1 { font-family: 'Mulish', sans-serif; font-weight: 800; font-size: clamp(2rem, 4.8vw, 3.1rem);
@@ -147,13 +149,20 @@ include __DIR__ . '/publico_header.php';
     html.lp-dark .clx .serv { border-color: rgba(255,255,255,.08); }
     .clx .serv .n { color: var(--ink); } .clx .serv .p { color: var(--cta); font-weight: 800; white-space: nowrap; }
 
-    /* ===== Equipo ===== */
-    .clx .med { text-align: center; }
-    .clx .med .av { width: 110px; height: 110px; border-radius: 50%; margin: 0 auto .7rem; display: flex;
+    /* ===== Equipo (tarjeta por médico, con su horario) ===== */
+    .clx .medcard { background: var(--bs-body-bg); border: 1px solid color-mix(in srgb, var(--cl) 14%, #fff);
+                    border-radius: 20px; padding: 1.6rem; height: 100%; }
+    html.lp-dark .clx .medcard { border-color: rgba(255,255,255,.08); }
+    .clx .medcard .av { width: 92px; height: 92px; border-radius: 50%; margin: 0 auto .8rem; display: flex;
                     align-items: center; justify-content: center; font-family: 'Mulish', sans-serif;
-                    font-weight: 800; font-size: 2.3rem; color: #fff;
+                    font-weight: 800; font-size: 2rem; color: #fff;
                     background: linear-gradient(135deg, var(--cl-d), var(--cl)); box-shadow: 0 10px 26px rgba(0,0,0,.12); }
-    .clx .med .nm { color: var(--ink); font-weight: 700; } .clx .med .sp { color: var(--mut); font-size: .9rem; }
+    .clx .medcard .nm { color: var(--ink); font-weight: 700; } .clx .medcard .sp { color: var(--mut); font-size: .9rem; }
+    .clx .medhor { border-top: 1px solid color-mix(in srgb, var(--cl) 12%, #fff); margin-top: .4rem; padding-top: .8rem;
+                   font-size: .86rem; color: var(--ink); }
+    html.lp-dark .clx .medhor { border-top-color: rgba(255,255,255,.08); }
+    .clx .medhor-t { color: var(--cl); font-weight: 700; font-size: .75rem; text-transform: uppercase;
+                     letter-spacing: .05em; margin-bottom: .4rem; }
 
     /* ===== Contacto (fila de íconos) ===== */
     .clx .feat { text-align: center; }
@@ -180,11 +189,11 @@ include __DIR__ . '/publico_header.php';
 
 <div class="clx">
 
-<!-- ===== HERO ===== -->
+<!-- ===== HERO (banner) ===== -->
 <header class="hero">
     <div class="wrap">
-        <div class="row align-items-center g-5">
-            <div class="col-lg-6">
+        <div class="row">
+            <div class="col-lg-7">
                 <?php if (cfg('marca_logo')): ?>
                     <img src="<?= e(cfg('marca_logo')) ?>" alt="<?= e($marca) ?>" class="logo d-block">
                 <?php else: ?>
@@ -207,32 +216,6 @@ include __DIR__ . '/publico_header.php';
                     <?php if (count($medicos)): ?><div><div class="n"><?= count($medicos) ?></div><div class="l"><?= count($medicos) === 1 ? et('especialista') : et('especialistas') ?></div></div><?php endif; ?>
                     <?php if ($nServicios): ?><div><div class="n"><?= $nServicios ?></div><div class="l"><?= et('servicios') ?></div></div><?php endif; ?>
                 </div>
-            </div>
-            <div class="col-lg-6">
-                <?php if ($foto): ?>
-                    <img src="<?= e($foto) ?>" alt="<?= e($marca) ?>" class="hero-img">
-                <?php else: ?>
-                    <?php /* Sin foto: una tarjeta con los datos, para que el hero nunca quede vacío. */ ?>
-                    <div class="hero-card">
-                        <?php if ($dir): ?>
-                        <div class="row-i"><div class="ci"><i class="bi bi-geo-alt"></i></div>
-                            <div><div class="fw-semibold"><?= et('Ubicación') ?></div><div class="small text-muted"><?= e($dir) ?></div></div></div>
-                        <?php endif; ?>
-                        <?php if ($tel): ?>
-                        <div class="row-i"><div class="ci"><i class="bi bi-telephone"></i></div>
-                            <div><div class="fw-semibold"><?= et('Teléfono') ?></div><div class="small text-muted"><?= e($tel) ?></div></div></div>
-                        <?php endif; ?>
-                        <?php if ($horario): ?>
-                        <div class="row-i"><div class="ci"><i class="bi bi-clock"></i></div>
-                            <div><div class="fw-semibold"><?= et('Horario') ?></div>
-                                <div class="small text-muted"><?= e($horario[0]['dias']) ?>: <?= e($horario[0]['horas']) ?></div></div></div>
-                        <?php endif; ?>
-                        <?php if (!$dir && !$tel && !$horario): ?>
-                            <div class="text-center py-4"><i class="bi bi-heart-pulse-fill" style="font-size:3rem;color:var(--cl)"></i>
-                                <div class="fw-semibold mt-2"><?= e($marca) ?></div></div>
-                        <?php endif; ?>
-                    </div>
-                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -301,10 +284,27 @@ include __DIR__ . '/publico_header.php';
         </div>
         <div class="row g-4 justify-content-center">
             <?php foreach ($medicos as $m): ?>
-            <div class="col-6 col-md-3 med">
-                <div class="av"><?= e(strtoupper(mb_substr($m['nombre'], 0, 1))) ?></div>
-                <div class="nm"><?= e($m['nombre']) ?></div>
-                <?php if ($m['especialidad']): ?><div class="sp"><?= e($m['especialidad']) ?></div><?php endif; ?>
+            <div class="col-sm-6 col-lg-4">
+                <div class="medcard">
+                    <div class="av"><?= e(strtoupper(mb_substr($m['nombre'], 0, 1))) ?></div>
+                    <div class="text-center">
+                        <div class="nm"><?= e($m['nombre']) ?></div>
+                        <?php if ($m['especialidad']): ?><div class="sp mb-2"><?= e($m['especialidad']) ?></div><?php endif; ?>
+                    </div>
+                    <?php /* Cada médico con SU propio horario (cada quien su agenda). */ ?>
+                    <?php if (!empty($m['horario'])): ?>
+                    <div class="medhor">
+                        <div class="medhor-t"><i class="bi bi-clock"></i> <?= et('Horario') ?></div>
+                        <?php foreach ($m['horario'] as $h): ?>
+                        <div class="d-flex justify-content-between">
+                            <span><?= e($h['dias']) ?></span><span class="text-muted"><?= e($h['horas']) ?></span>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <?php else: ?>
+                    <div class="medhor text-muted small text-center"><?= et('Consulta con cita') ?></div>
+                    <?php endif; ?>
+                </div>
             </div>
             <?php endforeach; ?>
         </div>
@@ -317,7 +317,7 @@ include __DIR__ . '/publico_header.php';
     <div class="wrap">
         <div class="text-center mb-5">
             <span class="eyebrow"><?= et('Visítanos') ?></span>
-            <h2 class="t"><?= et('Contacto y horario') ?></h2>
+            <h2 class="t"><?= et('Contacto') ?></h2>
         </div>
         <div class="row g-4">
             <?php if ($correo): ?>
@@ -332,9 +332,9 @@ include __DIR__ . '/publico_header.php';
             <div class="col-6 col-lg-3 feat"><div class="ico"><i class="bi bi-geo-alt"></i></div>
                 <h6><?= et('Ubicación') ?></h6><div class="det"><a href="https://maps.google.com/?q=<?= rawurlencode($dir) ?>" target="_blank" rel="noopener"><?= e($dir) ?></a></div></div>
             <?php endif; ?>
-            <?php if ($horario): ?>
-            <div class="col-6 col-lg-3 feat"><div class="ico"><i class="bi bi-clock"></i></div>
-                <h6><?= et('Horario') ?></h6><div class="det"><?php foreach ($horario as $h): ?><?= e($h['dias']) ?>: <?= e($h['horas']) ?><br><?php endforeach; ?></div></div>
+            <?php if ($wa): ?>
+            <div class="col-6 col-lg-3 feat"><div class="ico"><i class="bi bi-whatsapp"></i></div>
+                <h6>WhatsApp</h6><div class="det"><a href="<?= e($wa) ?>" target="_blank" rel="noopener"><?= et('Escríbenos') ?></a></div></div>
             <?php endif; ?>
         </div>
     </div>

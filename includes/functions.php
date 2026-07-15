@@ -1532,14 +1532,18 @@ function consultorio_publico(string $slug): ?array
  * UNIÓN de las franjas de todos los médicos: es el horario en que el consultorio
  * abre, no el de una persona.
  */
-function horario_atencion_texto(int $consultorio_id): array
+function horario_atencion_texto(int $consultorio_id, ?int $medico_id = null): array
 {
     try {
-        $st = db()->prepare(
-            'SELECT DISTINCT dia_semana, hora_inicio, hora_fin FROM medico_horarios
-             WHERE consultorio_id = ? ORDER BY dia_semana, hora_inicio'
-        );
-        $st->execute([$consultorio_id]);
+        // Con $medico_id se devuelve el calendario de ESE médico (cada uno tiene
+        // el suyo). Sin él, la unión de todos (el horario general del consultorio).
+        $sql = 'SELECT DISTINCT dia_semana, hora_inicio, hora_fin FROM medico_horarios
+                WHERE consultorio_id = ?';
+        $params = [$consultorio_id];
+        if ($medico_id) { $sql .= ' AND medico_id = ?'; $params[] = $medico_id; }
+        $sql .= ' ORDER BY dia_semana, hora_inicio';
+        $st = db()->prepare($sql);
+        $st->execute($params);
         $filas = $st->fetchAll();
     } catch (Throwable $e) {
         return [];
