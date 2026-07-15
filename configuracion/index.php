@@ -58,6 +58,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'marca_nombre'  => trim($_POST['marca_nombre'] ?? '') ?: 'MediAgenda',
         'marca_lema'    => trim($_POST['marca_lema'] ?? ''),
         'marca_logo'    => $logo,
+        // Página pública (micrositio /c/<slug>)
+        'web_titular'   => trim($_POST['web_titular'] ?? ''),
+        'web_acerca'    => trim($_POST['web_acerca'] ?? ''),
+        'web_foto'      => trim($_POST['web_foto'] ?? ''),
         // Apariencia
         'tema_default'  => $tema,
         'color_acento'  => $acento,
@@ -173,6 +177,25 @@ include __DIR__ . '/../includes/header.php';
                         <?= et('Es la cara de tu consultorio: marca, servicios, equipo y contacto. Compártela en tu Google Maps, Instagram o firma de correo. Se ve aunque no tengas la agenda en línea activada.') ?>
                         <a href="<?= e(url_absoluta('/c/' . $slugTen)) ?>" target="_blank" rel="noopener"><?= et('Verla') ?> <i class="bi bi-box-arrow-up-right"></i></a>
                     </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label"><?= et('Titular de la portada') ?></label>
+                    <input type="text" name="web_titular" class="form-control" maxlength="120"
+                           placeholder="<?= e(t('Tu salud en las mejores manos')) ?>"
+                           value="<?= e(cfg('web_titular')) ?>">
+                    <div class="form-text"><?= et('La frase grande del inicio. Si la dejas vacía se usa el nombre del consultorio.') ?></div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label"><?= et('Foto de portada') ?> <span class="text-muted"><?= et('(URL, opcional)') ?></span></label>
+                    <input type="text" name="web_foto" class="form-control" placeholder="https://…" value="<?= e(cfg('web_foto')) ?>">
+                    <div class="form-text"><?= et('Una foto de tu consultorio detrás del titular. Sin ella se usa un degradado con tu color.') ?></div>
+                </div>
+                <div class="col-12">
+                    <label class="form-label"><?= et('Sobre el consultorio') ?></label>
+                    <textarea name="web_acerca" class="form-control" rows="3" maxlength="600"
+                              placeholder="<?= e(t('Cuéntale al paciente quiénes son, desde cuándo atienden y qué los distingue.')) ?>"><?= e(cfg('web_acerca')) ?></textarea>
+                    <div class="form-text"><?= et('Aparece como sección "Sobre nosotros". Los servicios, el equipo y el horario se muestran solos.') ?></div>
                 </div>
             </div>
             <?php endif; ?>
