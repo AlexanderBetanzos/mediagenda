@@ -10,4 +10,4 @@ if ($id && $id !== current_user()['id']) {
     auditar('usuario_toggle', 'usuario', $id);
     flash('Estado del usuario actualizado.');
 }
-redirect('/usuarios/index');
+redirect(($_POST['volver'] ?? '') === 'medicos' ? '/medicos/index' : '/usuarios/index');

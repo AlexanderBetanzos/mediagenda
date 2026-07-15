@@ -17,7 +17,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->execute([$email]);
     $user = $stmt->fetch();
 
-    if ($user && password_verify($pass, $user['password_hash'])) {
+    // Un médico de catálogo sin contraseña no inicia sesión (password_hash NULL);
+    // password_verify con hash vacío ya devuelve false, pero se explicita.
+    if ($user && !empty($user['password_hash']) && password_verify($pass, $user['password_hash'])) {
         $datos = [
             'id'             => (int) $user['id'],
             'nombre'         => $user['nombre'],

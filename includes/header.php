@@ -176,7 +176,8 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
                     <?php if (modulo_activo('optica')): ?><li class="nav-item"><a class="nav-link<?= nav_active('optica', $activo) ?>" href="<?= BASE_URL ?>/optica/index"><i class="bi bi-eyeglasses"></i> <?= et('Óptica') ?></a></li><?php endif; ?>
                     <?php if (has_role('admin')): ?>
                     <?php if (modulo_activo('presupuestos')): ?><li class="nav-item mt-2"><a class="nav-link<?= nav_active('servicios', $activo) ?>" href="<?= BASE_URL ?>/servicios/index"><i class="bi bi-tags"></i> <?= et('Catálogo de servicios') ?></a></li><?php endif; ?>
-                    <li class="nav-item<?= modulo_activo('presupuestos') ? '' : ' mt-2' ?>"><a class="nav-link<?= nav_active('usuarios', $activo) ?>" href="<?= BASE_URL ?>/usuarios/index"><i class="bi bi-person-badge"></i> <?= et('Personal') ?></a></li>
+                    <li class="nav-item<?= modulo_activo('presupuestos') ? '' : ' mt-2' ?>"><a class="nav-link<?= nav_active('medicos', $activo) ?>" href="<?= BASE_URL ?>/medicos/index"><i class="bi bi-person-vcard"></i> <?= et('Médicos') ?></a></li>
+                    <li class="nav-item"><a class="nav-link<?= nav_active('usuarios', $activo) ?>" href="<?= BASE_URL ?>/usuarios/index"><i class="bi bi-person-badge"></i> <?= et('Personal') ?></a></li>
                     <li class="nav-item"><a class="nav-link<?= nav_active('suscripcion', $activo) ?>" href="<?= BASE_URL ?>/pagos/index"><i class="bi bi-stars"></i> <?= et('Mi suscripción') ?></a></li>
                     <li class="nav-item"><a class="nav-link<?= nav_active('configuracion', $activo) ?>" href="<?= BASE_URL ?>/configuracion/index"><i class="bi bi-gear"></i> <?= et('Configuración') ?></a></li>
                     <?php endif; ?>

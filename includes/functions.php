@@ -477,6 +477,7 @@ function require_login(): void
     // de dejar el sitio caído (fotos) o el módulo invisible (agenda en línea).
     asegurar_esquema_fotos();
     asegurar_esquema_agenda();
+    asegurar_esquema_medicos();
     // Gating de suscripción: si la prueba venció o el consultorio está suspendido,
     // se bloquea el acceso (salvo páginas que declaran ALLOW_INACTIVE, p. ej.
     // la pantalla de suscripción o el cierre de sesión).
@@ -814,6 +815,40 @@ function archivo_tipos_permitidos(): array
 function archivo_max_bytes(): int
 {
     return 10 * 1024 * 1024; // 10 MB
+}
+
+/**
+ * Permite médicos SIN login: email y contraseña dejan de ser obligatorios, y se
+ * agrega la cédula profesional. Un médico sin correo no inicia sesión pero sí
+ * recibe citas. Se ejecuta una vez; deja marca en `configuracion`.
+ */
+function asegurar_esquema_medicos(): void
+{
+    static $listo = false;
+    if ($listo) return;
+    $listo = true;
+
+    try {
+        if (cfg('esquema_medicos') === '1') return;
+
+        // email y password: de NOT NULL a NULL (médicos sin acceso).
+        $col = db()->query("SHOW COLUMNS FROM usuarios LIKE 'email'")->fetch();
+        if ($col && stripos((string) ($col['Null'] ?? ''), 'NO') !== false) {
+            db()->exec('ALTER TABLE usuarios MODIFY COLUMN email VARCHAR(150) NULL');
+        }
+        $col = db()->query("SHOW COLUMNS FROM usuarios LIKE 'password_hash'")->fetch();
+        if ($col && stripos((string) ($col['Null'] ?? ''), 'NO') !== false) {
+            db()->exec('ALTER TABLE usuarios MODIFY COLUMN password_hash VARCHAR(255) NULL');
+        }
+        // cédula profesional.
+        if (!db()->query("SHOW COLUMNS FROM usuarios LIKE 'cedula'")->fetch()) {
+            db()->exec('ALTER TABLE usuarios ADD COLUMN cedula VARCHAR(40) DEFAULT NULL AFTER especialidad');
+        }
+
+        guardar_cfg(['esquema_medicos' => '1']);
+    } catch (Throwable $e) {
+        // Sin permisos de DDL: queda la vía manual (sql/medicos.sql).
+    }
 }
 
 /**

@@ -35,6 +35,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             trim($usr['telefono'] ?? '') ?: null,
         ]);
         auditar('crear', 'usuario', (int) db()->lastInsertId(), trim($usr['nombre']) . ' · ' . $usr['rol']);
+        // Si el alta vino del catálogo de médicos, se regresa ahí.
+        if (($_POST['volver'] ?? '') === 'medicos') {
+            flash('Médico agregado correctamente.');
+            redirect('/medicos/index');
+        }
         flash('Usuario creado correctamente.');
         redirect('/usuarios/index');
     }
