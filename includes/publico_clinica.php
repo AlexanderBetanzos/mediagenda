@@ -24,12 +24,8 @@ $tel      = cfg('telefono');
 $correo   = cfg('email');
 $acento   = color_acento();
 $reservar = agenda_online_activa();
-
-if ($reservar) {
-    require_once __DIR__ . '/correo.php';
-    $agAccion = BASE_URL . '/c/' . $con['slug'];
-    require __DIR__ . '/agenda_reservar_logica.php';
-}
+// Agendar vive en su propia página (evita que refrescar reenvíe el formulario).
+$urlAgendar = BASE_URL . '/agenda/reservar?c=' . rawurlencode($con['slug']);
 
 $servicios = [];
 try {
@@ -222,7 +218,7 @@ include __DIR__ . '/publico_header.php';
                 <p class="lead"><?= e($lema ?: t('Cuidamos de tu salud con atención cercana y profesional.')) ?></p>
                 <div class="d-flex flex-wrap gap-2 mt-4">
                     <?php if ($reservar): ?>
-                        <a href="#agendar" class="btn-cta"><i class="bi bi-calendar-plus"></i> <?= et('Agendar cita') ?></a>
+                        <a href="<?= e($urlAgendar) ?>" class="btn-cta"><i class="bi bi-calendar-plus"></i> <?= et('Agendar cita') ?></a>
                     <?php endif; ?>
                     <?php if ($wa): ?>
                         <a href="<?= e($wa) ?>" target="_blank" rel="noopener" class="btn-gho"><i class="bi bi-whatsapp"></i> WhatsApp</a>
@@ -377,18 +373,16 @@ include __DIR__ . '/publico_header.php';
     </div>
 </section>
 
-<!-- ===== RESERVA ===== -->
+<!-- ===== RESERVA (lleva a la página dedicada) ===== -->
 <?php if ($reservar): ?>
 <section class="book">
-    <div class="wrap">
-        <div class="text-center mb-5">
-            <span class="eyebrow"><?= et('Reserva en línea') ?></span>
-            <h2 class="t"><?= et('Agenda tu cita') ?></h2>
-            <p class="sub"><?= et('Elige el día y la hora que mejor te queden. Sin llamadas y sin esperas.') ?></p>
-        </div>
-        <div id="agendar" style="max-width:660px;margin:0 auto">
-            <?php include __DIR__ . '/agenda_reservar_render.php'; ?>
-        </div>
+    <div class="wrap text-center">
+        <span class="eyebrow"><?= et('Reserva en línea') ?></span>
+        <h2 class="t mb-2"><?= et('Agenda tu cita') ?></h2>
+        <p class="sub mb-4"><?= et('Elige el médico, el día y la hora que mejor te queden. Sin llamadas y sin esperas.') ?></p>
+        <a href="<?= e($urlAgendar) ?>" class="btn-cta btn-lg" style="font-size:1.05rem">
+            <i class="bi bi-calendar-plus"></i> <?= et('Agendar mi cita') ?>
+        </a>
     </div>
 </section>
 <?php endif; ?>

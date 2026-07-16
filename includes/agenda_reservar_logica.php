@@ -116,27 +116,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'reser
                                      fmt_hora($hora), $med, url_absoluta('/agenda/confirmar?t=' . $token));
             }
 
-            $agHecho = ['fecha' => $agFecha, 'hora' => $hora, 'token' => $token,
-                        'precio' => $agPrecio, 'pago' => null];
-
             // Pago en línea de la reserva (opcional). Si el consultorio cobra por
-            // reservar y tiene Mercado Pago configurado, se genera el cobro y su
-            // link. Va en try/catch a propósito: la cita YA está agendada, y que
-            // el pago falle (columna sin migrar, credenciales mal) no debe
+            // reservar y tiene Mercado Pago configurado, se genera el cobro. Va en
+            // try/catch: la cita YA está agendada, y que el pago falle no debe
             // deshacerla — el paciente pagará en el consultorio.
             if ($agCobra) {
                 try {
                     require_once __DIR__ . '/cobros.php';
-                    $cid = cobro_crear((int) $pac, $agPrecio,
-                                       t('Reserva de cita') . ' · ' . fmt_fecha($agFecha) . ' ' . fmt_hora($hora),
-                                       null, $citaId);
-                    $st = db()->prepare('SELECT * FROM cobros WHERE id = ? AND consultorio_id = ?');
-                    $st->execute([$cid, (int) $con['id']]);
-                    if ($cobro = $st->fetch()) {
-                        $agHecho['pago'] = ['url' => cobro_url($cobro), 'monto' => $agPrecio];
-                    }
+                    cobro_crear((int) $pac, $agPrecio,
+                                t('Reserva de cita') . ' · ' . fmt_fecha($agFecha) . ' ' . fmt_hora($hora),
+                                null, $citaId);
                 } catch (Throwable $e) { /* pago no disponible: la cita queda igual */ }
             }
+
+            // Post-Redirect-Get: se redirige a la pantalla de "listo" (GET) para
+            // que REFRESCAR no reenvíe el formulario ni duplique la cita. Es la
+            // causa de que "cada refresh falle".
+            redirect('/agenda/reservar?c=' . rawurlencode($agSlug) . '&ok=' . $token);
         }
     }
 }

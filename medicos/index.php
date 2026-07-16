@@ -85,6 +85,7 @@ include __DIR__ . '/../includes/header.php';
                         <?php endif; ?>
                     </td>
                     <td class="text-end text-nowrap">
+                        <a href="<?= BASE_URL ?>/citas/horarios?medico=<?= (int) $m['id'] ?>" class="btn btn-sm btn-outline-secondary" title="<?= e(t('Horario')) ?>"><i class="bi bi-clock-history"></i></a>
                         <a href="<?= BASE_URL ?>/medicos/edit?id=<?= (int) $m['id'] ?>" class="btn btn-sm btn-outline-primary" title="<?= e(t('Editar')) ?>"><i class="bi bi-pencil"></i></a>
                         <?php if ((int) $m['id'] !== (int) current_user()['id']): ?>
                         <form action="<?= BASE_URL ?>/usuarios/toggle" method="post" class="d-inline">
