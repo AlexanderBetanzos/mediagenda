@@ -322,14 +322,48 @@ track_pageview('publico');
 </section>
 
 <!-- Planes -->
-<section id="planes" class="py-6 bg-white">
+<style>
+    .lp-planes { background: linear-gradient(180deg, #eaeefb 0%, #f3f6fd 55%, #fff 100%); }
+    .lp-planes .lp-eyebrow { color: var(--brand); }
+    .lp-plan { position: relative; background: #fff; border: 1px solid #e9edf7; border-radius: 26px;
+               padding: 2.4rem 1.9rem; height: 100%; display: flex; flex-direction: column;
+               box-shadow: 0 12px 40px rgba(30,45,80,.07); transition: transform .2s ease, box-shadow .2s ease; }
+    .lp-plan:hover { transform: translateY(-8px); box-shadow: 0 26px 64px rgba(30,45,80,.14); }
+    .lp-plan.feat { border: 0; box-shadow: 0 28px 70px rgba(31,107,115,.22);
+                    background: linear-gradient(180deg, #fff, #fbfdfd); }
+    .lp-plan.feat::before { content: ''; position: absolute; inset: 0; border-radius: 26px; padding: 2px;
+                            background: linear-gradient(135deg, var(--brand), var(--cta));
+                            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+                            -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none; }
+    .lp-plan-pop { position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+                   background: var(--cta); color: #fff; font-weight: 700; font-size: .72rem; letter-spacing: .06em;
+                   text-transform: uppercase; padding: .35rem 1rem; border-radius: 999px;
+                   box-shadow: 0 8px 20px rgba(224,122,95,.35); }
+    .lp-plan-ic { width: 56px; height: 56px; border-radius: 16px; display: flex; align-items: center;
+                  justify-content: center; font-size: 1.5rem; color: var(--brand); margin-bottom: 1.1rem;
+                  background: linear-gradient(135deg, color-mix(in srgb, var(--brand) 16%, #fff), color-mix(in srgb, var(--brand) 6%, #fff)); }
+    .lp-plan.feat .lp-plan-ic { color: #fff; background: linear-gradient(135deg, var(--brand-dark), var(--brand)); }
+    .lp-plan-name { font-weight: 800; color: #1f2d3d; font-size: 1.15rem; }
+    .lp-plan-desc { color: #8a94a6; font-size: .9rem; margin-bottom: 1rem; }
+    .lp-plan-price { font-family: 'Mulish', sans-serif; font-weight: 800; color: #1f2d3d; font-size: 2.6rem; line-height: 1; }
+    .lp-plan-price .per { font-size: 1rem; color: #8a94a6; font-weight: 500; }
+    .lp-plan-feats { list-style: none; padding: 0; margin: 1.4rem 0 1.6rem; flex: 1; }
+    .lp-plan-feats li { display: flex; align-items: flex-start; gap: .55rem; padding: .38rem 0; color: #48566a; font-size: .94rem; }
+    .lp-plan-feats .bi { color: var(--brand); margin-top: .15rem; }
+    .lp-plan .btn-plan { border-radius: 999px; padding: .8rem; font-weight: 700; width: 100%; border: 1.5px solid var(--brand); color: var(--brand); background: #fff; }
+    .lp-plan .btn-plan:hover { background: var(--brand); color: #fff; }
+    .lp-plan.feat .btn-plan { background: var(--cta); border-color: var(--cta); color: #fff; }
+    .lp-plan.feat .btn-plan:hover { background: var(--cta-dark); border-color: var(--cta-dark); }
+</style>
+
+<section id="planes" class="lp-planes py-6">
     <div class="container">
         <div class="text-center mb-5">
             <span class="lp-eyebrow">Planes</span>
             <h2 class="section-title">Precios claros para cada consultorio</h2>
             <p class="text-muted">Empieza gratis. Sin contratos ni costos ocultos.</p>
         </div>
-        <div class="row g-4 justify-content-center">
+        <div class="row g-4 justify-content-center align-items-stretch">
             <?php
             // Tarjeta de prueba + los planes definidos en la tabla `planes`.
             $planes = [
@@ -338,23 +372,23 @@ track_pageview('publico');
             foreach (planes_mp() as $planKey => $pl) {
                 $planes[] = [$pl['nombre'], '$' . number_format($pl['precio'], 0), $pl['descripcion'], $pl['items'], $pl['destacado'], $planKey];
             }
-            foreach ($planes as [$nombre,$precio,$desc,$items,$feat,$planKey]):
+            $iconos = ['bi-rocket-takeoff', 'bi-heart-pulse', 'bi-star-fill', 'bi-hospital', 'bi-building'];
+            foreach ($planes as $ix => [$nombre,$precio,$desc,$items,$feat,$planKey]):
                 $href = BASE_URL . '/auth/registro' . ($planKey ? '?plan=' . $planKey : '');
                 $btn  = $planKey ? 'Contratar ahora' : 'Probar 15 días gratis'; ?>
-            <div class="col-md-6 col-lg-4">
-                <div class="card price-card h-100 shadow-sm <?= $feat ? 'featured' : '' ?>">
-                    <div class="card-body p-4 text-center">
-                        <?php if ($feat): ?><span class="badge bg-primary mb-2">Más popular</span><?php endif; ?>
-                        <h5 class="fw-bold"><?= e($nombre) ?></h5>
-                        <div class="display-6 fw-bold text-brand"><?= e($precio) ?><span class="fs-6 text-muted fw-normal">/mes</span></div>
-                        <p class="text-muted small"><?= e($desc) ?></p>
-                        <ul class="list-unstyled text-start my-4">
-                            <?php foreach ($items as $it): ?>
-                                <li class="mb-2"><i class="bi bi-check2 text-success me-2"></i><?= e($it) ?></li>
-                            <?php endforeach; ?>
-                        </ul>
-                        <a href="<?= e($href) ?>" class="btn <?= $feat ? 'btn-primary' : 'btn-outline-primary' ?> w-100"><?= $btn ?></a>
-                    </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="lp-plan <?= $feat ? 'feat' : '' ?>">
+                    <?php if ($feat): ?><span class="lp-plan-pop">Más popular</span><?php endif; ?>
+                    <div class="lp-plan-ic"><i class="bi <?= $iconos[$ix] ?? 'bi-check-circle' ?>"></i></div>
+                    <div class="lp-plan-name"><?= e($nombre) ?></div>
+                    <div class="lp-plan-desc"><?= e($desc) ?></div>
+                    <div class="lp-plan-price"><?= e($precio) ?><span class="per">/mes</span></div>
+                    <ul class="lp-plan-feats">
+                        <?php foreach ($items as $it): ?>
+                            <li><i class="bi bi-check-circle-fill"></i> <span><?= e($it) ?></span></li>
+                        <?php endforeach; ?>
+                    </ul>
+                    <a href="<?= e($href) ?>" class="btn btn-plan"><?= $btn ?></a>
                 </div>
             </div>
             <?php endforeach; ?>
