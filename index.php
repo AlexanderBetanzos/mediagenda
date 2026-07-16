@@ -21,6 +21,9 @@ track_pageview('publico');
 ?>
 <!doctype html>
 <html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= e($marca) ?> · Software para consultorios médicos y dentales</title>
     <meta name="description" content="Agenda de citas, expediente clínico electrónico, recetas y facturación para consultorios médicos y dentales. Prueba 15 días gratis.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -67,7 +70,7 @@ track_pageview('publico');
 </nav>
 
 <!-- Hero (banner con foto de fondo) -->
-<header class="lp-hero" style="background-image:url('https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=1600&q=80&auto=format&fit=crop')">
+<header class="lp-hero" style="background-image:url('https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=1600&q=80&auto=format&fit=crop')">
     <div class="container">
         <div class="row align-items-center g-4 lp-hero-row">
             <div class="col-lg-6 lp-hero-text">
@@ -198,7 +201,7 @@ track_pageview('publico');
             </div>
             <div class="col-lg-6">
                 <div class="lp-photo-wrap">
-                    <div class="lp-photo" style="background-image:url('https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=1200&q=70&auto=format&fit=crop')"></div>
+                    <div class="lp-photo" style="background-image:url('https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=1200&q=70&auto=format&fit=crop')"></div>
                     <div class="card shadow border-0 lp-shot lp-shot-over">
                         <div class="card-body p-4">
                             <div class="d-flex gap-2 mb-3">
@@ -387,7 +390,7 @@ track_pageview('publico');
 </section>
 
 <!-- CTA final -->
-<section class="lp-cta" style="background-image:url('https://images.unsplash.com/photo-1666214280557-f1b5022eb634?w=1600&q=75&auto=format&fit=crop')">
+<section class="lp-cta" style="background-image:url('https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=1600&q=75&auto=format&fit=crop')">
     <div class="container text-center position-relative">
         <h2 class="display-6 fw-bold mb-3">Empieza a digitalizar tu consultorio hoy</h2>
         <p class="lead mb-4">15 días gratis con acceso completo. Sin tarjeta, sin compromiso.</p>

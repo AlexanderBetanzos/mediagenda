@@ -105,7 +105,7 @@ include __DIR__ . '/publico_header.php';
     .clx .hero::before { content: ''; position: absolute; inset: 0; z-index: 0;
         background: linear-gradient(100deg, var(--cl-d) 0%, color-mix(in srgb, var(--cl-d) 80%, transparent) 42%,
                     color-mix(in srgb, var(--cl) 30%, transparent) 74%, rgba(0,0,0,.20) 100%),
-                    url('<?= e($foto ?: 'https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?w=1920&q=80&auto=format&fit=crop') ?>') center/cover no-repeat; }
+                    url('<?= e($foto ?: 'https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=1920&q=80&auto=format&fit=crop') ?>') center/cover no-repeat; }
     .clx .hero .wrap { position: relative; z-index: 1; min-height: 520px; display: flex; flex-direction: column;
                        justify-content: center; padding: 5.5rem 1.5rem; }
     .clx .hero .pill { display: inline-flex; align-items: center; gap: .45rem; background: rgba(255,255,255,.16);
