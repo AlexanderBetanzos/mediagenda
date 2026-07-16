@@ -70,27 +70,30 @@ $agAccion = $agAccion ?? '';
             </div>
         <?php else: ?>
 
-        <?php /* Paso 1: con quién y qué día. */ ?>
-        <form method="get" action="<?= e($agAccion) ?>" class="row g-3 mb-4">
+        <?php /* Paso 1: con quién. */ ?>
+        <form method="get" action="<?= e($agAccion) ?>" class="mb-4" id="agForm">
             <input type="hidden" name="c" value="<?= e($agSlug) ?>">
-            <div class="col-sm-7">
-                <label class="form-label small fw-semibold"><?= et('¿Con quién?') ?></label>
-                <select name="m" class="form-select form-select-lg" onchange="this.form.submit()">
-                    <option value=""><?= et('Selecciona…') ?></option>
-                    <?php foreach ($agMedicos as $m): ?>
-                        <option value="<?= (int) $m['id'] ?>" <?= $agMedId === (int) $m['id'] ? 'selected' : '' ?>>
-                            <?= e($m['nombre']) ?><?= $m['especialidad'] ? ' · ' . e($m['especialidad']) : '' ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div class="col-sm-5">
-                <label class="form-label small fw-semibold"><?= et('¿Qué día?') ?></label>
-                <input type="date" name="f" class="form-control form-control-lg" value="<?= e($agFecha) ?>"
-                       min="<?= date('Y-m-d') ?>" max="<?= date('Y-m-d', strtotime("+$agMaxDias days")) ?>"
-                       onchange="this.form.submit()">
-            </div>
+            <input type="hidden" name="f" id="agFechaHidden" value="<?= e($agFecha) ?>">
+            <label class="form-label small fw-semibold"><?= et('¿Con quién?') ?></label>
+            <select name="m" class="form-select form-select-lg" onchange="document.getElementById('agFechaHidden').value=''; this.form.submit()">
+                <option value=""><?= et('Selecciona…') ?></option>
+                <?php foreach ($agMedicos as $m): ?>
+                    <option value="<?= (int) $m['id'] ?>" <?= $agMedId === (int) $m['id'] ? 'selected' : '' ?>>
+                        <?= e($m['nombre']) ?><?= $m['especialidad'] ? ' · ' . e($m['especialidad']) : '' ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
         </form>
+
+        <?php /* Paso 2: calendario de días disponibles del médico. */ ?>
+        <?php if ($agMedId && $agDiasLab): ?>
+        <label class="form-label small fw-semibold"><?= et('¿Qué día?') ?></label>
+        <div id="agCal" class="ag-cal mb-4"
+             data-dias="<?= e(implode(',', $agDiasLab)) ?>"
+             data-sel="<?= e($agFecha) ?>"
+             data-min="<?= date('Y-m-d') ?>"
+             data-max="<?= date('Y-m-d', strtotime("+$agMaxDias days")) ?>"></div>
+        <?php endif; ?>
 
         <?php if (!$agMedId): ?>
             <p class="text-muted small mb-0"><?= et('Elige con quién quieres tu cita para ver los horarios libres.') ?></p>
@@ -163,3 +166,64 @@ $agAccion = $agAccion ?? '';
     </div>
 </div>
 <?php endif; ?>
+
+<?php /* Calendario de días disponibles (solo se pinta si hay #agCal). */ ?>
+<style>
+    .ag-cal { border: 1px solid rgba(127,127,127,.18); border-radius: 14px; padding: 1rem; max-width: 360px; }
+    .ag-cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: .6rem; }
+    .ag-cal-head b { font-weight: 700; text-transform: capitalize; }
+    .ag-cal-nav { border: 0; background: transparent; font-size: 1.2rem; line-height: 1; cursor: pointer; color: inherit; padding: .2rem .5rem; border-radius: 8px; }
+    .ag-cal-nav:hover { background: rgba(127,127,127,.12); }
+    .ag-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+    .ag-cal-dow { text-align: center; font-size: .68rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; padding: .2rem 0; }
+    .ag-cal-day { aspect-ratio: 1; border: 0; background: transparent; border-radius: 9px; font-weight: 600; cursor: pointer; color: inherit; }
+    .ag-cal-day.off { color: #cbd5e1; cursor: default; }
+    html.lp-dark .ag-cal-day.off { color: rgba(255,255,255,.18); }
+    .ag-cal-day.on:hover { background: color-mix(in srgb, var(--cl, #1f6b73) 14%, transparent); }
+    .ag-cal-day.sel { background: var(--cl, #1f6b73); color: #fff; }
+</style>
+<script>
+(function () {
+    var el = document.getElementById('agCal');
+    if (!el) return;
+    var dias = (el.dataset.dias || '').split(',').filter(function (x) { return x !== ''; }).map(Number);
+    var min = el.dataset.min, max = el.dataset.max, sel = el.dataset.sel || '';
+    var DOW = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
+    var MES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+    var iso = function (d) { return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); };
+    var hoy = new Date(min + 'T00:00:00');
+    var vista = new Date((sel || min) + 'T00:00:00'); vista.setDate(1);
+
+    function pintar() {
+        var y = vista.getFullYear(), m = vista.getMonth();
+        var primero = new Date(y, m, 1), offset = primero.getDay();
+        var dim = new Date(y, m + 1, 0).getDate();
+        var h = '<div class="ag-cal-head"><button type="button" class="ag-cal-nav" data-mv="-1">&lsaquo;</button>'
+              + '<b>' + MES[m] + ' ' + y + '</b>'
+              + '<button type="button" class="ag-cal-nav" data-mv="1">&rsaquo;</button></div>';
+        h += '<div class="ag-cal-grid">';
+        DOW.forEach(function (d) { h += '<div class="ag-cal-dow">' + d + '</div>'; });
+        for (var i = 0; i < offset; i++) h += '<div></div>';
+        for (var dd = 1; dd <= dim; dd++) {
+            var fecha = new Date(y, m, dd), f = iso(fecha);
+            var libre = dias.indexOf(fecha.getDay()) !== -1 && f >= min && f <= max;
+            var cls = libre ? 'on' : 'off';
+            if (f === sel) cls += ' sel';
+            h += '<button type="button" class="ag-cal-day ' + cls + '" ' + (libre ? 'data-f="' + f + '"' : 'disabled') + '>' + dd + '</button>';
+        }
+        h += '</div>';
+        el.innerHTML = h;
+    }
+    pintar();
+
+    el.addEventListener('click', function (ev) {
+        var nav = ev.target.closest('.ag-cal-nav');
+        if (nav) { vista.setMonth(vista.getMonth() + Number(nav.dataset.mv)); pintar(); return; }
+        var day = ev.target.closest('.ag-cal-day.on');
+        if (day && day.dataset.f) {
+            document.getElementById('agFechaHidden').value = day.dataset.f;
+            document.getElementById('agForm').submit();
+        }
+    });
+})();
+</script>

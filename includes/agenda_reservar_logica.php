@@ -47,6 +47,15 @@ $agFecha = min($agFecha, date('Y-m-d', strtotime("+$agMaxDias days")));
 
 $agHuecos = ($agMedId && $agFecha) ? agenda_huecos($agMedId, $agFecha, $duracion) : [];
 
+// Días de la semana que atiende el médico (0=domingo), para pintar el calendario.
+$agDiasLab = [];
+if ($agMedId) {
+    $st = db()->prepare('SELECT DISTINCT dia_semana FROM medico_horarios
+                         WHERE medico_id = ? AND consultorio_id = ?');
+    $st->execute([$agMedId, tenant_id()]);
+    $agDiasLab = array_map('intval', $st->fetchAll(PDO::FETCH_COLUMN));
+}
+
 $agHecho = null;
 $agError = '';
 

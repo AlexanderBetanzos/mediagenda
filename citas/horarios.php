@@ -32,10 +32,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $ins = db()->prepare(
             'INSERT INTO medico_horarios (consultorio_id, medico_id, dia_semana, hora_inicio, hora_fin) VALUES (?,?,?,?,?)'
         );
+        // Cada día puede tener VARIOS rangos (mañana/tarde), y distintos por día.
+        // Llegan como dia[<d>][inicio][] y dia[<d>][fin][] (arreglos paralelos).
         foreach (($_POST['dia'] ?? []) as $d => $r) {
-            $ini = $r['inicio'] ?? ''; $fin = $r['fin'] ?? '';
-            if (isset($dias[(int) $d]) && $ini !== '' && $fin !== '' && $fin > $ini) {
-                $ins->execute([tenant_id(), $medicoId, (int) $d, $ini, $fin]);
+            if (!isset($dias[(int) $d])) continue;
+            $inis = (array) ($r['inicio'] ?? []);
+            $fins = (array) ($r['fin'] ?? []);
+            foreach ($inis as $i => $ini) {
+                $fin = $fins[$i] ?? '';
+                if ($ini !== '' && $fin !== '' && $fin > $ini) {
+                    $ins->execute([tenant_id(), $medicoId, (int) $d, $ini, $fin]);
+                }
             }
         }
         auditar('horarios_editar', 'usuario', $medicoId);
@@ -72,11 +79,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Horario actual del médico (un tramo por día en esta UI).
+// $hor[$dia] = lista de franjas [ ['hora_inicio'=>, 'hora_fin'=>], ... ]
 $hor = [];
 if ($medicoId) {
-    $st = db()->prepare('SELECT dia_semana, hora_inicio, hora_fin FROM medico_horarios WHERE medico_id = ? AND consultorio_id = ?');
+    $st = db()->prepare('SELECT dia_semana, hora_inicio, hora_fin FROM medico_horarios
+                         WHERE medico_id = ? AND consultorio_id = ? ORDER BY dia_semana, hora_inicio');
     $st->execute([$medicoId, tenant_id()]);
-    foreach ($st as $r) { $hor[(int) $r['dia_semana']] = $r; }
+    foreach ($st as $r) { $hor[(int) $r['dia_semana']][] = $r; }
 }
 
 // Bloqueos próximos (del médico en contexto + los de todo el consultorio).
@@ -126,16 +135,38 @@ include __DIR__ . '/../includes/header.php';
                     <?= csrf_field() ?>
                     <input type="hidden" name="accion" value="horarios">
                     <input type="hidden" name="medico_id" value="<?= $medicoId ?>">
-                    <?php foreach ($dias as $d => $nom): $h = $hor[$d] ?? null; ?>
-                    <div class="row g-2 align-items-center mb-2">
-                        <div class="col-4 col-sm-3"><?= et($nom) ?></div>
-                        <div class="col"><input type="time" name="dia[<?= $d ?>][inicio]" class="form-control form-control-sm" value="<?= e($h['hora_inicio'] ?? '') ?>"></div>
-                        <div class="col-auto text-muted">a</div>
-                        <div class="col"><input type="time" name="dia[<?= $d ?>][fin]" class="form-control form-control-sm" value="<?= e($h['hora_fin'] ?? '') ?>"></div>
+                    <?php foreach ($dias as $d => $nom): $franjas = $hor[$d] ?? []; ?>
+                    <div class="hor-dia py-2 border-bottom border-opacity-10" data-dia="<?= $d ?>">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-semibold"><?= et($nom) ?></span>
+                            <button type="button" class="btn btn-sm btn-outline-secondary py-0 hor-add"><i class="bi bi-plus-lg"></i> <?= et('Rango') ?></button>
+                        </div>
+                        <div class="hor-franjas">
+                            <?php if (!$franjas): ?>
+                                <div class="small text-muted hor-vacio"><?= et('No atiende este día.') ?></div>
+                            <?php else: foreach ($franjas as $h): ?>
+                            <div class="row g-1 align-items-center mb-1 hor-fila">
+                                <div class="col"><input type="time" name="dia[<?= $d ?>][inicio][]" class="form-control form-control-sm" value="<?= e(substr($h['hora_inicio'], 0, 5)) ?>"></div>
+                                <div class="col-auto text-muted small">a</div>
+                                <div class="col"><input type="time" name="dia[<?= $d ?>][fin][]" class="form-control form-control-sm" value="<?= e(substr($h['hora_fin'], 0, 5)) ?>"></div>
+                                <div class="col-auto"><button type="button" class="btn btn-sm btn-outline-danger py-0 hor-del"><i class="bi bi-x"></i></button></div>
+                            </div>
+                            <?php endforeach; endif; ?>
+                        </div>
                     </div>
                     <?php endforeach; ?>
-                    <div class="form-text mb-2"><?= et('Deja un día en blanco para marcarlo como no laborable.') ?></div>
+                    <div class="form-text my-2"><?= et('Agrega uno o varios rangos por día (p. ej. 9:00–14:00 y 16:00–19:00). Un día sin rangos = no atiende.') ?></div>
                     <button class="btn btn-primary btn-sm"><i class="bi bi-check-lg"></i> <?= et('Guardar horario') ?></button>
+
+                    <?php /* Plantilla de una fila de rango (la clona el botón "Rango"). */ ?>
+                    <template id="tplFranja">
+                        <div class="row g-1 align-items-center mb-1 hor-fila">
+                            <div class="col"><input type="time" class="form-control form-control-sm hor-ini" value="09:00"></div>
+                            <div class="col-auto text-muted small">a</div>
+                            <div class="col"><input type="time" class="form-control form-control-sm hor-fin" value="14:00"></div>
+                            <div class="col-auto"><button type="button" class="btn btn-sm btn-outline-danger py-0 hor-del"><i class="bi bi-x"></i></button></div>
+                        </div>
+                    </template>
                 </form>
             </div>
         </div>
@@ -187,5 +218,41 @@ include __DIR__ . '/../includes/header.php';
     </div>
 </div>
 <?php endif; ?>
+
+<script>
+/* Horario por día con varios rangos: agregar / quitar filas. */
+(function () {
+    var tpl = document.getElementById('tplFranja');
+    if (!tpl) return;
+
+    document.addEventListener('click', function (ev) {
+        var add = ev.target.closest('.hor-add');
+        if (add) {
+            var dia  = add.closest('.hor-dia');
+            var cont = dia.querySelector('.hor-franjas');
+            var vac  = cont.querySelector('.hor-vacio');
+            if (vac) vac.remove();
+            var fila = tpl.content.firstElementChild.cloneNode(true);
+            // Pone el name correcto según el día.
+            var d = dia.getAttribute('data-dia');
+            fila.querySelector('.hor-ini').name = 'dia[' + d + '][inicio][]';
+            fila.querySelector('.hor-fin').name = 'dia[' + d + '][fin][]';
+            cont.appendChild(fila);
+            return;
+        }
+        var del = ev.target.closest('.hor-del');
+        if (del) {
+            var cont2 = del.closest('.hor-franjas');
+            del.closest('.hor-fila').remove();
+            if (!cont2.querySelector('.hor-fila')) {
+                var v = document.createElement('div');
+                v.className = 'small text-muted hor-vacio';
+                v.textContent = <?= json_encode(t('No atiende este día.')) ?>;
+                cont2.appendChild(v);
+            }
+        }
+    });
+})();
+</script>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>
