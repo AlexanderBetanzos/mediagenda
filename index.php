@@ -24,7 +24,7 @@ track_pageview('publico');
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?= e($marca) ?> · Software para consultorios médicos y dentales</title>
+    <title><?= e($marca) ?> · Software para consultorios, clínicas y hospitales</title>
     <meta name="description" content="Toma el control de tu consultorio: agenda que confirma citas, expediente clínico protegido y cobros claros. Prueba 15 días gratis, sin tarjeta.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -74,7 +74,7 @@ track_pageview('publico');
     <div class="container">
         <div class="row align-items-center g-4 lp-hero-row">
             <div class="col-lg-6 lp-hero-text">
-                <span class="lp-pill mb-3"><i class="bi bi-patch-check-fill"></i> Software médico y dental</span>
+                <span class="lp-pill mb-3"><i class="bi bi-patch-check-fill"></i> Para consultorios, clínicas y hospitales</span>
                 <h1 class="display-4 fw-bold mb-3">Toma el control total de tu consultorio</h1>
                 <p class="lead mb-4">Protege el expediente de cada paciente, deja que la agenda confirme las citas por ti y cobra sin perseguir pagos. Tú atiendes; <?= e($marca) ?> se encarga del resto.</p>
                 <div class="d-flex flex-wrap gap-2">
@@ -220,7 +220,12 @@ track_pageview('publico');
         <div class="text-center mb-5">
             <span class="lp-eyebrow">Funciones</span>
             <h2 class="section-title">Todo lo que tu consultorio necesita</h2>
-            <p class="text-muted">Una plataforma simple para médicos, dentistas y recepción.</p>
+            <p class="text-muted">Una plataforma simple para tu especialidad, tu equipo y tu recepción.</p>
+            <div class="d-flex flex-wrap justify-content-center gap-2 mt-3">
+                <?php foreach (['Medicina general','Odontología','Oftalmología y ópticas','Nutrición','Pediatría','Dermatología','Psicología','Clínicas y hospitales'] as $esp): ?>
+                <span class="badge rounded-pill bg-light text-dark border fw-normal px-3 py-2"><?= e($esp) ?></span>
+                <?php endforeach; ?>
+            </div>
         </div>
         <div class="row g-4">
             <?php
@@ -483,7 +488,7 @@ track_pageview('publico');
                 ['¿Necesito instalar algo?','No. Es 100% en la nube: entras desde el navegador en computadora, tablet o celular.'],
                 ['¿Mis datos están seguros?','Tus datos viajan cifrados, con respaldos y acceso por roles para tu equipo. Cada consultorio tiene su información aislada.'],
                 ['¿Qué pasa con mi información si cancelo?','Tus pacientes y expedientes son tuyos, no nuestros. Cancelas desde el panel, conservas el acceso hasta el final del periodo pagado y te ayudamos a llevarte tu información.'],
-                ['¿Sirve para consultorios dentales?','Sí, está pensado para consultorios médicos y dentales por igual.'],
+                ['¿Sirve para mi especialidad?','Sí. Lo usan médicos generales, dentistas, oftalmólogos y ópticas, nutriólogos, psicólogos y clínicas u hospitales con varias sucursales. Las plantillas de consulta se adaptan a tu especialidad.'],
             ] as $i => [$q,$a]): ?>
             <div class="accordion-item">
                 <h2 class="accordion-header">
@@ -518,7 +523,7 @@ track_pageview('publico');
         <div class="row g-4">
             <div class="col-lg-4">
                 <div class="h5 mb-2"><i class="bi bi-heart-pulse-fill"></i> <?= e($marca) ?></div>
-                <p class="small mb-0" style="max-width:280px">Software de gestión para consultorios médicos y dentales: agenda, expediente, recetas y facturación.</p>
+                <p class="small mb-0" style="max-width:280px">Software de gestión para consultorios, clínicas y hospitales de cualquier especialidad: agenda, expediente, recetas y facturación.</p>
             </div>
             <div class="col-6 col-lg-2">
                 <div class="fw-semibold mb-2">Producto</div>
