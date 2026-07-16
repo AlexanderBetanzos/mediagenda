@@ -170,6 +170,9 @@ include __DIR__ . '/_head.php';
 .plat-table td { vertical-align:middle; }
 .slug-link { color:#6fb9c0; text-decoration:none; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.84rem; }
 .slug-link:hover { color:#ffc38a; text-decoration:underline; }
+.slug-btn { border:0; background:none; padding:0; cursor:pointer; display:inline-flex; align-items:center; gap:.3rem; }
+.slug-btn i { font-size:.78rem; opacity:.6; }
+.slug-btn:hover i { opacity:1; }
 .plat-pill { display:inline-flex; align-items:center; gap:.3rem; font-size:.64rem; font-weight:700; padding:.12rem .45rem; border-radius:999px; background:rgba(31,107,115,.18); color:#6fb9c0; }
 .act-btns { display:inline-flex; gap:.35rem; justify-content:flex-end; }
 .act-btn { width:34px; height:30px; display:inline-flex; align-items:center; justify-content:center; border-radius:8px; border:1px solid transparent; background:transparent; font-size:.9rem; line-height:1; padding:0; text-decoration:none; transition:filter .15s ease, background-color .15s ease; }
@@ -207,7 +210,12 @@ include __DIR__ . '/_head.php';
                         <div class="fw-semibold"><?= e($c['nombre']) ?><?php if ($c['id'] == 1): ?> <span class="badge bg-secondary bg-opacity-50"><?= et('principal') ?></span><?php endif; ?></div>
                         <div class="small text-muted"><i class="bi bi-envelope"></i> <?= e($c['email']) ?></div>
                     </td>
-                    <td><a class="slug-link" href="<?= BASE_URL ?>/platform/consultorio?id=<?= $c['id'] ?>">/<?= e($c['slug']) ?></a></td>
+                    <td>
+                        <?php /* Clic en el slug = entrar al panel de ese consultorio (impersonar),
+                                 como en GymOS. Dispara el formulario de impersonación de abajo. */ ?>
+                        <button type="submit" form="imp<?= $c['id'] ?>" class="slug-link slug-btn"
+                                title="<?= e(t('Entrar al panel de este consultorio')) ?>">/<?= e($c['slug']) ?> <i class="bi bi-box-arrow-in-right"></i></button>
+                    </td>
                     <td class="fw-semibold text-uppercase small"><?= e($planNombre[$c['plan']] ?? $c['plan']) ?></td>
                     <td><span class="badge rounded-pill text-bg-<?= $badge[$c['estado']] ?? 'secondary' ?>"><?= et(ucfirst($c['estado'])) ?></span></td>
                     <td class="small">
@@ -228,7 +236,7 @@ include __DIR__ . '/_head.php';
                     <td class="small text-muted"><?= fmt_fecha($c['creado_en']) ?></td>
                     <td class="text-end">
                         <div class="act-btns">
-                            <form method="post" action="<?= BASE_URL ?>/platform/impersonar" class="d-inline m-0">
+                            <form id="imp<?= $c['id'] ?>" method="post" action="<?= BASE_URL ?>/platform/impersonar" class="d-inline m-0">
                                 <?= csrf_field() ?><input type="hidden" name="id" value="<?= $c['id'] ?>">
                                 <button class="act-btn g" title="<?= e(t('Entrar como este consultorio')) ?>"><i class="bi bi-box-arrow-in-right"></i></button>
                             </form>
