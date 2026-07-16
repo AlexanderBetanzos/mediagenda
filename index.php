@@ -389,8 +389,7 @@ $temaCss = $tema === 'dark' ? 'lp-dark' : '';
 <section id="faq" class="py-6">
     <div class="container" style="max-width:760px">
         <div class="text-center mb-5">
-            <span class="lp-eyebrow">Preguntas frecuentes</span>
-            <h2 class="section-title">¿Te quedó alguna duda?</h2>
+            <h2 class="section-title">Preguntas frecuentes</h2>
         </div>
         <div class="accordion lp-faq" id="faqAcc">
             <?php foreach ([
