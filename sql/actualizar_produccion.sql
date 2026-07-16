@@ -458,3 +458,8 @@ CREATE TABLE IF NOT EXISTS egreso_categorias (
 
 -- Foto del paciente (ruta relativa a la app)
 ALTER TABLE pacientes ADD COLUMN IF NOT EXISTS foto VARCHAR(255) DEFAULT NULL;
+
+-- ============ 2026-07-16: nuevos precios de planes ============
+UPDATE planes SET precio =  799.00 WHERE clave = 'basico';
+UPDATE planes SET precio = 1299.00 WHERE clave = 'profesional';
+UPDATE planes SET precio = 2799.00 WHERE clave = 'clinica';

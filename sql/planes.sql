@@ -48,11 +48,11 @@ CREATE TABLE IF NOT EXISTS consultorio_modulos (
 --  Seed: 3 planes
 -- ---------------------------------------------------------------------------
 INSERT INTO planes (clave, nombre, precio, descripcion, items, destacado, orden) VALUES
- ('basico', 'Básico', 299.00, 'Un médico, todo bajo control',
+ ('basico', 'Básico', 799.00, 'Un médico, todo bajo control',
   '["Pacientes y citas sin papeles","Expediente clínico protegido","Recetas con tu marca","Control de ingresos","Recordatorios por correo"]', 0, 1),
- ('profesional', 'Profesional', 599.00, 'El que eligen los consultorios que crecen',
+ ('profesional', 'Profesional', 1299.00, 'El que eligen los consultorios que crecen',
   '["Todo lo de Básico","Recordatorios por WhatsApp y SMS","Portal del paciente 24/7","Telemedicina","Reportes para decidir con números","Plantillas por especialidad"]', 1, 2),
- ('clinica', 'Clínica', 1199.00, 'Varias sucursales, un solo control',
+ ('clinica', 'Clínica', 2799.00, 'Varias sucursales, un solo control',
   '["Todo lo de Profesional","Farmacia y punto de venta","Laboratorio","Multi-sucursal en un solo panel","IA clínica","CFDI / SAT","Recursos Humanos"]', 0, 3)
 ON DUPLICATE KEY UPDATE
   nombre=VALUES(nombre), precio=VALUES(precio), descripcion=VALUES(descripcion),
