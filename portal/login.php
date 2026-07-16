@@ -1,12 +1,25 @@
 <?php
 /**
  * Login del portal del paciente. Sesión separada de la del personal
- * ($_SESSION['paciente']). El correo puede no ser único entre consultorios:
- * se valida la contraseña contra cada coincidencia con portal activo.
+ * ($_SESSION['paciente']).
+ *
+ * Va dividido por consultorio con ?c=<slug> (igual que el micrositio y GymOS
+ * con ?t=): cuando llega el slug, la página toma la MARCA de esa clínica y el
+ * login se limita a sus pacientes. Sin slug, es el portal genérico del producto
+ * y el correo se valida contra cada consultorio donde exista (puede repetirse).
  */
 require_once __DIR__ . '/../includes/functions.php';
 
 if (isset($_SESSION['paciente'])) { redirect('/portal/index'); }
+
+/* Slug de la clínica: por GET al entrar, por POST al enviar el formulario. */
+$slug = (string) ($_GET['c'] ?? $_GET['t'] ?? $_POST['c'] ?? '');
+$clin = $slug !== '' ? consultorio_publico($slug) : null;
+if ($clin) {
+    // Marca/color/logo de ESA clínica (white-label) en toda la página.
+    tenant_forzar((int) $clin['id']);
+    $slug = $clin['slug'];
+}
 
 $error = '';
 $aviso = isset($_GET['inactivo'])
@@ -18,8 +31,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email'] ?? '');
     $pass  = $_POST['password'] ?? '';
 
-    $st = db()->prepare('SELECT * FROM pacientes WHERE email = ? AND portal_activo = 1');
-    $st->execute([$email]);
+    // Con clínica fija, el login se limita a sus pacientes; sin ella, a todos.
+    $sql = 'SELECT * FROM pacientes WHERE email = ? AND portal_activo = 1';
+    $par = [$email];
+    if ($clin) { $sql .= ' AND consultorio_id = ?'; $par[] = (int) $clin['id']; }
+
+    $st = db()->prepare($sql);
+    $st->execute($par);
     $encontrado = null;
     foreach ($st->fetchAll() as $p) {
         // El portal es un módulo de plan: si el consultorio ya no lo incluye,
@@ -45,26 +63,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     $error = 'Correo o contraseña incorrectos.';
 }
+
+/* Marca a mostrar: la de la clínica si vino por slug, si no la del producto. */
+$marca  = $clin ? marca_nombre() : 'Portal del paciente';
+$acento = color_acento();
+$logo   = $clin ? cfg('marca_logo') : '';
+$volver = $clin ? BASE_URL . '/c/' . rawurlencode($slug) : BASE_URL . '/';
 ?>
 <!doctype html>
 <html lang="es">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Portal del paciente</title>
+    <title><?= e($marca) ?> · Portal del paciente</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="<?= asset('assets/css/style.css') ?>" rel="stylesheet">
+    <style>:root { --brand: <?= $acento ?>; --brand-dark: color-mix(in srgb, <?= $acento ?> 78%, #000); }</style>
 </head>
 <body>
 <div class="login-wrap">
     <div class="card shadow login-card">
         <div class="card-body p-4 p-sm-5">
             <div class="text-center mb-4">
-                <div class="display-5 text-brand"><i class="bi bi-person-heart"></i></div>
-                <h1 class="h4 mt-2 mb-0">Portal del paciente</h1>
-                <p class="text-muted small">Consulta tus citas, recetas y estudios.</p>
+                <?php if ($logo): ?>
+                    <img src="<?= e($logo) ?>" alt="<?= e($marca) ?>" style="max-height:56px;width:auto">
+                <?php else: ?>
+                    <div class="display-5 text-brand"><i class="bi bi-person-heart"></i></div>
+                <?php endif; ?>
+                <h1 class="h4 mt-3 mb-0"><?= e($marca) ?></h1>
+                <p class="text-muted small mb-0"><?= $clin ? 'Portal del paciente · consulta tus citas, recetas y estudios.' : 'Consulta tus citas, recetas y estudios.' ?></p>
             </div>
 
             <?php if ($aviso): ?><div class="alert alert-warning py-2"><?= e($aviso) ?></div><?php endif; ?>
@@ -72,6 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <form method="post" novalidate>
                 <?= csrf_field() ?>
+                <?php if ($clin): ?><input type="hidden" name="c" value="<?= e($slug) ?>"><?php endif; ?>
                 <div class="mb-3">
                     <label class="form-label">Correo electrónico</label>
                     <div class="input-group">
@@ -89,7 +119,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
                 <button class="btn btn-primary w-100 py-2"><i class="bi bi-box-arrow-in-right"></i> Entrar</button>
             </form>
-            <div class="text-center mt-4 small text-muted">
+            <div class="text-center mt-4 small">
+                <a href="<?= e($volver) ?>" class="text-muted text-decoration-none"><i class="bi bi-arrow-left"></i> <?= $clin ? 'Volver al sitio' : 'Volver al inicio' ?></a>
+            </div>
+            <div class="text-center mt-2 small text-muted">
                 ¿No tienes acceso? Pídelo en tu consultorio.
             </div>
         </div>

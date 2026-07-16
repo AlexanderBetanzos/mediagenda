@@ -89,7 +89,7 @@ $agendarUrl = BASE_URL . '/agenda/reservar?c=' . rawurlencode($slugPub);
                 </li>
                 <?php endif; ?>
                 <li class="nav-item">
-                    <a class="nav-link" href="<?= BASE_URL ?>/portal/login"><i class="bi bi-person-heart"></i> <?= et('Portal del paciente') ?></a>
+                    <a class="nav-link" href="<?= BASE_URL ?>/portal/login?c=<?= rawurlencode($slugPub) ?>"><i class="bi bi-person-heart"></i> <?= et('Portal del paciente') ?></a>
                 </li>
                 <?php if ($reservarH): ?>
                 <li class="nav-item"><a class="btn btn-primary px-3" href="<?= e($agendarUrl) ?>"><i class="bi bi-calendar-plus"></i> <?= et('Agendar cita') ?></a></li>
