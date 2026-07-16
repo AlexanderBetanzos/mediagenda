@@ -17,27 +17,14 @@ $titulo = $titulo ?? marca_nombre();
 $marca  = marca_nombre();
 $acento = color_acento();
 
-/* Igual que la landing: sin preferencia previa arranca en claro. La cookie
-   `tema` se comparte con el resto del sitio. */
-$tema    = in_array($_COOKIE['tema'] ?? '', ['dark', 'light', 'auto'], true) ? $_COOKIE['tema'] : 'light';
-$temaCss = $tema === 'dark' ? 'lp-dark' : '';
+/* Las páginas públicas del paciente (micrositio, agendar, confirmar) van SIEMPRE
+   en claro: son la cara de marketing del consultorio y el modo oscuro se ve mal.
+   No se lee la cookie ni se ofrece el interruptor. */
 ?>
 <!doctype html>
-<html lang="<?= e(idioma_actual()) ?>" class="<?= $temaCss ?>"<?= $tema === 'dark' ? ' data-bs-theme="dark"' : '' ?>>
-<head>
+<html lang="<?= e(idioma_actual()) ?>"><head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <script>
-    /* Resuelve el tema antes de pintar (evita el parpadeo). */
-    (function () {
-        var pref = <?= json_encode($tema) ?>;
-        var oscuro = pref === 'auto' ? matchMedia('(prefers-color-scheme: dark)').matches : pref === 'dark';
-        var el = document.documentElement;
-        el.classList.toggle('lp-dark', oscuro);
-        if (oscuro) { el.setAttribute('data-bs-theme', 'dark'); }
-        else { el.removeAttribute('data-bs-theme'); }
-    })();
-    </script>
     <title><?= e($titulo) ?> · <?= e($marca) ?></title>
     <?php /* El micrositio del consultorio SÍ debe salir en Google (es su cara);
              las páginas de agendar/confirmar no. El micrositio pone $indexable. */ ?>
@@ -84,13 +71,6 @@ $temaCss = $tema === 'dark' ? 'lp-dark' : '';
                 </a>
             </li>
             <?php endif; ?>
-            <li class="nav-item">
-                <button type="button" id="lpTema" class="lp-tema" title="<?= e(t('Cambiar entre modo claro y oscuro')) ?>"
-                        aria-label="<?= e(t('Cambiar entre modo claro y oscuro')) ?>">
-                    <i class="bi bi-sun-fill lp-tema-sol"></i>
-                    <i class="bi bi-moon-stars-fill lp-tema-luna"></i>
-                </button>
-            </li>
         </ul>
     </div>
 </nav>

@@ -12,21 +12,5 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-/* Alterna claro/oscuro y guarda la preferencia en la misma cookie que el resto del sitio. */
-(function () {
-    var boton = document.getElementById('lpTema');
-    if (!boton) return;
-    boton.addEventListener('click', function () {
-        var el = document.documentElement;
-        var oscuro = !el.classList.contains('lp-dark');
-        el.classList.toggle('lp-dark', oscuro);
-        if (oscuro) { el.setAttribute('data-bs-theme', 'dark'); }
-        else { el.removeAttribute('data-bs-theme'); }
-        document.cookie = 'tema=' + (oscuro ? 'dark' : 'light') +
-                          ';path=<?= BASE_URL ?>/;max-age=31536000;samesite=Lax';
-    });
-})();
-</script>
 </body>
 </html>

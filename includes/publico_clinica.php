@@ -141,28 +141,34 @@ include __DIR__ . '/publico_header.php';
     .clx .bene p { color: #4b5560; font-size: .93rem; margin: 0; }
     html.lp-dark .clx .bene p { color: #b8bcc4; }
 
-    /* ===== Servicios (tarjetas con ícono) ===== */
+    /* ===== Servicios (tarjetas premium) ===== */
     .clx .soft { background: var(--soft); }
-    .clx .catrow { display: flex; align-items: center; gap: .7rem; margin: 2.2rem 0 1.1rem; }
-    .clx .catrow .cico { width: 40px; height: 40px; border-radius: 11px; display: flex; align-items: center;
-                         justify-content: center; font-size: 1.15rem;
-                         background: color-mix(in srgb, var(--cl) 12%, #fff); color: var(--cl); }
-    html.lp-dark .clx .catrow .cico { background: color-mix(in srgb, var(--cl) 24%, transparent); }
-    .clx .catrow .ctxt { color: var(--ink); font-weight: 800; font-size: 1.05rem; }
-    .clx .catrow::after { content: ''; flex: 1; height: 1px; background: color-mix(in srgb, var(--cl) 14%, transparent); }
-    .clx .serv { background: var(--bs-body-bg); border: 1px solid color-mix(in srgb, var(--cl) 13%, #fff);
-                 border-radius: 16px; padding: 1.15rem 1.3rem; height: 100%; display: flex; align-items: center;
-                 gap: .9rem; transition: border-color .15s, transform .15s, box-shadow .15s; }
-    .clx .serv:hover { border-color: var(--cl); transform: translateY(-3px); box-shadow: 0 12px 28px rgba(31,107,115,.12); }
-    html.lp-dark .clx .serv { border-color: rgba(255,255,255,.08); }
-    .clx .serv .si { width: 40px; height: 40px; flex-shrink: 0; border-radius: 11px; display: flex; align-items: center;
-                     justify-content: center; font-size: 1.15rem;
-                     background: color-mix(in srgb, var(--cta) 14%, #fff); color: var(--cta); }
-    html.lp-dark .clx .serv .si { background: color-mix(in srgb, var(--cta) 26%, transparent); }
-    .clx .serv .n { color: var(--ink); font-weight: 600; flex: 1; }
-    .clx .serv .p { color: var(--cta); font-weight: 800; white-space: nowrap; background: color-mix(in srgb, var(--cta) 10%, #fff);
-                    padding: .25rem .7rem; border-radius: 999px; font-size: .92rem; }
-    html.lp-dark .clx .serv .p { background: color-mix(in srgb, var(--cta) 20%, transparent); }
+    .clx .catrow { display: flex; align-items: center; gap: .8rem; margin: 2.8rem 0 1.3rem; }
+    .clx .catrow .cico { width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center;
+                         justify-content: center; font-size: 1.25rem; color: #fff;
+                         background: linear-gradient(135deg, var(--cl-d), var(--cl));
+                         box-shadow: 0 8px 20px color-mix(in srgb, var(--cl) 32%, transparent); }
+    .clx .catrow .ctxt { color: var(--ink); font-weight: 800; font-size: 1.2rem; }
+    .clx .catrow::after { content: ''; flex: 1; height: 1px;
+                          background: linear-gradient(90deg, color-mix(in srgb, var(--cl) 18%, transparent), transparent); }
+
+    .clx .serv { position: relative; overflow: hidden; background: var(--bs-body-bg);
+                 border: 1px solid color-mix(in srgb, var(--cl) 10%, #fff); border-radius: 18px;
+                 padding: 1.3rem 1.4rem; height: 100%; display: flex; align-items: center; gap: 1rem;
+                 box-shadow: 0 4px 16px rgba(16,35,58,.05); transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
+    html.lp-dark .clx .serv { border-color: rgba(255,255,255,.08); box-shadow: none; }
+    .clx .serv::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+                         background: var(--cta); transform: scaleY(0); transform-origin: top; transition: transform .18s ease; }
+    .clx .serv:hover { transform: translateY(-4px); box-shadow: 0 18px 38px rgba(16,35,58,.13); border-color: transparent; }
+    .clx .serv:hover::before { transform: scaleY(1); }
+    .clx .serv .si { width: 54px; height: 54px; flex-shrink: 0; border-radius: 15px; display: flex; align-items: center;
+                     justify-content: center; font-size: 1.45rem; color: var(--cl);
+                     background: linear-gradient(135deg, color-mix(in srgb, var(--cl) 18%, #fff), color-mix(in srgb, var(--cl) 6%, #fff)); }
+    html.lp-dark .clx .serv .si { background: color-mix(in srgb, var(--cl) 22%, transparent); }
+    .clx .serv .body { flex: 1; min-width: 0; }
+    .clx .serv .n { color: var(--ink); font-weight: 700; line-height: 1.25; }
+    .clx .serv .p { color: var(--cta); font-weight: 800; font-size: 1.15rem; white-space: nowrap; margin-top: .1rem; }
+    .clx .serv .p small { font-weight: 600; font-size: .72rem; color: var(--mut); display: block; line-height: 1; margin-bottom: 1px; }
 
     /* ===== Equipo (tarjeta por médico, con su horario) ===== */
     .clx .medcard { background: var(--bs-body-bg); border: 1px solid color-mix(in srgb, var(--cl) 14%, #fff);
@@ -296,7 +302,7 @@ include __DIR__ . '/publico_header.php';
                 <div class="col-md-6 col-lg-4">
                     <div class="serv">
                         <span class="si"><i class="bi <?= $catIcon((string) $categoria) ?>"></i></span>
-                        <span class="n"><?= e($s['nombre']) ?></span>
+                        <div class="body"><div class="n"><?= e($s['nombre']) ?></div></div>
                         <?php if ((float) $s['precio'] > 0): ?><span class="p"><?= fmt_money($s['precio']) ?></span><?php endif; ?>
                     </div>
                 </div>
