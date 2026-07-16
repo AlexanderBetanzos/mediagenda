@@ -463,3 +463,7 @@ ALTER TABLE pacientes ADD COLUMN IF NOT EXISTS foto VARCHAR(255) DEFAULT NULL;
 UPDATE planes SET precio =  799.00 WHERE clave = 'basico';
 UPDATE planes SET precio = 1299.00 WHERE clave = 'profesional';
 UPDATE planes SET precio = 2799.00 WHERE clave = 'clinica';
+
+-- ============ 2026-07-16: marca "MediOS" (antes "MediOS Agenda") y acento azul ============
+UPDATE configuracion SET valor = 'MediOS'  WHERE clave = 'marca_nombre' AND valor IN ('MediOS Agenda', 'MediAgenda');
+UPDATE configuracion SET valor = '#2563eb' WHERE clave = 'color_acento' AND valor = '#1f6b73';

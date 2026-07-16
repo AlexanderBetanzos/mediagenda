@@ -19,7 +19,7 @@ INSERT INTO configuracion (clave, valor) VALUES
   ('marca_logo',    ''),
   -- Apariencia
   ('tema_default',  'light'),
-  ('color_acento',  '#1f6b73'),
+  ('color_acento',  '#2563eb'),
   -- Datos del consultorio (recetas / facturas)
   ('razon_social',  ''),
   ('direccion',     ''),
