@@ -443,9 +443,9 @@ track_pageview('publico');
 <!-- CTA final -->
 <section class="lp-cta" style="background-image:url('https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=1600&q=75&auto=format&fit=crop')">
     <div class="container text-center position-relative">
-        <h2 class="display-6 fw-bold mb-3">Tu consultorio puede funcionar así desde mañana</h2>
+        <h2 class="display-6 fw-bold mb-3">Lleva tu consultorio al siguiente nivel</h2>
         <p class="lead mb-4">Cada semana que pasa son citas olvidadas y expedientes en papel. 15 días gratis con acceso completo: sin tarjeta, sin compromiso.</p>
-        <a href="<?= BASE_URL ?>/auth/registro" class="btn btn-light btn-lg px-5 text-brand fw-semibold"><i class="bi bi-rocket-takeoff"></i> Tomar el control de mi consultorio</a>
+        <a href="<?= BASE_URL ?>/auth/registro" class="btn btn-light btn-lg px-5 text-brand fw-semibold"><i class="bi bi-rocket-takeoff"></i> Prueba <?= e($marca) ?> hoy</a>
         <div class="d-flex justify-content-center flex-wrap gap-4 mt-4 small opacity-75">
             <span><i class="bi bi-check-circle-fill"></i> Configúralo en minutos</span>
             <span><i class="bi bi-check-circle-fill"></i> Soporte en español</span>
