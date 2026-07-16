@@ -55,15 +55,21 @@ $acento = color_acento();
 
 <nav class="navbar navbar-expand-lg landing-nav sticky-top">
     <div class="container">
-        <span class="navbar-brand fw-bold text-brand d-flex align-items-center gap-2">
+        <?php /* La marca es el botón de "inicio": lleva al micrositio del
+                 consultorio desde cualquier página pública (agendar, confirmar). */ ?>
+        <?php $inicioUrl = BASE_URL . '/c/' . (tenant()['slug'] ?? ''); ?>
+        <a href="<?= e($inicioUrl) ?>" class="navbar-brand fw-bold text-brand d-flex align-items-center gap-2 text-decoration-none">
             <?php if (cfg('marca_logo')): ?>
                 <img src="<?= e(cfg('marca_logo')) ?>" alt="" style="max-height:32px;width:auto">
             <?php else: ?>
                 <i class="bi bi-heart-pulse-fill"></i>
             <?php endif; ?>
             <?= e($marca) ?>
-        </span>
+        </a>
         <ul class="navbar-nav flex-row align-items-center gap-3 ms-auto">
+            <li class="nav-item">
+                <a class="nav-link" href="<?= e($inicioUrl) ?>"><i class="bi bi-house-door"></i> <?= et('Inicio') ?></a>
+            </li>
             <?php if (cfg('telefono')): ?>
             <li class="nav-item d-none d-sm-block">
                 <a class="nav-link" href="tel:<?= e(preg_replace('/\s+/', '', cfg('telefono'))) ?>">
