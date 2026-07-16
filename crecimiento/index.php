@@ -96,7 +96,7 @@ function curva(id, label, datos, ref, color) {
     });
 }
 curva('chPeso',  <?= json_encode(t('Peso')) ?>,    <?= json_encode($peso) ?>,  <?= json_encode($refPeso) ?>,  '#22c55e');
-curva('chTalla', <?= json_encode(t('Talla')) ?>,   <?= json_encode($talla) ?>, <?= json_encode($refTalla) ?>, '#1f6b73');
+curva('chTalla', <?= json_encode(t('Talla')) ?>,   <?= json_encode($talla) ?>, <?= json_encode($refTalla) ?>, '#2563eb');
 curva('chImc',   'IMC',                            <?= json_encode($imc) ?>,   null,                          '#6366f1');
 </script>
 <?php endif; ?>

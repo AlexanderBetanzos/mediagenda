@@ -50,7 +50,7 @@ include __DIR__ . '/../includes/header.php';
     <div class="card-body p-4" style="color:#1f2d3d;background:#fff">
         <div class="d-flex justify-content-between border-bottom pb-3 mb-3">
             <div>
-                <h2 class="h4 mb-0" style="color:#1f6b73"><i class="bi bi-heart-pulse-fill"></i> <?= e(marca_nombre()) ?></h2>
+                <h2 class="h4 mb-0" style="color:#2563eb"><i class="bi bi-heart-pulse-fill"></i> <?= e(marca_nombre()) ?></h2>
                 <small class="text-muted"><?= et('Comprobante de pago') ?></small>
             </div>
             <div class="text-end">
@@ -83,7 +83,7 @@ include __DIR__ . '/../includes/header.php';
                 <?php if ($f['descuento'] > 0): ?>
                 <tr><td colspan="3" class="text-end"><?= et('Descuento') ?></td><td class="text-end">-<?= fmt_money($f['descuento']) ?></td></tr>
                 <?php endif; ?>
-                <tr class="fw-bold"><td colspan="3" class="text-end"><?= et('Total') ?> (<?= e(moneda()) ?>)</td><td class="text-end" style="color:#1f6b73"><?= fmt_money($f['total']) ?></td></tr>
+                <tr class="fw-bold"><td colspan="3" class="text-end"><?= et('Total') ?> (<?= e(moneda()) ?>)</td><td class="text-end" style="color:#2563eb"><?= fmt_money($f['total']) ?></td></tr>
             </tfoot>
         </table>
 

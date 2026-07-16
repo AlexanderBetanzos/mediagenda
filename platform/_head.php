@@ -38,16 +38,16 @@ $ini   = strtoupper(mb_substr($parts[0] ?? '', 0, 1) . (isset($parts[1]) ? mb_su
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="<?= asset('assets/css/style.css') ?>" rel="stylesheet">
     <style>
-        :root { --brand: #1f6b73; --brand-dark: #075089; }
-        html.app-dark, html.app-light { --brand: #1f6b73; --brand-dark: #164e55; }
+        :root { --brand: #2563eb; --brand-dark: #075089; }
+        html.app-dark, html.app-light { --brand: #2563eb; --brand-dark: #1e40af; }
         .plat-badge { font-size:.6rem; letter-spacing:1.5px; font-weight:800; padding:.15rem .5rem; border-radius:6px;
-            background:rgba(31,107,115,.18); color:#6fb9c0; }
+            background:rgba(37,99,235,.18); color:#93c5fd; }
     </style>
 </head>
 <body>
 <nav class="navbar navbar-dark app-navbar sticky-top flex-md-nowrap p-0">
     <a class="navbar-brand d-flex me-0 px-3 fs-6 align-items-center gap-2" href="<?= BASE_URL ?>/platform/index">
-        <i class="bi bi-diagram-3-fill" style="color:#1f6b73"></i>
+        <i class="bi bi-diagram-3-fill" style="color:#2563eb"></i>
         <span><?= e(APP_NAME) ?></span> <span class="plat-badge">PLATAFORMA</span>
     </a>
     <ul class="navbar-nav flex-row top-menu gap-1 ms-2 d-none d-md-flex">

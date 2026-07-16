@@ -84,7 +84,7 @@ include __DIR__ . '/publico_header.php';
 <style>
     .pub-wrap { max-width: none; padding: 0; }
     .clx { --cl: <?= $acento ?>; --cl-d: color-mix(in srgb, <?= $acento ?> 78%, #000);
-           --cta: #e07a5f; --cta-d: #cf6a50;
+           --cta: #2563eb; --cta-d: #1d4ed8;
            --ink: #21384e; --mut: #6b7c93; --soft: color-mix(in srgb, <?= $acento ?> 6%, #fff);
            font-family: 'Inter', system-ui, sans-serif; }
     html.lp-dark .clx { --ink: #e6e8ec; --mut: #9aa0aa; --soft: rgba(255,255,255,.035); }

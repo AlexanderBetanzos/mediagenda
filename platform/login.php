@@ -70,17 +70,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="<?= asset('assets/css/style.css') ?>" rel="stylesheet">
     <style>
-        html.app-dark { --brand:#1f6b73; --brand-dark:#164e55; }
+        html.app-dark { --brand:#2563eb; --brand-dark:#1e40af; }
         body { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:1.5rem; font-family:'Inter',sans-serif; }
         .plat-card { max-width:440px; width:100%; }
-        .plat-badge { font-size:.6rem; letter-spacing:1.5px; font-weight:800; padding:.15rem .5rem; border-radius:6px; background:rgba(31,107,115,.18); color:#6fb9c0; }
+        .plat-badge { font-size:.6rem; letter-spacing:1.5px; font-weight:800; padding:.15rem .5rem; border-radius:6px; background:rgba(37,99,235,.18); color:#93c5fd; }
     </style>
 </head>
 <body>
 <div class="card plat-card">
     <div class="card-body p-4 p-sm-5">
         <div class="text-center mb-4">
-            <div class="display-6" style="color:#1f6b73"><i class="bi bi-diagram-3-fill"></i></div>
+            <div class="display-6" style="color:#2563eb"><i class="bi bi-diagram-3-fill"></i></div>
             <h1 class="h4 mt-2 mb-1"><?= e(APP_NAME) ?> <span class="plat-badge">PLATAFORMA</span></h1>
             <p class="text-muted small mb-0"><?= $modo === 'setup' ? et('Crea el primer súper usuario de la plataforma.') : et('Acceso exclusivo del dueño del sistema.') ?></p>
         </div>

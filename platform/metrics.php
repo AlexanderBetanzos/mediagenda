@@ -126,7 +126,7 @@ include __DIR__ . '/_head.php';
         [et('ARPU (por consultorio)'),fmt_money($arpa),     '#38bdf8'],
         [et('Churn (suspendidos)'),   $churnRate . '%',     '#ef4444'],
         [et('GMV del mes'),           fmt_money($gmvMonth), '#a78bfa'],
-        [et('Conversión prueba→pago'),$convRate . '%',      '#3f9aa3'],
+        [et('Conversión prueba→pago'),$convRate . '%',      '#3b82f6'],
     ];
     foreach ($kpis as [$lbl, $val, $col]): ?>
     <div class="col-6 col-lg-4 col-xl-2">
@@ -305,13 +305,13 @@ include __DIR__ . '/_head.php';
     Chart.defaults.color = tick; Chart.defaults.font.family = "'Inter',sans-serif";
     var a = document.getElementById('chartAct');
     if (a) new Chart(a, { type: 'bar',
-        data: { labels: <?= json_encode($actLabels) ?>, datasets: [{ label: 'Altas', data: <?= json_encode($actData) ?>, backgroundColor: '#1f6b73', borderRadius: 6 }] },
+        data: { labels: <?= json_encode($actLabels) ?>, datasets: [{ label: 'Altas', data: <?= json_encode($actData) ?>, backgroundColor: '#2563eb', borderRadius: 6 }] },
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
             scales: { x: { grid: { color: grid }, border: { display: false } }, y: { grid: { color: grid }, border: { display: false }, beginAtZero: true, ticks: { precision: 0 } } } } });
     var v = document.getElementById('chartVis');
-    if (v) { var g = v.getContext('2d').createLinearGradient(0, 0, 0, 200); g.addColorStop(0, 'rgba(31,107,115,.35)'); g.addColorStop(1, 'rgba(31,107,115,.02)');
+    if (v) { var g = v.getContext('2d').createLinearGradient(0, 0, 0, 200); g.addColorStop(0, 'rgba(37,99,235,.35)'); g.addColorStop(1, 'rgba(37,99,235,.02)');
         new Chart(v, { type: 'line',
-            data: { labels: <?= json_encode($visLabels ?? []) ?>, datasets: [{ label: 'Visitas', data: <?= json_encode($visData ?? []) ?>, borderColor: '#1f6b73', backgroundColor: g, fill: true, tension: .35, pointRadius: 0 }] },
+            data: { labels: <?= json_encode($visLabels ?? []) ?>, datasets: [{ label: 'Visitas', data: <?= json_encode($visData ?? []) ?>, borderColor: '#2563eb', backgroundColor: g, fill: true, tension: .35, pointRadius: 0 }] },
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
                 scales: { x: { grid: { color: grid }, border: { display: false }, ticks: { maxTicksLimit: 10 } }, y: { grid: { color: grid }, border: { display: false }, beginAtZero: true, ticks: { precision: 0 } } } } });
     }

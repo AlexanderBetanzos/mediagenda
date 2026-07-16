@@ -104,7 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 guardar_cfg([
                     'marca_nombre'   => $f['consultorio'],
                     'tema_default'   => 'light',
-                    'color_acento'   => '#1f6b73',
+                    'color_acento'   => '#2563eb',
                     'moneda'         => 'MXN',
                     'zona_horaria'   => 'America/Mexico_City',
                     'formato_fecha'  => 'd/m/Y',

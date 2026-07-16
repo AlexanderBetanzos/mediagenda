@@ -99,7 +99,7 @@ include __DIR__ . '/../includes/header.php';
 <div class="row g-3 mb-4">
     <?php
     $tarjetas = [
-        ['Total',        $tot['total'],        'bi-buildings',   '#1f6b73'],
+        ['Total',        $tot['total'],        'bi-buildings',   '#2563eb'],
         ['En prueba',    $tot['trial'],        'bi-stopwatch',   '#6366f1'],
         ['Activos',      $tot['activa'],       'bi-check-circle','#16a34a'],
         ['Suspendidos',  $tot['suspendida'],   'bi-pause-circle','#ef4444'],

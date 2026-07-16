@@ -179,8 +179,8 @@ $agAccion = $agAccion ?? '';
     .ag-cal-day { aspect-ratio: 1; border: 0; background: transparent; border-radius: 9px; font-weight: 600; cursor: pointer; color: inherit; }
     .ag-cal-day.off { color: #cbd5e1; cursor: default; }
     html.lp-dark .ag-cal-day.off { color: rgba(255,255,255,.18); }
-    .ag-cal-day.on:hover { background: color-mix(in srgb, var(--cl, #1f6b73) 14%, transparent); }
-    .ag-cal-day.sel { background: var(--cl, #1f6b73); color: #fff; }
+    .ag-cal-day.on:hover { background: color-mix(in srgb, var(--cl, #2563eb) 14%, transparent); }
+    .ag-cal-day.sel { background: var(--cl, #2563eb); color: #fff; }
 </style>
 <script>
 (function () {

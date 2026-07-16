@@ -168,19 +168,19 @@ include __DIR__ . '/_head.php';
 <style>
 .plat-table th { font-size:.68rem; text-transform:uppercase; letter-spacing:.05em; white-space:nowrap; }
 .plat-table td { vertical-align:middle; }
-.slug-link { color:#6fb9c0; text-decoration:none; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.84rem; }
+.slug-link { color:#93c5fd; text-decoration:none; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.84rem; }
 .slug-link:hover { color:#ffc38a; text-decoration:underline; }
 .slug-btn { border:0; background:none; padding:0; cursor:pointer; display:inline-flex; align-items:center; gap:.3rem; }
 .slug-btn i { font-size:.78rem; opacity:.6; }
 .slug-btn:hover i { opacity:1; }
-.plat-pill { display:inline-flex; align-items:center; gap:.3rem; font-size:.64rem; font-weight:700; padding:.12rem .45rem; border-radius:999px; background:rgba(31,107,115,.18); color:#6fb9c0; }
+.plat-pill { display:inline-flex; align-items:center; gap:.3rem; font-size:.64rem; font-weight:700; padding:.12rem .45rem; border-radius:999px; background:rgba(37,99,235,.18); color:#93c5fd; }
 .act-btns { display:inline-flex; gap:.35rem; justify-content:flex-end; }
 .act-btn { width:34px; height:30px; display:inline-flex; align-items:center; justify-content:center; border-radius:8px; border:1px solid transparent; background:transparent; font-size:.9rem; line-height:1; padding:0; text-decoration:none; transition:filter .15s ease, background-color .15s ease; }
 .act-btn:hover { filter:brightness(1.25); }
 .act-btn.g { color:#22c55e; border-color:rgba(34,197,94,.45);  background:rgba(34,197,94,.12); }
-.act-btn.o { color:#1f6b73; border-color:rgba(31,107,115,.45); background:rgba(31,107,115,.12); }
+.act-btn.o { color:#2563eb; border-color:rgba(37,99,235,.45); background:rgba(37,99,235,.12); }
 .act-btn.b { color:#38bdf8; border-color:rgba(56,189,248,.45); background:rgba(56,189,248,.12); }
-.act-btn.y { color:#3f9aa3; border-color:rgba(63,154,163,.45); background:rgba(63,154,163,.12); }
+.act-btn.y { color:#3b82f6; border-color:rgba(63,154,163,.45); background:rgba(63,154,163,.12); }
 .act-btn.r { color:#ef4444; border-color:rgba(239,68,68,.45);  background:rgba(239,68,68,.12); }
 </style>
 
@@ -274,10 +274,10 @@ document.getElementById('buscar').oninput = function () {
     var isLight = document.documentElement.classList.contains('app-light');
     var tick = isLight ? '#6b7c93' : '#9aa0aa', grid = isLight ? 'rgba(15,39,71,.07)' : 'rgba(255,255,255,.07)';
     Chart.defaults.color = tick; Chart.defaults.font.family = "'Inter',sans-serif";
-    var PAL = ['#1f6b73', '#4fa8b0', '#ffd60a', '#38bdf8', '#22c55e', '#a78bfa'];
+    var PAL = ['#2563eb', '#60a5fa', '#ffd60a', '#38bdf8', '#22c55e', '#a78bfa'];
     var a = document.getElementById('chartAltas');
     if (a) new Chart(a, { type: 'bar',
-        data: { labels: <?= json_encode($altasLabels) ?>, datasets: [{ label: 'Altas', data: <?= json_encode($altasData) ?>, backgroundColor: '#1f6b73', borderRadius: 6 }] },
+        data: { labels: <?= json_encode($altasLabels) ?>, datasets: [{ label: 'Altas', data: <?= json_encode($altasData) ?>, backgroundColor: '#2563eb', borderRadius: 6 }] },
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
             scales: { x: { grid: { color: grid }, border: { display: false } }, y: { grid: { color: grid }, border: { display: false }, beginAtZero: true, ticks: { precision: 0 } } } } });
     var pl = document.getElementById('chartPlanes');

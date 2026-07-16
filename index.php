@@ -79,7 +79,7 @@ track_pageview('publico');
                 <p class="lead mb-4">Protege el expediente de cada paciente, deja que la agenda confirme las citas por ti y cobra sin perseguir pagos. Tú atiendes; <?= e($marca) ?> se encarga del resto.</p>
                 <div class="d-flex flex-wrap gap-2">
                     <a href="<?= BASE_URL ?>/auth/registro" class="btn btn-light btn-lg px-4 text-brand fw-semibold"><i class="bi bi-rocket-takeoff"></i> Prueba gratis 15 días</a>
-                    <a href="#perdidas" class="btn btn-outline-light btn-lg px-4">¿Cuánto pierdes por citas olvidadas?</a>
+                    <a href="#funciones" class="btn btn-outline-light btn-lg px-4">Ver cómo funciona</a>
                 </div>
                 <div class="d-flex align-items-center flex-wrap gap-3 mt-4">
                     <div class="lp-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div>
@@ -101,7 +101,7 @@ track_pageview('publico');
                                 <span class="badge bg-success">En vivo</span>
                             </div>
                             <div class="row g-2 mb-3">
-                                <?php foreach ([['Citas hoy','14','#1f6b73'],['Pacientes','231','#14b8a6'],['Ingresos','$48k','#16a34a']] as [$l,$n,$c]): ?>
+                                <?php foreach ([['Citas hoy','14','#2563eb'],['Pacientes','231','#14b8a6'],['Ingresos','$48k','#16a34a']] as [$l,$n,$c]): ?>
                                 <div class="col-4"><div class="lp-tile">
                                     <div class="lp-tile-n" style="color:<?= $c ?>"><?= $n ?></div>
                                     <div class="lp-tile-l"><?= $l ?></div>
@@ -167,11 +167,11 @@ track_pageview('publico');
         <div class="row g-4">
             <?php
             $funcs = [
-                ['bi-calendar-check','Agenda que confirma por ti','Se acabaron los huecos por citas olvidadas: programa, confirma y da seguimiento sin perseguir a nadie.','#1f6b73'],
+                ['bi-calendar-check','Agenda que confirma por ti','Se acabaron los huecos por citas olvidadas: programa, confirma y da seguimiento sin perseguir a nadie.','#2563eb'],
                 ['bi-folder2-open','Expediente al instante','Protege el historial de cada paciente: alergias, diagnósticos y tratamientos en dos clics, frente al paciente.','#14b8a6'],
                 ['bi-capsule','Recetas en segundos','Imprime recetas con tu marca y tus indicaciones, sin escribir lo mismo dos veces.','#6366f1'],
                 ['bi-receipt','Cobros bajo control','Registra pagos y comprobantes, y descubre exactamente cuánto entra cada día.','#16a34a'],
-                ['bi-bar-chart','Decide con números','Descubre qué servicios te dejan más y cuándo se llena tu agenda. Deja de decidir a ciegas.','#3f9aa3'],
+                ['bi-bar-chart','Decide con números','Descubre qué servicios te dejan más y cuándo se llena tu agenda. Deja de decidir a ciegas.','#3b82f6'],
                 ['bi-person-badge','Tu equipo, con límites claros','Recepción agenda, el médico atiende y tú lo controlas todo. Cada quien ve solo lo que le toca.','#ef4444'],
             ];
             foreach ($funcs as [$icon,$t,$d,$c]): ?>
@@ -334,7 +334,7 @@ track_pageview('publico');
                padding: 2.4rem 1.9rem; height: 100%; display: flex; flex-direction: column;
                box-shadow: 0 12px 40px rgba(30,45,80,.07); transition: transform .2s ease, box-shadow .2s ease; }
     .lp-plan:hover { transform: translateY(-8px); box-shadow: 0 26px 64px rgba(30,45,80,.14); }
-    .lp-plan.feat { border: 0; box-shadow: 0 28px 70px rgba(31,107,115,.22);
+    .lp-plan.feat { border: 0; box-shadow: 0 28px 70px rgba(37,99,235,.22);
                     background: linear-gradient(180deg, #fff, #fbfdfd); }
     .lp-plan.feat::before { content: ''; position: absolute; inset: 0; border-radius: 26px; padding: 2px;
                             background: linear-gradient(135deg, var(--brand), var(--cta));
@@ -343,7 +343,7 @@ track_pageview('publico');
     .lp-plan-pop { position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
                    background: var(--cta); color: #fff; font-weight: 700; font-size: .72rem; letter-spacing: .06em;
                    text-transform: uppercase; padding: .35rem 1rem; border-radius: 999px;
-                   box-shadow: 0 8px 20px rgba(224,122,95,.35); }
+                   box-shadow: 0 8px 20px rgba(37,99,235,.35); }
     .lp-plan-ic { width: 56px; height: 56px; border-radius: 16px; display: flex; align-items: center;
                   justify-content: center; font-size: 1.5rem; color: var(--brand); margin-bottom: 1.1rem;
                   background: linear-gradient(135deg, color-mix(in srgb, var(--brand) 16%, #fff), color-mix(in srgb, var(--brand) 6%, #fff)); }

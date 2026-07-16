@@ -40,7 +40,7 @@ if ($cobro && ($_GET['ir'] ?? '') === '1' && $cobro['estado'] === 'pendiente') {
 }
 
 $marca  = $cobro ? marca_nombre() : APP_NAME;
-$acento = $cobro ? color_acento() : '#1f6b73';
+$acento = $cobro ? color_acento() : '#2563eb';
 ?>
 <!doctype html>
 <html lang="es">
