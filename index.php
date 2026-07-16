@@ -151,69 +151,6 @@ track_pageview('publico');
     </div>
 </section>
 
-<!-- Calculadora de citas perdidas (neuroventas: el dolor primero, y que el
-     cliente haga su propia cuenta — nadie discute sus propios números) -->
-<style>
-    .lp-calc { background: linear-gradient(135deg, #16333a 0%, #1f6b73 100%); color: #fff; }
-    .lp-calc .lp-eyebrow { color: #9fd8dd; }
-    .lp-calc .form-label { color: #cfe6e8; font-size: .85rem; font-weight: 600; }
-    .lp-calc .form-control { border: 0; border-radius: 12px; padding: .7rem .9rem; font-weight: 700; font-size: 1.05rem; }
-    .lp-calc-res { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.18);
-                   border-radius: 20px; padding: 1.6rem; text-align: center; }
-    .lp-calc-n { font-family: 'Mulish', sans-serif; font-weight: 800; font-size: 2.8rem; line-height: 1; color: #ffb4a2; }
-    .lp-calc-res .small { color: #cfe6e8; }
-</style>
-<section id="perdidas" class="lp-calc py-6">
-    <div class="container">
-        <div class="row align-items-center g-5">
-            <div class="col-lg-6">
-                <span class="lp-eyebrow">El costo invisible</span>
-                <h2 class="section-title text-white mb-3">¿Cuánto te cuesta cada cita a la que nadie llegó?</h2>
-                <p class="mb-3" style="color:#cfe6e8">Le pasa a todos los consultorios: el paciente olvida su cita, el espacio se queda vacío y ese dinero no regresa. Lo peor es que casi nadie sabe cuánto suma al mes.</p>
-                <p class="mb-4" style="color:#cfe6e8">Con recordatorios y confirmación de citas, gran parte de esos espacios se recuperan. Haz tu propia cuenta y decide con tus números, no con los nuestros.</p>
-                <a href="<?= BASE_URL ?>/auth/registro" class="btn btn-light btn-lg px-4 text-brand fw-semibold"><i class="bi bi-arrow-counterclockwise"></i> Recuperar mis citas perdidas</a>
-            </div>
-            <div class="col-lg-6">
-                <div class="row g-3 mb-3">
-                    <div class="col-4">
-                        <label class="form-label" for="calcCitas">Citas por semana</label>
-                        <input type="number" class="form-control" id="calcCitas" value="30" min="1">
-                    </div>
-                    <div class="col-4">
-                        <label class="form-label" for="calcPrecio">Precio por consulta</label>
-                        <input type="number" class="form-control" id="calcPrecio" value="500" min="1">
-                    </div>
-                    <div class="col-4">
-                        <label class="form-label" for="calcFaltas">% que no llega</label>
-                        <input type="number" class="form-control" id="calcFaltas" value="15" min="0" max="100">
-                    </div>
-                </div>
-                <div class="lp-calc-res">
-                    <div class="small mb-1">Cada mes se te van</div>
-                    <div class="lp-calc-n" id="calcMes">$0</div>
-                    <div class="small mt-2">Al año son <strong id="calcAnio">$0</strong> que ya trabajaste en agendar… y nadie pagó.</div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-<script>
-(function () {
-    var $ = function (id) { return document.getElementById(id); };
-    function calc() {
-        var citas  = parseFloat($('calcCitas').value)  || 0;
-        var precio = parseFloat($('calcPrecio').value) || 0;
-        var faltas = Math.min(100, Math.max(0, parseFloat($('calcFaltas').value) || 0));
-        var mes = citas * 4.33 * precio * (faltas / 100);
-        var fmt = function (n) { return '$' + Math.round(n).toLocaleString('es-MX'); };
-        $('calcMes').textContent  = fmt(mes);
-        $('calcAnio').textContent = fmt(mes * 12);
-    }
-    ['calcCitas', 'calcPrecio', 'calcFaltas'].forEach(function (id) { $(id).addEventListener('input', calc); });
-    calc();
-})();
-</script>
-
 <!-- Funciones -->
 <section id="funciones" class="py-6">
     <div class="container">
