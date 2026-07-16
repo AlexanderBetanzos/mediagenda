@@ -391,7 +391,7 @@ body.lp .bg-primary { background-color: var(--brand) !important; }
 .lp-hero { position: relative; color: #fff; background-color: var(--brand-dark); background-size: cover; background-position: center right; background-repeat: no-repeat; }
 .lp-hero::before { content: ''; position: absolute; inset: 0; background: linear-gradient(100deg, rgba(8,14,22,.95) 0%, rgba(9,20,33,.90) 34%, rgba(31,107,115,.55) 62%, rgba(31,107,115,.22) 82%, rgba(111,185,192,.10) 100%); }
 .lp-hero > .container { position: relative; z-index: 1; }
-.lp-hero-row { min-height: 540px; padding: 3.5rem 0; }
+.lp-hero-row { min-height: 720px; padding: 5rem 0; align-items: center; }
 .lp-hero-text { text-shadow: 0 1px 16px rgba(0,0,0,.18); }
 .lp-pill { display: inline-flex; align-items: center; gap: .4rem; background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.32); color: #fff; padding: .35rem .85rem; border-radius: 999px; font-size: .85rem; font-weight: 600; }
 .lp-hero .lead { color: rgba(255,255,255,.94); }
