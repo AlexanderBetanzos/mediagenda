@@ -25,7 +25,7 @@ track_pageview('publico');
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= e($marca) ?> · Software para consultorios médicos y dentales</title>
-    <meta name="description" content="Agenda de citas, expediente clínico electrónico, recetas y facturación para consultorios médicos y dentales. Prueba 15 días gratis.">
+    <meta name="description" content="Toma el control de tu consultorio: agenda que confirma citas, expediente clínico protegido y cobros claros. Prueba 15 días gratis, sin tarjeta.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://images.unsplash.com">
@@ -75,11 +75,11 @@ track_pageview('publico');
         <div class="row align-items-center g-4 lp-hero-row">
             <div class="col-lg-6 lp-hero-text">
                 <span class="lp-pill mb-3"><i class="bi bi-patch-check-fill"></i> Software médico y dental</span>
-                <h1 class="display-4 fw-bold mb-3">La forma simple de gestionar tu consultorio</h1>
-                <p class="lead mb-4">Agenda, expediente clínico, recetas, presupuestos y cobros en un solo lugar. Empieza en minutos, desde cualquier dispositivo.</p>
+                <h1 class="display-4 fw-bold mb-3">Toma el control total de tu consultorio</h1>
+                <p class="lead mb-4">Protege el expediente de cada paciente, deja que la agenda confirme las citas por ti y cobra sin perseguir pagos. Tú atiendes; <?= e($marca) ?> se encarga del resto.</p>
                 <div class="d-flex flex-wrap gap-2">
                     <a href="<?= BASE_URL ?>/auth/registro" class="btn btn-light btn-lg px-4 text-brand fw-semibold"><i class="bi bi-rocket-takeoff"></i> Prueba gratis 15 días</a>
-                    <a href="#funciones" class="btn btn-outline-light btn-lg px-4">Ver cómo funciona</a>
+                    <a href="#perdidas" class="btn btn-outline-light btn-lg px-4">¿Cuánto pierdes por citas olvidadas?</a>
                 </div>
                 <div class="d-flex align-items-center flex-wrap gap-3 mt-4">
                     <div class="lp-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div>
@@ -151,6 +151,69 @@ track_pageview('publico');
     </div>
 </section>
 
+<!-- Calculadora de citas perdidas (neuroventas: el dolor primero, y que el
+     cliente haga su propia cuenta — nadie discute sus propios números) -->
+<style>
+    .lp-calc { background: linear-gradient(135deg, #16333a 0%, #1f6b73 100%); color: #fff; }
+    .lp-calc .lp-eyebrow { color: #9fd8dd; }
+    .lp-calc .form-label { color: #cfe6e8; font-size: .85rem; font-weight: 600; }
+    .lp-calc .form-control { border: 0; border-radius: 12px; padding: .7rem .9rem; font-weight: 700; font-size: 1.05rem; }
+    .lp-calc-res { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.18);
+                   border-radius: 20px; padding: 1.6rem; text-align: center; }
+    .lp-calc-n { font-family: 'Mulish', sans-serif; font-weight: 800; font-size: 2.8rem; line-height: 1; color: #ffb4a2; }
+    .lp-calc-res .small { color: #cfe6e8; }
+</style>
+<section id="perdidas" class="lp-calc py-6">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <span class="lp-eyebrow">El costo invisible</span>
+                <h2 class="section-title text-white mb-3">¿Cuánto te cuesta cada cita a la que nadie llegó?</h2>
+                <p class="mb-3" style="color:#cfe6e8">Le pasa a todos los consultorios: el paciente olvida su cita, el espacio se queda vacío y ese dinero no regresa. Lo peor es que casi nadie sabe cuánto suma al mes.</p>
+                <p class="mb-4" style="color:#cfe6e8">Con recordatorios y confirmación de citas, gran parte de esos espacios se recuperan. Haz tu propia cuenta y decide con tus números, no con los nuestros.</p>
+                <a href="<?= BASE_URL ?>/auth/registro" class="btn btn-light btn-lg px-4 text-brand fw-semibold"><i class="bi bi-arrow-counterclockwise"></i> Recuperar mis citas perdidas</a>
+            </div>
+            <div class="col-lg-6">
+                <div class="row g-3 mb-3">
+                    <div class="col-4">
+                        <label class="form-label" for="calcCitas">Citas por semana</label>
+                        <input type="number" class="form-control" id="calcCitas" value="30" min="1">
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label" for="calcPrecio">Precio por consulta</label>
+                        <input type="number" class="form-control" id="calcPrecio" value="500" min="1">
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label" for="calcFaltas">% que no llega</label>
+                        <input type="number" class="form-control" id="calcFaltas" value="15" min="0" max="100">
+                    </div>
+                </div>
+                <div class="lp-calc-res">
+                    <div class="small mb-1">Cada mes se te van</div>
+                    <div class="lp-calc-n" id="calcMes">$0</div>
+                    <div class="small mt-2">Al año son <strong id="calcAnio">$0</strong> que ya trabajaste en agendar… y nadie pagó.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<script>
+(function () {
+    var $ = function (id) { return document.getElementById(id); };
+    function calc() {
+        var citas  = parseFloat($('calcCitas').value)  || 0;
+        var precio = parseFloat($('calcPrecio').value) || 0;
+        var faltas = Math.min(100, Math.max(0, parseFloat($('calcFaltas').value) || 0));
+        var mes = citas * 4.33 * precio * (faltas / 100);
+        var fmt = function (n) { return '$' + Math.round(n).toLocaleString('es-MX'); };
+        $('calcMes').textContent  = fmt(mes);
+        $('calcAnio').textContent = fmt(mes * 12);
+    }
+    ['calcCitas', 'calcPrecio', 'calcFaltas'].forEach(function (id) { $(id).addEventListener('input', calc); });
+    calc();
+})();
+</script>
+
 <!-- Funciones -->
 <section id="funciones" class="py-6">
     <div class="container">
@@ -162,12 +225,12 @@ track_pageview('publico');
         <div class="row g-4">
             <?php
             $funcs = [
-                ['bi-calendar-check','Agenda de citas','Programa, confirma y da seguimiento. Filtra por médico, fecha y estado.','#1f6b73'],
-                ['bi-folder2-open','Expediente clínico','Consultas, diagnósticos, tratamientos y signos vitales por paciente.','#14b8a6'],
-                ['bi-capsule','Recetas','Genera e imprime recetas con tus medicamentos e indicaciones.','#6366f1'],
-                ['bi-receipt','Facturación','Cobros, comprobantes y control de ingresos del consultorio.','#16a34a'],
-                ['bi-bar-chart','Reportes','Citas, ingresos y métricas clave para tomar decisiones.','#3f9aa3'],
-                ['bi-person-badge','Acceso por roles','Permisos para administrador, médicos/dentistas y recepción.','#ef4444'],
+                ['bi-calendar-check','Agenda que confirma por ti','Se acabaron los huecos por citas olvidadas: programa, confirma y da seguimiento sin perseguir a nadie.','#1f6b73'],
+                ['bi-folder2-open','Expediente al instante','Protege el historial de cada paciente: alergias, diagnósticos y tratamientos en dos clics, frente al paciente.','#14b8a6'],
+                ['bi-capsule','Recetas en segundos','Imprime recetas con tu marca y tus indicaciones, sin escribir lo mismo dos veces.','#6366f1'],
+                ['bi-receipt','Cobros bajo control','Registra pagos y comprobantes, y descubre exactamente cuánto entra cada día.','#16a34a'],
+                ['bi-bar-chart','Decide con números','Descubre qué servicios te dejan más y cuándo se llena tu agenda. Deja de decidir a ciegas.','#3f9aa3'],
+                ['bi-person-badge','Tu equipo, con límites claros','Recepción agenda, el médico atiende y tú lo controlas todo. Cada quien ve solo lo que le toca.','#ef4444'],
             ];
             foreach ($funcs as [$icon,$t,$d,$c]): ?>
             <div class="col-md-6 col-lg-4">
@@ -276,7 +339,7 @@ track_pageview('publico');
             <div class="col-md-6 col-lg-5">
                 <div class="card lp-compare lp-compare-bad h-100"><div class="card-body p-4">
                     <h5 class="text-danger mb-3"><i class="bi bi-emoji-frown"></i> Sin <?= e($marca) ?></h5>
-                    <?php foreach (['Citas en libreta y llamadas dispersas','Expedientes físicos difíciles de consultar','Pacientes que olvidan sus citas','Sin respaldo ni control de acceso'] as $x): ?>
+                    <?php foreach (['Citas olvidadas que nadie confirmó','Expedientes en papel que se traspapelan','Cobros anotados en libretas sueltas','Todo depende de tu memoria y tu presencia'] as $x): ?>
                     <div class="lp-compare-item"><i class="bi bi-x-circle text-danger"></i> <?= e($x) ?></div>
                     <?php endforeach; ?>
                 </div></div>
@@ -284,7 +347,7 @@ track_pageview('publico');
             <div class="col-md-6 col-lg-5">
                 <div class="card lp-compare lp-compare-good h-100"><div class="card-body p-4">
                     <h5 class="text-success mb-3"><i class="bi bi-emoji-smile"></i> Con <?= e($marca) ?></h5>
-                    <?php foreach (['Agenda centralizada con estados de cita','Expediente electrónico al instante','Recordatorios de próximas citas','Acceso seguro por roles para tu equipo'] as $x): ?>
+                    <?php foreach (['Recordatorios que llenan tu agenda','Expediente electrónico en segundos','Ingresos claros, al día y desde el celular','Tu consultorio funciona aunque tú no estés'] as $x): ?>
                     <div class="lp-compare-item"><i class="bi bi-check-circle text-success"></i> <?= e($x) ?></div>
                     <?php endforeach; ?>
                 </div></div>
@@ -302,9 +365,9 @@ track_pageview('publico');
         </div>
         <div class="row g-4">
             <?php foreach ([
-                ['Reduje las inasistencias y por fin tengo el expediente de cada paciente a la mano.','Dra. Laura M.','Medicina General'],
-                ['La agenda y la facturación en un solo lugar me ahorran horas cada semana.','Dr. Carlos R.','Odontología'],
-                ['Mi recepción agenda y confirma citas sin enredos. Fácil de usar desde el primer día.','C.D. Ana T.','Clínica dental'],
+                ['Perdía dos o tres citas por semana porque nadie confirmaba. Hoy la recepción confirma todo y casi no me quedan huecos.','Dra. Laura M.','Medicina General'],
+                ['Antes tardaba minutos buscando expedientes en carpetas. Ahora abro el historial en dos clics, con el paciente enfrente.','Dr. Carlos R.','Odontología'],
+                ['Llevaba los cobros en una libreta y nunca sabía cuánto ganaba al mes. Ahora lo veo al día, sin enredos.','C.D. Ana T.','Clínica dental'],
             ] as [$q,$n,$r]): ?>
             <div class="col-md-4">
                 <div class="card lp-quote h-100 border-0"><div class="card-body p-4">
@@ -358,27 +421,25 @@ track_pageview('publico');
 
 <section id="planes" class="lp-planes py-6">
     <div class="container">
-        <div class="text-center mb-5">
+        <div class="text-center mb-4">
             <span class="lp-eyebrow">Planes</span>
-            <h2 class="section-title">Precios claros para cada consultorio</h2>
-            <p class="text-muted">Empieza gratis. Sin contratos ni costos ocultos.</p>
+            <h2 class="section-title">Elige cómo quieres crecer</h2>
+            <p class="text-muted">Tres planes, precios claros. Los tres empiezan igual: <strong>15 días gratis con acceso completo, sin tarjeta</strong>.</p>
         </div>
         <div class="row g-4 justify-content-center align-items-stretch">
             <?php
-            // Tarjeta de prueba + los planes definidos en la tabla `planes`.
-            $planes = [
-                ['Prueba gratis','$0','15 días con acceso completo', ['Todas las funciones','Pacientes y citas','Expediente clínico','Sin tarjeta'], false, ''],
-            ];
+            // Solo los 3 planes de la tabla `planes`: al cerebro le cuesta decidir
+            // con más (o menos) de tres opciones; la prueba gratis va en el texto.
+            $planes = [];
             foreach (planes_mp() as $planKey => $pl) {
                 $planes[] = [$pl['nombre'], '$' . number_format($pl['precio'], 0), $pl['descripcion'], $pl['items'], $pl['destacado'], $planKey];
             }
-            $iconos = ['bi-rocket-takeoff', 'bi-heart-pulse', 'bi-star-fill', 'bi-hospital', 'bi-building'];
+            $iconos = ['bi-heart-pulse', 'bi-star-fill', 'bi-hospital', 'bi-building'];
             foreach ($planes as $ix => [$nombre,$precio,$desc,$items,$feat,$planKey]):
-                $href = BASE_URL . '/auth/registro' . ($planKey ? '?plan=' . $planKey : '');
-                $btn  = $planKey ? 'Contratar ahora' : 'Probar 15 días gratis'; ?>
-            <div class="col-md-6 col-lg-3">
+                $href = BASE_URL . '/auth/registro?plan=' . $planKey; ?>
+            <div class="col-md-6 col-lg-4">
                 <div class="lp-plan <?= $feat ? 'feat' : '' ?>">
-                    <?php if ($feat): ?><span class="lp-plan-pop">Más popular</span><?php endif; ?>
+                    <?php if ($feat): ?><span class="lp-plan-pop">El que más eligen</span><?php endif; ?>
                     <div class="lp-plan-ic"><i class="bi <?= $iconos[$ix] ?? 'bi-check-circle' ?>"></i></div>
                     <div class="lp-plan-name"><?= e($nombre) ?></div>
                     <div class="lp-plan-desc"><?= e($desc) ?></div>
@@ -388,8 +449,21 @@ track_pageview('publico');
                             <li><i class="bi bi-check-circle-fill"></i> <span><?= e($it) ?></span></li>
                         <?php endforeach; ?>
                     </ul>
-                    <a href="<?= e($href) ?>" class="btn btn-plan"><?= $btn ?></a>
+                    <a href="<?= e($href) ?>" class="btn btn-plan">Probarlo 15 días gratis</a>
                 </div>
+            </div>
+            <?php endforeach; ?>
+        </div>
+        <!-- Quita-miedos: lo que frena la decisión, respondido antes de que pregunten -->
+        <div class="row g-3 text-center mt-4">
+            <?php foreach ([
+                ['bi-shield-check','Sin contratos forzosos'],
+                ['bi-x-circle','Cancelas cuando quieras'],
+                ['bi-database-lock','Tus datos siempre son tuyos'],
+                ['bi-headset','Te acompañamos en español'],
+            ] as [$ic,$t]): ?>
+            <div class="col-6 col-lg-3">
+                <div class="small text-muted"><i class="bi <?= $ic ?> text-brand"></i> <?= e($t) ?></div>
             </div>
             <?php endforeach; ?>
         </div>
@@ -405,9 +479,10 @@ track_pageview('publico');
         <div class="accordion lp-faq" id="faqAcc">
             <?php foreach ([
                 ['¿La prueba de 15 días tiene acceso completo?','Sí. Durante los 15 días usas todas las funciones sin límites y sin tarjeta. Al terminar, eliges un plan para continuar.'],
+                ['¿Y si no soy bueno con la tecnología?','Si sabes usar WhatsApp, sabes usar ' . $marca . '. Está hecho para médicos y recepcionistas, no para ingenieros: pantallas simples, en español y sin manuales. Y si te atoras, te acompañamos.'],
                 ['¿Necesito instalar algo?','No. Es 100% en la nube: entras desde el navegador en computadora, tablet o celular.'],
                 ['¿Mis datos están seguros?','Tus datos viajan cifrados, con respaldos y acceso por roles para tu equipo. Cada consultorio tiene su información aislada.'],
-                ['¿Puedo cancelar cuando quiera?','Sí. Cancelas tu suscripción desde el panel y conservas el acceso hasta el final del periodo ya pagado.'],
+                ['¿Qué pasa con mi información si cancelo?','Tus pacientes y expedientes son tuyos, no nuestros. Cancelas desde el panel, conservas el acceso hasta el final del periodo pagado y te ayudamos a llevarte tu información.'],
                 ['¿Sirve para consultorios dentales?','Sí, está pensado para consultorios médicos y dentales por igual.'],
             ] as $i => [$q,$a]): ?>
             <div class="accordion-item">
@@ -426,9 +501,9 @@ track_pageview('publico');
 <!-- CTA final -->
 <section class="lp-cta" style="background-image:url('https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=1600&q=75&auto=format&fit=crop')">
     <div class="container text-center position-relative">
-        <h2 class="display-6 fw-bold mb-3">Empieza a digitalizar tu consultorio hoy</h2>
-        <p class="lead mb-4">15 días gratis con acceso completo. Sin tarjeta, sin compromiso.</p>
-        <a href="<?= BASE_URL ?>/auth/registro" class="btn btn-light btn-lg px-5 text-brand fw-semibold"><i class="bi bi-rocket-takeoff"></i> Crear mi cuenta gratis</a>
+        <h2 class="display-6 fw-bold mb-3">Tu consultorio puede funcionar así desde mañana</h2>
+        <p class="lead mb-4">Cada semana que pasa son citas olvidadas y expedientes en papel. 15 días gratis con acceso completo: sin tarjeta, sin compromiso.</p>
+        <a href="<?= BASE_URL ?>/auth/registro" class="btn btn-light btn-lg px-5 text-brand fw-semibold"><i class="bi bi-rocket-takeoff"></i> Tomar el control de mi consultorio</a>
         <div class="d-flex justify-content-center flex-wrap gap-4 mt-4 small opacity-75">
             <span><i class="bi bi-check-circle-fill"></i> Configúralo en minutos</span>
             <span><i class="bi bi-check-circle-fill"></i> Soporte en español</span>
@@ -470,7 +545,7 @@ track_pageview('publico');
 </footer>
 
 <!-- WhatsApp flotante -->
-<?php $waLanding = 'https://wa.me/' . SOPORTE_WHATSAPP . '?text=' . rawurlencode('Hola, me interesa ' . $marca . ' para mi consultorio.'); ?>
+<?php $waLanding = 'https://wa.me/' . SOPORTE_WHATSAPP . '?text=' . rawurlencode('Hola, quiero ver cómo funcionaría ' . $marca . ' en mi consultorio. ¿Me ayudas?'); ?>
 <a href="<?= e($waLanding) ?>" class="lp-wa" target="_blank" rel="noopener"
    aria-label="Escríbenos por WhatsApp" title="Escríbenos por WhatsApp">
     <i class="bi bi-whatsapp"></i>

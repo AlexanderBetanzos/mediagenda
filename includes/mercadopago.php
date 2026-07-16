@@ -39,9 +39,9 @@ function planes_mp(): array
     } catch (Throwable $e) { /* tabla planes aún no creada */ }
 
     return $cache = [
-        'basico'      => ['nombre' => 'Básico',      'precio' => 299.0,  'descripcion' => 'Médico o consultorio pequeño', 'items' => [], 'destacado' => false, 'mp_plan_id' => null],
-        'profesional' => ['nombre' => 'Profesional', 'precio' => 599.0,  'descripcion' => 'Consultorio en crecimiento',    'items' => [], 'destacado' => true,  'mp_plan_id' => null],
-        'clinica'     => ['nombre' => 'Clínica',     'precio' => 1199.0, 'descripcion' => 'Clínica / multi-sucursal',      'items' => [], 'destacado' => false, 'mp_plan_id' => null],
+        'basico'      => ['nombre' => 'Básico',      'precio' => 299.0,  'descripcion' => 'Un médico, todo bajo control',              'items' => [], 'destacado' => false, 'mp_plan_id' => null],
+        'profesional' => ['nombre' => 'Profesional', 'precio' => 599.0,  'descripcion' => 'El que eligen los consultorios que crecen', 'items' => [], 'destacado' => true,  'mp_plan_id' => null],
+        'clinica'     => ['nombre' => 'Clínica',     'precio' => 1199.0, 'descripcion' => 'Varias sucursales, un solo control',        'items' => [], 'destacado' => false, 'mp_plan_id' => null],
     ];
 }
 
