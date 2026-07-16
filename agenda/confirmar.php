@@ -136,6 +136,11 @@ include __DIR__ . '/../includes/publico_header.php';
                 <i class="bi bi-calendar-plus"></i> <?= et('Agendar otra fecha') ?>
             </a>
         <?php endif; ?>
+
+        <?php /* Salida al inicio: la página del consultorio. */ ?>
+        <a href="<?= BASE_URL ?>/c/<?= e(tenant()['slug'] ?? '') ?>" class="d-inline-block mt-3 small text-decoration-none">
+            <i class="bi bi-house"></i> <?= et('Ir al inicio') ?>
+        </a>
     </div>
 </div>
 
