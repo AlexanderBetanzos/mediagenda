@@ -1,5 +1,5 @@
 -- =====================================================================
---  MediAgenda  -  Agenda pro: horarios por médico y bloqueos
+--  MediOS Agenda  -  Agenda pro: horarios por médico y bloqueos
 --  Ejecutar DESPUÉS de schema.sql/multitenant.sql. Idempotente en MariaDB.
 -- =====================================================================
 

@@ -1,5 +1,5 @@
 -- =====================================================================
---  MediAgenda  -  Expediente inteligente (campos clínicos e identificación)
+--  MediOS Agenda  -  Expediente inteligente (campos clínicos e identificación)
 --  Ejecutar DESPUÉS de schema.sql/multitenant.sql. Idempotente en MariaDB.
 --  Amplía `pacientes` con datos alineados a la NOM-024 (expediente clínico).
 -- =====================================================================

@@ -1,5 +1,5 @@
 -- =====================================================================
---  MediAgenda  -  Súper-admin (gestión de consultorios)
+--  MediOS Agenda  -  Súper-admin (gestión de consultorios)
 --  Ejecutar DESPUÉS de multitenant.sql. Idempotente en MariaDB.
 -- =====================================================================
 

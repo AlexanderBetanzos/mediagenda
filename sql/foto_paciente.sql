@@ -1,5 +1,5 @@
 -- =====================================================================
---  MediAgenda  -  Foto del paciente guardada EN LA BASE DE DATOS
+--  MediOS Agenda  -  Foto del paciente guardada EN LA BASE DE DATOS
 --  Ejecutar DESPUÉS de schema.sql y multitenant.sql. Idempotente.
 --
 --  Por qué: la foto vivía en uploads/pacientes/, que no estaba en .gitignore.

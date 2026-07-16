@@ -1,5 +1,5 @@
 -- =====================================================================
---  MediAgenda  -  Planes y entitlements (módulos por plan)
+--  MediOS Agenda  -  Planes y entitlements (módulos por plan)
 --  Ejecutar DESPUÉS de multitenant.sql. Idempotente en MariaDB.
 --
 --  Modelo: cada consultorio tiene un `plan`; el plan incluye un conjunto de

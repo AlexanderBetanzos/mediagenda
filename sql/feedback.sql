@@ -1,5 +1,5 @@
 -- =====================================================================
---  MediAgenda  -  Feedback / sugerencias de los usuarios del sistema
+--  MediOS Agenda  -  Feedback / sugerencias de los usuarios del sistema
 --  Ejecutar DESPUÉS de multitenant.sql. Idempotente.
 --  Cualquier usuario (cualquier consultorio) puede dejar comentarios;
 --  el súper-admin los ve todos para priorizar mejoras.

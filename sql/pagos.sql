@@ -1,5 +1,5 @@
 -- =====================================================================
---  MediAgenda  -  Pagos con Mercado Pago (suscripciones recurrentes)
+--  MediOS Agenda  -  Pagos con Mercado Pago (suscripciones recurrentes)
 --  Ejecutar DESPUÉS de multitenant.sql. Idempotente en MariaDB.
 -- =====================================================================
 

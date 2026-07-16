@@ -1,5 +1,5 @@
 -- =====================================================================
---  MediAgenda  -  Inventario / Farmacia
+--  MediOS Agenda  -  Inventario / Farmacia
 --  Ejecutar DESPUÉS de schema.sql/multitenant.sql. Idempotente en MariaDB.
 --  Stock por LOTES (con caducidad). El total de un producto = suma de lotes.
 --  Cada cambio de stock deja un movimiento (entrada/salida/ajuste).

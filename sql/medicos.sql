@@ -1,5 +1,5 @@
 -- =====================================================================
---  MediAgenda  -  Catálogo de médicos: médicos sin login
+--  MediOS Agenda  -  Catálogo de médicos: médicos sin login
 --  Ejecutar DESPUÉS de schema.sql. Idempotente.
 --
 --  No todo médico necesita entrar al sistema. El dueño usa el dashboard; un

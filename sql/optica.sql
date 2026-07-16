@@ -1,5 +1,5 @@
 -- =====================================================================
---  MediAgenda  -  Óptica (graduaciones, micas y órdenes de trabajo)
+--  MediOS Agenda  -  Óptica (graduaciones, micas y órdenes de trabajo)
 --  Ejecutar DESPUÉS de schema.sql, multitenant.sql, planes.sql e inventario.sql.
 --  Idempotente en MariaDB.
 --

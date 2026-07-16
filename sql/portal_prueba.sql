@@ -1,5 +1,5 @@
 -- =====================================================================
---  MediAgenda  -  Activar el portal para un PACIENTE DE PRUEBA
+--  MediOS Agenda  -  Activar el portal para un PACIENTE DE PRUEBA
 --
 --  El portal NO es un registro abierto: cada paciente necesita que el consultorio
 --  le active el acceso (desde su ficha). Esto lo hace para un paciente de prueba

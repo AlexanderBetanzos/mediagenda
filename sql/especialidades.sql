@@ -1,5 +1,5 @@
 -- =====================================================================
---  MediAgenda  -  Especialidades: odontograma
+--  MediOS Agenda  -  Especialidades: odontograma
 --  Ejecutar DESPUÉS de schema.sql/multitenant.sql. Idempotente.
 --  El odontograma se guarda como JSON (mapa diente => estado) por paciente.
 --  Las curvas de crecimiento NO necesitan tabla: usan consultas (peso/estatura)

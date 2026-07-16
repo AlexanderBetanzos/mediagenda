@@ -1,5 +1,5 @@
 -- =====================================================================
---  MediAgenda  -  Recordatorios automáticos de cita
+--  MediOS Agenda  -  Recordatorios automáticos de cita
 --  Ejecutar DESPUÉS de schema.sql/multitenant.sql. Idempotente.
 --  Marca cuándo se envió el recordatorio a una cita (para no repetirlo).
 -- =====================================================================

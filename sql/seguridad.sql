@@ -1,5 +1,5 @@
 -- =====================================================================
---  MediAgenda  -  Seguridad: auditoría + 2FA (TOTP)
+--  MediOS Agenda  -  Seguridad: auditoría + 2FA (TOTP)
 --  Ejecutar DESPUÉS de multitenant.sql. Idempotente en MariaDB.
 -- =====================================================================
 
