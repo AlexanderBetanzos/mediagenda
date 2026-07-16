@@ -70,6 +70,12 @@ $benes = [
     ['bi-shield-check',     t('Atención de confianza'), t('Un equipo que te conoce y da seguimiento a tu tratamiento.'), 'teal'],
 ];
 
+// Enlaces de sección para el header (estilo GymOS). Solo los que existen.
+$navLinks = [];
+if ($servicios)       $navLinks[] = [t('Servicios'), '#servicios'];
+if ($medicos)         $navLinks[] = [t('Equipo'), '#equipo'];
+$navLinks[] = [t('Contacto'), '#contacto'];
+
 $titulo = $marca;
 $indexable = true;
 include __DIR__ . '/publico_header.php';
@@ -314,7 +320,7 @@ include __DIR__ . '/publico_header.php';
 
 <!-- ===== SERVICIOS ===== -->
 <?php if ($servicios): ?>
-<section class="soft-planes">
+<section id="servicios" class="soft-planes">
     <div class="wrap">
         <div class="text-center mb-4">
             <span class="eyebrow"><?= et('Lo que ofrecemos') ?></span>
@@ -360,7 +366,7 @@ include __DIR__ . '/publico_header.php';
 
 <!-- ===== EQUIPO ===== -->
 <?php if ($medicos): ?>
-<section class="soft">
+<section id="equipo" class="soft">
     <div class="wrap">
         <div class="text-center mb-5">
             <span class="eyebrow"><?= et('Quién te atiende') ?></span>
@@ -397,7 +403,7 @@ include __DIR__ . '/publico_header.php';
 <?php endif; ?>
 
 <!-- ===== CONTACTO ===== -->
-<section>
+<section id="contacto">
     <div class="wrap">
         <div class="text-center mb-5">
             <span class="eyebrow"><?= et('Visítanos') ?></span>
@@ -421,6 +427,15 @@ include __DIR__ . '/publico_header.php';
                 <h6>WhatsApp</h6><div class="det"><a href="<?= e($wa) ?>" target="_blank" rel="noopener"><?= et('Escríbenos') ?></a></div></div>
             <?php endif; ?>
         </div>
+
+        <?php /* Mapa de Google embebido con la dirección (sin API key). */ ?>
+        <?php if ($dir): ?>
+        <div class="cl-map mt-5">
+            <iframe title="<?= e($marca) ?>" width="100%" height="380" style="border:0;border-radius:20px"
+                    loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen
+                    src="https://maps.google.com/maps?q=<?= rawurlencode($dir) ?>&z=16&output=embed"></iframe>
+        </div>
+        <?php endif; ?>
     </div>
 </section>
 

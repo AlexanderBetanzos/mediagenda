@@ -53,11 +53,16 @@ $acento = color_acento();
 </head>
 <body class="lp">
 
+<?php
+/* La marca es el botón de "inicio": lleva al micrositio del consultorio. Y se
+   arma el header estilo GymOS: navegación + Portal del paciente + Agendar. */
+$slugPub    = tenant()['slug'] ?? '';
+$inicioUrl  = BASE_URL . '/c/' . $slugPub;
+$reservarH  = agenda_online_activa();
+$agendarUrl = BASE_URL . '/agenda/reservar?c=' . rawurlencode($slugPub);
+?>
 <nav class="navbar navbar-expand-lg landing-nav sticky-top">
     <div class="container">
-        <?php /* La marca es el botón de "inicio": lleva al micrositio del
-                 consultorio desde cualquier página pública (agendar, confirmar). */ ?>
-        <?php $inicioUrl = BASE_URL . '/c/' . (tenant()['slug'] ?? ''); ?>
         <a href="<?= e($inicioUrl) ?>" class="navbar-brand fw-bold text-brand d-flex align-items-center gap-2 text-decoration-none">
             <?php if (cfg('marca_logo')): ?>
                 <img src="<?= e(cfg('marca_logo')) ?>" alt="" style="max-height:32px;width:auto">
@@ -66,18 +71,31 @@ $acento = color_acento();
             <?php endif; ?>
             <?= e($marca) ?>
         </a>
-        <ul class="navbar-nav flex-row align-items-center gap-3 ms-auto">
-            <li class="nav-item">
-                <a class="nav-link" href="<?= e($inicioUrl) ?>"><i class="bi bi-house-door"></i> <?= et('Inicio') ?></a>
-            </li>
-            <?php if (cfg('telefono')): ?>
-            <li class="nav-item d-none d-sm-block">
-                <a class="nav-link" href="tel:<?= e(preg_replace('/\s+/', '', cfg('telefono'))) ?>">
-                    <i class="bi bi-telephone"></i> <?= e(cfg('telefono')) ?>
-                </a>
-            </li>
-            <?php endif; ?>
-        </ul>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#pubnav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="pubnav">
+            <?php /* Enlaces de sección (los define el micrositio en $navLinks). */ ?>
+            <ul class="navbar-nav mx-auto align-items-lg-center gap-lg-1">
+                <li class="nav-item"><a class="nav-link" href="<?= e($inicioUrl) ?>"><?= et('Inicio') ?></a></li>
+                <?php foreach ($navLinks ?? [] as [$lbl, $href]): ?>
+                    <li class="nav-item"><a class="nav-link" href="<?= e($href) ?>"><?= e($lbl) ?></a></li>
+                <?php endforeach; ?>
+            </ul>
+            <ul class="navbar-nav align-items-lg-center gap-lg-2">
+                <?php if (cfg('telefono')): ?>
+                <li class="nav-item d-none d-lg-block">
+                    <a class="nav-link" href="tel:<?= e(preg_replace('/\s+/', '', cfg('telefono'))) ?>"><i class="bi bi-telephone"></i> <?= e(cfg('telefono')) ?></a>
+                </li>
+                <?php endif; ?>
+                <li class="nav-item">
+                    <a class="nav-link" href="<?= BASE_URL ?>/portal/login"><i class="bi bi-person-heart"></i> <?= et('Portal del paciente') ?></a>
+                </li>
+                <?php if ($reservarH): ?>
+                <li class="nav-item"><a class="btn btn-primary px-3" href="<?= e($agendarUrl) ?>"><i class="bi bi-calendar-plus"></i> <?= et('Agendar cita') ?></a></li>
+                <?php endif; ?>
+            </ul>
+        </div>
     </div>
 </nav>
 
