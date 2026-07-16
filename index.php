@@ -298,34 +298,6 @@ track_pageview('publico');
     </div>
 </section>
 
-<!-- Testimonios -->
-<section class="py-6">
-    <div class="container">
-        <div class="text-center mb-5">
-            <span class="lp-eyebrow">Testimonios</span>
-            <h2 class="section-title">Consultorios que ya se digitalizaron</h2>
-        </div>
-        <div class="row g-4">
-            <?php foreach ([
-                ['Perdía dos o tres citas por semana porque nadie confirmaba. Hoy la recepción confirma todo y casi no me quedan huecos.','Dra. Laura M.','Medicina General'],
-                ['Antes tardaba minutos buscando expedientes en carpetas. Ahora abro el historial en dos clics, con el paciente enfrente.','Dr. Carlos R.','Odontología'],
-                ['Llevaba los cobros en una libreta y nunca sabía cuánto ganaba al mes. Ahora lo veo al día, sin enredos.','C.D. Ana T.','Clínica dental'],
-            ] as [$q,$n,$r]): ?>
-            <div class="col-md-4">
-                <div class="card lp-quote h-100 border-0"><div class="card-body p-4">
-                    <div class="text-warning mb-2"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div>
-                    <p class="mb-3">“<?= e($q) ?>”</p>
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="lp-avatar"><?= e(mb_substr($n, 0, 1)) ?></span>
-                        <div><div class="fw-semibold small"><?= e($n) ?></div><div class="small text-muted"><?= e($r) ?></div></div>
-                    </div>
-                </div></div>
-            </div>
-            <?php endforeach; ?>
-        </div>
-    </div>
-</section>
-
 <!-- Planes -->
 <style>
     .lp-planes { background: linear-gradient(180deg, #eaeefb 0%, #f3f6fd 55%, #fff 100%); }
