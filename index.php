@@ -422,7 +422,7 @@ track_pageview('publico');
             <?php foreach ([
                 ['¿La prueba de 15 días tiene acceso completo?','Sí. Durante los 15 días usas todas las funciones sin límites y sin tarjeta. Al terminar, eliges un plan para continuar.'],
                 ['¿Y si no soy bueno con la tecnología?','Si sabes usar WhatsApp, sabes usar ' . $marca . '. Está hecho para médicos y recepcionistas, no para ingenieros: pantallas simples, en español y sin manuales. Si tienes problemas o dudas de cómo usarlo, nosotros te acompañamos.'],
-                ['¿Necesito instalar algo?','No. Es 100% en la nube: entras desde el navegador en computadora, tablet o celular.'],
+                ['¿Se necesita la instalación de algún software adicional?','No. Es 100% en la nube: entras desde el navegador en computadora, tablet o celular.'],
                 ['¿Mis datos están seguros?','Tus datos viajan cifrados, con respaldos y acceso por roles para tu equipo. Cada consultorio tiene su información aislada.'],
                 ['¿Qué pasa con mi información si cancelo?','Tus pacientes y expedientes son tuyos, no nuestros. Cancelas desde el panel, conservas el acceso hasta el final del periodo pagado y te ayudamos a llevarte tu información.'],
                 ['¿Sirve para mi especialidad?','Sí. Lo usan médicos generales, dentistas, oftalmólogos y ópticas, nutriólogos, psicólogos y clínicas u hospitales con varias sucursales. Las plantillas de consulta se adaptan a tu especialidad.'],
