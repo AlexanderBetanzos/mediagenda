@@ -141,34 +141,33 @@ include __DIR__ . '/publico_header.php';
     .clx .bene p { color: #4b5560; font-size: .93rem; margin: 0; }
     html.lp-dark .clx .bene p { color: #b8bcc4; }
 
-    /* ===== Servicios (tarjetas premium) ===== */
-    .clx .soft { background: var(--soft); }
-    .clx .catrow { display: flex; align-items: center; gap: .8rem; margin: 2.8rem 0 1.3rem; }
-    .clx .catrow .cico { width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center;
-                         justify-content: center; font-size: 1.25rem; color: #fff;
+    /* ===== Servicios (tarjetas estilo healthcare, como la sección de planes) ===== */
+    .clx .soft-planes { background: linear-gradient(180deg, color-mix(in srgb, var(--cl) 9%, #eef1f9) 0%,
+                                     color-mix(in srgb, var(--cl) 4%, #f4f6fc) 55%, #fff 100%); }
+    html.lp-dark .clx .soft-planes { background: rgba(255,255,255,.03); }
+    .clx .catrow { display: flex; align-items: center; gap: .8rem; margin: 2.6rem 0 1.3rem; }
+    .clx .catrow .cico { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center;
+                         justify-content: center; font-size: 1.2rem; color: #fff;
                          background: linear-gradient(135deg, var(--cl-d), var(--cl));
                          box-shadow: 0 8px 20px color-mix(in srgb, var(--cl) 32%, transparent); }
-    .clx .catrow .ctxt { color: var(--ink); font-weight: 800; font-size: 1.2rem; }
+    .clx .catrow .ctxt { color: var(--ink); font-weight: 800; font-size: 1.15rem; }
     .clx .catrow::after { content: ''; flex: 1; height: 1px;
                           background: linear-gradient(90deg, color-mix(in srgb, var(--cl) 18%, transparent), transparent); }
 
-    .clx .serv { position: relative; overflow: hidden; background: var(--bs-body-bg);
-                 border: 1px solid color-mix(in srgb, var(--cl) 10%, #fff); border-radius: 18px;
-                 padding: 1.3rem 1.4rem; height: 100%; display: flex; align-items: center; gap: 1rem;
-                 box-shadow: 0 4px 16px rgba(16,35,58,.05); transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
-    html.lp-dark .clx .serv { border-color: rgba(255,255,255,.08); box-shadow: none; }
-    .clx .serv::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
-                         background: var(--cta); transform: scaleY(0); transform-origin: top; transition: transform .18s ease; }
-    .clx .serv:hover { transform: translateY(-4px); box-shadow: 0 18px 38px rgba(16,35,58,.13); border-color: transparent; }
-    .clx .serv:hover::before { transform: scaleY(1); }
-    .clx .serv .si { width: 54px; height: 54px; flex-shrink: 0; border-radius: 15px; display: flex; align-items: center;
-                     justify-content: center; font-size: 1.45rem; color: var(--cl);
-                     background: linear-gradient(135deg, color-mix(in srgb, var(--cl) 18%, #fff), color-mix(in srgb, var(--cl) 6%, #fff)); }
+    /* Tarjeta vertical (icono arriba, nombre, precio), como los planes. */
+    .clx .serv { position: relative; background: #fff; border: 1px solid #e9edf7; border-radius: 22px;
+                 padding: 1.6rem; height: 100%; display: flex; flex-direction: column;
+                 box-shadow: 0 10px 34px rgba(30,45,80,.06); transition: transform .2s ease, box-shadow .2s ease; }
+    html.lp-dark .clx .serv { background: rgba(255,255,255,.04); border-color: rgba(255,255,255,.08); box-shadow: none; }
+    .clx .serv:hover { transform: translateY(-6px); box-shadow: 0 22px 54px rgba(30,45,80,.13); }
+    .clx .serv .si { width: 52px; height: 52px; border-radius: 15px; display: flex; align-items: center;
+                     justify-content: center; font-size: 1.4rem; color: var(--cl); margin-bottom: 1rem;
+                     background: linear-gradient(135deg, color-mix(in srgb, var(--cl) 16%, #fff), color-mix(in srgb, var(--cl) 6%, #fff)); }
     html.lp-dark .clx .serv .si { background: color-mix(in srgb, var(--cl) 22%, transparent); }
-    .clx .serv .body { flex: 1; min-width: 0; }
-    .clx .serv .n { color: var(--ink); font-weight: 700; line-height: 1.25; }
-    .clx .serv .p { color: var(--cta); font-weight: 800; font-size: 1.15rem; white-space: nowrap; margin-top: .1rem; }
-    .clx .serv .p small { font-weight: 600; font-size: .72rem; color: var(--mut); display: block; line-height: 1; margin-bottom: 1px; }
+    .clx .serv .fav { position: absolute; top: 1.3rem; right: 1.3rem; color: color-mix(in srgb, var(--cl) 40%, #fff); font-size: 1.05rem; }
+    .clx .serv .n { color: var(--ink); font-weight: 700; line-height: 1.3; flex: 1; }
+    .clx .serv .p { color: var(--cta); font-weight: 800; font-size: 1.35rem; margin-top: .9rem; }
+    .clx .serv .p small { font-weight: 600; font-size: .74rem; color: var(--mut); display: block; line-height: 1; }
 
     /* ===== Equipo (tarjeta por médico, con su horario) ===== */
     .clx .medcard { background: var(--bs-body-bg); border: 1px solid color-mix(in srgb, var(--cl) 14%, #fff);
@@ -272,7 +271,7 @@ include __DIR__ . '/publico_header.php';
 
 <!-- ===== SERVICIOS ===== -->
 <?php if ($servicios): ?>
-<section>
+<section class="soft-planes">
     <div class="wrap">
         <div class="text-center mb-4">
             <span class="eyebrow"><?= et('Lo que ofrecemos') ?></span>
@@ -297,13 +296,16 @@ include __DIR__ . '/publico_header.php';
                 <span class="cico"><i class="bi <?= $catIcon((string) $categoria) ?>"></i></span>
                 <span class="ctxt"><?= e($categoria) ?></span>
             </div>
-            <div class="row g-3">
+            <div class="row g-4 align-items-stretch">
                 <?php foreach ($items as $s): ?>
-                <div class="col-md-6 col-lg-4">
+                <div class="col-6 col-lg-3">
                     <div class="serv">
                         <span class="si"><i class="bi <?= $catIcon((string) $categoria) ?>"></i></span>
-                        <div class="body"><div class="n"><?= e($s['nombre']) ?></div></div>
-                        <?php if ((float) $s['precio'] > 0): ?><span class="p"><?= fmt_money($s['precio']) ?></span><?php endif; ?>
+                        <i class="bi bi-heart fav"></i>
+                        <div class="n"><?= e($s['nombre']) ?></div>
+                        <?php if ((float) $s['precio'] > 0): ?>
+                            <div class="p"><small><?= et('Desde') ?></small><?= fmt_money($s['precio']) ?></div>
+                        <?php endif; ?>
                     </div>
                 </div>
                 <?php endforeach; ?>
