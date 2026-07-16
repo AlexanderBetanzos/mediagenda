@@ -241,6 +241,7 @@ include __DIR__ . '/_head.php';
                                 <button class="act-btn g" title="<?= e(t('Entrar como este consultorio')) ?>"><i class="bi bi-box-arrow-in-right"></i></button>
                             </form>
                             <a class="act-btn o" href="<?= BASE_URL ?>/platform/consultorio?id=<?= $c['id'] ?>" title="<?= e(t('Editar (datos, plan y módulos)')) ?>"><i class="bi bi-pencil-square"></i></a>
+                            <a class="act-btn b" href="<?= BASE_URL ?>/platform/exportar?id=<?= $c['id'] ?>" title="<?= e(t('Descargar respaldo SQL de sus datos')) ?>"><i class="bi bi-database-down"></i></a>
                             <button form="f<?= $c['id'] ?>" name="accion" value="extender" class="act-btn b" title="<?= e(t('Extender prueba 15 días')) ?>"><i class="bi bi-stopwatch"></i></button>
                             <?php if ($c['estado'] !== 'activa'): ?>
                                 <button form="f<?= $c['id'] ?>" name="accion" value="activar" class="act-btn g" title="<?= e(t('Activar membresía')) ?>"><i class="bi bi-play-fill"></i></button>

@@ -227,6 +227,54 @@ if ($verFacturacion) {
     $ultimasFacturas = $uf->fetchAll();
 }
 
+/* ── Exportar a CSV (antes de imprimir el layout) ────────────────────── */
+if (($_GET['export'] ?? '') === 'csv') {
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename="dashboard_' . date('Y-m-d') . '.csv"');
+    $out = fopen('php://output', 'w');
+    fwrite($out, "\xEF\xBB\xBF");
+
+    fputcsv($out, ['Sección', 'Indicador', 'Valor']);
+    fputcsv($out, ['Citas', 'Citas hoy', $citasHoy]);
+    fputcsv($out, ['Citas', 'Confirmadas hoy', $citasConfHoy]);
+    fputcsv($out, ['Citas', 'Atendidas hoy', $citasAtendHoy]);
+    fputcsv($out, ['Citas', 'Por confirmar', $citasPorConfirmar]);
+    fputcsv($out, ['Citas', 'Próximas (programadas/confirmadas)', $citasPend]);
+    fputcsv($out, ['Citas', 'Tasa de inasistencia 90 días (%)', $noShow]);
+    fputcsv($out, ['Pacientes', 'Pacientes totales', $totPacientes]);
+    fputcsv($out, ['Pacientes', 'Nuevos este mes', $pacientesMes]);
+    fputcsv($out, ['Consultas', 'Consultas este mes', $consultasMes]);
+    if ($verRecetas) fputcsv($out, ['Recetas', 'Recetas este mes', $recetasMes]);
+    if ($verFacturacion && $esAdmin) {
+        fputcsv($out, ['Finanzas', 'Cobrado este mes', number_format($ingresosMes, 2, '.', '')]);
+        fputcsv($out, ['Finanzas', 'Cobrado hoy', number_format($ingresosHoy, 2, '.', '')]);
+        fputcsv($out, ['Finanzas', 'Ticket promedio', number_format($ticketProm, 2, '.', '')]);
+        fputcsv($out, ['Finanzas', 'Pendiente por cobrar', number_format($pendienteCobrar, 2, '.', '')]);
+    }
+
+    if ($verReportes) {
+        fputcsv($out, []);
+        fputcsv($out, ['Mes', 'Ingresos', 'Pacientes nuevos']);
+        foreach ($revLabels as $i => $lbl) {
+            fputcsv($out, [$lbl, number_format((float) ($revData[$i] ?? 0), 2, '.', ''), $newData[$i] ?? 0]);
+        }
+        fputcsv($out, []);
+        fputcsv($out, ['Día', 'Consultas']);
+        foreach ($consLabels as $i => $lbl) fputcsv($out, [$lbl, $consData[$i] ?? 0]);
+        if ($estLabels) {
+            fputcsv($out, []);
+            fputcsv($out, ['Estado de cita (mes)', 'Citas']);
+            foreach ($estLabels as $i => $lbl) fputcsv($out, [$lbl, $estData[$i] ?? 0]);
+        }
+        if ($metodoLabels) {
+            fputcsv($out, []);
+            fputcsv($out, ['Método de pago (mes)', 'Ingresos']);
+            foreach ($metodoLabels as $i => $lbl) fputcsv($out, [$lbl, number_format((float) ($metodoData[$i] ?? 0), 2, '.', '')]);
+        }
+    }
+    exit;
+}
+
 /* ── Saludo según la hora ────────────────────────────────────────────── */
 $hora     = (int) date('H');
 $saludo   = $hora < 12 ? t('Buenos días') : ($hora < 19 ? t('Buenas tardes') : t('Buenas noches'));
@@ -248,6 +296,7 @@ include __DIR__ . '/includes/header.php';
             <?php if ($verCitas): ?><a href="<?= BASE_URL ?>/citas/create" class="btn btn-primary btn-sm"><i class="bi bi-calendar-plus"></i> <?= et('Nueva cita') ?></a><?php endif; ?>
             <a href="<?= BASE_URL ?>/pacientes/create" class="btn btn-light btn-sm"><i class="bi bi-person-plus"></i> <?= et('Nuevo paciente') ?></a>
             <?php if ($verCitas): ?><a href="<?= BASE_URL ?>/citas/calendario" class="btn btn-light btn-sm"><i class="bi bi-calendar3"></i> <?= et('Agenda') ?></a><?php endif; ?>
+            <a href="<?= BASE_URL ?>/dashboard?export=csv" class="btn btn-light btn-sm"><i class="bi bi-filetype-csv"></i> <?= et('Exportar CSV') ?></a>
         </div>
     </div>
 </div>
