@@ -227,50 +227,115 @@ if ($verFacturacion) {
     $ultimasFacturas = $uf->fetchAll();
 }
 
-/* ── Exportar a CSV (antes de imprimir el layout) ────────────────────── */
+/* ── Exportar a CSV por módulo (antes de imprimir el layout) ─────────── */
+/* Cada módulo se descarga en su propio archivo, con metadatos al inicio.
+ * La lista respeta plan y rol: solo se ofrece lo que el usuario puede ver. */
+$modulosCsv = [];
+if ($verCitas)                  $modulosCsv['citas']     = 'Citas';
+$modulosCsv['pacientes'] = 'Pacientes';
+$modulosCsv['consultas'] = 'Consultas';
+if ($verRecetas)                $modulosCsv['recetas']   = 'Recetas';
+if ($verFacturacion && $esAdmin) $modulosCsv['finanzas'] = 'Finanzas';
+
 if (($_GET['export'] ?? '') === 'csv') {
+    $mod = $_GET['mod'] ?? '';
+    if (!isset($modulosCsv[$mod])) $mod = array_key_first($modulosCsv);
+
     header('Content-Type: text/csv; charset=utf-8');
-    header('Content-Disposition: attachment; filename="dashboard_' . date('Y-m-d') . '.csv"');
+    header('Content-Disposition: attachment; filename="' . $mod . '_' . date('Y-m-d_Hi') . '.csv"');
     $out = fopen('php://output', 'w');
     fwrite($out, "\xEF\xBB\xBF");
 
-    fputcsv($out, ['Sección', 'Indicador', 'Valor']);
-    fputcsv($out, ['Citas', 'Citas hoy', $citasHoy]);
-    fputcsv($out, ['Citas', 'Confirmadas hoy', $citasConfHoy]);
-    fputcsv($out, ['Citas', 'Atendidas hoy', $citasAtendHoy]);
-    fputcsv($out, ['Citas', 'Por confirmar', $citasPorConfirmar]);
-    fputcsv($out, ['Citas', 'Próximas (programadas/confirmadas)', $citasPend]);
-    fputcsv($out, ['Citas', 'Tasa de inasistencia 90 días (%)', $noShow]);
-    fputcsv($out, ['Pacientes', 'Pacientes totales', $totPacientes]);
-    fputcsv($out, ['Pacientes', 'Nuevos este mes', $pacientesMes]);
-    fputcsv($out, ['Consultas', 'Consultas este mes', $consultasMes]);
-    if ($verRecetas) fputcsv($out, ['Recetas', 'Recetas este mes', $recetasMes]);
-    if ($verFacturacion && $esAdmin) {
-        fputcsv($out, ['Finanzas', 'Cobrado este mes', number_format($ingresosMes, 2, '.', '')]);
-        fputcsv($out, ['Finanzas', 'Cobrado hoy', number_format($ingresosHoy, 2, '.', '')]);
-        fputcsv($out, ['Finanzas', 'Ticket promedio', number_format($ticketProm, 2, '.', '')]);
-        fputcsv($out, ['Finanzas', 'Pendiente por cobrar', number_format($pendienteCobrar, 2, '.', '')]);
-    }
+    /* Metadatos del export: quién, de dónde, con qué alcance y cuándo. */
+    require_once __DIR__ . '/includes/mercadopago.php'; // planes_mp(): nombre del plan
+    $cons       = tenant();
+    $planClave  = $cons['plan'] ?? '';
+    $planNombre = planes_mp()[$planClave]['nombre'] ?? ucfirst($planClave);
+    fputcsv($out, ['Metadato', 'Valor']);
+    fputcsv($out, ['Sistema', marca_nombre()]);
+    fputcsv($out, ['Consultorio', $cons['nombre'] ?? '']);
+    fputcsv($out, ['Plan', $planNombre]);
+    fputcsv($out, ['Módulo', $modulosCsv[$mod]]);
+    fputcsv($out, ['Exportado por', $u['nombre'] . ' (' . $u['rol'] . ')']);
+    fputcsv($out, ['Alcance', $esMedico ? 'Solo mis registros' : 'Todo el consultorio']);
+    fputcsv($out, ['Fecha de exportación', date('Y-m-d H:i:s')]);
+    fputcsv($out, ['Zona horaria', date_default_timezone_get()]);
+    fputcsv($out, []);
 
-    if ($verReportes) {
-        fputcsv($out, []);
-        fputcsv($out, ['Mes', 'Ingresos', 'Pacientes nuevos']);
-        foreach ($revLabels as $i => $lbl) {
-            fputcsv($out, [$lbl, number_format((float) ($revData[$i] ?? 0), 2, '.', ''), $newData[$i] ?? 0]);
-        }
-        fputcsv($out, []);
-        fputcsv($out, ['Día', 'Consultas']);
-        foreach ($consLabels as $i => $lbl) fputcsv($out, [$lbl, $consData[$i] ?? 0]);
-        if ($estLabels) {
-            fputcsv($out, []);
-            fputcsv($out, ['Estado de cita (mes)', 'Citas']);
-            foreach ($estLabels as $i => $lbl) fputcsv($out, [$lbl, $estData[$i] ?? 0]);
-        }
-        if ($metodoLabels) {
-            fputcsv($out, []);
-            fputcsv($out, ['Método de pago (mes)', 'Ingresos']);
-            foreach ($metodoLabels as $i => $lbl) fputcsv($out, [$lbl, number_format((float) ($metodoData[$i] ?? 0), 2, '.', '')]);
-        }
+    switch ($mod) {
+        case 'citas':
+            fputcsv($out, ['Indicador', 'Valor']);
+            fputcsv($out, ['Citas hoy', $citasHoy]);
+            fputcsv($out, ['Confirmadas hoy', $citasConfHoy]);
+            fputcsv($out, ['Atendidas hoy', $citasAtendHoy]);
+            fputcsv($out, ['Por confirmar', $citasPorConfirmar]);
+            fputcsv($out, ['Próximas (programadas/confirmadas)', $citasPend]);
+            fputcsv($out, ['Tasa de inasistencia 90 días (%)', $noShow]);
+            if ($verReportes && $estLabels) {
+                fputcsv($out, []);
+                fputcsv($out, ['Estado de cita (mes)', 'Citas']);
+                foreach ($estLabels as $i => $lbl) fputcsv($out, [$lbl, $estData[$i] ?? 0]);
+            }
+            if ($verReportes && $horas) {
+                fputcsv($out, []);
+                fputcsv($out, ['Hora', 'Citas']);
+                foreach (array_values($horas) as $i => $n) fputcsv($out, [$horasLabels[$i], $n]);
+            }
+            if ($verReportes && $topMedicos) {
+                fputcsv($out, []);
+                fputcsv($out, ['Médico', 'Citas']);
+                foreach ($topMedicos as $m) fputcsv($out, [$m['nombre'], $m['c']]);
+            }
+            break;
+
+        case 'pacientes':
+            fputcsv($out, ['Indicador', 'Valor']);
+            fputcsv($out, ['Pacientes totales', $totPacientes]);
+            fputcsv($out, ['Nuevos este mes', $pacientesMes]);
+            if ($verReportes && array_sum($porTipo) > 0) {
+                fputcsv($out, []);
+                fputcsv($out, ['Tipo', 'Pacientes']);
+                foreach ($porTipo as $tipo => $n) fputcsv($out, [ucfirst($tipo), $n]);
+            }
+            if ($verReportes && $revLabels) {
+                fputcsv($out, []);
+                fputcsv($out, ['Mes', 'Pacientes nuevos']);
+                foreach ($revLabels as $i => $lbl) fputcsv($out, [$lbl, $newData[$i] ?? 0]);
+            }
+            break;
+
+        case 'consultas':
+            fputcsv($out, ['Indicador', 'Valor']);
+            fputcsv($out, ['Consultas este mes', $consultasMes]);
+            if ($verReportes && $consLabels) {
+                fputcsv($out, []);
+                fputcsv($out, ['Día', 'Consultas']);
+                foreach ($consLabels as $i => $lbl) fputcsv($out, [$lbl, $consData[$i] ?? 0]);
+            }
+            break;
+
+        case 'recetas':
+            fputcsv($out, ['Indicador', 'Valor']);
+            fputcsv($out, ['Recetas este mes', $recetasMes]);
+            break;
+
+        case 'finanzas':
+            fputcsv($out, ['Indicador', 'Valor']);
+            fputcsv($out, ['Cobrado este mes', number_format($ingresosMes, 2, '.', '')]);
+            fputcsv($out, ['Cobrado hoy', number_format($ingresosHoy, 2, '.', '')]);
+            fputcsv($out, ['Ticket promedio', number_format($ticketProm, 2, '.', '')]);
+            fputcsv($out, ['Pendiente por cobrar', number_format($pendienteCobrar, 2, '.', '')]);
+            if ($verReportes && $revLabels) {
+                fputcsv($out, []);
+                fputcsv($out, ['Mes', 'Ingresos']);
+                foreach ($revLabels as $i => $lbl) fputcsv($out, [$lbl, number_format((float) ($revData[$i] ?? 0), 2, '.', '')]);
+            }
+            if ($verReportes && $metodoLabels) {
+                fputcsv($out, []);
+                fputcsv($out, ['Método de pago (mes)', 'Ingresos']);
+                foreach ($metodoLabels as $i => $lbl) fputcsv($out, [$lbl, number_format((float) ($metodoData[$i] ?? 0), 2, '.', '')]);
+            }
+            break;
     }
     exit;
 }
@@ -296,7 +361,16 @@ include __DIR__ . '/includes/header.php';
             <?php if ($verCitas): ?><a href="<?= BASE_URL ?>/citas/create" class="btn btn-primary btn-sm"><i class="bi bi-calendar-plus"></i> <?= et('Nueva cita') ?></a><?php endif; ?>
             <a href="<?= BASE_URL ?>/pacientes/create" class="btn btn-light btn-sm"><i class="bi bi-person-plus"></i> <?= et('Nuevo paciente') ?></a>
             <?php if ($verCitas): ?><a href="<?= BASE_URL ?>/citas/calendario" class="btn btn-light btn-sm"><i class="bi bi-calendar3"></i> <?= et('Agenda') ?></a><?php endif; ?>
-            <a href="<?= BASE_URL ?>/dashboard?export=csv" class="btn btn-light btn-sm"><i class="bi bi-filetype-csv"></i> <?= et('Exportar CSV') ?></a>
+            <div class="dropdown">
+                <button type="button" class="btn btn-light btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-filetype-csv"></i> <?= et('Exportar CSV') ?>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <?php foreach ($modulosCsv as $modClave => $modNombre): ?>
+                        <li><a class="dropdown-item" href="<?= BASE_URL ?>/dashboard?export=csv&mod=<?= e($modClave) ?>"><?= et($modNombre) ?></a></li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
         </div>
     </div>
 </div>
