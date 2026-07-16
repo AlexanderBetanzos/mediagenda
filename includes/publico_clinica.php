@@ -100,23 +100,44 @@ include __DIR__ . '/publico_header.php';
     /* ===== HERO (banner profesional a TODO el ancho) =====
        Se rompe fuera de cualquier contenedor con 100vw, así ocupa la pantalla
        completa aunque el envoltorio esté limitado. */
-    .clx .hero { position: relative; color: #fff; overflow: hidden; background: var(--cl-d);
+    .clx .hero { position: relative; color: #fff; overflow: hidden; background: #0c1620;
                  width: 100vw; margin-left: calc(50% - 50vw); }
+    /* Overlay elegante: oscuro con un toque de marca a la izquierda (donde va el
+       texto) y transparente a la derecha para que se luzca la foto. Nada de verde
+       saturado por todos lados. */
     .clx .hero::before { content: ''; position: absolute; inset: 0; z-index: 0;
-        background: linear-gradient(100deg, var(--cl-d) 0%, color-mix(in srgb, var(--cl-d) 80%, transparent) 42%,
-                    color-mix(in srgb, var(--cl) 30%, transparent) 74%, rgba(0,0,0,.20) 100%),
+        background: linear-gradient(95deg,
+                    color-mix(in srgb, var(--cl-d) 62%, #0b141d) 0%,
+                    color-mix(in srgb, var(--cl-d) 45%, #0b141d) 38%,
+                    rgba(11,20,29,.42) 66%, rgba(11,20,29,.08) 100%),
                     url('<?= e($foto ?: 'https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=1920&q=80&auto=format&fit=crop') ?>') center/cover no-repeat; }
-    .clx .hero .wrap { position: relative; z-index: 1; min-height: 520px; display: flex; flex-direction: column;
-                       justify-content: center; padding: 5.5rem 1.5rem; }
-    .clx .hero .pill { display: inline-flex; align-items: center; gap: .45rem; background: rgba(255,255,255,.16);
-                       padding: .34rem .85rem; border-radius: 999px; font-weight: 600; font-size: .8rem; }
-    .clx .hero h1 { font-family: 'Mulish', sans-serif; font-weight: 800; font-size: clamp(2.4rem, 5.2vw, 4rem);
-                    line-height: 1.06; margin: 1.1rem 0 .9rem; text-shadow: 0 2px 20px rgba(0,0,0,.25); }
-    .clx .hero .lead { font-size: 1.2rem; opacity: .95; max-width: 42ch; text-shadow: 0 1px 12px rgba(0,0,0,.25); }
-    .clx .hero .logo { max-height: 46px; background: #fff; border-radius: 10px; padding: .35rem .6rem; margin-bottom: 1rem; }
-    .clx .hero .trust { display: flex; flex-wrap: wrap; gap: 1.6rem; margin-top: 2rem; }
-    .clx .hero .trust .n { font-family: 'Mulish', sans-serif; font-weight: 800; font-size: 1.7rem; line-height: 1; }
-    .clx .hero .trust .l { font-size: .8rem; opacity: .85; }
+    .clx .hero .wrap { position: relative; z-index: 1; min-height: 560px; display: flex; align-items: center;
+                       padding: 5rem 1.5rem; }
+    .clx .hero .pill { display: inline-flex; align-items: center; gap: .45rem; background: rgba(255,255,255,.14);
+                       backdrop-filter: blur(6px); padding: .4rem .9rem; border-radius: 999px; font-weight: 600;
+                       font-size: .78rem; letter-spacing: .02em; }
+    .clx .hero h1 { font-family: 'Mulish', sans-serif; font-weight: 800; font-size: clamp(2.3rem, 4.8vw, 3.6rem);
+                    line-height: 1.08; margin: 1.2rem 0 1rem; text-shadow: 0 2px 24px rgba(0,0,0,.3); }
+    .clx .hero .lead { font-size: 1.15rem; opacity: .94; max-width: 40ch; text-shadow: 0 1px 12px rgba(0,0,0,.3); }
+    .clx .hero .logo { max-height: 48px; background: #fff; border-radius: 12px; padding: .4rem .7rem; margin-bottom: .3rem; }
+
+    /* Tarjeta de vidrio con la info del consultorio (elemento "pro"). */
+    .clx .hero-info { background: rgba(255,255,255,.11); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+                      border: 1px solid rgba(255,255,255,.22); border-radius: 24px; padding: 1.7rem 1.8rem;
+                      box-shadow: 0 26px 64px rgba(0,0,0,.32); }
+    .clx .hero-info .hi-t { font-weight: 700; font-size: .82rem; letter-spacing: .08em; text-transform: uppercase;
+                            opacity: .8; margin-bottom: 1rem; }
+    .clx .hero-info .hi-row { display: flex; align-items: center; gap: .9rem; padding: .75rem 0;
+                              border-top: 1px solid rgba(255,255,255,.14); }
+    .clx .hero-info .hi-row:first-of-type { border-top: 0; }
+    .clx .hero-info .hi-ic { width: 46px; height: 46px; flex-shrink: 0; border-radius: 13px; display: flex;
+                             align-items: center; justify-content: center; font-size: 1.25rem;
+                             background: rgba(255,255,255,.16); }
+    .clx .hero-info .hi-n { font-family: 'Mulish', sans-serif; font-weight: 800; font-size: 1.3rem; line-height: 1; }
+    .clx .hero-info .hi-l { font-size: .84rem; opacity: .85; }
+    .clx .hero-info .hi-cta { display: block; text-align: center; margin-top: 1.2rem; background: var(--cta);
+                              color: #fff; border-radius: 999px; padding: .8rem; font-weight: 700; text-decoration: none; }
+    .clx .hero-info .hi-cta:hover { background: var(--cta-d); }
     /* Imagen / tarjeta al lado */
     .clx .hero-img { border-radius: 22px; width: 100%; height: 340px; object-fit: cover;
                      box-shadow: 0 24px 60px rgba(0,0,0,.28); }
@@ -212,10 +233,10 @@ include __DIR__ . '/publico_header.php';
 <!-- ===== HERO (banner) ===== -->
 <header class="hero">
     <div class="wrap">
-        <div class="row">
+        <div class="row align-items-center g-4 g-lg-5 w-100">
             <div class="col-lg-7">
                 <?php if (cfg('marca_logo')): ?>
-                    <img src="<?= e(cfg('marca_logo')) ?>" alt="<?= e($marca) ?>" class="logo d-block">
+                    <img src="<?= e(cfg('marca_logo')) ?>" alt="<?= e($marca) ?>" class="logo d-inline-block">
                 <?php else: ?>
                     <span class="pill"><i class="bi bi-heart-pulse-fill"></i> <?= e($marca) ?></span>
                 <?php endif; ?>
@@ -231,10 +252,32 @@ include __DIR__ . '/publico_header.php';
                         <a href="tel:<?= e(preg_replace('/\s+/', '', $tel)) ?>" class="btn-gho"><i class="bi bi-telephone"></i> <?= e($tel) ?></a>
                     <?php endif; ?>
                 </div>
-                <div class="trust">
-                    <?php if ($anios >= 1): ?><div><div class="n"><?= $anios ?>+</div><div class="l"><?= et('años de experiencia') ?></div></div><?php endif; ?>
-                    <?php if (count($medicos)): ?><div><div class="n"><?= count($medicos) ?></div><div class="l"><?= count($medicos) === 1 ? et('especialista') : et('especialistas') ?></div></div><?php endif; ?>
-                    <?php if ($nServicios): ?><div><div class="n"><?= $nServicios ?></div><div class="l"><?= et('servicios') ?></div></div><?php endif; ?>
+            </div>
+
+            <?php /* Tarjeta de vidrio con datos reales: el elemento "pro" del banner. */ ?>
+            <div class="col-lg-5">
+                <div class="hero-info">
+                    <div class="hi-t"><i class="bi bi-shield-check"></i> <?= et('Atención profesional') ?></div>
+                    <?php if (count($medicos)): ?>
+                    <div class="hi-row"><div class="hi-ic"><i class="bi bi-person-badge"></i></div>
+                        <div><div class="hi-n"><?= count($medicos) ?></div><div class="hi-l"><?= count($medicos) === 1 ? et('especialista a tu servicio') : et('especialistas a tu servicio') ?></div></div></div>
+                    <?php endif; ?>
+                    <?php if ($nServicios): ?>
+                    <div class="hi-row"><div class="hi-ic"><i class="bi bi-clipboard2-pulse"></i></div>
+                        <div><div class="hi-n"><?= $nServicios ?></div><div class="hi-l"><?= et('servicios disponibles') ?></div></div></div>
+                    <?php endif; ?>
+                    <?php if ($anios >= 1): ?>
+                    <div class="hi-row"><div class="hi-ic"><i class="bi bi-award"></i></div>
+                        <div><div class="hi-n"><?= $anios ?>+ <?= et('años') ?></div><div class="hi-l"><?= et('cuidando tu salud') ?></div></div></div>
+                    <?php endif; ?>
+                    <?php if ($reservar): ?>
+                    <div class="hi-row"><div class="hi-ic"><i class="bi bi-calendar-check"></i></div>
+                        <div><div class="hi-n" style="font-size:1rem"><?= et('Agenda en línea') ?></div><div class="hi-l"><?= et('Aparta tu cita 24/7') ?></div></div></div>
+                    <a href="<?= e($urlAgendar) ?>" class="hi-cta"><i class="bi bi-calendar-plus"></i> <?= et('Agendar ahora') ?></a>
+                    <?php elseif ($tel): ?>
+                    <div class="hi-row"><div class="hi-ic"><i class="bi bi-telephone"></i></div>
+                        <div><div class="hi-n" style="font-size:1rem"><?= e($tel) ?></div><div class="hi-l"><?= et('Llámanos para tu cita') ?></div></div></div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
