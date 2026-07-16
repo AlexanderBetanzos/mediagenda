@@ -1,5 +1,5 @@
 -- =====================================================================
---  MediOS Agenda  -  Plantillas de consulta
+--  MediOS  -  Plantillas de consulta
 --  Ejecutar DESPUÉS de schema.sql/multitenant.sql. Idempotente.
 --  Formatos reutilizables que pre-llenan la nueva consulta del expediente.
 -- =====================================================================

@@ -1,5 +1,5 @@
 -- =====================================================================
---  MediOS Agenda  -  Documentos clínicos (constancias, incapacidades, resúmenes)
+--  MediOS  -  Documentos clínicos (constancias, incapacidades, resúmenes)
 --  Ejecutar DESPUÉS de schema.sql, multitenant.sql y planes.sql. Idempotente.
 --
 --  El médico ya escribe estos papeles a mano en Word, con el membrete pegado y

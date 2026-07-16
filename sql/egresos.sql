@@ -1,5 +1,5 @@
 -- =====================================================================
---  MediOS Agenda — Egresos (módulo Egresos e ingresos)
+--  MediOS — Egresos (módulo Egresos e ingresos)
 --  Ejecutar DESPUÉS de schema.sql y multitenant.sql.
 --  Registra gastos del consultorio para calcular la utilidad real del mes
 --  (ingresos de facturas pagadas − egresos).

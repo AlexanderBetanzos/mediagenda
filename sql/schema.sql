@@ -1,5 +1,5 @@
 -- =====================================================================
---  MediOS Agenda  -  Esquema de base de datos
+--  MediOS  -  Esquema de base de datos
 --  Motor: MariaDB / MySQL  -  Codificación: utf8mb4
 -- =====================================================================
 --  Importa este archivo DENTRO de la base de datos ya seleccionada.

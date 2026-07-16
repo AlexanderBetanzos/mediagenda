@@ -1,7 +1,7 @@
 <?php
 /**
  * Corte de caja — cierre por rango de fechas. Réplica del corte de GymOS,
- * adaptado a MediOS Agenda: cobros = facturas pagadas (incluye ventas del POS),
+ * adaptado a MediOS: cobros = facturas pagadas (incluye ventas del POS),
  * egresos del periodo para el neto, detalle e historial de cortes del mes.
  * Exporta a CSV; PDF/Imprimir usan la impresión del navegador.
  */

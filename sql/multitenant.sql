@@ -1,5 +1,5 @@
 -- =====================================================================
---  MediOS Agenda  -  Multi-tenant (varios consultorios en una BD)
+--  MediOS  -  Multi-tenant (varios consultorios en una BD)
 --  Ejecutar DESPUÉS de schema.sql, modulos.sql y configuracion.sql.
 --  Modelo: aislamiento por fila con la columna `consultorio_id`.
 --  Idempotente en MariaDB (usa IF NOT EXISTS).

@@ -1,5 +1,5 @@
 -- =====================================================================
---  MediOS Agenda  -  Archivos adjuntos del expediente
+--  MediOS  -  Archivos adjuntos del expediente
 --  Ejecutar DESPUÉS de schema.sql y multitenant.sql.
 --  Permite subir documentos (estudios, radiografías, PDFs, fotos…)
 --  asociados a un paciente y, opcionalmente, a una consulta.

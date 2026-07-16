@@ -1,5 +1,5 @@
 -- =====================================================================
---  MediOS Agenda  -  DATOS DE PRUEBA
+--  MediOS  -  DATOS DE PRUEBA
 --  Horarios · Agenda en línea · Óptica · Laboratorio · Documentos
 --
 --  CÓMO USARLO

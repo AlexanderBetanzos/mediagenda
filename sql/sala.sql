@@ -1,5 +1,5 @@
 -- =====================================================================
---  MediOS Agenda  -  Sala de espera / flujo del día
+--  MediOS  -  Sala de espera / flujo del día
 --  Ejecutar DESPUÉS de schema.sql/multitenant.sql. Idempotente.
 --  Agrega los estados operativos del día y marcas de tiempo para medir espera.
 -- =====================================================================

@@ -1,5 +1,5 @@
 -- =====================================================================
---  MediOS Agenda  -  Pago en línea de la reserva de cita
+--  MediOS  -  Pago en línea de la reserva de cita
 --  Ejecutar DESPUÉS de sql/cobros.sql y sql/agenda_online.sql. Idempotente.
 --
 --  Liga un cobro a una cita: así, cuando el paciente paga su reserva en línea,

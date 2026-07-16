@@ -1,5 +1,5 @@
 -- =====================================================================
---  MediOS Agenda  -  Cobros en línea (link de pago al paciente)
+--  MediOS  -  Cobros en línea (link de pago al paciente)
 --  Ejecutar DESPUÉS de presupuestos.sql. Idempotente.
 --
 --  Un cobro es una petición de pago con un token público: el paciente abre

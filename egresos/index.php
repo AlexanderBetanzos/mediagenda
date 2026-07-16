@@ -1,6 +1,6 @@
 <?php
 /**
- * Egresos e ingresos — réplica del módulo de GymOS, adaptado a MediOS Agenda.
+ * Egresos e ingresos — réplica del módulo de GymOS, adaptado a MediOS.
  * Registra gastos por categoría y los compara contra los ingresos (facturas
  * pagadas) del mismo rango: ingresos − egresos = balance. Categorías propias
  * con activar/desactivar. Solo administradores. Las tablas se crean solas.

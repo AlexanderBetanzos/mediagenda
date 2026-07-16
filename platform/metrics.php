@@ -1,7 +1,7 @@
 <?php
 /**
  * Plataforma — Métricas del negocio. Réplica del /platform/metrics de GymOS,
- * adaptado a MediOS Agenda: MRR/ARR/ARPU, cartera y churn, activaciones, MRR por
+ * adaptado a MediOS: MRR/ARR/ARPU, cartera y churn, activaciones, MRR por
  * plan, GMV (dinero que mueven todos los consultorios), conversión de prueba,
  * top consultorios, pruebas por vencer y consultorios en riesgo.
  */

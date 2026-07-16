@@ -1,5 +1,5 @@
 -- =====================================================================
---  MediOS Agenda  -  Agenda en línea + confirmación de cita
+--  MediOS  -  Agenda en línea + confirmación de cita
 --  Ejecutar DESPUÉS de schema.sql, multitenant.sql, agenda.sql y planes.sql.
 --  Idempotente.
 --

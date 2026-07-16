@@ -1,5 +1,5 @@
 -- =====================================================================
---  MediOS Agenda  -  Catálogo de servicios + Presupuestos / planes de tratamiento
+--  MediOS  -  Catálogo de servicios + Presupuestos / planes de tratamiento
 --  Ejecutar DESPUÉS de schema.sql/multitenant.sql/planes.sql. Idempotente.
 --
 --  Flujo: el consultorio define su catálogo de `servicios` (con precio y

@@ -1,5 +1,5 @@
 -- =====================================================================
---  MediOS Agenda  -  Laboratorio (órdenes de estudio y resultados)
+--  MediOS  -  Laboratorio (órdenes de estudio y resultados)
 --  Ejecutar DESPUÉS de schema.sql, multitenant.sql, archivos.sql y planes.sql.
 --  Idempotente en MariaDB.
 --

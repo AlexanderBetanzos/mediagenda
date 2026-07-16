@@ -1,5 +1,5 @@
 -- =====================================================================
---  MediOS Agenda  -  Odontograma real: por caras, con historial y ligado al
+--  MediOS  -  Odontograma real: por caras, con historial y ligado al
 --  plan de tratamiento.
 --  Ejecutar DESPUÉS de especialidades.sql y presupuestos.sql. Idempotente.
 --

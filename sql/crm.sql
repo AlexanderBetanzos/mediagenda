@@ -1,5 +1,5 @@
 -- =====================================================================
---  MediOS Agenda  -  CRM (seguimiento de pacientes)
+--  MediOS  -  CRM (seguimiento de pacientes)
 --  Ejecutar DESPUÉS de planes.sql y schema/multitenant. Idempotente.
 -- =====================================================================
 

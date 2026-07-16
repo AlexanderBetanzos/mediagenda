@@ -1,5 +1,5 @@
 -- =====================================================================
---  MediOS Agenda — Actualización de BD (todas las migraciones de features)
+--  MediOS — Actualización de BD (todas las migraciones de features)
 --  Idempotente: seguro de importar varias veces.
 --  Orden importa: planes ANTES de crm. Importar en phpMyAdmin.
 --  Generado: 2026-06-24
@@ -7,7 +7,7 @@
 
 -- ============ sql/archivos.sql ============
 -- =====================================================================
---  MediOS Agenda  -  Archivos adjuntos del expediente
+--  MediOS  -  Archivos adjuntos del expediente
 --  Ejecutar DESPUÉS de schema.sql y multitenant.sql.
 --  Permite subir documentos (estudios, radiografías, PDFs, fotos…)
 --  asociados a un paciente y, opcionalmente, a una consulta.
@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS archivos (
 
 -- ============ sql/planes.sql ============
 -- =====================================================================
---  MediOS Agenda  -  Planes y entitlements (módulos por plan)
+--  MediOS  -  Planes y entitlements (módulos por plan)
 --  Ejecutar DESPUÉS de multitenant.sql. Idempotente en MariaDB.
 --
 --  Modelo: cada consultorio tiene un `plan`; el plan incluye un conjunto de
@@ -150,7 +150,7 @@ UPDATE consultorios SET plan='clinica'     WHERE plan IN ('premium','activa');
 
 -- ============ sql/seguridad.sql ============
 -- =====================================================================
---  MediOS Agenda  -  Seguridad: auditoría + 2FA (TOTP)
+--  MediOS  -  Seguridad: auditoría + 2FA (TOTP)
 --  Ejecutar DESPUÉS de multitenant.sql. Idempotente en MariaDB.
 -- =====================================================================
 
@@ -180,7 +180,7 @@ ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS twofa_activo TINYINT(1) NOT NULL D
 
 -- ============ sql/portal.sql ============
 -- =====================================================================
---  MediOS Agenda  -  Portal del paciente (acceso de pacientes)
+--  MediOS  -  Portal del paciente (acceso de pacientes)
 --  Ejecutar DESPUÉS de schema.sql/multitenant.sql. Idempotente en MariaDB.
 --  El paciente inicia sesión con su correo y una contraseña que le asigna
 --  el consultorio. Sesión separada de la del personal.
@@ -191,7 +191,7 @@ ALTER TABLE pacientes ADD COLUMN IF NOT EXISTS portal_activo TINYINT(1) NOT NULL
 
 -- ============ sql/expediente.sql ============
 -- =====================================================================
---  MediOS Agenda  -  Expediente inteligente (campos clínicos e identificación)
+--  MediOS  -  Expediente inteligente (campos clínicos e identificación)
 --  Ejecutar DESPUÉS de schema.sql/multitenant.sql. Idempotente en MariaDB.
 --  Amplía `pacientes` con datos alineados a la NOM-024 (expediente clínico).
 -- =====================================================================
@@ -216,7 +216,7 @@ ALTER TABLE pacientes ADD COLUMN IF NOT EXISTS habitos                 TEXT DEFA
 
 -- ============ sql/agenda.sql ============
 -- =====================================================================
---  MediOS Agenda  -  Agenda pro: horarios por médico y bloqueos
+--  MediOS  -  Agenda pro: horarios por médico y bloqueos
 --  Ejecutar DESPUÉS de schema.sql/multitenant.sql. Idempotente en MariaDB.
 -- =====================================================================
 
@@ -251,7 +251,7 @@ CREATE TABLE IF NOT EXISTS bloqueos (
 
 -- ============ sql/inventario.sql ============
 -- =====================================================================
---  MediOS Agenda  -  Inventario / Farmacia
+--  MediOS  -  Inventario / Farmacia
 --  Ejecutar DESPUÉS de schema.sql/multitenant.sql. Idempotente en MariaDB.
 --  Stock por LOTES (con caducidad). El total de un producto = suma de lotes.
 --  Cada cambio de stock deja un movimiento (entrada/salida/ajuste).
@@ -305,7 +305,7 @@ CREATE TABLE IF NOT EXISTS inventario_movimientos (
 
 -- ============ sql/crm.sql ============
 -- =====================================================================
---  MediOS Agenda  -  CRM (seguimiento de pacientes)
+--  MediOS  -  CRM (seguimiento de pacientes)
 --  Ejecutar DESPUÉS de planes.sql y schema/multitenant. Idempotente.
 -- =====================================================================
 
@@ -340,7 +340,7 @@ ON DUPLICATE KEY UPDATE plan_clave = VALUES(plan_clave);
 
 -- ============ sql/recordatorios.sql ============
 -- =====================================================================
---  MediOS Agenda  -  Recordatorios automáticos de cita
+--  MediOS  -  Recordatorios automáticos de cita
 --  Ejecutar DESPUÉS de schema.sql/multitenant.sql. Idempotente.
 --  Marca cuándo se envió el recordatorio a una cita (para no repetirlo).
 -- =====================================================================
@@ -350,7 +350,7 @@ ALTER TABLE citas ADD INDEX IF NOT EXISTS idx_cita_recordatorio (consultorio_id,
 
 -- ============ sql/sala.sql ============
 -- =====================================================================
---  MediOS Agenda  -  Sala de espera / flujo del día
+--  MediOS  -  Sala de espera / flujo del día
 --  Ejecutar DESPUÉS de schema.sql/multitenant.sql. Idempotente.
 --  Agrega los estados operativos del día y marcas de tiempo para medir espera.
 -- =====================================================================
@@ -364,7 +364,7 @@ ALTER TABLE citas ADD COLUMN IF NOT EXISTS atencion_en DATETIME DEFAULT NULL;  -
 
 -- ============ sql/plantillas.sql ============
 -- =====================================================================
---  MediOS Agenda  -  Plantillas de consulta
+--  MediOS  -  Plantillas de consulta
 --  Ejecutar DESPUÉS de schema.sql/multitenant.sql. Idempotente.
 --  Formatos reutilizables que pre-llenan la nueva consulta del expediente.
 -- =====================================================================
@@ -387,7 +387,7 @@ CREATE TABLE IF NOT EXISTS plantillas_consulta (
 
 -- ============ sql/especialidades.sql ============
 -- =====================================================================
---  MediOS Agenda  -  Especialidades: odontograma
+--  MediOS  -  Especialidades: odontograma
 --  Ejecutar DESPUÉS de schema.sql/multitenant.sql. Idempotente.
 --  El odontograma se guarda como JSON (mapa diente => estado) por paciente.
 --  Las curvas de crecimiento NO necesitan tabla: usan consultas (peso/estatura)
@@ -408,7 +408,7 @@ CREATE TABLE IF NOT EXISTS odontogramas (
 
 -- ============ sql/feedback.sql ============
 -- =====================================================================
---  MediOS Agenda  -  Feedback / sugerencias de los usuarios del sistema
+--  MediOS  -  Feedback / sugerencias de los usuarios del sistema
 --  Ejecutar DESPUÉS de multitenant.sql. Idempotente.
 --  Cualquier usuario (cualquier consultorio) puede dejar comentarios;
 --  el súper-admin los ve todos para priorizar mejoras.

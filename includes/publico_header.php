@@ -3,7 +3,7 @@
  * Cáscara de las páginas PÚBLICAS que ve el paciente (agendar cita, confirmar).
  *
  * Reutiliza el look de la landing (clases `lp`, tema claro/oscuro) pero con la
- * marca del CONSULTORIO, no la de MediOS Agenda: el paciente está entrando al sitio
+ * marca del CONSULTORIO, no la de MediOS: el paciente está entrando al sitio
  * de su médico, no al de un proveedor de software que no conoce. El white-label
  * es justo lo que se vende.
  *

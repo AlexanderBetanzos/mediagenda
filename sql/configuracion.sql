@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS configuracion (
 -- Valores por defecto (no se sobreescriben si ya existen).
 INSERT INTO configuracion (clave, valor) VALUES
   -- Marca / white-label
-  ('marca_nombre',  'MediOS Agenda'),
+  ('marca_nombre',  'MediOS'),
   ('marca_lema',    'Gestión integral de consultorios'),
   ('marca_logo',    ''),
   -- Apariencia

@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     guardar_cfg([
         // Marca
-        'marca_nombre'  => trim($_POST['marca_nombre'] ?? '') ?: 'MediOS Agenda',
+        'marca_nombre'  => trim($_POST['marca_nombre'] ?? '') ?: 'MediOS',
         'marca_lema'    => trim($_POST['marca_lema'] ?? ''),
         'marca_logo'    => $logo,
         // Página pública (micrositio /c/<slug>)
@@ -146,7 +146,7 @@ include __DIR__ . '/../includes/header.php';
         <div class="card-body row g-3">
             <div class="col-md-6">
                 <label class="form-label"><?= et('Nombre del consultorio') ?></label>
-                <input type="text" name="marca_nombre" class="form-control" value="<?= e(cfg('marca_nombre', 'MediOS Agenda')) ?>" maxlength="60">
+                <input type="text" name="marca_nombre" class="form-control" value="<?= e(cfg('marca_nombre', 'MediOS')) ?>" maxlength="60">
             </div>
             <div class="col-md-6">
                 <label class="form-label"><?= et('Lema / descripción') ?></label>

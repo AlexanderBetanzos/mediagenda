@@ -1,5 +1,5 @@
 -- =====================================================================
---  MediOS Agenda  -  Cargar horario a los MÉDICOS actuales del consultorio
+--  MediOS  -  Cargar horario a los MÉDICOS actuales del consultorio
 --
 --  Le pone a cada médico (rol 'medico', activo) el mismo horario base:
 --    Lun a Vie 9:00–14:00 y 16:00–19:00 · Sábado 9:00–13:00.

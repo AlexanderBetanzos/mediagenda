@@ -1,4 +1,4 @@
-# Backlog & Roadmap — MediOS Agenda
+# Backlog & Roadmap — MediOS
 
 > Documento maestro de producto. Organiza **todo** lo que vamos a construir, en
 > qué **fase**, a qué **plan** pertenece y de qué **depende técnicamente**.
