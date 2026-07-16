@@ -124,7 +124,7 @@ function mp_credenciales_desde_post(array $post, string $tokenActual = '', strin
  *
  *  Distintas de las de la plataforma: estas viven en `configuracion`, son de
  *  cada tenant, y el dinero cae en la cuenta del consultorio. Las de arriba
- *  (`plataforma_config`) son con las que MediAgenda cobra las suscripciones.
+ *  (`plataforma_config`) son con las que MediOS Agenda cobra las suscripciones.
  * ------------------------------------------------------------------ */
 
 function mp_tenant_access_token(): string { return (string) cfg('mp_access_token', ''); }
@@ -252,7 +252,7 @@ function mp_crear_suscripcion(array $consultorio, string $planKey, string $payer
     $plan = $planes[$planKey];
 
     $payload = [
-        'reason'             => 'MediAgenda — Plan ' . $plan['nombre'],
+        'reason'             => 'MediOS Agenda — Plan ' . $plan['nombre'],
         'external_reference' => 'consultorio:' . (int) $consultorio['id'] . '|plan:' . $planKey,
         'payer_email'        => $payerEmail,
         'back_url'           => rtrim(url_absoluta('/pagos/retorno'), '/'),
@@ -293,7 +293,7 @@ function mp_crear_suscripcion_token(array $consultorio, string $planKey, string 
     $plan = $planes[$planKey];
 
     $payload = [
-        'reason'             => 'MediAgenda — Plan ' . $plan['nombre'],
+        'reason'             => 'MediOS Agenda — Plan ' . $plan['nombre'],
         'external_reference' => 'consultorio:' . (int) $consultorio['id'] . '|plan:' . $planKey,
         'payer_email'        => $payerEmail,
         'card_token_id'      => $cardToken,

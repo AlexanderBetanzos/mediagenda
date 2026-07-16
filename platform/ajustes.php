@@ -1,7 +1,7 @@
 <?php
 /**
  * Ajustes de la plataforma (consola del dueño). Aquí viven las credenciales de
- * Mercado Pago con las que MediAgenda cobra las suscripciones a los
+ * Mercado Pago con las que MediOS Agenda cobra las suscripciones a los
  * consultorios. NO son del consultorio: por eso no están en /configuracion.
  *
  * Precedencia: lo guardado aquí manda sobre el archivo de secretos.

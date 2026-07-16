@@ -1,9 +1,9 @@
 <?php
-/** Ayuda y soporte: datos de contacto del proveedor (MediAgenda). */
+/** Ayuda y soporte: datos de contacto del proveedor (MediOS Agenda). */
 require_once __DIR__ . '/../includes/functions.php';
 require_login();
 
-$waMsg = rawurlencode(t('Hola, necesito ayuda con MediAgenda.'));
+$waMsg = rawurlencode(t('Hola, necesito ayuda con MediOS Agenda.'));
 $waUrl = 'https://wa.me/' . SOPORTE_WHATSAPP . '?text=' . $waMsg;
 
 $titulo = t('Ayuda y soporte');
@@ -14,7 +14,7 @@ include __DIR__ . '/../includes/header.php';
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
     <div>
         <h1 class="h3 mb-1"><i class="bi bi-life-preserver text-brand"></i> <?= et('Ayuda y soporte') ?></h1>
-        <p class="text-muted mb-0"><?= et('¿Necesitas ayuda con MediAgenda? Contáctanos por el medio que prefieras.') ?></p>
+        <p class="text-muted mb-0"><?= et('¿Necesitas ayuda con MediOS Agenda? Contáctanos por el medio que prefieras.') ?></p>
     </div>
 </div>
 

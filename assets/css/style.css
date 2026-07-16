@@ -4,7 +4,7 @@
    - Tema oscuro (.app-dark): panel interno estilo dashboard
    ===================================================================== */
 :root {
-    /* Marca MediAgenda — verde petróleo (identidad) + coral (acción), estilo
+    /* Marca MediOS Agenda — verde petróleo (identidad) + coral (acción), estilo
        clínico moderno. El verde manda en encabezados, enlaces y acentos; el
        coral es SOLO para los botones de acción (CTA), como en la referencia. */
     --brand:        #1f6b73;
