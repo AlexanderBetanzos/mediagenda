@@ -95,18 +95,34 @@ function _smtp_ultimo_error(string $log): string
     return 'sin detalle';
 }
 
-/** Aclara u oscurece un color hex por un factor (1 = igual, <1 oscurece). */
-function correo_tono(string $hex, float $factor): string
+/** Descompone un hex (#rgb o #rrggbb) en [r,g,b]. */
+function correo_rgb(string $hex): array
 {
     $hex = ltrim($hex, '#');
     if (strlen($hex) === 3) $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
-    if (strlen($hex) !== 6) return '#' . $hex;
-    $c = [];
-    foreach ([0, 2, 4] as $i) {
-        $v = (int) round(hexdec(substr($hex, $i, 2)) * $factor);
-        $c[] = max(0, min(255, $v));
-    }
-    return sprintf('#%02x%02x%02x', $c[0], $c[1], $c[2]);
+    if (strlen($hex) !== 6) $hex = '2563eb';
+    return [hexdec(substr($hex, 0, 2)), hexdec(substr($hex, 2, 2)), hexdec(substr($hex, 4, 2))];
+}
+
+/** Oscurece un color hacia el negro (factor <1). */
+function correo_tono(string $hex, float $factor): string
+{
+    [$r, $g, $b] = correo_rgb($hex);
+    return sprintf('#%02x%02x%02x',
+        max(0, min(255, (int) round($r * $factor))),
+        max(0, min(255, (int) round($g * $factor))),
+        max(0, min(255, (int) round($b * $factor))));
+}
+
+/**
+ * Mezcla un color con blanco: alpha=1 devuelve el color, alpha=0 blanco puro.
+ * Sirve para fondos y bordes tenues con el tinte de la marca (alta legibilidad).
+ */
+function correo_tinte(string $hex, float $alpha): string
+{
+    [$r, $g, $b] = correo_rgb($hex);
+    $mix = fn($v) => (int) round(255 * (1 - $alpha) + $v * $alpha);
+    return sprintf('#%02x%02x%02x', $mix($r), $mix($g), $mix($b));
 }
 
 /** Botón "a prueba de balas" (tabla) para que se vea bien hasta en Outlook. */
@@ -130,7 +146,8 @@ function correo_layout(string $titulo, string $cuerpo, string $cta = '', string 
 {
     $marca   = e(marca_nombre());
     $acento  = color_acento();
-    $acento2 = correo_tono($acento, 0.80);   // variante oscura para profundidad
+    $hdrBg   = correo_tinte($acento, 0.06);   // encabezado tenue, no un bloque saturado
+    $hdrLine = correo_tinte($acento, 0.16);
 
     $boton = $cta !== '' && $ctaUrl !== ''
         ? '<div style="margin-top:26px">' . correo_boton($cta, $ctaUrl, $acento) . '</div>'
@@ -150,13 +167,14 @@ function correo_layout(string $titulo, string $cuerpo, string $cta = '', string 
         . '<table role="presentation" width="600" border="0" cellpadding="0" cellspacing="0" '
         . 'style="max-width:600px;width:100%;background:#ffffff;border-radius:18px;overflow:hidden;'
         . 'box-shadow:0 8px 30px rgba(31,45,80,.08)">'
-        // Banda de encabezado con la marca
-        . '<tr><td style="background:' . $acento . ';background-image:linear-gradient(135deg,' . $acento . ',' . $acento2 . ');'
-        . 'padding:26px 32px;text-align:center">'
-        . '<span style="font-family:Arial,Helvetica,sans-serif;font-size:22px;font-weight:800;color:#ffffff;'
+        // Franja de acento delgada (color de marca sin saturar el correo)
+        . '<tr><td style="height:4px;background:' . $acento . ';font-size:0;line-height:0">&nbsp;</td></tr>'
+        // Encabezado tenue con la marca en su color
+        . '<tr><td style="background:' . $hdrBg . ';padding:22px 32px;text-align:center;border-bottom:1px solid ' . $hdrLine . '">'
+        . '<span style="font-family:Arial,Helvetica,sans-serif;font-size:21px;font-weight:800;color:' . $acento . ';'
         . 'letter-spacing:.02em">' . $marca . '</span></td></tr>'
         // Cuerpo
-        . '<tr><td style="padding:32px 32px 34px">'
+        . '<tr><td style="padding:30px 32px 34px">'
         . $eye
         . '<h1 style="font-size:22px;line-height:1.25;margin:0 0 16px;color:#1f2d3d">' . e($titulo) . '</h1>'
         . '<div style="font-size:15px;line-height:1.65;color:#48566a">' . $cuerpo . '</div>'
@@ -232,38 +250,48 @@ function correo_cita_agendada(string $email, string $nombre, string $fecha, stri
                               string $folio = ''): bool
 {
     $acento  = color_acento();
-    $suave   = correo_tono($acento, 0.96);   // fondo tenue con el tinte de marca
+    $bg      = correo_tinte($acento, 0.05);   // fondo claro con un leve tinte de marca
+    $bd      = correo_tinte($acento, 0.16);   // borde tenue
     $nom1    = trim(explode(' ', trim($nombre))[0]) ?: $nombre;
 
-    // Insignia "Cita confirmada" + folio a la derecha para citarlo fácil.
-    $badge = '<table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" style="margin:0 0 18px"><tr>'
-        . '<td style="vertical-align:middle">'
-        . '<span style="display:inline-block;background:#e7f7ee;border-radius:999px;padding:7px 16px;font-size:13px;font-weight:700;color:#1a7f47">'
-        . '&#10003;&nbsp; Cita confirmada</span></td>'
-        . ($folio !== ''
-            ? '<td align="right" style="vertical-align:middle;font-size:13px;color:#8a97a8">Folio&nbsp;<strong style="color:#1f2d3d;font-family:monospace">' . e($folio) . '</strong></td>'
-            : '')
-        . '</tr></table>';
+    $lblEstilo = 'font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;font-weight:700';
+    $valEstilo = 'font-size:17px;font-weight:800;color:#1f2d3d;margin-top:5px';
 
-    // Tarjeta tipo "ticket" con fecha, hora y (si hay) médico.
+    // Encabezado del ticket: folio (izq.) + insignia "Confirmada" (der.), alineados.
+    $filaFolio =
+        '<tr><td colspan="2" style="padding:15px 22px;border-bottom:1px solid ' . $bd . '">'
+        . '<table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0"><tr>'
+        . '<td align="left" style="vertical-align:middle">'
+        . '<div style="' . $lblEstilo . '">Folio</div>'
+        . '<div style="font-size:15px;font-weight:800;color:#1f2d3d;font-family:Menlo,Consolas,monospace;margin-top:3px">'
+        . e($folio !== '' ? $folio : '—') . '</div>'
+        . '</td>'
+        . '<td align="right" style="vertical-align:middle">'
+        . '<span style="display:inline-block;background:#e7f7ee;border-radius:999px;padding:6px 14px;font-size:12px;font-weight:700;color:#1a7f47;white-space:nowrap">'
+        . '&#10003;&nbsp; Confirmada</span>'
+        . '</td>'
+        . '</tr></table></td></tr>';
+
+    // Fila médico (si hay).
     $filaMedico = $medico
-        ? '<tr><td style="padding:14px 22px 16px;border-top:1px dashed #dbe3ef">'
-          . '<div style="font-size:12px;color:#8a97a8;text-transform:uppercase;letter-spacing:.05em">Te atiende</div>'
-          . '<div style="font-size:16px;font-weight:700;color:#1f2d3d;margin-top:2px">' . e($medico) . '</div>'
+        ? '<tr><td colspan="2" style="padding:15px 22px;border-top:1px solid ' . $bd . '">'
+          . '<div style="' . $lblEstilo . '">Te atiende</div>'
+          . '<div style="font-size:16px;font-weight:700;color:#1f2d3d;margin-top:4px">' . e($medico) . '</div>'
           . '</td></tr>'
         : '';
 
+    // Tarjeta "ticket": clara y legible.
     $ticket = '<table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" '
-        . 'style="background:' . $suave . ';border:1px solid ' . correo_tono($acento, 0.90) . ';'
-        . 'border-radius:14px;margin:6px 0 8px">'
+        . 'style="background:' . $bg . ';border:1px solid ' . $bd . ';border-radius:14px;margin:20px 0 6px">'
+        . $filaFolio
         . '<tr>'
-        . '<td width="50%" style="padding:18px 22px;vertical-align:top">'
-        . '<div style="font-size:12px;color:#8a97a8;text-transform:uppercase;letter-spacing:.05em">&#128197;&nbsp; Fecha</div>'
-        . '<div style="font-size:17px;font-weight:800;color:#1f2d3d;margin-top:4px;text-transform:capitalize">' . e($fecha) . '</div>'
+        . '<td width="50%" style="padding:16px 22px;vertical-align:top">'
+        . '<div style="' . $lblEstilo . '">&#128197;&nbsp; Fecha</div>'
+        . '<div style="' . $valEstilo . ';text-transform:capitalize">' . e($fecha) . '</div>'
         . '</td>'
-        . '<td width="50%" style="padding:18px 22px;vertical-align:top;border-left:1px solid ' . correo_tono($acento, 0.90) . '">'
-        . '<div style="font-size:12px;color:#8a97a8;text-transform:uppercase;letter-spacing:.05em">&#128336;&nbsp; Hora</div>'
-        . '<div style="font-size:17px;font-weight:800;color:#1f2d3d;margin-top:4px">' . e($hora) . '</div>'
+        . '<td width="50%" style="padding:16px 22px;vertical-align:top;border-left:1px solid ' . $bd . '">'
+        . '<div style="' . $lblEstilo . '">&#128336;&nbsp; Hora</div>'
+        . '<div style="' . $valEstilo . '">' . e($hora) . '</div>'
         . '</td>'
         . '</tr>'
         . $filaMedico
@@ -295,8 +323,7 @@ function correo_cita_agendada(string $email, string $nombre, string $fecha, stri
         . '<div style="font-size:13px;color:#8a97a8;text-align:center;margin-top:10px">'
         . 'Guarda este correo: si te surge algo, puedes cancelar desde ese botón.</div>';
 
-    $cuerpo = $badge
-        . 'Hola <strong>' . e($nom1) . '</strong>, tu cita en <strong>' . e(marca_nombre())
+    $cuerpo = 'Hola <strong>' . e($nom1) . '</strong>, tu cita en <strong>' . e(marca_nombre())
         . '</strong> quedó agendada. Aquí están los detalles:'
         . $ticket
         . $portalBloque
