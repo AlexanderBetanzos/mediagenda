@@ -69,7 +69,7 @@ if ($okToken !== '') {
                             <div class="ag-ticket-lbl"><?= et('Folio') ?></div>
                             <div class="ag-ticket-folio"><?= e(cita_folio((int) $cita['id'])) ?></div>
                         </div>
-                        <span class="ag-badge"><i class="bi bi-check-lg"></i> <?= et('Confirmada') ?></span>
+                        <span class="ag-badge ag-badge-ok"><i class="bi bi-check-lg"></i> <?= et('Agendada') ?></span>
                     </div>
                     <div class="ag-ticket-row">
                         <div class="ag-ticket-col">
@@ -109,22 +109,6 @@ if ($okToken !== '') {
             </div>
         </div>
     </div>
-
-    <style>
-        .ag-ticket { border:1px solid rgba(127,127,127,.18); border-radius:16px; overflow:hidden;
-                     background:color-mix(in srgb, var(--brand, #2563eb) 4%, transparent); }
-        .ag-ticket-top { display:flex; align-items:center; justify-content:space-between; gap:12px;
-                         padding:14px 18px; border-bottom:1px solid rgba(127,127,127,.14); }
-        .ag-ticket-row { display:flex; }
-        .ag-ticket-col { flex:1; padding:14px 18px; }
-        .ag-ticket-col + .ag-ticket-col { border-left:1px solid rgba(127,127,127,.14); }
-        .ag-ticket-med { padding:14px 18px; border-top:1px solid rgba(127,127,127,.14); }
-        .ag-ticket-lbl { font-size:.7rem; font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:#94a3b8; }
-        .ag-ticket-val { font-size:1.05rem; font-weight:800; color:inherit; margin-top:3px; }
-        .ag-ticket-folio { font-family:ui-monospace,Menlo,Consolas,monospace; font-weight:800; font-size:1rem; margin-top:2px; }
-        .ag-badge { display:inline-flex; align-items:center; gap:5px; white-space:nowrap; background:#e7f7ee; color:#1a7f47;
-                    font-size:.78rem; font-weight:700; padding:5px 12px; border-radius:999px; }
-    </style>
     <?php
     include __DIR__ . '/../includes/publico_footer.php';
     exit;

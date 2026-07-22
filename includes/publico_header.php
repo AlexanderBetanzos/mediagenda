@@ -43,6 +43,22 @@ $acento = color_acento();
         html.lp-dark .pub-card { box-shadow: 0 10px 34px rgba(0,0,0,.35); }
         .pub-dato { background: color-mix(in srgb, var(--brand) 7%, transparent);
                     border-radius: 14px; padding: 1rem 1.25rem; }
+        /* Ticket de cita: compartido por la pantalla de "listo" y la de confirmar. */
+        .ag-ticket { border: 1px solid rgba(127,127,127,.18); border-radius: 16px; overflow: hidden;
+                     background: color-mix(in srgb, var(--brand) 4%, transparent); }
+        .ag-ticket-top { display: flex; align-items: center; justify-content: space-between; gap: 12px;
+                         padding: 14px 18px; border-bottom: 1px solid rgba(127,127,127,.14); }
+        .ag-ticket-row { display: flex; }
+        .ag-ticket-col { flex: 1; padding: 14px 18px; }
+        .ag-ticket-col + .ag-ticket-col { border-left: 1px solid rgba(127,127,127,.14); }
+        .ag-ticket-med { padding: 14px 18px; border-top: 1px solid rgba(127,127,127,.14); }
+        .ag-ticket-lbl { font-size: .7rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #94a3b8; }
+        .ag-ticket-val { font-size: 1.05rem; font-weight: 800; color: inherit; margin-top: 3px; }
+        .ag-ticket-folio { font-family: ui-monospace, Menlo, Consolas, monospace; font-weight: 800; font-size: 1rem; margin-top: 2px; }
+        .ag-badge { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; font-size: .78rem;
+                    font-weight: 700; padding: 5px 12px; border-radius: 999px; }
+        .ag-badge-ok { background: #e7f7ee; color: #1a7f47; }
+        .ag-badge-off { background: rgba(127,127,127,.14); color: #64748b; }
         /* Huecos de horario: botones grandes, pensados para el pulgar. */
         .hueco input { position: absolute; opacity: 0; }
         .hueco span { display: block; text-align: center; padding: .6rem 1rem; border: 1px solid rgba(127,127,127,.35);

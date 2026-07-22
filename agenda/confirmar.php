@@ -66,86 +66,96 @@ $reservar = agenda_online_activa();
 $titulo = t('Tu cita');
 include __DIR__ . '/../includes/publico_header.php';
 ?>
+<?php
+/* Encabezado (ícono + título) y la insignia del ticket según el estado. */
+$cancelada = $hecho === 'cancelada' || (!$hecho && $c['estado'] === 'cancelada');
+if ($hecho === 'confirmada') {
+    $ico = 'bi-check-lg'; $icoBg = '#e7f7ee'; $icoCol = 'text-success';
+    $encTit = t('¡Cita confirmada!'); $encSub = t('Te esperamos. Gracias por avisarnos.');
+} elseif ($cancelada) {
+    $ico = 'bi-x-lg'; $icoBg = 'rgba(127,127,127,.14)'; $icoCol = 'text-secondary';
+    $encTit = t('Cita cancelada'); $encSub = t('Gracias por avisar a tiempo: así podemos ofrecer ese horario a alguien más.');
+} elseif ($hecho === 'pasada') {
+    $ico = 'bi-clock-history'; $icoBg = 'rgba(127,127,127,.14)'; $icoCol = 'text-secondary';
+    $encTit = t('Esta cita ya pasó'); $encSub = '';
+} else {
+    $ico = 'bi-calendar-check'; $icoBg = 'color-mix(in srgb, var(--brand) 12%, transparent)'; $icoCol = 'text-brand';
+    $encTit = t('Hola') . ', ' . $c['pac_nombre']; $encSub = t('Esta es tu próxima cita:');
+}
+$badgeTxt = $cancelada ? t('Cancelada') : ($c['estado'] === 'confirmada' || $hecho === 'confirmada' ? t('Confirmada') : t('Agendada'));
+$badgeCls = $cancelada ? 'ag-badge-off' : 'ag-badge-ok';
+?>
 <div class="card pub-card">
     <div class="card-body p-4 p-sm-5">
+        <div style="max-width:440px;margin:0 auto">
+            <div class="text-center">
+                <span class="d-inline-flex align-items-center justify-content-center"
+                      style="width:64px;height:64px;border-radius:50%;background:<?= $icoBg ?>">
+                    <i class="bi <?= $ico ?> <?= $icoCol ?>" style="font-size:2rem"></i>
+                </span>
+                <h1 class="h4 fw-bold mt-3 mb-1"><?= e($encTit) ?></h1>
+                <?php if ($encSub): ?><p class="text-muted small mb-4"><?= e($encSub) ?></p><?php endif; ?>
+            </div>
 
-        <?php if ($hecho === 'confirmada'): ?>
-            <div class="text-center mb-4">
-                <i class="bi bi-check-circle-fill text-success" style="font-size:3.2rem"></i>
-                <h1 class="h4 mt-3 mb-1"><?= et('¡Cita confirmada!') ?></h1>
-                <p class="text-muted mb-0"><?= et('Te esperamos. Gracias por avisarnos.') ?></p>
+            <div class="ag-ticket mb-4">
+                <div class="ag-ticket-top">
+                    <div>
+                        <div class="ag-ticket-lbl"><?= et('Folio') ?></div>
+                        <div class="ag-ticket-folio"><?= e(cita_folio((int) $c['id'])) ?></div>
+                    </div>
+                    <span class="ag-badge <?= $badgeCls ?>"><?= e($badgeTxt) ?></span>
+                </div>
+                <div class="ag-ticket-row">
+                    <div class="ag-ticket-col">
+                        <div class="ag-ticket-lbl"><i class="bi bi-calendar-event"></i> <?= et('Fecha') ?></div>
+                        <div class="ag-ticket-val text-capitalize"><?= e(fmt_fecha($c['fecha'])) ?></div>
+                    </div>
+                    <div class="ag-ticket-col">
+                        <div class="ag-ticket-lbl"><i class="bi bi-clock"></i> <?= et('Hora') ?></div>
+                        <div class="ag-ticket-val"><?= fmt_hora($c['hora']) ?></div>
+                    </div>
+                </div>
+                <div class="ag-ticket-med">
+                    <div class="ag-ticket-lbl"><i class="bi bi-person-badge"></i> <?= et('Te atiende') ?></div>
+                    <div class="ag-ticket-val" style="font-size:1rem">
+                        <?= e($c['med_nombre']) ?><?php if ($c['especialidad']): ?> <span class="text-muted fw-normal small">· <?= e($c['especialidad']) ?></span><?php endif; ?>
+                    </div>
+                </div>
             </div>
-        <?php elseif ($hecho === 'cancelada'): ?>
-            <div class="text-center mb-4">
-                <i class="bi bi-x-circle-fill text-secondary" style="font-size:3.2rem"></i>
-                <h1 class="h4 mt-3 mb-1"><?= et('Cita cancelada') ?></h1>
-                <p class="text-muted mb-0"><?= et('Gracias por avisar a tiempo: así podemos ofrecer ese horario a alguien más.') ?></p>
-            </div>
-        <?php elseif ($hecho === 'pasada'): ?>
-            <div class="alert alert-warning"><?= et('Esta cita ya pasó.') ?></div>
-        <?php else: ?>
-            <h1 class="h4 mb-1"><?= et('Hola') ?>, <?= e($c['pac_nombre']) ?></h1>
-            <p class="text-muted"><?= et('Esta es tu próxima cita:') ?></p>
-        <?php endif; ?>
 
-        <div class="pub-dato mb-4">
-            <div class="d-flex align-items-center gap-2 mb-2">
-                <i class="bi bi-hash text-brand"></i>
-                <span class="text-muted small"><?= et('Folio') ?>:</span>
-                <strong class="font-monospace"><?= e(cita_folio((int) $c['id'])) ?></strong>
-            </div>
-            <div class="d-flex align-items-center gap-2 mb-1">
-                <i class="bi bi-calendar-event text-brand"></i>
-                <strong class="text-capitalize"><?= e(fmt_fecha($c['fecha'])) ?></strong>
-            </div>
-            <div class="d-flex align-items-center gap-2 mb-1">
-                <i class="bi bi-clock text-brand"></i> <strong><?= fmt_hora($c['hora']) ?></strong>
-            </div>
-            <div class="d-flex align-items-center gap-2">
-                <i class="bi bi-person-badge text-brand"></i>
-                <?= e($c['med_nombre']) ?>
-                <?php if ($c['especialidad']): ?>
-                    <span class="text-muted small">· <?= e($c['especialidad']) ?></span>
-                <?php endif; ?>
-            </div>
-            <?php if ($c['estado'] === 'confirmada' && !$hecho): ?>
-                <div class="mt-2"><span class="badge bg-success"><?= et('Confirmada') ?></span></div>
-            <?php elseif ($c['estado'] === 'cancelada' && !$hecho): ?>
-                <div class="mt-2"><span class="badge bg-secondary"><?= et('Cancelada') ?></span></div>
+            <?php if ($abierta && $c['estado'] === 'programada'): ?>
+                <form method="post" class="d-grid gap-2">
+                    <input type="hidden" name="t" value="<?= e($token) ?>">
+                    <button name="accion" value="confirmar" class="btn btn-success btn-lg py-3 fw-semibold">
+                        <i class="bi bi-check-lg"></i> <?= et('Sí, ahí estaré') ?>
+                    </button>
+                    <button name="accion" value="cancelar" class="btn btn-outline-secondary"
+                            onclick="return confirm('<?= e(t('¿Seguro que quieres cancelar tu cita?')) ?>')">
+                        <?= et('No puedo asistir') ?>
+                    </button>
+                </form>
+            <?php elseif ($abierta && $c['estado'] === 'confirmada'): ?>
+                <form method="post" class="d-grid">
+                    <input type="hidden" name="t" value="<?= e($token) ?>">
+                    <button name="accion" value="cancelar" class="btn btn-outline-secondary"
+                            onclick="return confirm('<?= e(t('¿Seguro que quieres cancelar tu cita?')) ?>')">
+                        <?= et('Ya no puedo asistir: cancelar') ?>
+                    </button>
+                </form>
             <?php endif; ?>
+
+            <?php if ($c['estado'] === 'cancelada' && $reservar): ?>
+                <a href="<?= e(agenda_online_url(tenant()['slug'] ?? '')) ?>" class="btn btn-primary btn-lg w-100 mt-2 py-3 fw-semibold">
+                    <i class="bi bi-calendar-plus"></i> <?= et('Agendar otra fecha') ?>
+                </a>
+            <?php endif; ?>
+
+            <div class="text-center">
+                <a href="<?= BASE_URL ?>/c/<?= e(tenant()['slug'] ?? '') ?>" class="d-inline-block mt-3 small text-decoration-none">
+                    <i class="bi bi-house"></i> <?= et('Ir al inicio') ?>
+                </a>
+            </div>
         </div>
-
-        <?php if ($abierta && $c['estado'] === 'programada'): ?>
-            <form method="post" class="d-grid gap-2">
-                <input type="hidden" name="t" value="<?= e($token) ?>">
-                <button name="accion" value="confirmar" class="btn btn-success btn-lg py-3 fw-semibold">
-                    <i class="bi bi-check-lg"></i> <?= et('Sí, ahí estaré') ?>
-                </button>
-                <button name="accion" value="cancelar" class="btn btn-outline-secondary"
-                        onclick="return confirm('<?= e(t('¿Seguro que quieres cancelar tu cita?')) ?>')">
-                    <?= et('No puedo asistir') ?>
-                </button>
-            </form>
-        <?php elseif ($abierta && $c['estado'] === 'confirmada'): ?>
-            <form method="post" class="d-grid">
-                <input type="hidden" name="t" value="<?= e($token) ?>">
-                <button name="accion" value="cancelar" class="btn btn-outline-secondary"
-                        onclick="return confirm('<?= e(t('¿Seguro que quieres cancelar tu cita?')) ?>')">
-                    <?= et('Ya no puedo asistir: cancelar') ?>
-                </button>
-            </form>
-        <?php endif; ?>
-
-        <?php if ($c['estado'] === 'cancelada' && $reservar): ?>
-            <a href="<?= e(agenda_online_url(tenant()['slug'] ?? '')) ?>" class="btn btn-primary btn-lg w-100 mt-2 py-3 fw-semibold">
-                <i class="bi bi-calendar-plus"></i> <?= et('Agendar otra fecha') ?>
-            </a>
-        <?php endif; ?>
-
-        <?php /* Salida al inicio: la página del consultorio. */ ?>
-        <a href="<?= BASE_URL ?>/c/<?= e(tenant()['slug'] ?? '') ?>" class="d-inline-block mt-3 small text-decoration-none">
-            <i class="bi bi-house"></i> <?= et('Ir al inicio') ?>
-        </a>
     </div>
 </div>
 
