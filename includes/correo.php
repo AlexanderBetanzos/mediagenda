@@ -95,24 +95,78 @@ function _smtp_ultimo_error(string $log): string
     return 'sin detalle';
 }
 
-/** Plantilla HTML básica y branded para los correos. */
-function correo_layout(string $titulo, string $cuerpo, string $cta = '', string $ctaUrl = ''): string
+/** Aclara u oscurece un color hex por un factor (1 = igual, <1 oscurece). */
+function correo_tono(string $hex, float $factor): string
 {
-    $marca  = e(marca_nombre());
-    $acento = color_acento();
-    $boton  = $cta !== '' && $ctaUrl !== ''
-        ? '<a href="' . e($ctaUrl) . '" style="display:inline-block;background:' . e($acento) . ';color:#fff;text-decoration:none;padding:12px 22px;border-radius:8px;font-weight:600">' . e($cta) . '</a>'
+    $hex = ltrim($hex, '#');
+    if (strlen($hex) === 3) $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+    if (strlen($hex) !== 6) return '#' . $hex;
+    $c = [];
+    foreach ([0, 2, 4] as $i) {
+        $v = (int) round(hexdec(substr($hex, $i, 2)) * $factor);
+        $c[] = max(0, min(255, $v));
+    }
+    return sprintf('#%02x%02x%02x', $c[0], $c[1], $c[2]);
+}
+
+/** Botón "a prueba de balas" (tabla) para que se vea bien hasta en Outlook. */
+function correo_boton(string $texto, string $url, string $bg, string $fg = '#ffffff'): string
+{
+    return '<table role="presentation" border="0" cellpadding="0" cellspacing="0" style="margin:0 auto"><tr>'
+        . '<td align="center" style="border-radius:12px;background:' . $bg . '">'
+        . '<a href="' . e($url) . '" target="_blank" style="display:inline-block;padding:14px 30px;'
+        . 'font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:700;color:' . $fg . ';'
+        . 'text-decoration:none;border-radius:12px">' . e($texto) . '</a>'
+        . '</td></tr></table>';
+}
+
+/**
+ * Plantilla HTML branded (tabla, compatible con clientes de correo).
+ * Encabezado con banda de color de marca, tarjeta blanca y pie discreto.
+ *
+ * @param string $eyebrow  Etiqueta pequeña sobre el título (opcional).
+ */
+function correo_layout(string $titulo, string $cuerpo, string $cta = '', string $ctaUrl = '', string $eyebrow = ''): string
+{
+    $marca   = e(marca_nombre());
+    $acento  = color_acento();
+    $acento2 = correo_tono($acento, 0.80);   // variante oscura para profundidad
+
+    $boton = $cta !== '' && $ctaUrl !== ''
+        ? '<div style="margin-top:26px">' . correo_boton($cta, $ctaUrl, $acento) . '</div>'
         : '';
-    return '<!doctype html><html><body style="margin:0;background:#f4f7fb;font-family:Inter,Arial,sans-serif;color:#1f2d3d">'
-        . '<div style="max-width:520px;margin:0 auto;padding:24px">'
-        . '<div style="text-align:center;padding:8px 0 16px"><span style="font-size:20px;font-weight:700;color:' . e($acento) . '">' . $marca . '</span></div>'
-        . '<div style="background:#fff;border:1px solid #e9eef5;border-radius:14px;padding:28px">'
-        . '<h1 style="font-size:20px;margin:0 0 12px">' . e($titulo) . '</h1>'
-        . '<div style="font-size:15px;line-height:1.6;color:#41506a">' . $cuerpo . '</div>'
-        . ($boton ? '<div style="margin-top:22px">' . $boton . '</div>' : '')
-        . '</div>'
-        . '<p style="text-align:center;color:#8294ad;font-size:12px;margin-top:16px">' . $marca . ' · Este es un correo automático, no respondas a este mensaje.</p>'
-        . '</div></body></html>';
+    $eye = $eyebrow !== ''
+        ? '<div style="font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:' . $acento . ';margin-bottom:8px">' . e($eyebrow) . '</div>'
+        : '';
+
+    return '<!doctype html><html lang="es"><head><meta charset="utf-8">'
+        . '<meta name="viewport" content="width=device-width,initial-scale=1">'
+        . '<meta name="color-scheme" content="light only"></head>'
+        . '<body style="margin:0;padding:0;background:#eef2f8;'
+        . 'font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1f2d3d">'
+        . '<div style="display:none;max-height:0;overflow:hidden;opacity:0">' . e($titulo) . '</div>'
+        . '<table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" style="background:#eef2f8">'
+        . '<tr><td align="center" style="padding:28px 16px">'
+        . '<table role="presentation" width="600" border="0" cellpadding="0" cellspacing="0" '
+        . 'style="max-width:600px;width:100%;background:#ffffff;border-radius:18px;overflow:hidden;'
+        . 'box-shadow:0 8px 30px rgba(31,45,80,.08)">'
+        // Banda de encabezado con la marca
+        . '<tr><td style="background:' . $acento . ';background-image:linear-gradient(135deg,' . $acento . ',' . $acento2 . ');'
+        . 'padding:26px 32px;text-align:center">'
+        . '<span style="font-family:Arial,Helvetica,sans-serif;font-size:22px;font-weight:800;color:#ffffff;'
+        . 'letter-spacing:.02em">' . $marca . '</span></td></tr>'
+        // Cuerpo
+        . '<tr><td style="padding:32px 32px 34px">'
+        . $eye
+        . '<h1 style="font-size:22px;line-height:1.25;margin:0 0 16px;color:#1f2d3d">' . e($titulo) . '</h1>'
+        . '<div style="font-size:15px;line-height:1.65;color:#48566a">' . $cuerpo . '</div>'
+        . $boton
+        . '</td></tr>'
+        . '</table>'
+        // Pie
+        . '<div style="max-width:600px;margin:16px auto 0;font-size:12px;line-height:1.6;color:#94a3b8;text-align:center">'
+        . $marca . ' · Este es un correo automático, por favor no lo respondas.</div>'
+        . '</td></tr></table></body></html>';
 }
 
 /** URL absoluta del sitio (para los enlaces de los correos). */
@@ -175,36 +229,73 @@ function correo_recordatorio_cita(string $email, string $nombre, string $fecha, 
 function correo_cita_agendada(string $email, string $nombre, string $fecha, string $hora,
                               ?string $medico, string $enlace, string $portalUrl = '', bool $portalNuevo = false): bool
 {
-    $acento = color_acento();
+    $acento  = color_acento();
+    $suave   = correo_tono($acento, 0.96);   // fondo tenue con el tinte de marca
+    $nom1    = trim(explode(' ', trim($nombre))[0]) ?: $nombre;
 
-    // CTA principal: el Portal. Es lo que el paciente pidió — un lugar donde
-    // registrarse, entrar y ver TODAS sus citas, no solo esta.
+    // Insignia "Cita confirmada".
+    $badge = '<table role="presentation" border="0" cellpadding="0" cellspacing="0" style="margin:0 0 18px"><tr>'
+        . '<td style="background:#e7f7ee;border-radius:999px;padding:7px 16px;font-size:13px;font-weight:700;color:#1a7f47">'
+        . '&#10003;&nbsp; Cita confirmada</td></tr></table>';
+
+    // Tarjeta tipo "ticket" con fecha, hora y (si hay) médico.
+    $filaMedico = $medico
+        ? '<tr><td style="padding:14px 22px 16px;border-top:1px dashed #dbe3ef">'
+          . '<div style="font-size:12px;color:#8a97a8;text-transform:uppercase;letter-spacing:.05em">Te atiende</div>'
+          . '<div style="font-size:16px;font-weight:700;color:#1f2d3d;margin-top:2px">' . e($medico) . '</div>'
+          . '</td></tr>'
+        : '';
+
+    $ticket = '<table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" '
+        . 'style="background:' . $suave . ';border:1px solid ' . correo_tono($acento, 0.90) . ';'
+        . 'border-radius:14px;margin:6px 0 8px">'
+        . '<tr>'
+        . '<td width="50%" style="padding:18px 22px;vertical-align:top">'
+        . '<div style="font-size:12px;color:#8a97a8;text-transform:uppercase;letter-spacing:.05em">&#128197;&nbsp; Fecha</div>'
+        . '<div style="font-size:17px;font-weight:800;color:#1f2d3d;margin-top:4px;text-transform:capitalize">' . e($fecha) . '</div>'
+        . '</td>'
+        . '<td width="50%" style="padding:18px 22px;vertical-align:top;border-left:1px solid ' . correo_tono($acento, 0.90) . '">'
+        . '<div style="font-size:12px;color:#8a97a8;text-transform:uppercase;letter-spacing:.05em">&#128336;&nbsp; Hora</div>'
+        . '<div style="font-size:17px;font-weight:800;color:#1f2d3d;margin-top:4px">' . e($hora) . '</div>'
+        . '</td>'
+        . '</tr>'
+        . $filaMedico
+        . '</table>';
+
+    // CTA principal: el Portal — donde el paciente se registra, entra y ve TODAS
+    // sus citas. Es el corazón de lo que se pidió.
     $portalBloque = '';
     if ($portalUrl !== '') {
+        $btn   = $portalNuevo ? 'Crear mi acceso al portal' : 'Ver mis citas en el portal';
         $texto = $portalNuevo
-            ? 'Crea tu acceso al portal y consulta tus citas cuando quieras.'
-            : 'Entra a tu portal para ver todas tus citas.';
-        $btn = $portalNuevo ? 'Crear mi acceso al portal' : 'Ver mis citas en el portal';
+            ? 'Crea tu acceso en un minuto y consulta tus citas, recetas y estudios cuando quieras.'
+            : 'Entra a tu portal para ver todas tus citas en un solo lugar.';
         $portalBloque =
-            '<div style="font-size:14px;color:#41506a;margin-bottom:8px">' . e($texto) . '</div>'
-            . '<a href="' . e($portalUrl) . '" style="display:inline-block;background:' . e($acento) . ';color:#fff;'
-            . 'text-decoration:none;padding:12px 22px;border-radius:10px;font-weight:600">' . e($btn) . '</a>'
-            . '<div style="margin:18px 0;border-top:1px solid #eef1f5"></div>';
+            '<table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" '
+            . 'style="background:#f7f9fc;border:1px solid #e9eef5;border-radius:14px;margin:22px 0 4px">'
+            . '<tr><td style="padding:20px 22px;text-align:center">'
+            . '<div style="font-size:15px;font-weight:700;color:#1f2d3d;margin-bottom:4px">Tu portal de paciente</div>'
+            . '<div style="font-size:14px;color:#5a6a80;line-height:1.55;margin-bottom:16px">' . e($texto) . '</div>'
+            . correo_boton($btn, $portalUrl, $acento)
+            . '</td></tr></table>';
     }
 
-    $cuerpo = 'Hola <strong>' . e($nombre) . '</strong>,<br><br>'
-        . 'Tu cita en <strong>' . e(marca_nombre()) . '</strong> quedó agendada:'
-        . '<br><br><div style="background:#f4f7fb;border-radius:10px;padding:16px;font-size:15px">'
-        . '📅 <strong>' . e($fecha) . '</strong><br>🕐 <strong>' . e($hora) . '</strong>'
-        . ($medico ? '<br>👩‍⚕️ ' . e($medico) : '')
-        . '</div><br>'
-        . $portalBloque
-        . '<a href="' . e($enlace) . '" style="display:inline-block;background:#eef1f5;color:#334155;'
-        . 'text-decoration:none;padding:12px 22px;border-radius:10px;font-weight:600">Ver o cancelar esta cita</a>'
-        . '<div style="font-size:13px;color:#64748b;margin-top:10px">Guarda este correo: desde ese enlace '
-        . 'puedes cancelar si te surge algo.</div>';
+    // Secundario: ver o cancelar esta cita.
+    $verCancelar =
+        '<div style="text-align:center;margin-top:22px">'
+        . correo_boton('Ver o cancelar esta cita', $enlace, '#eef1f5', '#334155')
+        . '</div>'
+        . '<div style="font-size:13px;color:#8a97a8;text-align:center;margin-top:10px">'
+        . 'Guarda este correo: si te surge algo, puedes cancelar desde ese botón.</div>';
 
-    $html = correo_layout('Tu cita quedó agendada', $cuerpo);
+    $cuerpo = $badge
+        . 'Hola <strong>' . e($nom1) . '</strong>, tu cita en <strong>' . e(marca_nombre())
+        . '</strong> quedó agendada. Aquí están los detalles:'
+        . $ticket
+        . $portalBloque
+        . $verCancelar;
+
+    $html = correo_layout('¡Tu cita quedó agendada!', $cuerpo, '', '', 'Comprobante de cita');
     return enviar_correo($email, 'Tu cita en ' . marca_nombre() . ' · ' . $fecha, $html);
 }
 
