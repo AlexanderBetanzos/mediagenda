@@ -35,6 +35,19 @@ define('MP_PUBLIC_KEY',   '');                   // TEST-xxxx o APP_USR-xxxx
 // define('CORREO_FROM',      'no-reply@tu-dominio.com');
 // define('CORREO_FROM_NAME', 'Tu Clínica');
 
+// --- SMTP (RECOMENDADO) ---
+// En hosting compartido la función mail() de PHP suele no entregar los correos
+// o mandarlos a spam. Con un buzón SMTP del propio dominio, los correos llegan.
+// Crea un buzón en tu hosting (p. ej. no-reply@tu-dominio.com) y pon aquí sus
+// datos. En Hostinger: SMTP_HOST='smtp.hostinger.com', puerto 465 (ssl) o 587
+// (tls). SMTP_USER es normalmente el correo completo. Deja SMTP_HOST vacío para
+// seguir usando mail(). CORREO_FROM debería ser el MISMO buzón que SMTP_USER.
+// define('SMTP_HOST',   'smtp.hostinger.com');
+// define('SMTP_PORT',   465);            // 465 = ssl, 587 = tls
+// define('SMTP_SECURE', 'ssl');          // 'ssl' | 'tls' | ''
+// define('SMTP_USER',   'no-reply@tu-dominio.com');
+// define('SMTP_PASS',   'LA_CONTRASEÑA_DEL_BUZON');
+
 // --- Cron de recordatorios de cita ---
 // SITIO_URL: dominio real del sitio (con https://, sin barra final). SOLO se usa
 // cuando el cron corre por CLI (php cron/recordatorios.php); sin él, los enlaces

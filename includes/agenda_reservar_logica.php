@@ -70,10 +70,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'reser
     $motivo    = trim((string) ($_POST['motivo'] ?? ''));
     $hora      = (string) ($_POST['hora'] ?? '');
 
-    if ($nombre === '' || $apellidos === '' || $tel === '') {
-        $agError = t('Necesitamos tu nombre, apellidos y teléfono.');
+    if ($nombre === '' || $apellidos === '' || $tel === '' || $email === '') {
+        $agError = t('Necesitamos tu nombre, apellidos, teléfono y correo.');
     } elseif (strlen($tel) !== 10) {
         $agError = t('El teléfono debe tener exactamente 10 dígitos (solo números).');
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $agError = t('Escribe un correo válido: ahí te enviamos la confirmación y tu acceso al portal.');
     } elseif (!agenda_hora_disponible($agMedId, $agFecha, $hora, $duracion)) {
         // Se revalida SOLO por conflicto real (otra cita a esa hora), no por
         // "ya pasó la hora": si el paciente tardó en llenar el formulario, su

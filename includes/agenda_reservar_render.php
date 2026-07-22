@@ -143,9 +143,9 @@ $agAccion = $agAccion ?? '';
                            value="<?= e($_POST['telefono'] ?? '') ?>">
                 </div>
                 <div class="col-sm-6">
-                    <label class="form-label small fw-semibold"><?= et('Correo') ?></label>
-                    <input name="email" type="email" class="form-control" maxlength="150" value="<?= e($_POST['email'] ?? '') ?>">
-                    <div class="form-text"><?= et('Para enviarte el comprobante.') ?></div>
+                    <label class="form-label small fw-semibold"><?= et('Correo') ?> *</label>
+                    <input name="email" type="email" class="form-control" required maxlength="150" value="<?= e($_POST['email'] ?? '') ?>">
+                    <div class="form-text"><?= et('Te enviamos la confirmación y tu acceso al portal aquí.') ?></div>
                 </div>
                 <div class="col-12">
                     <label class="form-label small fw-semibold"><?= et('Motivo (opcional)') ?></label>

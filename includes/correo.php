@@ -1,12 +1,13 @@
 <?php
 /**
- * Envío de correos transaccionales (bienvenida, confirmación de pago).
- * Usa la función mail() de PHP (disponible en Hostinger). El remitente se
- * define en config (CORREO_FROM) y debe ser del dominio del sitio para una
- * buena entrega (SPF/DKIM).
+ * Envío de correos transaccionales (confirmación de cita, recordatorios, etc.).
+ * Prefiere SMTP autenticado (includes/smtp.php) si está configurado — es lo que
+ * realmente entrega en hosting compartido — y cae a la función mail() de PHP si
+ * no. El remitente (CORREO_FROM) debe ser del dominio del sitio para SPF/DKIM.
  */
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/functions.php';
+require_once __DIR__ . '/smtp.php';
 
 /** Ruta del archivo de bitácora de correos (gitignored). */
 function correo_log_path(): string
@@ -31,7 +32,7 @@ function correo_log(string $para, string $asunto, bool $ok, string $extra = ''):
     } catch (Throwable $e) { /* el log nunca debe romper un envío */ }
 }
 
-/** Envía un correo HTML. Devuelve true si mail() lo aceptó. */
+/** Envía un correo HTML. Usa SMTP si está configurado; si no, mail(). */
 function enviar_correo(string $para, string $asunto, string $html): bool
 {
     if ($para === '' || !filter_var($para, FILTER_VALIDATE_EMAIL)) {
@@ -40,34 +41,58 @@ function enviar_correo(string $para, string $asunto, string $html): bool
     }
 
     // El dominio del remitente define el Message-ID y el envelope sender.
-    $dominio = substr(strrchr(CORREO_FROM, '@'), 1) ?: 'localhost';
-
-    $headers = implode("\r\n", [
-        'MIME-Version: 1.0',
-        'Content-Type: text/html; charset=UTF-8',
-        'Content-Transfer-Encoding: 8bit',
-        'From: ' . CORREO_FROM_NAME . ' <' . CORREO_FROM . '>',
-        'Reply-To: ' . CORREO_FROM,
-        'Date: ' . date('r'),
-        'Message-ID: <' . bin2hex(random_bytes(12)) . '@' . $dominio . '>',
-        'X-Mailer: ' . APP_NAME,
-    ]);
+    $dominio   = substr(strrchr(CORREO_FROM, '@'), 1) ?: 'localhost';
     $asuntoEnc = '=?UTF-8?B?' . base64_encode($asunto) . '?=';
 
-    // 5º parámetro (-f): fija el envelope sender / Return-Path. Sin esto muchos
-    // hosts mandan el correo "de" el usuario de Apache (www-data@servidor), lo
-    // que rompe SPF y hace que el correo caiga en spam o se rechace. Es la causa
-    // más común de "no me llega ningún correo". Solo se pasa si el From es válido.
-    $params = filter_var(CORREO_FROM, FILTER_VALIDATE_EMAIL) ? '-f' . CORREO_FROM : '';
+    // Cabeceras comunes (SMTP las manda en DATA; mail() como string).
+    $cab = [
+        'MIME-Version'              => '1.0',
+        'Content-Type'              => 'text/html; charset=UTF-8',
+        'Content-Transfer-Encoding' => '8bit',
+        'From'                      => CORREO_FROM_NAME . ' <' . CORREO_FROM . '>',
+        'Reply-To'                  => CORREO_FROM,
+        'Date'                      => date('r'),
+        'Message-ID'                => '<' . bin2hex(random_bytes(12)) . '@' . $dominio . '>',
+        'X-Mailer'                  => APP_NAME,
+    ];
+
+    // 1) SMTP autenticado: es lo que entrega de verdad en hosting compartido.
+    if (smtp_configurado()) {
+        try {
+            $r = smtp_enviar($para, $asuntoEnc, $html, $cab);
+            correo_log($para, $asunto, $r['ok'], $r['ok'] ? 'SMTP' : 'SMTP falló: ' . _smtp_ultimo_error($r['log']));
+            if ($r['ok']) return true;
+            // Si el SMTP falla, seguimos a mail() como último recurso.
+        } catch (Throwable $e) {
+            correo_log($para, $asunto, false, 'SMTP excepción: ' . $e->getMessage());
+        }
+    }
+
+    // 2) Fallback: mail() de PHP. El 5º parámetro (-f) fija el envelope sender /
+    // Return-Path; sin él muchos hosts mandan "de" el usuario de Apache y rompe
+    // SPF (correo a spam o rechazado).
+    $headers = [];
+    foreach ($cab as $k => $v) $headers[] = $k . ': ' . $v;
+    $headers = implode("\r\n", $headers);
+    $params  = filter_var(CORREO_FROM, FILTER_VALIDATE_EMAIL) ? '-f' . CORREO_FROM : '';
 
     try {
         $ok = @mail($para, $asuntoEnc, $html, $headers, $params);
-        correo_log($para, $asunto, (bool) $ok, $ok ? '' : 'mail() devolvió false');
+        correo_log($para, $asunto, (bool) $ok, $ok ? 'mail()' : 'mail() devolvió false');
         return (bool) $ok;
     } catch (Throwable $e) {
-        correo_log($para, $asunto, false, 'excepción: ' . $e->getMessage());
+        correo_log($para, $asunto, false, 'mail() excepción: ' . $e->getMessage());
         return false;
     }
+}
+
+/** Extrae la línea de error ("! ...") de la transcripción SMTP para el log. */
+function _smtp_ultimo_error(string $log): string
+{
+    foreach (array_reverse(explode("\n", $log)) as $l) {
+        if (strncmp($l, '! ', 2) === 0) return substr($l, 2);
+    }
+    return 'sin detalle';
 }
 
 /** Plantilla HTML básica y branded para los correos. */
