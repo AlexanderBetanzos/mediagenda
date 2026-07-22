@@ -8,20 +8,64 @@
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/functions.php';
 
+/** Ruta del archivo de bitácora de correos (gitignored). */
+function correo_log_path(): string
+{
+    return __DIR__ . '/../logs/correo.log';
+}
+
+/** Registra un intento de envío para poder diagnosticar por qué "no llegan". */
+function correo_log(string $para, string $asunto, bool $ok, string $extra = ''): void
+{
+    try {
+        $dir = dirname(correo_log_path());
+        if (!is_dir($dir)) @mkdir($dir, 0775, true);
+        $linea = sprintf("[%s] %s | to=%s | asunto=%s%s\n",
+            date('Y-m-d H:i:s'),
+            $ok ? 'OK ' : 'FALLO',
+            $para,
+            $asunto,
+            $extra !== '' ? ' | ' . $extra : ''
+        );
+        @file_put_contents(correo_log_path(), $linea, FILE_APPEND | LOCK_EX);
+    } catch (Throwable $e) { /* el log nunca debe romper un envío */ }
+}
+
 /** Envía un correo HTML. Devuelve true si mail() lo aceptó. */
 function enviar_correo(string $para, string $asunto, string $html): bool
 {
-    if ($para === '' || !filter_var($para, FILTER_VALIDATE_EMAIL)) return false;
+    if ($para === '' || !filter_var($para, FILTER_VALIDATE_EMAIL)) {
+        correo_log($para, $asunto, false, 'destinatario inválido');
+        return false;
+    }
+
+    // El dominio del remitente define el Message-ID y el envelope sender.
+    $dominio = substr(strrchr(CORREO_FROM, '@'), 1) ?: 'localhost';
+
     $headers = implode("\r\n", [
         'MIME-Version: 1.0',
         'Content-Type: text/html; charset=UTF-8',
+        'Content-Transfer-Encoding: 8bit',
         'From: ' . CORREO_FROM_NAME . ' <' . CORREO_FROM . '>',
         'Reply-To: ' . CORREO_FROM,
+        'Date: ' . date('r'),
+        'Message-ID: <' . bin2hex(random_bytes(12)) . '@' . $dominio . '>',
+        'X-Mailer: ' . APP_NAME,
     ]);
     $asuntoEnc = '=?UTF-8?B?' . base64_encode($asunto) . '?=';
+
+    // 5º parámetro (-f): fija el envelope sender / Return-Path. Sin esto muchos
+    // hosts mandan el correo "de" el usuario de Apache (www-data@servidor), lo
+    // que rompe SPF y hace que el correo caiga en spam o se rechace. Es la causa
+    // más común de "no me llega ningún correo". Solo se pasa si el From es válido.
+    $params = filter_var(CORREO_FROM, FILTER_VALIDATE_EMAIL) ? '-f' . CORREO_FROM : '';
+
     try {
-        return @mail($para, $asuntoEnc, $html, $headers);
+        $ok = @mail($para, $asuntoEnc, $html, $headers, $params);
+        correo_log($para, $asunto, (bool) $ok, $ok ? '' : 'mail() devolvió false');
+        return (bool) $ok;
     } catch (Throwable $e) {
+        correo_log($para, $asunto, false, 'excepción: ' . $e->getMessage());
         return false;
     }
 }

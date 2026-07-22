@@ -1,0 +1,8 @@
+# Bloquea el acceso web a las bitácoras (Apache 2.2 y 2.4)
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+</IfModule>
