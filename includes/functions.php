@@ -358,6 +358,23 @@ function redirect(string $path): void
     exit;
 }
 
+/**
+ * Cierra la respuesta al navegador para seguir trabajando en segundo plano
+ * (p. ej. enviar un correo por SMTP) sin que el usuario espere. En Hostinger
+ * (PHP-FPM/LiteSpeed) el navegador recibe la página al instante y el correo se
+ * envía después. Libera antes el lock de sesión para no bloquear la siguiente
+ * petición del propio usuario.
+ */
+function cerrar_respuesta(): void
+{
+    if (session_status() === PHP_SESSION_ACTIVE) session_write_close();
+    if (function_exists('fastcgi_finish_request'))      { @fastcgi_finish_request(); return; }
+    if (function_exists('litespeed_finish_request'))    { @litespeed_finish_request(); return; }
+    // Fallback (mod_php): al menos vacía los búferes de salida.
+    while (ob_get_level() > 0) @ob_end_flush();
+    @flush();
+}
+
 /* --------------------------------------------------------------------
  *  Auditoría (bitácora de actividad)
  * ------------------------------------------------------------------ */

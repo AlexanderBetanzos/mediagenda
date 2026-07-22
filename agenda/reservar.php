@@ -51,30 +51,80 @@ if ($okToken !== '') {
     include __DIR__ . '/../includes/publico_header.php';
     ?>
     <div class="pub-card card">
-        <div class="card-body p-4 p-sm-5 text-center">
-            <i class="bi bi-check-circle-fill text-success" style="font-size:3.4rem"></i>
-            <h1 class="h4 mt-3"><?= et('¡Listo, tu cita quedó agendada!') ?></h1>
-            <div class="pub-dato d-inline-block text-start my-3 px-4 py-3" style="border-radius:14px;background:rgba(127,127,127,.08)">
-                <div><i class="bi bi-hash text-brand"></i> <?= et('Folio') ?>: <strong class="font-monospace"><?= e(cita_folio((int) $cita['id'])) ?></strong></div>
-                <div class="mt-1"><i class="bi bi-calendar-event text-brand"></i> <strong class="text-capitalize"><?= e(fmt_fecha($cita['fecha'])) ?></strong> · <?= fmt_hora($cita['hora']) ?></div>
-                <?php if ($cita['med_nombre']): ?><div class="mt-1"><i class="bi bi-person-badge text-brand"></i> <?= e($cita['med_nombre']) ?></div><?php endif; ?>
+        <div class="card-body p-4 p-sm-5">
+            <div style="max-width:440px;margin:0 auto">
+                <div class="text-center">
+                    <span class="d-inline-flex align-items-center justify-content-center"
+                          style="width:64px;height:64px;border-radius:50%;background:#e7f7ee">
+                        <i class="bi bi-check-lg text-success" style="font-size:2rem"></i>
+                    </span>
+                    <h1 class="h4 fw-bold mt-3 mb-1"><?= et('¡Listo, tu cita quedó agendada!') ?></h1>
+                    <p class="text-muted small mb-4"><?= et('Te enviamos el detalle por correo.') ?></p>
+                </div>
+
+                <!-- Ticket de la cita -->
+                <div class="ag-ticket mb-4">
+                    <div class="ag-ticket-top">
+                        <div>
+                            <div class="ag-ticket-lbl"><?= et('Folio') ?></div>
+                            <div class="ag-ticket-folio"><?= e(cita_folio((int) $cita['id'])) ?></div>
+                        </div>
+                        <span class="ag-badge"><i class="bi bi-check-lg"></i> <?= et('Confirmada') ?></span>
+                    </div>
+                    <div class="ag-ticket-row">
+                        <div class="ag-ticket-col">
+                            <div class="ag-ticket-lbl"><i class="bi bi-calendar-event"></i> <?= et('Fecha') ?></div>
+                            <div class="ag-ticket-val text-capitalize"><?= e(fmt_fecha($cita['fecha'])) ?></div>
+                        </div>
+                        <div class="ag-ticket-col">
+                            <div class="ag-ticket-lbl"><i class="bi bi-clock"></i> <?= et('Hora') ?></div>
+                            <div class="ag-ticket-val"><?= fmt_hora($cita['hora']) ?></div>
+                        </div>
+                    </div>
+                    <?php if ($cita['med_nombre']): ?>
+                    <div class="ag-ticket-med">
+                        <div class="ag-ticket-lbl"><i class="bi bi-person-badge"></i> <?= et('Te atiende') ?></div>
+                        <div class="ag-ticket-val" style="font-size:1rem"><?= e($cita['med_nombre']) ?></div>
+                    </div>
+                    <?php endif; ?>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <?php if ($pago): ?>
+                        <div class="alert alert-info py-2 mb-1 text-center"><?= et('Costo de la cita') ?>: <strong><?= fmt_money($pago['monto']) ?></strong>. <?= et('¿Cómo prefieres pagar?') ?></div>
+                        <a href="<?= e($pago['url']) ?>" class="btn btn-primary btn-lg py-3 fw-semibold"><i class="bi bi-credit-card"></i> <?= et('Pagar en línea ahora') ?></a>
+                        <a href="<?= BASE_URL ?>/agenda/confirmar?t=<?= e($cita['token']) ?>" class="btn btn-outline-secondary"><i class="bi bi-cash-coin"></i> <?= et('Pagar en el consultorio') ?></a>
+                    <?php elseif ($precioCita > 0): ?>
+                        <div class="alert alert-info py-2 mb-1 text-center"><i class="bi bi-cash-coin"></i> <?= et('Costo de la cita') ?>: <strong><?= fmt_money($precioCita) ?></strong>. <?= et('Lo pagas en el consultorio al llegar.') ?></div>
+                        <a href="<?= BASE_URL ?>/agenda/confirmar?t=<?= e($cita['token']) ?>" class="btn btn-outline-secondary"><i class="bi bi-calendar-check"></i> <?= et('Ver o cancelar mi cita') ?></a>
+                    <?php else: ?>
+                        <a href="<?= BASE_URL ?>/agenda/confirmar?t=<?= e($cita['token']) ?>" class="btn btn-outline-secondary"><i class="bi bi-calendar-check"></i> <?= et('Ver o cancelar mi cita') ?></a>
+                    <?php endif; ?>
+                </div>
+
+                <p class="text-muted small text-center mt-3 mb-0"><?= et('Si no puedes venir, avísanos desde ese enlace.') ?></p>
+                <div class="text-center">
+                    <a href="<?= BASE_URL ?>/c/<?= e($slug) ?>" class="d-inline-block mt-3 small text-decoration-none">&larr; <?= et('Volver al inicio') ?></a>
+                </div>
             </div>
-
-            <?php if ($pago): ?>
-                <div class="alert alert-info py-2"><?= et('Costo de la cita') ?>: <strong><?= fmt_money($pago['monto']) ?></strong>. <?= et('¿Cómo prefieres pagar?') ?></div>
-                <a href="<?= e($pago['url']) ?>" class="btn btn-primary btn-lg w-100 mb-2 py-3 fw-semibold"><i class="bi bi-credit-card"></i> <?= et('Pagar en línea ahora') ?></a>
-                <a href="<?= BASE_URL ?>/agenda/confirmar?t=<?= e($cita['token']) ?>" class="btn btn-outline-secondary w-100"><i class="bi bi-cash-coin"></i> <?= et('Pagar en el consultorio') ?></a>
-            <?php elseif ($precioCita > 0): ?>
-                <div class="alert alert-info py-2"><i class="bi bi-cash-coin"></i> <?= et('Costo de la cita') ?>: <strong><?= fmt_money($precioCita) ?></strong>. <?= et('Lo pagas en el consultorio al llegar.') ?></div>
-                <a href="<?= BASE_URL ?>/agenda/confirmar?t=<?= e($cita['token']) ?>" class="btn btn-outline-secondary"><?= et('Ver o cancelar mi cita') ?></a>
-            <?php else: ?>
-                <a href="<?= BASE_URL ?>/agenda/confirmar?t=<?= e($cita['token']) ?>" class="btn btn-outline-secondary"><?= et('Ver o cancelar mi cita') ?></a>
-            <?php endif; ?>
-
-            <p class="text-muted small mt-3 mb-0"><?= et('Te enviamos el detalle por correo. Si no puedes venir, avísanos desde ese enlace.') ?></p>
-            <a href="<?= BASE_URL ?>/c/<?= e($slug) ?>" class="d-inline-block mt-3 small text-decoration-none">&larr; <?= et('Volver al inicio') ?></a>
         </div>
     </div>
+
+    <style>
+        .ag-ticket { border:1px solid rgba(127,127,127,.18); border-radius:16px; overflow:hidden;
+                     background:color-mix(in srgb, var(--brand, #2563eb) 4%, transparent); }
+        .ag-ticket-top { display:flex; align-items:center; justify-content:space-between; gap:12px;
+                         padding:14px 18px; border-bottom:1px solid rgba(127,127,127,.14); }
+        .ag-ticket-row { display:flex; }
+        .ag-ticket-col { flex:1; padding:14px 18px; }
+        .ag-ticket-col + .ag-ticket-col { border-left:1px solid rgba(127,127,127,.14); }
+        .ag-ticket-med { padding:14px 18px; border-top:1px solid rgba(127,127,127,.14); }
+        .ag-ticket-lbl { font-size:.7rem; font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:#94a3b8; }
+        .ag-ticket-val { font-size:1.05rem; font-weight:800; color:inherit; margin-top:3px; }
+        .ag-ticket-folio { font-family:ui-monospace,Menlo,Consolas,monospace; font-weight:800; font-size:1rem; margin-top:2px; }
+        .ag-badge { display:inline-flex; align-items:center; gap:5px; white-space:nowrap; background:#e7f7ee; color:#1a7f47;
+                    font-size:.78rem; font-weight:700; padding:5px 12px; border-radius:999px; }
+    </style>
     <?php
     include __DIR__ . '/../includes/publico_footer.php';
     exit;

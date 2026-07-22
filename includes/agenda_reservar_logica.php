@@ -122,6 +122,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'reser
             auditar('cita_online', 'cita', $citaId, $agFecha . ' ' . $hora, (int) $con['id'],
                     ['nombre' => $nombre . ' ' . $apellidos]);
 
+            // Pago en línea de la reserva (opcional). Se crea ANTES de responder
+            // porque la pantalla de "listo" muestra el botón de pago. Va en
+            // try/catch: la cita YA está agendada, y que el pago falle no debe
+            // deshacerla — el paciente pagará en el consultorio.
+            if ($agCobra) {
+                try {
+                    require_once __DIR__ . '/cobros.php';
+                    cobro_crear((int) $pac, $agPrecio,
+                                t('Reserva de cita') . ' · ' . fmt_fecha($agFecha) . ' ' . fmt_hora($hora),
+                                null, $citaId);
+                } catch (Throwable $e) { /* pago no disponible: la cita queda igual */ }
+            }
+
+            // Post-Redirect-Get: se responde YA con el redirect a la pantalla de
+            // "listo" (GET) para que REFRESCAR no reenvíe el formulario. El correo
+            // por SMTP tarda unos segundos, así que se manda DESPUÉS de cerrar la
+            // respuesta: el paciente ve la confirmación al instante y el correo
+            // sale en segundo plano.
+            header('Location: ' . BASE_URL . '/agenda/reservar?c=' . rawurlencode($agSlug) . '&ok=' . $token);
+            cerrar_respuesta();
+
             if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 $med = '';
                 foreach ($agMedicos as $m) { if ((int) $m['id'] === $agMedId) $med = $m['nombre']; }
@@ -153,24 +174,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'reser
                                      fmt_hora($hora), $med, url_absoluta('/agenda/confirmar?t=' . $token),
                                      $portalUrl, $portalNuevo, cita_folio($citaId));
             }
-
-            // Pago en línea de la reserva (opcional). Si el consultorio cobra por
-            // reservar y tiene Mercado Pago configurado, se genera el cobro. Va en
-            // try/catch: la cita YA está agendada, y que el pago falle no debe
-            // deshacerla — el paciente pagará en el consultorio.
-            if ($agCobra) {
-                try {
-                    require_once __DIR__ . '/cobros.php';
-                    cobro_crear((int) $pac, $agPrecio,
-                                t('Reserva de cita') . ' · ' . fmt_fecha($agFecha) . ' ' . fmt_hora($hora),
-                                null, $citaId);
-                } catch (Throwable $e) { /* pago no disponible: la cita queda igual */ }
-            }
-
-            // Post-Redirect-Get: se redirige a la pantalla de "listo" (GET) para
-            // que REFRESCAR no reenvíe el formulario ni duplique la cita. Es la
-            // causa de que "cada refresh falle".
-            redirect('/agenda/reservar?c=' . rawurlencode($agSlug) . '&ok=' . $token);
+            exit;
         }
     }
 }
