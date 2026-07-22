@@ -254,43 +254,43 @@ function correo_cita_agendada(string $email, string $nombre, string $fecha, stri
     $bd      = correo_tinte($acento, 0.16);   // borde tenue
     $nom1    = trim(explode(' ', trim($nombre))[0]) ?: $nombre;
 
-    $lblEstilo = 'font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;font-weight:700';
-    $valEstilo = 'font-size:17px;font-weight:800;color:#1f2d3d;margin-top:5px';
+    $lblEstilo = 'font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;font-weight:700';
+    $valEstilo = 'font-size:15px;font-weight:800;color:#1f2d3d;margin-top:3px';
 
     // Encabezado del ticket: folio (izq.) + insignia "Confirmada" (der.), alineados.
     $filaFolio =
-        '<tr><td colspan="2" style="padding:15px 22px;border-bottom:1px solid ' . $bd . '">'
+        '<tr><td colspan="2" style="padding:11px 18px;border-bottom:1px solid ' . $bd . '">'
         . '<table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0"><tr>'
         . '<td align="left" style="vertical-align:middle">'
         . '<div style="' . $lblEstilo . '">Folio</div>'
-        . '<div style="font-size:15px;font-weight:800;color:#1f2d3d;font-family:Menlo,Consolas,monospace;margin-top:3px">'
+        . '<div style="font-size:14px;font-weight:800;color:#1f2d3d;font-family:Menlo,Consolas,monospace;margin-top:2px">'
         . e($folio !== '' ? $folio : '—') . '</div>'
         . '</td>'
         . '<td align="right" style="vertical-align:middle">'
-        . '<span style="display:inline-block;background:#e7f7ee;border-radius:999px;padding:6px 14px;font-size:12px;font-weight:700;color:#1a7f47;white-space:nowrap">'
-        . '&#10003;&nbsp; Confirmada</span>'
+        . '<span style="display:inline-block;background:#e7f7ee;border-radius:999px;padding:5px 12px;font-size:12px;font-weight:700;color:#1a7f47;white-space:nowrap">'
+        . '&#10003; Confirmada</span>'
         . '</td>'
         . '</tr></table></td></tr>';
 
     // Fila médico (si hay).
     $filaMedico = $medico
-        ? '<tr><td colspan="2" style="padding:15px 22px;border-top:1px solid ' . $bd . '">'
+        ? '<tr><td colspan="2" style="padding:11px 18px;border-top:1px solid ' . $bd . '">'
           . '<div style="' . $lblEstilo . '">Te atiende</div>'
-          . '<div style="font-size:16px;font-weight:700;color:#1f2d3d;margin-top:4px">' . e($medico) . '</div>'
+          . '<div style="font-size:14px;font-weight:700;color:#1f2d3d;margin-top:2px">' . e($medico) . '</div>'
           . '</td></tr>'
         : '';
 
-    // Tarjeta "ticket": clara y legible.
+    // Tarjeta "ticket": clara, compacta y legible.
     $ticket = '<table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" '
-        . 'style="background:' . $bg . ';border:1px solid ' . $bd . ';border-radius:14px;margin:20px 0 6px">'
+        . 'style="background:' . $bg . ';border:1px solid ' . $bd . ';border-radius:12px;margin:18px 0 6px">'
         . $filaFolio
         . '<tr>'
-        . '<td width="50%" style="padding:16px 22px;vertical-align:top">'
-        . '<div style="' . $lblEstilo . '">&#128197;&nbsp; Fecha</div>'
+        . '<td width="50%" style="padding:11px 18px;vertical-align:top">'
+        . '<div style="' . $lblEstilo . '">Fecha</div>'
         . '<div style="' . $valEstilo . ';text-transform:capitalize">' . e($fecha) . '</div>'
         . '</td>'
-        . '<td width="50%" style="padding:16px 22px;vertical-align:top;border-left:1px solid ' . $bd . '">'
-        . '<div style="' . $lblEstilo . '">&#128336;&nbsp; Hora</div>'
+        . '<td width="50%" style="padding:11px 18px;vertical-align:top;border-left:1px solid ' . $bd . '">'
+        . '<div style="' . $lblEstilo . '">Hora</div>'
         . '<div style="' . $valEstilo . '">' . e($hora) . '</div>'
         . '</td>'
         . '</tr>'
