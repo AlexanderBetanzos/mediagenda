@@ -65,13 +65,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'reser
 
     $nombre    = trim((string) ($_POST['nombre'] ?? ''));
     $apellidos = trim((string) ($_POST['apellidos'] ?? ''));
-    $tel       = trim((string) ($_POST['telefono'] ?? ''));
+    $tel       = preg_replace('/\D/', '', (string) ($_POST['telefono'] ?? '')); // solo dígitos
     $email     = trim((string) ($_POST['email'] ?? ''));
     $motivo    = trim((string) ($_POST['motivo'] ?? ''));
     $hora      = (string) ($_POST['hora'] ?? '');
 
     if ($nombre === '' || $apellidos === '' || $tel === '') {
         $agError = t('Necesitamos tu nombre, apellidos y teléfono.');
+    } elseif (strlen($tel) !== 10) {
+        $agError = t('El teléfono debe tener exactamente 10 dígitos (solo números).');
     } elseif (!agenda_hora_disponible($agMedId, $agFecha, $hora, $duracion)) {
         // Se revalida SOLO por conflicto real (otra cita a esa hora), no por
         // "ya pasó la hora": si el paciente tardó en llenar el formulario, su
@@ -96,7 +98,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'reser
                     'INSERT INTO pacientes (consultorio_id, nombre, apellidos, telefono, email)
                      VALUES (?,?,?,?,?)'
                 )->execute([(int) $con['id'], mb_substr($nombre, 0, 120), mb_substr($apellidos, 0, 120),
-                            mb_substr($tel, 0, 40), mb_substr($email, 0, 150) ?: null]);
+                            mb_substr($tel, 0, 10), mb_substr($email, 0, 150) ?: null]);
                 $pac = (int) $pdo->lastInsertId();
             }
 
@@ -121,8 +123,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'reser
             if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 $med = '';
                 foreach ($agMedicos as $m) { if ((int) $m['id'] === $agMedId) $med = $m['nombre']; }
+
+                // Enlace al Portal del paciente: si el consultorio incluye el
+                // módulo, el paciente puede crear su acceso (o entrar si ya lo
+                // tiene) para ver todas sus citas. Va en try/catch: la columna
+                // portal_token puede no existir aún en BD, y eso no debe romper
+                // el correo ni la reserva.
+                $portalUrl = ''; $portalNuevo = false;
+                if (modulo_activo_en((int) $con['id'], 'portal')) {
+                    try {
+                        $ya = db()->prepare('SELECT portal_activo FROM pacientes WHERE id = ?');
+                        $ya->execute([(int) $pac]);
+                        if ((int) $ya->fetchColumn() === 1) {
+                            // Ya tiene acceso: lo mandamos al login de su clínica.
+                            $portalUrl = url_absoluta('/portal/login?c=' . rawurlencode($agSlug));
+                        } else {
+                            $ptok = bin2hex(random_bytes(24));
+                            db()->prepare('UPDATE pacientes SET portal_token = ? WHERE id = ?')
+                                ->execute([$ptok, (int) $pac]);
+                            $portalUrl   = url_absoluta('/portal/activar?t=' . $ptok);
+                            $portalNuevo = true;
+                        }
+                    } catch (Throwable $e) { $portalUrl = ''; }
+                }
+
                 correo_cita_agendada($email, $nombre . ' ' . $apellidos, fmt_fecha($agFecha),
-                                     fmt_hora($hora), $med, url_absoluta('/agenda/confirmar?t=' . $token));
+                                     fmt_hora($hora), $med, url_absoluta('/agenda/confirmar?t=' . $token),
+                                     $portalUrl, $portalNuevo);
             }
 
             // Pago en línea de la reserva (opcional). Si el consultorio cobra por

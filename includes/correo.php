@@ -96,18 +96,42 @@ function correo_recordatorio_cita(string $email, string $nombre, string $fecha, 
     return enviar_correo($email, 'Recordatorio de tu cita en ' . marca_nombre() . ' · ' . $fecha, $html);
 }
 
-/** Comprobante de una cita agendada por el propio paciente (agenda en línea). */
+/**
+ * Comprobante de una cita agendada por el propio paciente (agenda en línea).
+ *
+ * @param string $enlace     URL para ver/cancelar esta cita (token de la cita).
+ * @param string $portalUrl  URL al Portal del paciente (activar o iniciar sesión). '' si el consultorio no incluye portal.
+ * @param bool   $portalNuevo true si el paciente aún NO tiene acceso (enlace de registro); false si ya lo tiene (login).
+ */
 function correo_cita_agendada(string $email, string $nombre, string $fecha, string $hora,
-                              ?string $medico, string $enlace): bool
+                              ?string $medico, string $enlace, string $portalUrl = '', bool $portalNuevo = false): bool
 {
+    $acento = color_acento();
+
+    // CTA principal: el Portal. Es lo que el paciente pidió — un lugar donde
+    // registrarse, entrar y ver TODAS sus citas, no solo esta.
+    $portalBloque = '';
+    if ($portalUrl !== '') {
+        $texto = $portalNuevo
+            ? 'Crea tu acceso al portal y consulta tus citas cuando quieras.'
+            : 'Entra a tu portal para ver todas tus citas.';
+        $btn = $portalNuevo ? 'Crear mi acceso al portal' : 'Ver mis citas en el portal';
+        $portalBloque =
+            '<div style="font-size:14px;color:#41506a;margin-bottom:8px">' . e($texto) . '</div>'
+            . '<a href="' . e($portalUrl) . '" style="display:inline-block;background:' . e($acento) . ';color:#fff;'
+            . 'text-decoration:none;padding:12px 22px;border-radius:10px;font-weight:600">' . e($btn) . '</a>'
+            . '<div style="margin:18px 0;border-top:1px solid #eef1f5"></div>';
+    }
+
     $cuerpo = 'Hola <strong>' . e($nombre) . '</strong>,<br><br>'
         . 'Tu cita en <strong>' . e(marca_nombre()) . '</strong> quedó agendada:'
         . '<br><br><div style="background:#f4f7fb;border-radius:10px;padding:16px;font-size:15px">'
         . '📅 <strong>' . e($fecha) . '</strong><br>🕐 <strong>' . e($hora) . '</strong>'
         . ($medico ? '<br>👩‍⚕️ ' . e($medico) : '')
         . '</div><br>'
+        . $portalBloque
         . '<a href="' . e($enlace) . '" style="display:inline-block;background:#eef1f5;color:#334155;'
-        . 'text-decoration:none;padding:12px 22px;border-radius:10px;font-weight:600">Ver o cancelar mi cita</a>'
+        . 'text-decoration:none;padding:12px 22px;border-radius:10px;font-weight:600">Ver o cancelar esta cita</a>'
         . '<div style="font-size:13px;color:#64748b;margin-top:10px">Guarda este correo: desde ese enlace '
         . 'puedes cancelar si te surge algo.</div>';
 

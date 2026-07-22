@@ -74,7 +74,7 @@ $agAccion = $agAccion ?? '';
         <form method="get" action="<?= e($agAccion) ?>" class="mb-4" id="agForm">
             <input type="hidden" name="c" value="<?= e($agSlug) ?>">
             <input type="hidden" name="f" id="agFechaHidden" value="<?= e($agFecha) ?>">
-            <label class="form-label small fw-semibold"><?= et('¿Con quién?') ?></label>
+            <label class="form-label small fw-semibold"><?= et('Selecciona con quién deseas agendar tu cita') ?></label>
             <select name="m" class="form-select form-select-lg" onchange="document.getElementById('agFechaHidden').value=''; this.form.submit()">
                 <option value=""><?= et('Selecciona…') ?></option>
                 <?php foreach ($agMedicos as $m): ?>
@@ -136,7 +136,11 @@ $agAccion = $agAccion ?? '';
                 </div>
                 <div class="col-sm-6">
                     <label class="form-label small fw-semibold"><?= et('Teléfono') ?> *</label>
-                    <input name="telefono" type="tel" class="form-control" required maxlength="40" value="<?= e($_POST['telefono'] ?? '') ?>">
+                    <input name="telefono" type="tel" class="form-control" required
+                           inputmode="numeric" maxlength="10" minlength="10" pattern="[0-9]{10}"
+                           oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)"
+                           title="<?= e(t('Ingresa 10 dígitos, solo números')) ?>"
+                           value="<?= e($_POST['telefono'] ?? '') ?>">
                 </div>
                 <div class="col-sm-6">
                     <label class="form-label small fw-semibold"><?= et('Correo') ?></label>

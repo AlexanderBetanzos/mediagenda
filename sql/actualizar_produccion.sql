@@ -188,6 +188,7 @@ ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS twofa_activo TINYINT(1) NOT NULL D
 
 ALTER TABLE pacientes ADD COLUMN IF NOT EXISTS portal_password_hash VARCHAR(255) DEFAULT NULL;
 ALTER TABLE pacientes ADD COLUMN IF NOT EXISTS portal_activo TINYINT(1) NOT NULL DEFAULT 0;
+ALTER TABLE pacientes ADD COLUMN IF NOT EXISTS portal_token VARCHAR(64) DEFAULT NULL;
 
 -- ============ sql/expediente.sql ============
 -- =====================================================================
