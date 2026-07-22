@@ -100,13 +100,14 @@ include __DIR__ . '/../includes/header.php';
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
             <thead class="table-light">
-                <tr><th><?= et('Fecha') ?></th><th><?= et('Hora') ?></th><th><?= et('Paciente') ?></th><th><?= et('Médico') ?></th><th><?= et('Tipo') ?></th><th><?= et('Motivo') ?></th><th><?= et('Estado') ?></th><th class="text-end"><?= et('Acciones') ?></th></tr>
+                <tr><th><?= et('Folio') ?></th><th><?= et('Fecha') ?></th><th><?= et('Hora') ?></th><th><?= et('Paciente') ?></th><th><?= et('Médico') ?></th><th><?= et('Tipo') ?></th><th><?= et('Motivo') ?></th><th><?= et('Estado') ?></th><th class="text-end"><?= et('Acciones') ?></th></tr>
             </thead>
             <tbody>
             <?php if (!$citas): ?>
-                <tr><td colspan="8" class="text-center text-muted py-4"><?= et('No hay citas con esos filtros.') ?></td></tr>
+                <tr><td colspan="9" class="text-center text-muted py-4"><?= et('No hay citas con esos filtros.') ?></td></tr>
             <?php else: foreach ($citas as $c): ?>
                 <tr>
+                    <td class="small font-monospace text-muted"><?= e(cita_folio((int) $c['id'])) ?></td>
                     <td><?= fmt_fecha($c['fecha']) ?><?= $c['fecha']===date('Y-m-d') ? ' <span class="badge bg-success">'.et('Hoy').'</span>' : '' ?></td>
                     <td><?= fmt_hora($c['hora']) ?></td>
                     <td>

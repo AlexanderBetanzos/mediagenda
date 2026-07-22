@@ -55,7 +55,8 @@ if ($okToken !== '') {
             <i class="bi bi-check-circle-fill text-success" style="font-size:3.4rem"></i>
             <h1 class="h4 mt-3"><?= et('¡Listo, tu cita quedó agendada!') ?></h1>
             <div class="pub-dato d-inline-block text-start my-3 px-4 py-3" style="border-radius:14px;background:rgba(127,127,127,.08)">
-                <div><i class="bi bi-calendar-event text-brand"></i> <strong class="text-capitalize"><?= e(fmt_fecha($cita['fecha'])) ?></strong> · <?= fmt_hora($cita['hora']) ?></div>
+                <div><i class="bi bi-hash text-brand"></i> <?= et('Folio') ?>: <strong class="font-monospace"><?= e(cita_folio((int) $cita['id'])) ?></strong></div>
+                <div class="mt-1"><i class="bi bi-calendar-event text-brand"></i> <strong class="text-capitalize"><?= e(fmt_fecha($cita['fecha'])) ?></strong> · <?= fmt_hora($cita['hora']) ?></div>
                 <?php if ($cita['med_nombre']): ?><div class="mt-1"><i class="bi bi-person-badge text-brand"></i> <?= e($cita['med_nombre']) ?></div><?php endif; ?>
             </div>
 

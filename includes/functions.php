@@ -1407,6 +1407,16 @@ function cita_enlace(int $cita_id): string
     return url_absoluta('/agenda/confirmar?t=' . cita_token($cita_id));
 }
 
+/**
+ * Folio legible de una cita a partir de su id: CITA-000123. No es una columna
+ * nueva — se deriva del id, así que sirve de inmediato para citas ya creadas y
+ * es estable y único. Da al paciente y al personal un código fácil de citar.
+ */
+function cita_folio(int $cita_id): string
+{
+    return 'CITA-' . str_pad((string) $cita_id, 6, '0', STR_PAD_LEFT);
+}
+
 /** URL pública de la página de reservas de un consultorio. */
 function agenda_online_url(string $slug): string
 {

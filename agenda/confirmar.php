@@ -89,6 +89,11 @@ include __DIR__ . '/../includes/publico_header.php';
         <?php endif; ?>
 
         <div class="pub-dato mb-4">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <i class="bi bi-hash text-brand"></i>
+                <span class="text-muted small"><?= et('Folio') ?>:</span>
+                <strong class="font-monospace"><?= e(cita_folio((int) $c['id'])) ?></strong>
+            </div>
             <div class="d-flex align-items-center gap-2 mb-1">
                 <i class="bi bi-calendar-event text-brand"></i>
                 <strong class="text-capitalize"><?= e(fmt_fecha($c['fecha'])) ?></strong>

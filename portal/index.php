@@ -35,7 +35,7 @@ include __DIR__ . '/../includes/portal_header.php';
                 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
                     <div>
                         <div class="fw-semibold"><?= fmt_fecha($c['fecha']) ?> · <?= fmt_hora($c['hora']) ?></div>
-                        <small class="text-muted"><?= e($c['med_nombre']) ?><?= $c['motivo'] ? ' · ' . e($c['motivo']) : '' ?></small>
+                        <small class="text-muted"><span class="font-monospace"><?= e(cita_folio((int) $c['id'])) ?></span> · <?= e($c['med_nombre']) ?><?= $c['motivo'] ? ' · ' . e($c['motivo']) : '' ?></small>
                     </div>
                     <div class="d-flex align-items-center gap-2">
                         <span class="badge bg-<?= estado_badge($c['estado']) ?>"><?= estado_label($c['estado']) ?></span>
@@ -67,12 +67,13 @@ include __DIR__ . '/../includes/portal_header.php';
     <div class="card-header bg-white fw-semibold"><i class="bi bi-clock-history text-brand"></i> <?= et('Historial de citas') ?></div>
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
-            <thead class="table-light"><tr><th><?= et('Fecha') ?></th><th><?= et('Hora') ?></th><th><?= et('Médico') ?></th><th><?= et('Motivo') ?></th><th><?= et('Estado') ?></th></tr></thead>
+            <thead class="table-light"><tr><th><?= et('Folio') ?></th><th><?= et('Fecha') ?></th><th><?= et('Hora') ?></th><th><?= et('Médico') ?></th><th><?= et('Motivo') ?></th><th><?= et('Estado') ?></th></tr></thead>
             <tbody>
             <?php if (!$pasadas): ?>
-                <tr><td colspan="5" class="text-center text-muted py-4"><?= et('Sin historial.') ?></td></tr>
+                <tr><td colspan="6" class="text-center text-muted py-4"><?= et('Sin historial.') ?></td></tr>
             <?php else: foreach ($pasadas as $c): ?>
                 <tr>
+                    <td class="small font-monospace"><?= e(cita_folio((int) $c['id'])) ?></td>
                     <td><?= fmt_fecha($c['fecha']) ?></td>
                     <td><?= fmt_hora($c['hora']) ?></td>
                     <td class="small"><?= e($c['med_nombre']) ?></td>

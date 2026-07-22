@@ -151,7 +151,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'reser
 
                 correo_cita_agendada($email, $nombre . ' ' . $apellidos, fmt_fecha($agFecha),
                                      fmt_hora($hora), $med, url_absoluta('/agenda/confirmar?t=' . $token),
-                                     $portalUrl, $portalNuevo);
+                                     $portalUrl, $portalNuevo, cita_folio($citaId));
             }
 
             // Pago en línea de la reserva (opcional). Si el consultorio cobra por

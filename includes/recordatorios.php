@@ -57,7 +57,8 @@ function recordatorios_enviar(?string $fecha = null, ?callable $echo = null): ar
             if (filter_var($c['email'] ?? '', FILTER_VALIDATE_EMAIL)) {
                 $enlace = cita_enlace((int) $c['id']);
                 if (correo_recordatorio_cita($c['email'], $c['nombre'] . ' ' . $c['apellidos'],
-                        fmt_fecha($c['fecha']), fmt_hora($c['hora']), $c['med_nombre'], $enlace)) {
+                        fmt_fecha($c['fecha']), fmt_hora($c['hora']), $c['med_nombre'], $enlace,
+                        cita_folio((int) $c['id']))) {
                     $mail++;
                 }
             }

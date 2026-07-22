@@ -190,7 +190,7 @@ function correo_bienvenida_trial(string $email, string $nombre, int $dias): bool
 
 /** Recordatorio de cita próxima. */
 function correo_recordatorio_cita(string $email, string $nombre, string $fecha, string $hora,
-                                 ?string $medico, ?string $enlace = null): bool
+                                 ?string $medico, ?string $enlace = null, string $folio = ''): bool
 {
     // El botón es lo que convierte un recordatorio en una confirmación. Sin él,
     // el paciente lee el correo, piensa "ok" y no pasa nada: la falta se
@@ -211,6 +211,7 @@ function correo_recordatorio_cita(string $email, string $nombre, string $fecha, 
     $cuerpo = 'Hola <strong>' . e($nombre) . '</strong>,<br><br>'
         . 'Te recordamos tu próxima cita en <strong>' . e(marca_nombre()) . '</strong>:'
         . '<br><br><div style="background:#f4f7fb;border-radius:10px;padding:16px;font-size:15px">'
+        . ($folio !== '' ? '<span style="color:#8a97a8;font-size:13px">Folio ' . e($folio) . '</span><br>' : '')
         . '📅 <strong>' . e($fecha) . '</strong><br>🕐 <strong>' . e($hora) . '</strong>'
         . ($medico ? '<br>👩‍⚕️ ' . e($medico) : '')
         . '</div>' . $botones;
@@ -227,16 +228,22 @@ function correo_recordatorio_cita(string $email, string $nombre, string $fecha, 
  * @param bool   $portalNuevo true si el paciente aún NO tiene acceso (enlace de registro); false si ya lo tiene (login).
  */
 function correo_cita_agendada(string $email, string $nombre, string $fecha, string $hora,
-                              ?string $medico, string $enlace, string $portalUrl = '', bool $portalNuevo = false): bool
+                              ?string $medico, string $enlace, string $portalUrl = '', bool $portalNuevo = false,
+                              string $folio = ''): bool
 {
     $acento  = color_acento();
     $suave   = correo_tono($acento, 0.96);   // fondo tenue con el tinte de marca
     $nom1    = trim(explode(' ', trim($nombre))[0]) ?: $nombre;
 
-    // Insignia "Cita confirmada".
-    $badge = '<table role="presentation" border="0" cellpadding="0" cellspacing="0" style="margin:0 0 18px"><tr>'
-        . '<td style="background:#e7f7ee;border-radius:999px;padding:7px 16px;font-size:13px;font-weight:700;color:#1a7f47">'
-        . '&#10003;&nbsp; Cita confirmada</td></tr></table>';
+    // Insignia "Cita confirmada" + folio a la derecha para citarlo fácil.
+    $badge = '<table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" style="margin:0 0 18px"><tr>'
+        . '<td style="vertical-align:middle">'
+        . '<span style="display:inline-block;background:#e7f7ee;border-radius:999px;padding:7px 16px;font-size:13px;font-weight:700;color:#1a7f47">'
+        . '&#10003;&nbsp; Cita confirmada</span></td>'
+        . ($folio !== ''
+            ? '<td align="right" style="vertical-align:middle;font-size:13px;color:#8a97a8">Folio&nbsp;<strong style="color:#1f2d3d;font-family:monospace">' . e($folio) . '</strong></td>'
+            : '')
+        . '</tr></table>';
 
     // Tarjeta tipo "ticket" con fecha, hora y (si hay) médico.
     $filaMedico = $medico
