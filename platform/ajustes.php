@@ -10,9 +10,11 @@ require_once __DIR__ . '/../includes/functions.php';
 require_platform();
 require_once __DIR__ . '/../includes/mercadopago.php';
 require_once __DIR__ . '/../includes/correo.php';
+require_once __DIR__ . '/../includes/recordatorios.php';
 
 $prueba  = null;   // resultado de "Probar conexión"
 $correoPrueba = null;   // resultado de "Probar envío de correo"
+$recResultado = null;   // resultado de "Enviar recordatorios ahora"
 $errores = [];
 
 /* El id de un admin de plataforma vive en `plataforma_admins`, no en `usuarios`:
@@ -73,6 +75,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ? 'PHP mail() aceptó el correo. Revisa la bandeja (y spam) de ' . $dest . '.'
                     : 'PHP mail() devolvió false: el servidor no aceptó el correo. Revisa la bitácora abajo.',
             ];
+        }
+    }
+
+    if ($accion === 'recordatorios_ahora') {
+        // Dispara los recordatorios manualmente (mismo motor que el cron). Sirve
+        // para verificar sin depender de que el cron/token estén configurados.
+        $fecha = trim((string) ($_POST['rec_fecha'] ?? '')) ?: null;
+        try {
+            $r = recordatorios_enviar($fecha);
+            auditar('plataforma_recordatorios_manual', 'plataforma', null,
+                    "{$r['fecha']}: {$r['procesadas']} citas, {$r['correos']} correos", null, $actor);
+            $recResultado = ['ok' => true] + $r;
+        } catch (Throwable $e) {
+            $recResultado = ['ok' => false, 'mensaje' => $e->getMessage()];
         }
     }
 }
@@ -246,6 +262,47 @@ include __DIR__ . '/_head.php';
     </div>
 
     <div class="col-lg-5">
+        <div class="card mb-3">
+            <div class="card-header"><i class="bi bi-alarm"></i> Recordatorios de cita</div>
+            <div class="card-body">
+                <?php if ($recResultado !== null): ?>
+                    <?php if ($recResultado['ok']): ?>
+                        <div class="alert alert-success py-2 small">
+                            <i class="bi bi-check-circle"></i>
+                            <?= (int) $recResultado['procesadas'] ?> citas procesadas ·
+                            <strong><?= (int) $recResultado['correos'] ?> correos enviados</strong>
+                            para el <?= e($recResultado['fecha']) ?>.
+                            <?php if ((int) $recResultado['procesadas'] === 0): ?>
+                                <br>No había citas pendientes de recordatorio ese día.
+                            <?php endif; ?>
+                        </div>
+                    <?php else: ?>
+                        <div class="alert alert-danger py-2 small">
+                            <i class="bi bi-x-circle"></i> <?= e($recResultado['mensaje']) ?>
+                        </div>
+                    <?php endif; ?>
+                <?php endif; ?>
+
+                <p class="text-muted small mb-2">
+                    Normalmente los envía el cron una vez al día
+                    (<code>cron/recordatorios.php</code>). Aquí puedes dispararlos
+                    a mano para verificar. No duplica: cada cita se marca al enviarse.
+                </p>
+                <form method="post" class="row g-2 align-items-end">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="accion" value="recordatorios_ahora">
+                    <div class="col-7">
+                        <label class="form-label small">Citas del día</label>
+                        <input type="date" name="rec_fecha" class="form-control form-control-sm"
+                               value="<?= e(date('Y-m-d', strtotime('+1 day'))) ?>">
+                    </div>
+                    <div class="col-5">
+                        <button class="btn btn-outline-primary btn-sm w-100"><i class="bi bi-send"></i> Enviar ahora</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <div class="card">
             <div class="card-header"><i class="bi bi-shield-check"></i> Si no llegan los correos</div>
             <div class="card-body small">

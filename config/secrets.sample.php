@@ -28,3 +28,19 @@ define('APP_DEBUG_TOKEN', '');                   // p. ej. 'k7Fq2xR9vT4mZ8pL'
 // Producción: las credenciales productivas. Panel: https://www.mercadopago.com.mx/developers
 define('MP_ACCESS_TOKEN', '');                   // TEST-xxxx (sandbox) o APP_USR-xxxx (prod)
 define('MP_PUBLIC_KEY',   '');                   // TEST-xxxx o APP_USR-xxxx
+
+// --- Correo (remitente de los correos transaccionales) ---
+// Debe ser una dirección DEL DOMINIO del sitio para que SPF/DKIM validen y no
+// caigan en spam. Si lo dejas sin definir, usa no-reply@mediagenda.com.mx.
+// define('CORREO_FROM',      'no-reply@tu-dominio.com');
+// define('CORREO_FROM_NAME', 'Tu Clínica');
+
+// --- Cron de recordatorios de cita ---
+// SITIO_URL: dominio real del sitio (con https://, sin barra final). SOLO se usa
+// cuando el cron corre por CLI (php cron/recordatorios.php); sin él, los enlaces
+// de los correos saldrían como http://localhost y llegarían rotos.
+define('SITIO_URL', 'https://mediagenda.com.mx');
+// CRON_TOKEN: obligatorio SOLO si programas el cron por URL
+// (https://tu-sitio/cron/recordatorios.php?key=EL_TOKEN). Usa una cadena larga
+// y aleatoria. Si corres el cron por CLI no hace falta.
+define('CRON_TOKEN', '');                        // p. ej. 'a9F3k...'

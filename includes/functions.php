@@ -1362,10 +1362,12 @@ function presupuesto_siguiente_folio(): string
 function url_absoluta(string $path): string
 {
     // Por CLI (el cron de recordatorios) no hay HTTP_HOST: el enlace saldría
-    // como http://localhost y llegaría roto al correo del paciente. La variable
-    // de entorno SITIO_URL da el dominio real en ese caso.
+    // como http://localhost y llegaría roto al correo del paciente. SITIO_URL
+    // (variable de entorno o constante en el archivo de secretos) da el dominio
+    // real en ese caso.
     if (PHP_SAPI === 'cli' || empty($_SERVER['HTTP_HOST'])) {
-        $base = rtrim((string) (getenv('SITIO_URL') ?: ''), '/');
+        $base = getenv('SITIO_URL') ?: (defined('SITIO_URL') ? SITIO_URL : '');
+        $base = rtrim((string) $base, '/');
         if ($base !== '') return $base . BASE_URL . $path;
     }
 
