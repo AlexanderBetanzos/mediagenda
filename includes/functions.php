@@ -552,6 +552,8 @@ function ensure_plataforma_admins_table(): void
     // que el dueño le asigne). Los admins existentes quedan como 'super'.
     try { $db->exec("ALTER TABLE plataforma_admins ADD COLUMN IF NOT EXISTS rol ENUM('super','socio') NOT NULL DEFAULT 'super'"); }
     catch (Throwable $e) { /* MySQL viejo sin IF NOT EXISTS: se ignora */ }
+    try { $db->exec("ALTER TABLE plataforma_admins ADD COLUMN IF NOT EXISTS telefono VARCHAR(30) DEFAULT NULL"); }
+    catch (Throwable $e) { /* idem */ }
     // Qué consultorios ve/gestiona cada socio (el super los ve todos).
     $db->exec(
         "CREATE TABLE IF NOT EXISTS plataforma_admin_consultorios (

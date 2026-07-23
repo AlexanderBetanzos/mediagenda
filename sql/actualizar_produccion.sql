@@ -472,6 +472,7 @@ UPDATE configuracion SET valor = '#2563eb' WHERE clave = 'color_acento' AND valo
 -- ============ 2026-07-23: socios de plataforma (roles + asignación de clientes) ============
 -- Rol del admin de plataforma: 'super' (dueño) o 'socio'. Los existentes quedan 'super'.
 ALTER TABLE plataforma_admins ADD COLUMN IF NOT EXISTS rol ENUM('super','socio') NOT NULL DEFAULT 'super';
+ALTER TABLE plataforma_admins ADD COLUMN IF NOT EXISTS telefono VARCHAR(30) DEFAULT NULL;
 -- Qué consultorios ve/gestiona cada socio (el super ve todos).
 CREATE TABLE IF NOT EXISTS plataforma_admin_consultorios (
   admin_id       INT NOT NULL,

@@ -119,6 +119,7 @@ include __DIR__ . '/_head.php';
                             <td>
                                 <div class="fw-semibold"><?= e($s['nombre']) ?></div>
                                 <div class="small text-muted"><?= e($s['email']) ?></div>
+                                <?php if (!empty($s['telefono'])): ?><div class="small text-muted"><i class="bi bi-telephone"></i> <?= e($s['telefono']) ?></div><?php endif; ?>
                             </td>
                             <td>
                                 <?php if ($s['activo']): ?>

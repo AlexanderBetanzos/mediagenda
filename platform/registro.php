@@ -17,17 +17,20 @@ if ((int) $pdo->query("SELECT COUNT(*) FROM plataforma_admins")->fetchColumn() =
 }
 
 $error = '';
-$nombre = $email = '';
+$nombre = $email = $telefono = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
-    $nombre = trim($_POST['nombre'] ?? '');
-    $email  = trim($_POST['email'] ?? '');
-    $pass   = $_POST['password'] ?? '';
-    $pass2  = $_POST['password2'] ?? '';
+    $nombre   = trim($_POST['nombre'] ?? '');
+    $email    = trim($_POST['email'] ?? '');
+    $telefono = preg_replace('/\D/', '', (string) ($_POST['telefono'] ?? '')); // solo dígitos
+    $pass     = $_POST['password'] ?? '';
+    $pass2    = $_POST['password2'] ?? '';
 
     if ($nombre === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error = t('Escribe tu nombre y un correo válido.');
+    } elseif (strlen($telefono) !== 10) {
+        $error = t('El teléfono debe tener exactamente 10 dígitos (solo números).');
     } elseif (strlen($pass) < 8) {
         $error = t('La contraseña debe tener al menos 8 caracteres.');
     } elseif ($pass !== $pass2) {
@@ -40,9 +43,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             // rol socio, activo=0: pendiente de aprobación del dueño.
             $ins = $pdo->prepare(
-                "INSERT INTO plataforma_admins (nombre, email, password_hash, rol, activo) VALUES (?,?,?, 'socio', 0)"
+                "INSERT INTO plataforma_admins (nombre, email, telefono, password_hash, rol, activo) VALUES (?,?,?,?, 'socio', 0)"
             );
-            $ins->execute([$nombre, $email, password_hash($pass, PASSWORD_DEFAULT)]);
+            $ins->execute([$nombre, $email, $telefono, password_hash($pass, PASSWORD_DEFAULT)]);
             auditar('plataforma_socio_registro', 'plataforma_admin', (int) $pdo->lastInsertId(), $email);
             redirect('/platform/login?registrado=1');
         }
@@ -86,6 +89,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="mb-3">
                 <label class="form-label"><?= et('Correo') ?></label>
                 <input type="email" name="email" class="form-control" required value="<?= e($email) ?>">
+            </div>
+            <div class="mb-3">
+                <label class="form-label"><?= et('Teléfono') ?></label>
+                <input type="tel" name="telefono" class="form-control" required
+                       inputmode="numeric" maxlength="10" minlength="10" pattern="[0-9]{10}"
+                       oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)"
+                       title="<?= e(t('Ingresa 10 dígitos, solo números')) ?>"
+                       value="<?= e($telefono) ?>">
             </div>
             <div class="mb-3">
                 <label class="form-label"><?= et('Contraseña') ?></label>
