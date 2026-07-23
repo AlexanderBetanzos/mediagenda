@@ -7,10 +7,11 @@
  * los dan los scripts de sql/, aquí solo van los datos).
  */
 require_once __DIR__ . '/../includes/functions.php';
-require_platform_super();
+require_platform();
 
 $pdo = db();
 $cid = (int) ($_GET['id'] ?? 0);
+require_platform_consultorio($cid);   // socios: solo sus consultorios asignados
 
 $st = $pdo->prepare('SELECT * FROM consultorios WHERE id = ?');
 $st->execute([$cid]);
