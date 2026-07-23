@@ -7,10 +7,24 @@
  */
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/mercadopago.php';
-require_platform_super();
+require_platform();
 
 $pdo = db();
-$consultorios = $pdo->query("SELECT * FROM consultorios")->fetchAll();
+
+/* Alcance: el dueño ve todo; el socio, solo sus consultorios asignados.
+   Se construyen fragmentos SQL para acotar cada consulta. */
+$vis     = platform_consultorios_visibles();   // null = todos (dueño)
+$scoped  = $vis !== null;
+$esDueno = platform_es_super();
+$idsCsv  = $scoped ? (implode(',', array_map('intval', $vis)) ?: '0') : '';
+$wId  = $scoped ? "WHERE id IN ($idsCsv)"             : '';   // consultorios, sin otro WHERE
+$aId  = $scoped ? "AND id IN ($idsCsv)"               : '';   // consultorios, con WHERE previo
+$acId = $scoped ? "AND c.id IN ($idsCsv)"             : '';   // consultorios alias c, con WHERE previo
+$wcId = $scoped ? "WHERE c.id IN ($idsCsv)"           : '';   // consultorios alias c, sin otro WHERE
+$aCon = $scoped ? "AND consultorio_id IN ($idsCsv)"   : '';   // tablas con consultorio_id, con WHERE previo
+$wCon = $scoped ? "WHERE consultorio_id IN ($idsCsv)" : '';   // idem, sin WHERE previo
+
+$consultorios = $pdo->query("SELECT * FROM consultorios $wId")->fetchAll();
 
 $planes = planes_mp();
 $precio = []; $planNombre = [];
@@ -37,7 +51,7 @@ $churnRate = $churnBase > 0 ? round($byStatus['suspendida'] / $churnBase * 100, 
 /* Activaciones (altas de consultorios) últimos 12 meses */
 $actByMonth = $pdo->query(
     "SELECT DATE_FORMAT(creado_en,'%Y-%m') ym, COUNT(*) n FROM consultorios
-     WHERE creado_en >= DATE_SUB(DATE_FORMAT(CURDATE(),'%Y-%m-01'), INTERVAL 11 MONTH) GROUP BY ym"
+     WHERE creado_en >= DATE_SUB(DATE_FORMAT(CURDATE(),'%Y-%m-01'), INTERVAL 11 MONTH) $aId GROUP BY ym"
 )->fetchAll(PDO::FETCH_KEY_PAIR);
 $MES = ['', 'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 $fom = date('Y-m-01');
@@ -50,13 +64,13 @@ for ($i = 11; $i >= 0; $i--) {
 $newThisMonth = (int) ($actByMonth[date('Y-m')] ?? 0);
 
 /* Uso agregado (toda la plataforma) */
-$totalPacientes = (int) $pdo->query("SELECT COUNT(*) FROM pacientes")->fetchColumn();
-$consultas30    = (int) $pdo->query("SELECT COUNT(*) FROM consultas WHERE fecha >= DATE_SUB(NOW(), INTERVAL 30 DAY)")->fetchColumn();
-$citas30        = (int) $pdo->query("SELECT COUNT(*) FROM citas WHERE fecha >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) AND estado='atendida'")->fetchColumn();
+$totalPacientes = (int) $pdo->query("SELECT COUNT(*) FROM pacientes $wCon")->fetchColumn();
+$consultas30    = (int) $pdo->query("SELECT COUNT(*) FROM consultas WHERE fecha >= DATE_SUB(NOW(), INTERVAL 30 DAY) $aCon")->fetchColumn();
+$citas30        = (int) $pdo->query("SELECT COUNT(*) FROM citas WHERE fecha >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) AND estado='atendida' $aCon")->fetchColumn();
 
-/* GMV — dinero que mueven TODOS los consultorios (facturas pagadas) */
-$gmvMonth = (float) $pdo->query("SELECT COALESCE(SUM(total),0) FROM facturas WHERE estado='pagada' AND MONTH(fecha)=MONTH(CURDATE()) AND YEAR(fecha)=YEAR(CURDATE())")->fetchColumn();
-$gmv12    = (float) $pdo->query("SELECT COALESCE(SUM(total),0) FROM facturas WHERE estado='pagada' AND fecha >= DATE_SUB(CURDATE(), INTERVAL 11 MONTH)")->fetchColumn();
+/* GMV — dinero que mueven los consultorios visibles (facturas pagadas) */
+$gmvMonth = (float) $pdo->query("SELECT COALESCE(SUM(total),0) FROM facturas WHERE estado='pagada' AND MONTH(fecha)=MONTH(CURDATE()) AND YEAR(fecha)=YEAR(CURDATE()) $aCon")->fetchColumn();
+$gmv12    = (float) $pdo->query("SELECT COALESCE(SUM(total),0) FROM facturas WHERE estado='pagada' AND fecha >= DATE_SUB(CURDATE(), INTERVAL 11 MONTH) $aCon")->fetchColumn();
 
 /* Conversión prueba → activa */
 $trialsWith = $totalCons;                         // todos arrancan en prueba
@@ -69,14 +83,14 @@ $top = $pdo->query(
         (SELECT COALESCE(SUM(f.total),0) FROM facturas f WHERE f.consultorio_id=c.id AND f.estado='pagada' AND MONTH(f.fecha)=MONTH(CURDATE()) AND YEAR(f.fecha)=YEAR(CURDATE())) gmv,
         (SELECT COUNT(*) FROM pacientes p WHERE p.consultorio_id=c.id) pac,
         (SELECT COUNT(*) FROM consultas co WHERE co.consultorio_id=c.id AND co.fecha >= DATE_SUB(NOW(), INTERVAL 30 DAY)) cons30
-     FROM consultorios c ORDER BY gmv DESC, pac DESC LIMIT 8"
+     FROM consultorios c $wcId ORDER BY gmv DESC, pac DESC LIMIT 8"
 )->fetchAll();
 $estBadge = ['activa' => 'success', 'trial' => 'info', 'suspendida' => 'danger', 'expirada' => 'secondary'];
 
 /* Pruebas por vencer (próximos 15 días) */
 $trialsSoon = $pdo->query(
     "SELECT nombre, trial_fin, DATEDIFF(trial_fin, CURDATE()) dias FROM consultorios
-     WHERE estado='trial' AND trial_fin BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 15 DAY)
+     WHERE estado='trial' AND trial_fin BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 15 DAY) $aId
      ORDER BY trial_fin"
 )->fetchAll();
 
@@ -86,7 +100,7 @@ $riskRows = $pdo->query(
         GREATEST(COALESCE((SELECT MAX(fecha) FROM consultas WHERE consultorio_id=c.id),'1900-01-01'),
                  COALESCE((SELECT MAX(fecha) FROM citas WHERE consultorio_id=c.id AND estado='atendida'),'1900-01-01')) ult,
         (SELECT COUNT(*) FROM pacientes p WHERE p.consultorio_id=c.id) pac
-     FROM consultorios c WHERE c.estado='activa'"
+     FROM consultorios c WHERE c.estado='activa' $acId"
 )->fetchAll();
 $risk = [];
 foreach ($riskRows as $r) {
@@ -95,27 +109,31 @@ foreach ($riskRows as $r) {
     if ($inactivo) $risk[] = $r;
 }
 
-/* ── Tráfico del sitio (pageviews) ──────────────────────────────────── */
-ensure_pageviews_table();
-$hasViews = (int) $pdo->query("SELECT COUNT(*) FROM pageviews")->fetchColumn();
-$visHoy   = (int) $pdo->query("SELECT COUNT(*) FROM pageviews WHERE area<>'plataforma' AND DATE(created_at)=CURDATE()")->fetchColumn();
-$vis7     = (int) $pdo->query("SELECT COUNT(*) FROM pageviews WHERE area<>'plataforma' AND created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)")->fetchColumn();
-$vis30    = (int) $pdo->query("SELECT COUNT(*) FROM pageviews WHERE area<>'plataforma' AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)")->fetchColumn();
-$uniq30   = (int) $pdo->query("SELECT COUNT(DISTINCT visitor) FROM pageviews WHERE area<>'plataforma' AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)")->fetchColumn();
+/* ── Tráfico del sitio (pageviews) — es global (sin consultorio), solo dueño ── */
+$hasViews = 0; $visHoy = $vis7 = $vis30 = $uniq30 = 0;
+$visLabels = $visData = []; $topModules = []; $byArea = []; $areaTotal = 1;
+if ($esDueno) {
+    ensure_pageviews_table();
+    $hasViews = (int) $pdo->query("SELECT COUNT(*) FROM pageviews")->fetchColumn();
+    $visHoy   = (int) $pdo->query("SELECT COUNT(*) FROM pageviews WHERE area<>'plataforma' AND DATE(created_at)=CURDATE()")->fetchColumn();
+    $vis7     = (int) $pdo->query("SELECT COUNT(*) FROM pageviews WHERE area<>'plataforma' AND created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)")->fetchColumn();
+    $vis30    = (int) $pdo->query("SELECT COUNT(*) FROM pageviews WHERE area<>'plataforma' AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)")->fetchColumn();
+    $uniq30   = (int) $pdo->query("SELECT COUNT(DISTINCT visitor) FROM pageviews WHERE area<>'plataforma' AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)")->fetchColumn();
 
-$viewsByDay = $pdo->query("SELECT DATE(created_at) d, COUNT(*) n FROM pageviews WHERE area<>'plataforma' AND created_at >= DATE_SUB(CURDATE(), INTERVAL 29 DAY) GROUP BY d")->fetchAll(PDO::FETCH_KEY_PAIR);
-$visLabels = $visData = [];
-for ($i = 29; $i >= 0; $i--) { $d = date('Y-m-d', strtotime("-$i day")); $visLabels[] = date('d/m', strtotime($d)); $visData[] = (int) ($viewsByDay[$d] ?? 0); }
+    $viewsByDay = $pdo->query("SELECT DATE(created_at) d, COUNT(*) n FROM pageviews WHERE area<>'plataforma' AND created_at >= DATE_SUB(CURDATE(), INTERVAL 29 DAY) GROUP BY d")->fetchAll(PDO::FETCH_KEY_PAIR);
+    for ($i = 29; $i >= 0; $i--) { $d = date('Y-m-d', strtotime("-$i day")); $visLabels[] = date('d/m', strtotime($d)); $visData[] = (int) ($viewsByDay[$d] ?? 0); }
 
-$topModules = $pdo->query("SELECT area, path, COUNT(*) n, COUNT(DISTINCT visitor) u FROM pageviews WHERE area<>'plataforma' AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) GROUP BY area, path ORDER BY n DESC LIMIT 12")->fetchAll();
-$byArea = $pdo->query("SELECT area, COUNT(*) n FROM pageviews WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) GROUP BY area ORDER BY n DESC")->fetchAll();
-$areaTotal = array_sum(array_column($byArea, 'n')) ?: 1;
+    $topModules = $pdo->query("SELECT area, path, COUNT(*) n, COUNT(DISTINCT visitor) u FROM pageviews WHERE area<>'plataforma' AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) GROUP BY area, path ORDER BY n DESC LIMIT 12")->fetchAll();
+    $byArea = $pdo->query("SELECT area, COUNT(*) n FROM pageviews WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) GROUP BY area ORDER BY n DESC")->fetchAll();
+    $areaTotal = array_sum(array_column($byArea, 'n')) ?: 1;
+}
 
 $titulo   = 'Métricas';
 $platNav  = 'metrics';
 include __DIR__ . '/_head.php';
 ?>
-<h1 class="h3 mb-4"><i class="bi bi-graph-up-arrow text-brand"></i> <?= et('Métricas del negocio') ?></h1>
+<h1 class="h3 mb-1"><i class="bi bi-graph-up-arrow text-brand"></i> <?= $esDueno ? et('Métricas del negocio') : et('Métricas de tus consultorios') ?></h1>
+<?php if (!$esDueno): ?><p class="text-muted mb-4"><?= et('Solo de los consultorios que te asignaron.') ?></p><?php else: ?><div class="mb-4"></div><?php endif; ?>
 
 <!-- KPIs principales -->
 <div class="row g-3 mb-4">
@@ -242,7 +260,8 @@ include __DIR__ . '/_head.php';
     </table></div>
 </div>
 
-<!-- ── Tráfico del sitio ─────────────────────────────────────────────── -->
+<!-- ── Tráfico del sitio (global, solo dueño) ────────────────────────── -->
+<?php if ($esDueno): ?>
 <div class="d-flex align-items-center gap-2 mt-4 mb-2">
     <h2 class="h4 fw-bold mb-0"><i class="bi bi-graph-up-arrow text-brand"></i> <?= et('Tráfico del sitio') ?></h2>
     <span class="text-muted small"><?= et('visitas a las páginas · sin contar la consola de plataforma') ?></span>
@@ -295,6 +314,7 @@ include __DIR__ . '/_head.php';
         </div>
     </div></div>
 </div>
+<?php endif; /* fin tráfico del sitio (solo dueño) */ ?>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
