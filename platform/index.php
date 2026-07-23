@@ -16,6 +16,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $cid    = (int) ($_POST['id'] ?? 0);
     $accion = $_POST['accion'] ?? '';
 
+    // Un socio solo actúa sobre SUS consultorios; eliminar es solo del dueño.
+    if (!platform_puede_ver($cid)) {
+        flash('No tienes acceso a ese consultorio.', 'warning');
+        redirect('/platform/index');
+    }
+    if ($accion === 'eliminar' && !platform_es_super()) {
+        flash('Solo el dueño del sistema puede eliminar consultorios.', 'warning');
+        redirect('/platform/index');
+    }
+
     if ($cid === 1 && in_array($accion, ['suspender', 'eliminar'], true)) {
         flash('No puedes suspender ni eliminar el consultorio principal.', 'warning');
         redirect('/platform/index');
@@ -73,7 +83,14 @@ $planNombre = [];
 $planPrecio = [];
 foreach ($planes as $clave => $p) { $planNombre[$clave] = $p['nombre']; $planPrecio[$clave] = (float) $p['precio']; }
 
-/* ── Listado con métricas ───────────────────────────────────────────── */
+/* ── Listado con métricas (los socios solo ven sus consultorios) ─────── */
+$vis = platform_consultorios_visibles();   // null = todos (dueño)
+$whereVis = '';
+if ($vis !== null) {
+    $whereVis = $vis
+        ? 'WHERE c.id IN (' . implode(',', array_map('intval', $vis)) . ')'
+        : 'WHERE 1 = 0';   // socio sin clientes asignados: no ve nada
+}
 $consultorios = $pdo->query(
     "SELECT c.*,
             (SELECT COUNT(*) FROM pacientes p WHERE p.consultorio_id = c.id) n_pacientes,
@@ -82,6 +99,7 @@ $consultorios = $pdo->query(
             (SELECT u.email  FROM usuarios u WHERE u.consultorio_id = c.id AND u.rol='admin' ORDER BY u.es_superadmin DESC, u.id LIMIT 1) admin_email,
             (SELECT MAX(u.es_superadmin) FROM usuarios u WHERE u.consultorio_id = c.id AND u.rol='admin') admin_super
      FROM consultorios c
+     $whereVis
      ORDER BY (c.estado='suspendida') DESC, c.creado_en DESC"
 )->fetchAll();
 
@@ -133,13 +151,12 @@ include __DIR__ . '/_head.php';
 <!-- KPIs de negocio -->
 <div class="row g-3 mb-4">
     <?php
-    $kpis = [
-        [et('Consultorios'), (string) $tot['total'],       'bi-buildings',      'var(--brand)'],
-        [et('MRR estimado'), fmt_money($mrr),              'bi-graph-up-arrow', '#22c55e'],
-        [et('Activos'),      (string) $tot['activa'],       'bi-check-circle',   '#22c55e'],
-        [et('En prueba'),    (string) $tot['trial'],        'bi-stopwatch',      '#6366f1'],
-        [et('Suspendidos'),  (string) $tot['suspendida'],   'bi-pause-circle',   '#ef4444'],
-    ];
+    // El MRR (ingresos) es solo del dueño; el socio ve conteos de sus clientes.
+    $kpis = [[et('Consultorios'), (string) $tot['total'], 'bi-buildings', 'var(--brand)']];
+    if ($esSuper) $kpis[] = [et('MRR estimado'), fmt_money($mrr), 'bi-graph-up-arrow', '#22c55e'];
+    $kpis[] = [et('Activos'),     (string) $tot['activa'],     'bi-check-circle', '#22c55e'];
+    $kpis[] = [et('En prueba'),   (string) $tot['trial'],      'bi-stopwatch',    '#6366f1'];
+    $kpis[] = [et('Suspendidos'), (string) $tot['suspendida'], 'bi-pause-circle', '#ef4444'];
     foreach ($kpis as [$lbl, $val, $ic, $col]): ?>
     <div class="col-6 col-xl">
         <div class="card stat-card h-100"><div class="card-body d-flex align-items-center gap-3">
@@ -150,7 +167,8 @@ include __DIR__ . '/_head.php';
     <?php endforeach; ?>
 </div>
 
-<!-- Gráficas -->
+<!-- Gráficas (analítica de negocio: solo el dueño) -->
+<?php if ($esSuper): ?>
 <div class="row g-3 mb-4">
     <div class="col-lg-8"><div class="card h-100">
         <div class="card-header fw-semibold"><i class="bi bi-bar-chart-fill text-brand"></i> <?= et('Altas de consultorios · 12 meses') ?></div>
@@ -164,6 +182,7 @@ include __DIR__ . '/_head.php';
         </div>
     </div></div>
 </div>
+<?php endif; ?>
 
 <style>
 .plat-table th { font-size:.68rem; text-transform:uppercase; letter-spacing:.05em; white-space:nowrap; }
@@ -241,7 +260,9 @@ include __DIR__ . '/_head.php';
                                 <button class="act-btn g" title="<?= e(t('Entrar como este consultorio')) ?>"><i class="bi bi-box-arrow-in-right"></i></button>
                             </form>
                             <a class="act-btn o" href="<?= BASE_URL ?>/platform/consultorio?id=<?= $c['id'] ?>" title="<?= e(t('Editar (datos, plan y módulos)')) ?>"><i class="bi bi-pencil-square"></i></a>
+                            <?php if ($esSuper): ?>
                             <a class="act-btn b" href="<?= BASE_URL ?>/platform/exportar?id=<?= $c['id'] ?>" title="<?= e(t('Descargar respaldo SQL de sus datos')) ?>"><i class="bi bi-database-down"></i></a>
+                            <?php endif; ?>
                             <button form="f<?= $c['id'] ?>" name="accion" value="extender" class="act-btn b" title="<?= e(t('Extender prueba 15 días')) ?>"><i class="bi bi-stopwatch"></i></button>
                             <?php if ($c['estado'] !== 'activa'): ?>
                                 <button form="f<?= $c['id'] ?>" name="accion" value="activar" class="act-btn g" title="<?= e(t('Activar membresía')) ?>"><i class="bi bi-play-fill"></i></button>
@@ -249,7 +270,7 @@ include __DIR__ . '/_head.php';
                             <?php if ($c['estado'] !== 'suspendida' && $c['id'] != 1): ?>
                                 <button form="f<?= $c['id'] ?>" name="accion" value="suspender" class="act-btn y" onclick="return confirm('¿Suspender este consultorio? Perderá el acceso.');" title="<?= e(t('Suspender')) ?>"><i class="bi bi-pause-fill"></i></button>
                             <?php endif; ?>
-                            <?php if ($c['id'] != 1): ?>
+                            <?php if ($c['id'] != 1 && $esSuper): ?>
                                 <button form="f<?= $c['id'] ?>" name="accion" value="eliminar" class="act-btn r" onclick="return confirm('¿ELIMINAR «<?= e(addslashes($c['nombre'])) ?>» y TODOS sus datos?\n\nEsta acción NO se puede deshacer.');" title="<?= e(t('Eliminar definitivamente')) ?>"><i class="bi bi-trash"></i></button>
                             <?php endif; ?>
                         </div>

@@ -7,7 +7,7 @@
  * Precedencia: lo guardado aquí manda sobre el archivo de secretos.
  */
 require_once __DIR__ . '/../includes/functions.php';
-require_platform();
+require_platform_super();
 require_once __DIR__ . '/../includes/mercadopago.php';
 require_once __DIR__ . '/../includes/correo.php';
 require_once __DIR__ . '/../includes/recordatorios.php';

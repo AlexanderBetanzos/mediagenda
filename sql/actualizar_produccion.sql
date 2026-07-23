@@ -468,3 +468,14 @@ UPDATE planes SET precio = 2799.00 WHERE clave = 'clinica';
 -- ============ 2026-07-16: marca "MediOS" (antes "MediOS Agenda") y acento azul ============
 UPDATE configuracion SET valor = 'MediOS'  WHERE clave = 'marca_nombre' AND valor IN ('MediOS Agenda', 'MediAgenda');
 UPDATE configuracion SET valor = '#2563eb' WHERE clave = 'color_acento' AND valor = '#1f6b73';
+
+-- ============ 2026-07-23: socios de plataforma (roles + asignación de clientes) ============
+-- Rol del admin de plataforma: 'super' (dueño) o 'socio'. Los existentes quedan 'super'.
+ALTER TABLE plataforma_admins ADD COLUMN IF NOT EXISTS rol ENUM('super','socio') NOT NULL DEFAULT 'super';
+-- Qué consultorios ve/gestiona cada socio (el super ve todos).
+CREATE TABLE IF NOT EXISTS plataforma_admin_consultorios (
+  admin_id       INT NOT NULL,
+  consultorio_id INT NOT NULL,
+  creado_en      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (admin_id, consultorio_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

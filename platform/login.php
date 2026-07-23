@@ -13,7 +13,9 @@ $pdo      = db();
 $hayAdmin = (int) $pdo->query("SELECT COUNT(*) FROM plataforma_admins")->fetchColumn() > 0;
 $modo     = $hayAdmin ? 'login' : 'setup';
 $error    = '';
-$ok       = '';
+$ok       = isset($_GET['registrado'])
+    ? t('¡Cuenta creada! Queda pendiente de que el dueño la apruebe. Te avisará cuando puedas entrar.')
+    : '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
@@ -34,10 +36,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } elseif ($pass !== $pass2) {
                 $error = t('Las contraseñas no coinciden.');
             } else {
-                $ins = $pdo->prepare("INSERT INTO plataforma_admins (nombre, email, password_hash) VALUES (?,?,?)");
+                $ins = $pdo->prepare("INSERT INTO plataforma_admins (nombre, email, password_hash, rol) VALUES (?,?,?,'super')");
                 $ins->execute([$nombre, $email, password_hash($pass, PASSWORD_DEFAULT)]);
                 session_regenerate_id(true);
-                $_SESSION['plataforma_admin'] = ['id' => (int) $pdo->lastInsertId(), 'nombre' => $nombre, 'email' => $email];
+                $_SESSION['plataforma_admin'] = ['id' => (int) $pdo->lastInsertId(), 'nombre' => $nombre, 'email' => $email, 'rol' => 'super'];
                 auditar('plataforma_setup', 'plataforma_admin', (int) $_SESSION['plataforma_admin']['id'], $email);
                 redirect('/platform/index');
             }
@@ -45,17 +47,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else { // login
         $email = trim($_POST['email'] ?? '');
         $pass  = $_POST['password'] ?? '';
-        $st = $pdo->prepare("SELECT * FROM plataforma_admins WHERE email = ? AND activo = 1 LIMIT 1");
+        $st = $pdo->prepare("SELECT * FROM plataforma_admins WHERE email = ? LIMIT 1");
         $st->execute([$email]);
         $a = $st->fetch();
         if ($a && password_verify($pass, $a['password_hash'])) {
-            session_regenerate_id(true);
-            $_SESSION['plataforma_admin'] = ['id' => (int) $a['id'], 'nombre' => $a['nombre'], 'email' => $a['email']];
-            $pdo->prepare("UPDATE plataforma_admins SET ultimo_acceso = NOW() WHERE id = ?")->execute([(int) $a['id']]);
-            auditar('plataforma_login', 'plataforma_admin', (int) $a['id'], $email);
-            redirect('/platform/index');
+            if (!$a['activo']) {
+                // Socio registrado pero aún no aprobado por el dueño.
+                $error = t('Tu cuenta está pendiente de aprobación. El dueño del sistema debe activarla.');
+            } else {
+                session_regenerate_id(true);
+                $_SESSION['plataforma_admin'] = ['id' => (int) $a['id'], 'nombre' => $a['nombre'], 'email' => $a['email'], 'rol' => $a['rol'] ?? 'super'];
+                $pdo->prepare("UPDATE plataforma_admins SET ultimo_acceso = NOW() WHERE id = ?")->execute([(int) $a['id']]);
+                auditar('plataforma_login', 'plataforma_admin', (int) $a['id'], $email);
+                redirect('/platform/index');
+            }
+        } else {
+            $error = t('Correo o contraseña incorrectos.');
         }
-        $error = t('Correo o contraseña incorrectos.');
     }
 }
 ?>
@@ -85,6 +93,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <p class="text-muted small mb-0"><?= $modo === 'setup' ? et('Crea el primer súper usuario de la plataforma.') : et('Acceso exclusivo del dueño del sistema.') ?></p>
         </div>
 
+        <?php if ($ok): ?><div class="alert alert-success py-2"><?= e($ok) ?></div><?php endif; ?>
         <?php if ($error): ?><div class="alert alert-danger py-2"><?= e($error) ?></div><?php endif; ?>
 
         <?php if ($modo === 'setup' && !es_superadmin()): ?>
@@ -107,12 +116,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             <div class="mb-3">
                 <label class="form-label"><?= et('Contraseña') ?></label>
-                <input type="password" name="password" class="form-control" required minlength="8">
+                <div class="input-group">
+                    <input type="password" name="password" class="form-control" required minlength="8">
+                    <button class="btn btn-outline-secondary toggle-pass" type="button" tabindex="-1" aria-label="<?= e(t('Mostrar u ocultar contraseña')) ?>"><i class="bi bi-eye"></i></button>
+                </div>
             </div>
             <?php if ($modo === 'setup'): ?>
                 <div class="mb-3">
                     <label class="form-label"><?= et('Repite la contraseña') ?></label>
-                    <input type="password" name="password2" class="form-control" required minlength="8">
+                    <div class="input-group">
+                        <input type="password" name="password2" class="form-control" required minlength="8">
+                        <button class="btn btn-outline-secondary toggle-pass" type="button" tabindex="-1" aria-label="<?= e(t('Mostrar u ocultar contraseña')) ?>"><i class="bi bi-eye"></i></button>
+                    </div>
                 </div>
             <?php endif; ?>
             <button class="btn btn-primary w-100">
@@ -122,10 +137,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </form>
         <?php endif; ?>
 
-        <div class="text-center mt-4">
+        <?php if ($modo === 'login'): ?>
+            <div class="text-center mt-4 small">
+                <?= et('¿Eres socio y aún no tienes cuenta?') ?>
+                <a href="<?= BASE_URL ?>/platform/registro" class="text-decoration-none fw-semibold"><?= et('Regístrate') ?></a>
+            </div>
+        <?php endif; ?>
+
+        <div class="text-center mt-3">
             <a href="<?= BASE_URL ?>/index" class="small text-muted text-decoration-none"><i class="bi bi-arrow-left"></i> <?= et('Volver al sitio') ?></a>
         </div>
     </div>
 </div>
+<script>
+document.querySelectorAll('.toggle-pass').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+        var inp = btn.closest('.input-group').querySelector('input');
+        var ic  = btn.querySelector('i');
+        var oculto = inp.getAttribute('type') === 'password';
+        inp.setAttribute('type', oculto ? 'text' : 'password');
+        ic.className = oculto ? 'bi bi-eye-slash' : 'bi bi-eye';
+    });
+});
+</script>
 </body>
 </html>

@@ -7,7 +7,7 @@
  */
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/mercadopago.php';
-require_platform();
+require_platform_super();
 
 $pdo = db();
 $consultorios = $pdo->query("SELECT * FROM consultorios")->fetchAll();

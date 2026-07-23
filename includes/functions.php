@@ -533,10 +533,11 @@ function require_platform(): void
     }
 }
 
-/** Crea la tabla de super usuarios de plataforma si aún no existe. */
+/** Crea/actualiza las tablas de admins de plataforma si aún no existen. */
 function ensure_plataforma_admins_table(): void
 {
-    db()->exec(
+    $db = db();
+    $db->exec(
         "CREATE TABLE IF NOT EXISTS plataforma_admins (
             id            INT AUTO_INCREMENT PRIMARY KEY,
             nombre        VARCHAR(120) NOT NULL,
@@ -547,6 +548,67 @@ function ensure_plataforma_admins_table(): void
             creado_en     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
     );
+    // Rol: 'super' (dueño, acceso total) o 'socio' (acceso a los consultorios
+    // que el dueño le asigne). Los admins existentes quedan como 'super'.
+    try { $db->exec("ALTER TABLE plataforma_admins ADD COLUMN IF NOT EXISTS rol ENUM('super','socio') NOT NULL DEFAULT 'super'"); }
+    catch (Throwable $e) { /* MySQL viejo sin IF NOT EXISTS: se ignora */ }
+    // Qué consultorios ve/gestiona cada socio (el super los ve todos).
+    $db->exec(
+        "CREATE TABLE IF NOT EXISTS plataforma_admin_consultorios (
+            admin_id       INT NOT NULL,
+            consultorio_id INT NOT NULL,
+            creado_en      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (admin_id, consultorio_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+    );
+}
+
+/** ¿El admin de plataforma en sesión es el dueño (súper), no un socio? */
+function platform_es_super(): bool
+{
+    $pa = platform_admin();
+    // Sin rol en sesión (admins creados antes de esta feature) = súper.
+    return $pa !== null && (($pa['rol'] ?? 'super') === 'super');
+}
+
+/** Exige sesión de plataforma Y que sea el dueño. Los socios no entran. */
+function require_platform_super(): void
+{
+    require_platform();
+    if (!platform_es_super()) {
+        flash('Esa sección es solo del dueño del sistema.', 'warning');
+        redirect('/platform/index');
+    }
+}
+
+/**
+ * IDs de consultorios que el admin de plataforma puede ver. null = todos
+ * (cuando es súper). Para socios, los que el dueño les asignó.
+ */
+function platform_consultorios_visibles(): ?array
+{
+    if (platform_es_super()) return null;
+    $pa = platform_admin();
+    $st = db()->prepare('SELECT consultorio_id FROM plataforma_admin_consultorios WHERE admin_id = ?');
+    $st->execute([(int) ($pa['id'] ?? 0)]);
+    return array_map('intval', $st->fetchAll(PDO::FETCH_COLUMN));
+}
+
+/** ¿El admin actual puede ver/gestionar el consultorio $cid? */
+function platform_puede_ver(int $cid): bool
+{
+    $vis = platform_consultorios_visibles();
+    return $vis === null || in_array($cid, $vis, true);
+}
+
+/** Guard para páginas por-consultorio: 403 si el socio no lo tiene asignado. */
+function require_platform_consultorio(int $cid): void
+{
+    require_platform();
+    if (!platform_puede_ver($cid)) {
+        flash('No tienes acceso a ese consultorio.', 'warning');
+        redirect('/platform/index');
+    }
 }
 
 /* --------------------------------------------------------------------

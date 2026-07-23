@@ -18,6 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') redirect('/platform/index');
 verify_csrf();
 
 $cid = (int) ($_POST['id'] ?? 0);
+require_platform_consultorio($cid);   // socios: solo pueden entrar a sus asignados
 $st  = db()->prepare("SELECT nombre FROM consultorios WHERE id = ?");
 $st->execute([$cid]);
 $nombre = $st->fetchColumn();

@@ -7,7 +7,7 @@
  * los dan los scripts de sql/, aquí solo van los datos).
  */
 require_once __DIR__ . '/../includes/functions.php';
-require_platform();
+require_platform_super();
 
 $pdo = db();
 $cid = (int) ($_GET['id'] ?? 0);

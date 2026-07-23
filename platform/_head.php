@@ -11,9 +11,10 @@ $titulo = $titulo ?? 'Plataforma';
 $tema   = tema_actual();
 $temaCss = $tema === 'light' ? 'app-light' : 'app-dark';
 $bsAttr  = $tema === 'light' ? ' data-bs-theme="light"' : '';
-$pa    = platform_admin();
-$parts = preg_split('/\s+/', trim($pa['nombre'] ?? 'Admin'));
-$ini   = strtoupper(mb_substr($parts[0] ?? '', 0, 1) . (isset($parts[1]) ? mb_substr($parts[1], 0, 1) : ''));
+$pa      = platform_admin();
+$esSuper = platform_es_super();
+$parts   = preg_split('/\s+/', trim($pa['nombre'] ?? 'Admin'));
+$ini     = strtoupper(mb_substr($parts[0] ?? '', 0, 1) . (isset($parts[1]) ? mb_substr($parts[1], 0, 1) : ''));
 ?>
 <!doctype html>
 <html lang="es" class="<?= $temaCss ?>"<?= $bsAttr ?>>
@@ -52,8 +53,11 @@ $ini   = strtoupper(mb_substr($parts[0] ?? '', 0, 1) . (isset($parts[1]) ? mb_su
     </a>
     <ul class="navbar-nav flex-row top-menu gap-1 ms-2 d-none d-md-flex">
         <li class="nav-item"><a class="nav-link<?= ($platNav ?? '') === 'consultorios' ? ' active' : '' ?>" href="<?= BASE_URL ?>/platform/index"><i class="bi bi-buildings"></i> <?= et('Consultorios') ?></a></li>
+        <?php if ($esSuper): ?>
         <li class="nav-item"><a class="nav-link<?= ($platNav ?? '') === 'metrics' ? ' active' : '' ?>" href="<?= BASE_URL ?>/platform/metrics"><i class="bi bi-graph-up-arrow"></i> <?= et('Métricas') ?></a></li>
+        <li class="nav-item"><a class="nav-link<?= ($platNav ?? '') === 'socios' ? ' active' : '' ?>" href="<?= BASE_URL ?>/platform/socios"><i class="bi bi-people"></i> <?= et('Socios') ?></a></li>
         <li class="nav-item"><a class="nav-link<?= ($platNav ?? '') === 'ajustes' ? ' active' : '' ?>" href="<?= BASE_URL ?>/platform/ajustes"><i class="bi bi-gear"></i> <?= et('Ajustes') ?></a></li>
+        <?php endif; ?>
     </ul>
     <div class="navbar-nav flex-row ms-auto align-items-center gap-3 px-3">
         <div class="topbar-clock text-end lh-1 d-none d-sm-block">
@@ -65,7 +69,7 @@ $ini   = strtoupper(mb_substr($parts[0] ?? '', 0, 1) . (isset($parts[1]) ? mb_su
                 <span class="avatar-circle"><?= e($ini) ?></span>
             </a>
             <ul class="dropdown-menu dropdown-menu-end">
-                <li class="dropdown-header"><?= e($pa['nombre'] ?? '') ?><br><small class="text-muted"><?= et('Dueño del sistema') ?></small></li>
+                <li class="dropdown-header"><?= e($pa['nombre'] ?? '') ?><br><small class="text-muted"><?= $esSuper ? et('Dueño del sistema') : et('Socio') ?></small></li>
                 <li><hr class="dropdown-divider"></li>
                 <li><a class="dropdown-item" href="<?= BASE_URL ?>/platform/logout"><i class="bi bi-box-arrow-right me-2"></i><?= et('Cerrar sesión') ?></a></li>
             </ul>

@@ -8,6 +8,7 @@ require_once __DIR__ . '/../includes/mercadopago.php';
 require_platform();
 
 $id = (int) ($_GET['id'] ?? $_POST['id'] ?? 0);
+require_platform_consultorio($id);   // socios: solo sus consultorios asignados
 $c  = db()->prepare('SELECT * FROM consultorios WHERE id = ?');
 $c->execute([$id]);
 $c = $c->fetch();
