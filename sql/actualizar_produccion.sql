@@ -489,3 +489,9 @@ ON DUPLICATE KEY UPDATE plan_clave = VALUES(plan_clave);
 
 -- ============ 2026-07-24: plantillas de consulta POR ESPECIALIDAD ============
 ALTER TABLE plantillas_consulta ADD COLUMN IF NOT EXISTS especialidad VARCHAR(80) DEFAULT NULL;
+
+-- ============ 2026-07-24: signos vitales ampliados en la consulta ============
+ALTER TABLE consultas ADD COLUMN IF NOT EXISTS glucosa DECIMAL(5,1) DEFAULT NULL;
+ALTER TABLE consultas ADD COLUMN IF NOT EXISTS frecuencia_cardiaca SMALLINT DEFAULT NULL;
+ALTER TABLE consultas ADD COLUMN IF NOT EXISTS saturacion TINYINT DEFAULT NULL;
+ALTER TABLE consultas ADD COLUMN IF NOT EXISTS frecuencia_respiratoria TINYINT DEFAULT NULL;

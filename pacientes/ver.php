@@ -5,6 +5,15 @@ require_login();
 $u  = current_user();
 $id = (int) ($_GET['id'] ?? $_POST['paciente_id'] ?? 0);
 
+// Self-healing: signos vitales ampliados (glucosa, FC, SpO2, FR) en la consulta.
+try {
+    db()->exec("ALTER TABLE consultas
+        ADD COLUMN IF NOT EXISTS glucosa DECIMAL(5,1) DEFAULT NULL,
+        ADD COLUMN IF NOT EXISTS frecuencia_cardiaca SMALLINT DEFAULT NULL,
+        ADD COLUMN IF NOT EXISTS saturacion TINYINT DEFAULT NULL,
+        ADD COLUMN IF NOT EXISTS frecuencia_respiratoria TINYINT DEFAULT NULL");
+} catch (Throwable $e) { /* MySQL viejo / ya existen */ }
+
 $stmt = db()->prepare('SELECT * FROM pacientes WHERE id = ? AND consultorio_id = ?');
 $stmt->execute([$id, tenant_id()]);
 $p = $stmt->fetch();
@@ -15,11 +24,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'consu
     verify_csrf();
     if (!has_role('medico', 'admin')) { http_response_code(403); die('Sin permiso.'); }
 
+    $numOrNull = fn($k) => (isset($_POST[$k]) && $_POST[$k] !== '') ? $_POST[$k] : null;
     $stmt = db()->prepare(
         'INSERT INTO consultas
          (consultorio_id, paciente_id, medico_id, motivo, exploracion, diagnostico, tratamiento, receta,
-          peso, estatura, presion, temperatura, notas)
-         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)'
+          peso, estatura, presion, temperatura, glucosa, frecuencia_cardiaca, saturacion, frecuencia_respiratoria, notas)
+         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
     );
     $stmt->execute([
         tenant_id(), $id, $u['id'],
@@ -28,10 +38,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'consu
         trim($_POST['diagnostico'] ?? '') ?: null,
         trim($_POST['tratamiento'] ?? '') ?: null,
         trim($_POST['receta'] ?? '') ?: null,
-        $_POST['peso'] !== '' ? $_POST['peso'] : null,
-        $_POST['estatura'] !== '' ? $_POST['estatura'] : null,
+        $numOrNull('peso'),
+        $numOrNull('estatura'),
         trim($_POST['presion'] ?? '') ?: null,
-        $_POST['temperatura'] !== '' ? $_POST['temperatura'] : null,
+        $numOrNull('temperatura'),
+        $numOrNull('glucosa'),
+        $numOrNull('frecuencia_cardiaca'),
+        $numOrNull('saturacion'),
+        $numOrNull('frecuencia_respiratoria'),
         trim($_POST['notas'] ?? '') ?: null,
     ]);
     $consulta_id = (int) db()->lastInsertId();
@@ -141,6 +155,37 @@ $cons = $cons->fetchAll();
 $totCons = db()->prepare('SELECT COUNT(*) FROM consultas WHERE paciente_id = ? AND consultorio_id = ?');
 $totCons->execute([$id, tenant_id()]);
 $totCons = (int) $totCons->fetchColumn();
+
+/* ── Signos vitales: series para gráficas de evolución (todas las consultas) ── */
+try {
+    $vsq = db()->prepare("SELECT fecha, peso, estatura, presion, temperatura, glucosa, frecuencia_cardiaca, saturacion
+                          FROM consultas WHERE paciente_id = ? AND consultorio_id = ? ORDER BY fecha ASC");
+    $vsq->execute([$id, tenant_id()]);
+    $vsRows = $vsq->fetchAll();
+} catch (Throwable $e) {
+    $vsq = db()->prepare("SELECT fecha, peso, estatura, presion, temperatura FROM consultas WHERE paciente_id = ? AND consultorio_id = ? ORDER BY fecha ASC");
+    $vsq->execute([$id, tenant_id()]);
+    $vsRows = $vsq->fetchAll();
+}
+$vsLabels = [];
+$vsSeries = ['peso'=>[], 'imc'=>[], 'sistolica'=>[], 'diastolica'=>[], 'glucosa'=>[], 'temperatura'=>[], 'fc'=>[], 'spo2'=>[]];
+foreach ($vsRows as $r) {
+    $vsLabels[] = date('d/m/y', strtotime($r['fecha']));
+    $vsSeries['peso'][] = ($r['peso'] ?? null) !== null ? (float) $r['peso'] : null;
+    $imcV = imc($r['peso'] ?? 0, $r['estatura'] ?? 0);
+    $vsSeries['imc'][] = $imcV ? round((float) $imcV, 1) : null;
+    $sis = $dia = null;
+    if (!empty($r['presion']) && preg_match('#(\d{2,3})\s*/\s*(\d{2,3})#', $r['presion'], $m)) { $sis = (int) $m[1]; $dia = (int) $m[2]; }
+    $vsSeries['sistolica'][]  = $sis;
+    $vsSeries['diastolica'][] = $dia;
+    $vsSeries['glucosa'][]     = ($r['glucosa'] ?? null) !== null ? (float) $r['glucosa'] : null;
+    $vsSeries['temperatura'][] = ($r['temperatura'] ?? null) !== null ? (float) $r['temperatura'] : null;
+    $vsSeries['fc'][]          = ($r['frecuencia_cardiaca'] ?? null) !== null ? (int) $r['frecuencia_cardiaca'] : null;
+    $vsSeries['spo2'][]        = ($r['saturacion'] ?? null) !== null ? (int) $r['saturacion'] : null;
+}
+$vsHas = fn($k) => count(array_filter($vsSeries[$k], fn($x) => $x !== null)) > 0;
+$vsAny = $vsHas('peso') || $vsHas('imc') || $vsHas('sistolica') || $vsHas('glucosa')
+      || $vsHas('temperatura') || $vsHas('fc') || $vsHas('spo2');
 
 // Archivos del expediente
 $archivos = db()->prepare(
@@ -406,6 +451,47 @@ include __DIR__ . '/../includes/header.php';
         <div class="tab-content">
             <!-- Expediente -->
             <div class="tab-pane fade show active" id="tab-exp">
+
+                <?php
+                /* Signos vitales: gráficas de evolución. Solo si hay datos. */
+                $vsColores = [
+                    'peso'=>['Peso','kg','#2563eb'], 'imc'=>['IMC','','#7c3aed'],
+                    'ta'=>['Presión arterial','mmHg','#ef4444'], 'glucosa'=>['Glucosa','mg/dL','#f59e0b'],
+                    'fc'=>['Frecuencia cardiaca','lpm','#ec4899'], 'spo2'=>['Saturación','%','#0ea5e9'],
+                    'temp'=>['Temperatura','°C','#10b981'],
+                ];
+                $vsPayload = [];
+                if ($vsHas('peso')) $vsPayload['peso'] = ['ds'=>[['label'=>t('Peso'),'data'=>$vsSeries['peso'],'color'=>'#2563eb']]];
+                if ($vsHas('imc'))  $vsPayload['imc']  = ['ds'=>[['label'=>'IMC','data'=>$vsSeries['imc'],'color'=>'#7c3aed']]];
+                if ($vsHas('sistolica')) $vsPayload['ta'] = ['ds'=>[
+                        ['label'=>t('Sistólica'),'data'=>$vsSeries['sistolica'],'color'=>'#ef4444'],
+                        ['label'=>t('Diastólica'),'data'=>$vsSeries['diastolica'],'color'=>'#f59e0b']]];
+                if ($vsHas('glucosa')) $vsPayload['glucosa'] = ['ds'=>[['label'=>t('Glucosa'),'data'=>$vsSeries['glucosa'],'color'=>'#f59e0b']]];
+                if ($vsHas('fc'))   $vsPayload['fc']   = ['ds'=>[['label'=>'FC','data'=>$vsSeries['fc'],'color'=>'#ec4899']]];
+                if ($vsHas('spo2')) $vsPayload['spo2'] = ['ds'=>[['label'=>'SpO₂','data'=>$vsSeries['spo2'],'color'=>'#0ea5e9']]];
+                if ($vsHas('temperatura')) $vsPayload['temp'] = ['ds'=>[['label'=>t('Temp'),'data'=>$vsSeries['temperatura'],'color'=>'#10b981']]];
+                ?>
+                <?php if ($vsAny): ?>
+                <div class="card mb-4">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <span class="fw-semibold"><i class="bi bi-activity text-brand"></i> <?= et('Signos vitales · evolución') ?></span>
+                        <button class="btn btn-sm btn-link text-decoration-none p-0" data-bs-toggle="collapse" data-bs-target="#vsCharts"><?= et('Mostrar/ocultar') ?></button>
+                    </div>
+                    <div class="collapse show" id="vsCharts">
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <?php foreach ($vsPayload as $key => $_): [$tit,$uni,$col] = $vsColores[$key]; ?>
+                                <div class="col-md-6 col-xl-4">
+                                    <div class="small fw-semibold mb-1"><?= e($tit) ?> <?php if ($uni): ?><span class="text-muted fw-normal">(<?= e($uni) ?>)</span><?php endif; ?></div>
+                                    <div style="height:170px"><canvas id="vsChart_<?= e($key) ?>"></canvas></div>
+                                </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <?php endif; ?>
+
                 <?php /* Buscar dentro del expediente: en uno de años, encontrar
                          "¿cuándo le receté amoxicilina?" a ojo es imposible. */ ?>
                 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
@@ -476,10 +562,14 @@ include __DIR__ . '/../includes/header.php';
                                     <label class="form-label"><?= et('Motivo de consulta') ?></label>
                                     <input type="text" name="motivo" class="form-control">
                                 </div>
-                                <div class="col-md-3"><label class="form-label"><?= et('Peso (kg)') ?></label><input type="number" step="0.01" name="peso" class="form-control"></div>
-                                <div class="col-md-3"><label class="form-label"><?= et('Estatura (cm)') ?></label><input type="number" step="0.01" name="estatura" class="form-control"></div>
-                                <div class="col-md-3"><label class="form-label"><?= et('Presión') ?></label><input type="text" name="presion" class="form-control" placeholder="120/80"></div>
-                                <div class="col-md-3"><label class="form-label"><?= et('Temp. (°C)') ?></label><input type="number" step="0.1" name="temperatura" class="form-control"></div>
+                                <div class="col-6 col-md-3"><label class="form-label"><?= et('Peso (kg)') ?></label><input type="number" step="0.01" min="0" name="peso" class="form-control"></div>
+                                <div class="col-6 col-md-3"><label class="form-label"><?= et('Estatura (cm)') ?></label><input type="number" step="0.01" min="0" name="estatura" class="form-control"></div>
+                                <div class="col-6 col-md-3"><label class="form-label"><?= et('Presión') ?></label><input type="text" name="presion" class="form-control" placeholder="120/80"></div>
+                                <div class="col-6 col-md-3"><label class="form-label"><?= et('Temp. (°C)') ?></label><input type="number" step="0.1" min="0" name="temperatura" class="form-control"></div>
+                                <div class="col-6 col-md-3"><label class="form-label"><?= et('Glucosa (mg/dL)') ?></label><input type="number" step="0.1" min="0" name="glucosa" class="form-control"></div>
+                                <div class="col-6 col-md-3"><label class="form-label"><?= et('Frec. cardiaca (lpm)') ?></label><input type="number" min="0" name="frecuencia_cardiaca" class="form-control"></div>
+                                <div class="col-6 col-md-3"><label class="form-label"><?= et('Saturación (%)') ?></label><input type="number" min="0" max="100" name="saturacion" class="form-control"></div>
+                                <div class="col-6 col-md-3"><label class="form-label"><?= et('Frec. respiratoria (rpm)') ?></label><input type="number" min="0" name="frecuencia_respiratoria" class="form-control"></div>
                                 <div class="col-md-6"><label class="form-label"><?= et('Exploración') ?></label><textarea name="exploracion" class="form-control" rows="2"></textarea></div>
                                 <div class="col-md-6"><label class="form-label"><?= et('Diagnóstico') ?></label><textarea name="diagnostico" class="form-control" rows="2"></textarea></div>
                                 <div class="col-md-6"><label class="form-label"><?= et('Tratamiento') ?></label><textarea name="tratamiento" class="form-control" rows="2"></textarea></div>
@@ -539,6 +629,10 @@ include __DIR__ . '/../includes/header.php';
                                 $c['estatura'] ? t('Estatura') . ": {$c['estatura']} cm" : null,
                                 $c['presion'] ? t('PA') . ": {$c['presion']}" : null,
                                 $c['temperatura'] ? t('Temp') . ": {$c['temperatura']} °C" : null,
+                                !empty($c['glucosa']) ? t('Glucosa') . ": {$c['glucosa']} mg/dL" : null,
+                                !empty($c['frecuencia_cardiaca']) ? 'FC: ' . $c['frecuencia_cardiaca'] . ' lpm' : null,
+                                !empty($c['saturacion']) ? 'SpO₂: ' . $c['saturacion'] . '%' : null,
+                                !empty($c['frecuencia_respiratoria']) ? 'FR: ' . $c['frecuencia_respiratoria'] . ' rpm' : null,
                             ]);
                             if ($vitales): ?>
                                 <p class="mb-2"><span class="badge bg-light text-dark border me-1"><?= implode('</span> <span class="badge bg-light text-dark border me-1">', array_map('e', $vitales)) ?></span></p>
@@ -758,5 +852,33 @@ include __DIR__ . '/../includes/header.php';
         </div>
     </div>
 </div>
+
+<?php if ($vsAny): ?>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+(function () {
+    if (typeof Chart === 'undefined') return;
+    var labels = <?= json_encode($vsLabels) ?>;
+    var charts = <?= json_encode($vsPayload, JSON_UNESCAPED_UNICODE) ?>;
+    var isLight = !document.documentElement.classList.contains('dark') &&
+                  !document.documentElement.classList.contains('app-dark');
+    var grid = 'rgba(127,127,127,.14)';
+    Object.keys(charts).forEach(function (key) {
+        var el = document.getElementById('vsChart_' + key);
+        if (!el) return;
+        var ds = charts[key].ds.map(function (d) {
+            return { label: d.label, data: d.data, borderColor: d.color,
+                     backgroundColor: d.color, tension: .3, spanGaps: true,
+                     pointRadius: 3, borderWidth: 2 };
+        });
+        new Chart(el, { type: 'line', data: { labels: labels, datasets: ds },
+            options: { responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: ds.length > 1, labels: { boxWidth: 10, font: { size: 10 } } } },
+                scales: { x: { grid: { color: grid }, ticks: { maxTicksLimit: 6, font: { size: 10 } } },
+                          y: { grid: { color: grid }, ticks: { font: { size: 10 } } } } } });
+    });
+})();
+</script>
+<?php endif; ?>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>

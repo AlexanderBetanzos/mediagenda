@@ -91,6 +91,10 @@ CREATE TABLE consultas (
   estatura        DECIMAL(5,2) DEFAULT NULL,     -- cm
   presion         VARCHAR(20)  DEFAULT NULL,     -- ej. 120/80
   temperatura     DECIMAL(4,1) DEFAULT NULL,     -- °C
+  glucosa         DECIMAL(5,1) DEFAULT NULL,     -- mg/dL
+  frecuencia_cardiaca      SMALLINT DEFAULT NULL, -- lpm
+  saturacion               TINYINT  DEFAULT NULL, -- SpO2 %
+  frecuencia_respiratoria  TINYINT  DEFAULT NULL, -- rpm
   notas           TEXT DEFAULT NULL,
   creado_en       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_cons_paciente FOREIGN KEY (paciente_id)
