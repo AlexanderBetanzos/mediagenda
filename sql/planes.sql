@@ -87,14 +87,15 @@ ON DUPLICATE KEY UPDATE nombre=VALUES(nombre), fase=VALUES(fase), orden=VALUES(o
 --  Seed: módulos por plan (acumulativo)
 -- ---------------------------------------------------------------------------
 INSERT INTO plan_modulos (plan_clave, modulo_clave) VALUES
- -- Básico (CRM incluido en todos los planes)
+ -- Básico (CRM y Laboratorio incluidos en todos los planes)
  ('basico','pacientes'),('basico','citas'),('basico','expediente'),
- ('basico','recetas'),('basico','facturacion'),('basico','crm'),
+ ('basico','recetas'),('basico','facturacion'),('basico','crm'),('basico','laboratorio'),
  -- Profesional = Básico + comunicación/portal/reportes/especialidades/plantillas
  ('profesional','pacientes'),('profesional','citas'),('profesional','expediente'),
  ('profesional','recetas'),('profesional','facturacion'),('profesional','reportes'),
  ('profesional','portal'),('profesional','whatsapp'),('profesional','telemedicina'),
  ('profesional','especialidades'),('profesional','crm'),('profesional','plantillas'),
+ ('profesional','laboratorio'),
  -- Clínica = todo
  ('clinica','pacientes'),('clinica','citas'),('clinica','expediente'),
  ('clinica','recetas'),('clinica','facturacion'),('clinica','reportes'),

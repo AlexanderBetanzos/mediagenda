@@ -480,3 +480,9 @@ CREATE TABLE IF NOT EXISTS plataforma_admin_consultorios (
   creado_en      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (admin_id, consultorio_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============ 2026-07-24: Laboratorio disponible en TODOS los planes ============
+-- Antes solo lo incluía Clínica; ahora también Básico y Profesional.
+INSERT INTO plan_modulos (plan_clave, modulo_clave) VALUES
+ ('basico','laboratorio'), ('profesional','laboratorio')
+ON DUPLICATE KEY UPDATE plan_clave = VALUES(plan_clave);
