@@ -2184,6 +2184,23 @@ function plantillas_semilla(): array
     ];
 }
 
+/** Crea las tablas de dermatología si no existen (self-healing). */
+function ensure_derma_tables(): void
+{
+    try {
+        db()->exec("CREATE TABLE IF NOT EXISTS derma_lesiones (
+            id INT AUTO_INCREMENT PRIMARY KEY, consultorio_id INT NOT NULL DEFAULT 1, paciente_id INT NOT NULL,
+            region VARCHAR(120), tipo VARCHAR(120), descripcion TEXT, diagnostico VARCHAR(255),
+            activo TINYINT(1) NOT NULL DEFAULT 1, creado_por INT, creado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_derma (consultorio_id, paciente_id, activo)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        db()->exec("CREATE TABLE IF NOT EXISTS derma_fotos (
+            id INT AUTO_INCREMENT PRIMARY KEY, lesion_id INT NOT NULL, archivo_id INT NOT NULL, fecha DATE NOT NULL,
+            notas VARCHAR(255), creado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, INDEX idx_dfoto (lesion_id, fecha)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    } catch (Throwable $e) { /* ya existen */ }
+}
+
 /** Crea la tabla de valoraciones de cardiología si no existe (self-healing). */
 function ensure_cardio_table(): void
 {
