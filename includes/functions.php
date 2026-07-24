@@ -2184,6 +2184,68 @@ function plantillas_semilla(): array
     ];
 }
 
+/**
+ * Resumen "de un vistazo" de las verticales por especialidad que TIENEN datos
+ * para un paciente. Cada item: [icon, color, label, value, url]. Vacío si no
+ * hay nada. Cada consulta va protegida por si la tabla aún no existe.
+ */
+function resumen_verticales(int $pid): array
+{
+    $tid = tenant_id();
+    $one = function (string $sql, array $p = []) use ($tid) {
+        try { $st = db()->prepare($sql); $st->execute($p); return $st->fetch(); }
+        catch (Throwable $e) { return false; }
+    };
+    $out = [];
+
+    // Embarazo activo.
+    if ($r = $one("SELECT fum, fpp FROM embarazos WHERE paciente_id=? AND consultorio_id=? AND activo=1 ORDER BY id DESC LIMIT 1", [$pid, $tid])) {
+        $sdg = sdg_desde_fum($r['fum']);
+        $out[] = ['icon'=>'bi-gender-female','color'=>'#d63384','label'=>t('Embarazo'),
+                  'value'=>($sdg ?: '—') . ($r['fpp'] ? ' · FPP ' . fmt_fecha($r['fpp']) : ''),
+                  'url'=>'/prenatal/index?paciente_id=' . $pid];
+    }
+    // Última valoración cardiológica.
+    if ($r = $one("SELECT presion, riesgo FROM cardio_valoraciones WHERE paciente_id=? AND consultorio_id=? ORDER BY fecha DESC, id DESC LIMIT 1", [$pid, $tid])) {
+        $rl = ['bajo'=>'Bajo','moderado'=>'Moderado','alto'=>'Alto','muy_alto'=>'Muy alto'];
+        $v = [];
+        if (!empty($r['riesgo'])) $v[] = t('Riesgo') . ' ' . t($rl[$r['riesgo']] ?? $r['riesgo']);
+        if (!empty($r['presion'])) $v[] = 'TA ' . $r['presion'];
+        $out[] = ['icon'=>'bi-heart-pulse','color'=>'#ef4444','label'=>t('Cardiología'),
+                  'value'=>$v ? implode(' · ', $v) : t('registrado'), 'url'=>'/cardiologia/index?paciente_id=' . $pid];
+    }
+    // Última valoración de nutrición (IMC de peso/estatura más recientes).
+    if ($r = $one("SELECT peso, estatura FROM nutricion_valoraciones WHERE paciente_id=? AND consultorio_id=? AND peso>0 ORDER BY fecha DESC, id DESC LIMIT 1", [$pid, $tid])) {
+        $est = (float) $r['estatura'];
+        if ($est <= 0) { $e2 = $one("SELECT estatura FROM nutricion_valoraciones WHERE paciente_id=? AND consultorio_id=? AND estatura>0 ORDER BY fecha DESC LIMIT 1", [$pid, $tid]); $est = $e2 ? (float) $e2['estatura'] : 0; }
+        $b = ($est > 0) ? (float) imc((float) $r['peso'], $est) : 0;
+        [$cl] = imc_clasificacion($b);
+        $out[] = ['icon'=>'bi-egg-fried','color'=>'#f59e0b','label'=>t('Nutrición'),
+                  'value'=>($b ? 'IMC ' . number_format($b,1) . ' · ' . t($cl) : t('registrado')), 'url'=>'/nutricion/index?paciente_id=' . $pid];
+    }
+    // Última sesión de psicología.
+    if ($r = $one("SELECT phq9, gad7 FROM psico_sesiones WHERE paciente_id=? AND consultorio_id=? ORDER BY fecha DESC, id DESC LIMIT 1", [$pid, $tid])) {
+        $v = [];
+        if ($r['phq9'] !== null) { [$l] = phq9_nivel((int) $r['phq9']); $v[] = 'PHQ-9 ' . (int) $r['phq9'] . ' (' . t($l) . ')'; }
+        if ($r['gad7'] !== null) { [$l] = gad7_nivel((int) $r['gad7']); $v[] = 'GAD-7 ' . (int) $r['gad7'] . ' (' . t($l) . ')'; }
+        $out[] = ['icon'=>'bi-chat-heart','color'=>'#7c3aed','label'=>t('Psicología'),
+                  'value'=>$v ? implode(' · ', $v) : t('sesión registrada'), 'url'=>'/psicologia/index?paciente_id=' . $pid];
+    }
+    // Último examen oftalmológico.
+    if ($r = $one("SELECT pio_od, pio_oi FROM oftalmo_examenes WHERE paciente_id=? AND consultorio_id=? ORDER BY fecha DESC, id DESC LIMIT 1", [$pid, $tid])) {
+        $v = ($r['pio_od'] !== null || $r['pio_oi'] !== null)
+            ? 'PIO ' . ($r['pio_od'] ?? '—') . '/' . ($r['pio_oi'] ?? '—') . ' mmHg' : t('registrado');
+        $out[] = ['icon'=>'bi-eye','color'=>'#0ea5e9','label'=>t('Oftalmología'),
+                  'value'=>$v, 'url'=>'/oftalmologia/index?paciente_id=' . $pid];
+    }
+    // Lesiones dermatológicas activas.
+    if ($r = $one("SELECT COUNT(*) n FROM derma_lesiones WHERE paciente_id=? AND consultorio_id=? AND activo=1", [$pid, $tid])) {
+        if ((int) $r['n'] > 0) $out[] = ['icon'=>'bi-bandaid','color'=>'#16a34a','label'=>t('Dermatología'),
+                  'value'=>(int) $r['n'] . ' ' . t('lesiones en seguimiento'), 'url'=>'/dermatologia/index?paciente_id=' . $pid];
+    }
+    return $out;
+}
+
 /** Crea la tabla de exámenes de oftalmología si no existe (self-healing). */
 function ensure_oftalmo_table(): void
 {

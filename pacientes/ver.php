@@ -257,6 +257,9 @@ try {
     $consents = $cq->fetchAll();
 } catch (Throwable $e) { $consents = []; }
 
+/* Resumen "de un vistazo" de las verticales que tienen datos. */
+$resVert = resumen_verticales($id);
+
 // Archivos del expediente
 $archivos = db()->prepare(
     'SELECT a.*, u.nombre AS sub_nombre FROM archivos a
@@ -522,6 +525,26 @@ include __DIR__ . '/../includes/header.php';
         <div class="tab-content">
             <!-- Expediente -->
             <div class="tab-pane fade show active" id="tab-exp">
+
+                <?php if ($resVert): ?>
+                <div class="row g-2 mb-3">
+                    <?php foreach ($resVert as $rv): ?>
+                    <div class="col-sm-6 col-xl-4">
+                        <a href="<?= BASE_URL . e($rv['url']) ?>" class="text-decoration-none">
+                            <div class="card h-100 border-0" style="background:color-mix(in srgb, <?= $rv['color'] ?> 8%, transparent)">
+                                <div class="card-body d-flex align-items-center gap-2 py-2">
+                                    <i class="bi <?= e($rv['icon']) ?>" style="color:<?= $rv['color'] ?>;font-size:1.3rem"></i>
+                                    <div class="min-w-0">
+                                        <div class="small fw-semibold text-body" style="line-height:1.1"><?= e($rv['label']) ?></div>
+                                        <div class="small text-muted text-truncate"><?= e($rv['value']) ?></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+                <?php endif; ?>
 
                 <?php
                 /* Signos vitales: gráficas de evolución. Solo si hay datos. */
