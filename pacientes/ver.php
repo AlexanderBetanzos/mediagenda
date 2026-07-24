@@ -248,6 +248,15 @@ try {
 } catch (Throwable $e) { $meds = []; }
 $medsActivos = array_values(array_filter($meds, fn($m) => (int) $m['activo'] === 1));
 
+/* Consentimientos informados firmados del paciente. */
+$consents = [];
+try {
+    $cq = db()->prepare('SELECT id, titulo, creado_en FROM consentimientos
+                         WHERE paciente_id = ? AND consultorio_id = ? ORDER BY creado_en DESC');
+    $cq->execute([$id, tenant_id()]);
+    $consents = $cq->fetchAll();
+} catch (Throwable $e) { $consents = []; }
+
 // Archivos del expediente
 $archivos = db()->prepare(
     'SELECT a.*, u.nombre AS sub_nombre FROM archivos a
@@ -567,12 +576,15 @@ include __DIR__ . '/../includes/header.php';
                         <?php endif; ?>
                     </form>
                     <?php if (has_role('medico', 'admin')): ?>
-                    <div class="d-flex gap-2">
+                    <div class="d-flex gap-2 flex-wrap">
                         <?php if (modulo_activo('documentos')): ?>
                         <a href="<?= BASE_URL ?>/documentos/nuevo?paciente_id=<?= $id ?>" class="btn btn-outline-secondary btn-sm">
                             <i class="bi bi-file-earmark-medical"></i> <?= et('Documento') ?>
                         </a>
                         <?php endif; ?>
+                        <a href="<?= BASE_URL ?>/consentimientos/nuevo?paciente_id=<?= $id ?>" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-vector-pen"></i> <?= et('Consentimiento') ?>
+                        </a>
                         <button class="btn btn-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#formConsulta">
                             <i class="bi bi-plus-lg"></i> <?= et('Nueva consulta') ?>
                         </button>
@@ -585,6 +597,18 @@ include __DIR__ . '/../includes/header.php';
                     <i class="bi bi-search"></i>
                     <?= count($cons) ?> <?= et('de') ?> <?= $totCons ?> <?= et('consultas coinciden con') ?>
                     <strong><?= e($qExp) ?></strong>.
+                </div>
+                <?php endif; ?>
+
+                <?php if ($consents): ?>
+                <div class="mb-3">
+                    <div class="small text-muted mb-1"><i class="bi bi-vector-pen"></i> <?= et('Consentimientos firmados') ?></div>
+                    <?php foreach ($consents as $cs): ?>
+                        <a href="<?= BASE_URL ?>/consentimientos/ver?id=<?= (int) $cs['id'] ?>" target="_blank" rel="noopener"
+                           class="badge text-bg-light border text-decoration-none me-1 mb-1" title="<?= e(fmt_fecha($cs['creado_en'])) ?>">
+                            <i class="bi bi-file-earmark-check"></i> <?= e($cs['titulo']) ?>
+                        </a>
+                    <?php endforeach; ?>
                 </div>
                 <?php endif; ?>
 

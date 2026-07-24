@@ -2184,6 +2184,51 @@ function plantillas_semilla(): array
     ];
 }
 
+/** Crea la tabla de consentimientos si no existe (self-healing). */
+function ensure_consentimientos_table(): void
+{
+    try {
+        db()->exec("CREATE TABLE IF NOT EXISTS consentimientos (
+            id INT AUTO_INCREMENT PRIMARY KEY, consultorio_id INT NOT NULL DEFAULT 1,
+            paciente_id INT NOT NULL, medico_id INT DEFAULT NULL,
+            titulo VARCHAR(180) NOT NULL, contenido MEDIUMTEXT DEFAULT NULL,
+            firma_paciente MEDIUMTEXT DEFAULT NULL, firma_medico MEDIUMTEXT DEFAULT NULL,
+            firmante VARCHAR(160) DEFAULT NULL, creado_por INT DEFAULT NULL,
+            creado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_consent (consultorio_id, paciente_id, creado_en)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    } catch (Throwable $e) { /* ya existe */ }
+}
+
+/**
+ * Plantillas de consentimiento informado (título => cuerpo). {paciente} y
+ * {consultorio} se sustituyen al usarlas. Son editables antes de firmar.
+ */
+function consentimientos_plantillas(): array
+{
+    $base = 'Yo, {paciente}, declaro que se me ha explicado en lenguaje claro ';
+    return [
+        'Consentimiento general de atención médica' =>
+            $base . 'la naturaleza de mi padecimiento y el plan de atención propuesto en {consultorio}. '
+            . "He podido hacer preguntas y se me han respondido. Autorizo la atención médica y los "
+            . "procedimientos diagnósticos y terapéuticos que mi médico considere necesarios.",
+        'Consentimiento para procedimiento / cirugía' =>
+            $base . 'en qué consiste el procedimiento propuesto, sus beneficios, riesgos, posibles '
+            . "complicaciones y alternativas, incluida la opción de no realizarlo. Comprendo que la "
+            . "medicina no es una ciencia exacta y no se me han garantizado resultados. Autorizo su realización.",
+        'Consentimiento para anestesia / sedación' =>
+            $base . 'el tipo de anestesia o sedación a emplear, sus riesgos y cuidados. Informé mis '
+            . "antecedentes, alergias y medicamentos. Autorizo su administración.",
+        'Aviso de privacidad y tratamiento de datos (LFPDPPP)' =>
+            'Autorizo a {consultorio} el tratamiento de mis datos personales y de salud para fines de '
+            . "atención médica, expediente clínico, facturación y contacto, conforme a la Ley Federal de "
+            . "Protección de Datos Personales en Posesión de los Particulares. Conozco mis derechos ARCO.",
+        'Consentimiento para fotografía clínica' =>
+            $base . 'que se tomarán fotografías clínicas con fines de seguimiento y expediente. Autorizo '
+            . "su captura y resguardo confidencial; no se usarán con fines distintos sin mi autorización.",
+    ];
+}
+
 /** Caras de un diente: clave => etiqueta. Se guardan como "O,M,V". */
 function caras_dentales(): array
 {

@@ -513,3 +513,19 @@ CREATE TABLE IF NOT EXISTS paciente_medicamentos (
   creado_en      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_pacmed (paciente_id, activo)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============ 2026-07-24: consentimiento informado con firma ============
+CREATE TABLE IF NOT EXISTS consentimientos (
+  id             INT AUTO_INCREMENT PRIMARY KEY,
+  consultorio_id INT NOT NULL DEFAULT 1,
+  paciente_id    INT NOT NULL,
+  medico_id      INT DEFAULT NULL,
+  titulo         VARCHAR(180) NOT NULL,
+  contenido      MEDIUMTEXT DEFAULT NULL,
+  firma_paciente MEDIUMTEXT DEFAULT NULL,
+  firma_medico   MEDIUMTEXT DEFAULT NULL,
+  firmante       VARCHAR(160) DEFAULT NULL,
+  creado_por     INT DEFAULT NULL,
+  creado_en      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_consent (consultorio_id, paciente_id, creado_en)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
