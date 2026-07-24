@@ -544,3 +544,11 @@ CREATE TABLE IF NOT EXISTS prenatal_visitas (
   edema VARCHAR(40), notas TEXT, creado_por INT, creado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_pv (embarazo_id, fecha)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============ 2026-07-24: nutrición (valoraciones antropométricas) ============
+CREATE TABLE IF NOT EXISTS nutricion_valoraciones (
+  id INT AUTO_INCREMENT PRIMARY KEY, consultorio_id INT NOT NULL DEFAULT 1, paciente_id INT NOT NULL,
+  fecha DATE NOT NULL, peso DECIMAL(5,2), estatura DECIMAL(5,2), grasa_pct DECIMAL(4,1), musculo_pct DECIMAL(4,1),
+  cintura DECIMAL(5,1), cadera DECIMAL(5,1), meta_peso DECIMAL(5,2), kcal_plan SMALLINT, plan TEXT, notas TEXT,
+  creado_por INT, creado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, INDEX idx_nut (consultorio_id, paciente_id, fecha)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

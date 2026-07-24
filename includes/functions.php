@@ -2184,6 +2184,31 @@ function plantillas_semilla(): array
     ];
 }
 
+/** Crea la tabla de valoraciones de nutrición si no existe (self-healing). */
+function ensure_nutricion_table(): void
+{
+    try {
+        db()->exec("CREATE TABLE IF NOT EXISTS nutricion_valoraciones (
+            id INT AUTO_INCREMENT PRIMARY KEY, consultorio_id INT NOT NULL DEFAULT 1, paciente_id INT NOT NULL,
+            fecha DATE NOT NULL, peso DECIMAL(5,2), estatura DECIMAL(5,2), grasa_pct DECIMAL(4,1), musculo_pct DECIMAL(4,1),
+            cintura DECIMAL(5,1), cadera DECIMAL(5,1), meta_peso DECIMAL(5,2), kcal_plan SMALLINT, plan TEXT, notas TEXT,
+            creado_por INT, creado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, INDEX idx_nut (consultorio_id, paciente_id, fecha)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    } catch (Throwable $e) { /* ya existe */ }
+}
+
+/** Clasificación de IMC (OMS). Devuelve [etiqueta, color-bootstrap]. */
+function imc_clasificacion(float $imc): array
+{
+    if ($imc <= 0)     return ['—', 'secondary'];
+    if ($imc < 18.5)   return ['Bajo peso', 'info'];
+    if ($imc < 25)     return ['Normal', 'success'];
+    if ($imc < 30)     return ['Sobrepeso', 'warning'];
+    if ($imc < 35)     return ['Obesidad I', 'danger'];
+    if ($imc < 40)     return ['Obesidad II', 'danger'];
+    return ['Obesidad III', 'danger'];
+}
+
 /** Crea las tablas de control prenatal si no existen (self-healing). */
 function ensure_prenatal_tables(): void
 {
