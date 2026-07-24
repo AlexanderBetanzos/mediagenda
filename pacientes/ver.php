@@ -593,6 +593,9 @@ include __DIR__ . '/../includes/header.php';
                         <a href="<?= BASE_URL ?>/nutricion/index?paciente_id=<?= $id ?>" class="btn btn-outline-secondary btn-sm">
                             <i class="bi bi-egg-fried"></i> <?= et('Nutrición') ?>
                         </a>
+                        <a href="<?= BASE_URL ?>/cardiologia/index?paciente_id=<?= $id ?>" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-heart-pulse"></i> <?= et('Cardiología') ?>
+                        </a>
                         <button class="btn btn-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#formConsulta">
                             <i class="bi bi-plus-lg"></i> <?= et('Nueva consulta') ?>
                         </button>

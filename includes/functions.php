@@ -2184,6 +2184,21 @@ function plantillas_semilla(): array
     ];
 }
 
+/** Crea la tabla de valoraciones de cardiología si no existe (self-healing). */
+function ensure_cardio_table(): void
+{
+    try {
+        db()->exec("CREATE TABLE IF NOT EXISTS cardio_valoraciones (
+            id INT AUTO_INCREMENT PRIMARY KEY, consultorio_id INT NOT NULL DEFAULT 1, paciente_id INT NOT NULL,
+            fecha DATE NOT NULL, presion VARCHAR(20), fc SMALLINT, colesterol_total DECIMAL(5,1), hdl DECIMAL(5,1),
+            ldl DECIMAL(5,1), trigliceridos DECIMAL(6,1), glucosa DECIMAL(5,1), tabaquismo TINYINT(1) NOT NULL DEFAULT 0,
+            diabetes TINYINT(1) NOT NULL DEFAULT 0, nyha ENUM('I','II','III','IV'),
+            riesgo ENUM('bajo','moderado','alto','muy_alto'), ecg_hallazgos TEXT, notas TEXT, creado_por INT,
+            creado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, INDEX idx_cardio (consultorio_id, paciente_id, fecha)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    } catch (Throwable $e) { /* ya existe */ }
+}
+
 /** Crea la tabla de valoraciones de nutrición si no existe (self-healing). */
 function ensure_nutricion_table(): void
 {
