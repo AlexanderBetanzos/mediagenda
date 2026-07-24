@@ -2184,6 +2184,53 @@ function plantillas_semilla(): array
     ];
 }
 
+/** Crea la tabla de exámenes de oftalmología si no existe (self-healing). */
+function ensure_oftalmo_table(): void
+{
+    try {
+        db()->exec("CREATE TABLE IF NOT EXISTS oftalmo_examenes (
+            id INT AUTO_INCREMENT PRIMARY KEY, consultorio_id INT NOT NULL DEFAULT 1, paciente_id INT NOT NULL,
+            fecha DATE NOT NULL, av_od VARCHAR(20), av_oi VARCHAR(20), pio_od DECIMAL(4,1), pio_oi DECIMAL(4,1),
+            segmento_ant TEXT, fondo_ojo TEXT, diagnostico VARCHAR(255), plan TEXT, notas TEXT, creado_por INT,
+            creado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, INDEX idx_oft (consultorio_id, paciente_id, fecha)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    } catch (Throwable $e) { /* ya existe */ }
+}
+
+/** Crea la tabla de sesiones de psicología si no existe (self-healing). */
+function ensure_psico_table(): void
+{
+    try {
+        db()->exec("CREATE TABLE IF NOT EXISTS psico_sesiones (
+            id INT AUTO_INCREMENT PRIMARY KEY, consultorio_id INT NOT NULL DEFAULT 1, paciente_id INT NOT NULL,
+            fecha DATE NOT NULL, enfoque VARCHAR(160), notas TEXT, tareas TEXT, phq9 TINYINT, gad7 TINYINT,
+            riesgo ENUM('ninguno','bajo','moderado','alto'), creado_por INT,
+            creado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, INDEX idx_psico (consultorio_id, paciente_id, fecha)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    } catch (Throwable $e) { /* ya existe */ }
+}
+
+/** Interpreta el PHQ-9 (depresión, 0-27) → [etiqueta, color]. */
+function phq9_nivel(?int $s): array
+{
+    if ($s === null) return ['—','secondary'];
+    if ($s < 5)   return ['Mínima', 'success'];
+    if ($s < 10)  return ['Leve', 'info'];
+    if ($s < 15)  return ['Moderada', 'warning'];
+    if ($s < 20)  return ['Moderada-grave', 'danger'];
+    return ['Grave', 'danger'];
+}
+
+/** Interpreta el GAD-7 (ansiedad, 0-21) → [etiqueta, color]. */
+function gad7_nivel(?int $s): array
+{
+    if ($s === null) return ['—','secondary'];
+    if ($s < 5)   return ['Mínima', 'success'];
+    if ($s < 10)  return ['Leve', 'info'];
+    if ($s < 15)  return ['Moderada', 'warning'];
+    return ['Grave', 'danger'];
+}
+
 /** Crea las tablas de dermatología si no existen (self-healing). */
 function ensure_derma_tables(): void
 {

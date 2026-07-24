@@ -585,20 +585,28 @@ include __DIR__ . '/../includes/header.php';
                         <a href="<?= BASE_URL ?>/consentimientos/nuevo?paciente_id=<?= $id ?>" class="btn btn-outline-secondary btn-sm">
                             <i class="bi bi-vector-pen"></i> <?= et('Consentimiento') ?>
                         </a>
-                        <?php if (strncasecmp((string) ($p['sexo'] ?? ''), 'F', 1) === 0): ?>
-                        <a href="<?= BASE_URL ?>/prenatal/index?paciente_id=<?= $id ?>" class="btn btn-outline-secondary btn-sm">
-                            <i class="bi bi-gender-female"></i> <?= et('Control prenatal') ?>
-                        </a>
-                        <?php endif; ?>
-                        <a href="<?= BASE_URL ?>/nutricion/index?paciente_id=<?= $id ?>" class="btn btn-outline-secondary btn-sm">
-                            <i class="bi bi-egg-fried"></i> <?= et('Nutrición') ?>
-                        </a>
-                        <a href="<?= BASE_URL ?>/cardiologia/index?paciente_id=<?= $id ?>" class="btn btn-outline-secondary btn-sm">
-                            <i class="bi bi-heart-pulse"></i> <?= et('Cardiología') ?>
-                        </a>
-                        <a href="<?= BASE_URL ?>/dermatologia/index?paciente_id=<?= $id ?>" class="btn btn-outline-secondary btn-sm">
-                            <i class="bi bi-bandaid"></i> <?= et('Dermatología') ?>
-                        </a>
+                        <?php /* Herramientas clínicas por especialidad, agrupadas para no saturar. */ ?>
+                        <div class="dropdown">
+                            <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-clipboard2-pulse"></i> <?= et('Especialidad') ?>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <?php if (strncasecmp((string) ($p['sexo'] ?? ''), 'F', 1) === 0): ?>
+                                <li><a class="dropdown-item" href="<?= BASE_URL ?>/prenatal/index?paciente_id=<?= $id ?>"><i class="bi bi-gender-female me-2"></i><?= et('Control prenatal') ?></a></li>
+                                <?php endif; ?>
+                                <li><a class="dropdown-item" href="<?= BASE_URL ?>/nutricion/index?paciente_id=<?= $id ?>"><i class="bi bi-egg-fried me-2"></i><?= et('Nutrición') ?></a></li>
+                                <li><a class="dropdown-item" href="<?= BASE_URL ?>/cardiologia/index?paciente_id=<?= $id ?>"><i class="bi bi-heart-pulse me-2"></i><?= et('Cardiología') ?></a></li>
+                                <li><a class="dropdown-item" href="<?= BASE_URL ?>/dermatologia/index?paciente_id=<?= $id ?>"><i class="bi bi-bandaid me-2"></i><?= et('Dermatología') ?></a></li>
+                                <li><a class="dropdown-item" href="<?= BASE_URL ?>/psicologia/index?paciente_id=<?= $id ?>"><i class="bi bi-chat-heart me-2"></i><?= et('Psicología') ?></a></li>
+                                <li><a class="dropdown-item" href="<?= BASE_URL ?>/oftalmologia/index?paciente_id=<?= $id ?>"><i class="bi bi-eye me-2"></i><?= et('Oftalmología') ?></a></li>
+                                <?php if (modulo_activo('optica')): ?>
+                                <li><a class="dropdown-item" href="<?= BASE_URL ?>/optica/graduacion?paciente_id=<?= $id ?>"><i class="bi bi-eyeglasses me-2"></i><?= et('Óptica (graduación)') ?></a></li>
+                                <?php endif; ?>
+                                <?php if (modulo_activo('laboratorio')): ?>
+                                <li><a class="dropdown-item" href="<?= BASE_URL ?>/laboratorio/orden?paciente_id=<?= $id ?>"><i class="bi bi-eyedropper me-2"></i><?= et('Laboratorio (orden)') ?></a></li>
+                                <?php endif; ?>
+                            </ul>
+                        </div>
                         <button class="btn btn-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#formConsulta">
                             <i class="bi bi-plus-lg"></i> <?= et('Nueva consulta') ?>
                         </button>

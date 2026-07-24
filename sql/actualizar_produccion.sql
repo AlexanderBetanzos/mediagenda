@@ -574,3 +574,19 @@ CREATE TABLE IF NOT EXISTS derma_fotos (
   id INT AUTO_INCREMENT PRIMARY KEY, lesion_id INT NOT NULL, archivo_id INT NOT NULL, fecha DATE NOT NULL,
   notas VARCHAR(255), creado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, INDEX idx_dfoto (lesion_id, fecha)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============ 2026-07-24: psicología (sesiones + escalas) ============
+CREATE TABLE IF NOT EXISTS psico_sesiones (
+  id INT AUTO_INCREMENT PRIMARY KEY, consultorio_id INT NOT NULL DEFAULT 1, paciente_id INT NOT NULL,
+  fecha DATE NOT NULL, enfoque VARCHAR(160), notas TEXT, tareas TEXT, phq9 TINYINT, gad7 TINYINT,
+  riesgo ENUM('ninguno','bajo','moderado','alto'), creado_por INT,
+  creado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, INDEX idx_psico (consultorio_id, paciente_id, fecha)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============ 2026-07-24: oftalmología clínica (AV, PIO, fondo) ============
+CREATE TABLE IF NOT EXISTS oftalmo_examenes (
+  id INT AUTO_INCREMENT PRIMARY KEY, consultorio_id INT NOT NULL DEFAULT 1, paciente_id INT NOT NULL,
+  fecha DATE NOT NULL, av_od VARCHAR(20), av_oi VARCHAR(20), pio_od DECIMAL(4,1), pio_oi DECIMAL(4,1),
+  segmento_ant TEXT, fondo_ojo TEXT, diagnostico VARCHAR(255), plan TEXT, notas TEXT, creado_por INT,
+  creado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, INDEX idx_oft (consultorio_id, paciente_id, fecha)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
