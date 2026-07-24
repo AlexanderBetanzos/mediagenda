@@ -486,3 +486,6 @@ CREATE TABLE IF NOT EXISTS plataforma_admin_consultorios (
 INSERT INTO plan_modulos (plan_clave, modulo_clave) VALUES
  ('basico','laboratorio'), ('profesional','laboratorio')
 ON DUPLICATE KEY UPDATE plan_clave = VALUES(plan_clave);
+
+-- ============ 2026-07-24: plantillas de consulta POR ESPECIALIDAD ============
+ALTER TABLE plantillas_consulta ADD COLUMN IF NOT EXISTS especialidad VARCHAR(80) DEFAULT NULL;

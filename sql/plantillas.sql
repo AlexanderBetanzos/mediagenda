@@ -19,3 +19,6 @@ CREATE TABLE IF NOT EXISTS plantillas_consulta (
   creado_en      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_plant_tenant (consultorio_id, tipo)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Especialidad a la que pertenece la plantilla (para agrupar/filtrar). NULL = general.
+ALTER TABLE plantillas_consulta ADD COLUMN IF NOT EXISTS especialidad VARCHAR(80) DEFAULT NULL;

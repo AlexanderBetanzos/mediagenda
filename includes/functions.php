@@ -2126,6 +2126,64 @@ function lab_estudios_comunes(): array
     ];
 }
 
+/**
+ * Catálogo de especialidades médicas (para etiquetar plantillas, médicos, etc.).
+ * Lista abierta: el usuario puede escribir cualquier otra. Orden alfabético.
+ */
+function especialidades_catalogo(): array
+{
+    return [
+        'Medicina General', 'Medicina Familiar', 'Medicina Interna', 'Pediatría',
+        'Ginecología y Obstetricia', 'Traumatología y Ortopedia', 'Dermatología',
+        'Cardiología', 'Nutrición', 'Endocrinología', 'Gastroenterología',
+        'Neumología', 'Nefrología', 'Neurología', 'Urología', 'Oftalmología',
+        'Otorrinolaringología', 'Psicología', 'Psiquiatría', 'Oncología',
+        'Alergología e Inmunología', 'Hematología', 'Reumatología', 'Geriatría',
+        'Odontología', 'Cirugía General', 'Rehabilitación y Fisioterapia',
+    ];
+}
+
+/**
+ * Plantillas de consulta iniciales por especialidad. Formato de cada fila:
+ * [nombre, especialidad, tipo, motivo, exploracion, diagnostico, tratamiento, receta, notas].
+ * Son esqueletos editables: el médico las ajusta a su estilo. Cubren muchas
+ * áreas de la medicina para que el sistema se sienta integral desde el día 1.
+ */
+function plantillas_semilla(): array
+{
+    $g = 'general'; // tipo del expediente (general/medico/dental)
+    return [
+        ['Consulta de primera vez', 'Medicina General', $g,
+            'Motivo de consulta:', "Signos vitales:\nExploración física por aparatos y sistemas:", 'Impresión diagnóstica:', 'Plan de manejo:', '', 'Antecedentes revisados. Se explica diagnóstico y plan al paciente.'],
+        ['Control de hipertensión', 'Medicina Interna', $g,
+            'Control de presión arterial', "TA: ___/___ mmHg  FC: ___  Peso: ___\nEdema, ruidos cardiacos, campos pulmonares:", 'Hipertensión arterial sistémica en control / descontrol', 'Ajuste de antihipertensivo. Dieta hiposódica. Ejercicio.', '', 'Meta TA <130/80. Cita de control en 1 mes.'],
+        ['Control de diabetes', 'Medicina Interna', $g,
+            'Control de diabetes mellitus', "Glucosa capilar: ___ mg/dL\nPeso/IMC. Revisión de pies (sensibilidad, pulsos, lesiones):", 'Diabetes mellitus tipo 2 en control / descontrol', 'Ajuste de hipoglucemiante. Dieta y ejercicio. Educación en autocuidado.', '', 'Solicitar HbA1c y perfil de lípidos. Meta HbA1c <7%.'],
+        ['Control del niño sano', 'Pediatría', $g,
+            'Control de niño sano', "Peso: ___ kg  Talla: ___ cm  PC: ___ cm\nPercentiles. Desarrollo psicomotor. Esquema de vacunación:", 'Niño sano / desarrollo adecuado para la edad', 'Continuar lactancia/alimentación. Vacunas según cartilla.', '', 'Curva de crecimiento actualizada. Próximo control según edad.'],
+        ['Control prenatal', 'Ginecología y Obstetricia', $g,
+            'Control prenatal', "FUM: ___  SDG: ___  FPP: ___\nTA, peso, FCF, altura uterina, movimientos fetales:", 'Embarazo de ___ semanas de curso normal / con factores de riesgo', 'Ácido fólico/hierro. Signos de alarma explicados. USG y laboratorios según trimestre.', '', 'Próxima cita prenatal en ___ semanas.'],
+        ['Valoración ortopédica', 'Traumatología y Ortopedia', $g,
+            'Dolor / lesión musculoesquelética', "Inspección, palpación, arcos de movilidad, fuerza, pruebas especiales:\nRadiografías:", 'Impresión diagnóstica ortopédica', 'Inmovilización / analgesia / rehabilitación / referencia a cirugía según el caso.', '', 'Reposo relativo. Datos de alarma. Control con estudios de imagen.'],
+        ['Valoración dermatológica', 'Dermatología', $g,
+            'Lesión / padecimiento en piel', "Descripción de la lesión (tipo, color, tamaño, distribución, tiempo de evolución):\nDermatoscopía:", 'Diagnóstico dermatológico', 'Tratamiento tópico/sistémico. Fotoprotección. Cuidados de la piel.', '', 'Fotografía clínica para seguimiento comparativo.'],
+        ['Valoración cardiológica', 'Cardiología', $g,
+            'Valoración cardiovascular', "TA, FC, ruidos cardiacos, soplos, pulsos, edema.\nECG: ___   Riesgo cardiovascular:", 'Impresión diagnóstica cardiológica', 'Manejo farmacológico. Control de factores de riesgo (TA, lípidos, glucosa, tabaquismo).', '', 'Solicitar ECG/ecocardiograma/prueba de esfuerzo según el caso.'],
+        ['Consulta de nutrición', 'Nutrición', $g,
+            'Valoración nutricional', "Peso: ___  Talla: ___  IMC: ___  % grasa: ___  Cintura: ___ cm\nHábitos alimentarios y actividad física:", 'Diagnóstico nutricional (sobrepeso/obesidad/desnutrición/adecuado)', 'Plan de alimentación individualizado (___ kcal). Metas de peso. Actividad física.', '', 'Próxima medición y ajuste del plan en ___ semanas.'],
+        ['Consulta otorrinolaringología', 'Otorrinolaringología', $g,
+            'Padecimiento de oído / nariz / garganta', "Otoscopía, rinoscopía, orofaringe, cuello:", 'Diagnóstico ORL', 'Tratamiento médico. Lavados/aseos. Referencia a estudios (audiometría) si aplica.', '', 'Datos de alarma explicados.'],
+        ['Consulta psicológica', 'Psicología', $g,
+            'Motivo de consulta / valoración emocional', "Estado mental, afecto, discurso, ideación. Escalas aplicadas (ansiedad/depresión):", 'Impresión clínica', 'Plan terapéutico. Número y frecuencia de sesiones.', '', 'Acuerdos de la sesión y tareas.'],
+        ['Valoración oftalmológica', 'Oftalmología', $g,
+            'Padecimiento ocular / revisión de la vista', "Agudeza visual OD/OI, presión intraocular, segmento anterior, fondo de ojo:", 'Diagnóstico oftalmológico', 'Tratamiento / corrección óptica / referencia según el caso.', '', 'Control y estudios complementarios.'],
+        ['Consulta de gastroenterología', 'Gastroenterología', $g,
+            'Síntomas digestivos', "Abdomen: inspección, palpación, peristalsis, dolor, visceromegalias:", 'Impresión diagnóstica gastrointestinal', 'Medidas dietéticas y farmacológicas. Estudios (endoscopía/USG) según el caso.', '', 'Datos de alarma digestivos explicados.'],
+        ['Valoración de urgencia', 'Medicina General', $g,
+            'Urgencia', "Triage. Signos vitales. Exploración dirigida al motivo:", 'Diagnóstico de urgencia', 'Manejo inmediato. Referencia/traslado si amerita.', '', 'Hora de atención y evolución.'],
+    ];
+}
+
 /** Caras de un diente: clave => etiqueta. Se guardan como "O,M,V". */
 function caras_dentales(): array
 {

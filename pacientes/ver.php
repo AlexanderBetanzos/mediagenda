@@ -183,12 +183,22 @@ if (modulo_activo('optica')) {
 }
 
 // Plantillas de consulta (para pre-llenar el formulario; solo médico/admin).
+// Se agrupan por especialidad en el selector. La consulta es resiliente por si
+// la columna `especialidad` aún no existe (migración no aplicada).
 $plantillas = [];
 if (has_role('medico', 'admin')) {
-    $stp = db()->prepare('SELECT nombre, motivo, exploracion, diagnostico, tratamiento, receta, notas
-                          FROM plantillas_consulta WHERE consultorio_id = ? ORDER BY nombre');
-    $stp->execute([tenant_id()]);
-    $plantillas = $stp->fetchAll();
+    try {
+        $stp = db()->prepare('SELECT nombre, especialidad, motivo, exploracion, diagnostico, tratamiento, receta, notas
+                              FROM plantillas_consulta WHERE consultorio_id = ?
+                              ORDER BY (especialidad IS NULL), especialidad, nombre');
+        $stp->execute([tenant_id()]);
+        $plantillas = $stp->fetchAll();
+    } catch (Throwable $e) {
+        $stp = db()->prepare('SELECT nombre, motivo, exploracion, diagnostico, tratamiento, receta, notas
+                              FROM plantillas_consulta WHERE consultorio_id = ? ORDER BY nombre');
+        $stp->execute([tenant_id()]);
+        $plantillas = $stp->fetchAll();
+    }
 }
 
 // IMC automático: de la consulta más reciente que tenga peso y estatura.
@@ -440,9 +450,21 @@ include __DIR__ . '/../includes/header.php';
                             <?php if ($plantillas): ?>
                             <div class="d-flex align-items-center gap-2 mb-3">
                                 <label class="form-label mb-0 small text-muted"><i class="bi bi-file-earmark-text"></i> <?= et('Plantilla:') ?></label>
-                                <select id="selPlantilla" class="form-select form-select-sm" style="max-width:260px">
+                                <select id="selPlantilla" class="form-select form-select-sm" style="max-width:280px">
                                     <option value=""><?= et('— ninguna —') ?></option>
-                                    <?php foreach ($plantillas as $i => $pl): ?><option value="<?= $i ?>"><?= e($pl['nombre']) ?></option><?php endforeach; ?>
+                                    <?php
+                                    $espGrp = '__x__';
+                                    foreach ($plantillas as $i => $pl):
+                                        $espPl = $pl['especialidad'] ?? '';
+                                        if ($espPl !== $espGrp) {
+                                            if ($espGrp !== '__x__') echo '</optgroup>';
+                                            echo '<optgroup label="' . e($espPl !== '' ? $espPl : t('General')) . '">';
+                                            $espGrp = $espPl;
+                                        }
+                                    ?><option value="<?= $i ?>"><?= e($pl['nombre']) ?></option><?php
+                                    endforeach;
+                                    if ($espGrp !== '__x__') echo '</optgroup>';
+                                    ?>
                                 </select>
                                 <a href="<?= BASE_URL ?>/plantillas/index" class="small text-decoration-none"><?= et('Gestionar') ?></a>
                             </div>
