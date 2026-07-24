@@ -585,6 +585,11 @@ include __DIR__ . '/../includes/header.php';
                         <a href="<?= BASE_URL ?>/consentimientos/nuevo?paciente_id=<?= $id ?>" class="btn btn-outline-secondary btn-sm">
                             <i class="bi bi-vector-pen"></i> <?= et('Consentimiento') ?>
                         </a>
+                        <?php if (strncasecmp((string) ($p['sexo'] ?? ''), 'F', 1) === 0): ?>
+                        <a href="<?= BASE_URL ?>/prenatal/index?paciente_id=<?= $id ?>" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-gender-female"></i> <?= et('Control prenatal') ?>
+                        </a>
+                        <?php endif; ?>
                         <button class="btn btn-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#formConsulta">
                             <i class="bi bi-plus-lg"></i> <?= et('Nueva consulta') ?>
                         </button>

@@ -2184,6 +2184,48 @@ function plantillas_semilla(): array
     ];
 }
 
+/** Crea las tablas de control prenatal si no existen (self-healing). */
+function ensure_prenatal_tables(): void
+{
+    try {
+        db()->exec("CREATE TABLE IF NOT EXISTS embarazos (
+            id INT AUTO_INCREMENT PRIMARY KEY, consultorio_id INT NOT NULL DEFAULT 1, paciente_id INT NOT NULL,
+            fum DATE, fpp DATE, grupo_sanguineo VARCHAR(6), gestas TINYINT, partos TINYINT, cesareas TINYINT,
+            abortos TINYINT, riesgo ENUM('bajo','alto') NOT NULL DEFAULT 'bajo', activo TINYINT(1) NOT NULL DEFAULT 1,
+            desenlace VARCHAR(120), cerrado_en DATE, notas TEXT, creado_por INT,
+            creado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, INDEX idx_emb (consultorio_id, paciente_id, activo)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        db()->exec("CREATE TABLE IF NOT EXISTS prenatal_visitas (
+            id INT AUTO_INCREMENT PRIMARY KEY, embarazo_id INT NOT NULL, fecha DATE NOT NULL, sdg DECIMAL(4,1),
+            peso DECIMAL(5,2), presion VARCHAR(20), fcf SMALLINT, altura_uterina DECIMAL(4,1), movimientos TINYINT(1),
+            edema VARCHAR(40), notas TEXT, creado_por INT, creado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_pv (embarazo_id, fecha)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    } catch (Throwable $e) { /* ya existen */ }
+}
+
+/** Semanas de gestación entre la FUM y una fecha (por omisión hoy). "" si no hay FUM. */
+function sdg_desde_fum(?string $fum, ?string $hasta = null): string
+{
+    if (!$fum) return '';
+    try {
+        $ini = new DateTime($fum);
+        $fin = new DateTime($hasta ?: 'today');
+        $dias = (int) $ini->diff($fin)->days;
+        if ($fin < $ini) return '';
+        $sem = intdiv($dias, 7); $d = $dias % 7;
+        return $sem . '.' . $d . ' SDG'; // p. ej. 24.3 SDG (24 semanas 3 días)
+    } catch (Throwable $e) { return ''; }
+}
+
+/** Fecha probable de parto: FUM + 280 días (regla de Naegele). null si no hay FUM. */
+function fpp_desde_fum(?string $fum): ?string
+{
+    if (!$fum) return null;
+    try { return (new DateTime($fum))->modify('+280 days')->format('Y-m-d'); }
+    catch (Throwable $e) { return null; }
+}
+
 /** Crea la tabla de consentimientos si no existe (self-healing). */
 function ensure_consentimientos_table(): void
 {
