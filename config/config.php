@@ -104,6 +104,11 @@ function db(): PDO
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                 PDO::ATTR_EMULATE_PREPARES   => false,
             ]);
+            // Zona horaria de la sesión MySQL = Ciudad de México (UTC-6, sin
+            // horario de verano desde 2022). Así NOW()/CURDATE()/DATE_FORMAT y
+            // la conversión de TIMESTAMP coinciden con la hora de CDMX que usa
+            // PHP; si no, las fechas salían en la zona del servidor (UTC).
+            try { $pdo->exec("SET time_zone = '-06:00'"); } catch (Throwable $e) { /* sin permiso: se ignora */ }
         } catch (PDOException $e) {
             $hint = SECRETS_LOADED
                 ? 'Se encontró el archivo de secretos, pero las credenciales MySQL no son válidas '

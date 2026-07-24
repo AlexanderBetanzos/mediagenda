@@ -101,7 +101,7 @@ $revLabels = $revData = $newData = [];
 for ($i = 11; $i >= 0; $i--) {
     $ym = date('Y-m', strtotime("$firstOfMonth -$i month"));
     $m  = (int) substr($ym, 5, 2);
-    $revLabels[] = $MESES[$m] . ' ' . substr($ym, 2, 2);
+    $revLabels[] = $MESES[$m] . ' ' . substr($ym, 0, 4);
     $revData[]   = round((float) ($revByMonth[$ym] ?? 0), 2);
     $newData[]   = (int) ($newByMonth[$ym] ?? 0);
 }

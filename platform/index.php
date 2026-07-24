@@ -128,7 +128,7 @@ $altasLabels = $altasData = [];
 $fom = date('Y-m-01');
 for ($i = 11; $i >= 0; $i--) {
     $ym = date('Y-m', strtotime("$fom -$i month"));
-    $altasLabels[] = $MESES[(int) substr($ym, 5, 2)] . ' ' . substr($ym, 2, 2);
+    $altasLabels[] = $MESES[(int) substr($ym, 5, 2)] . ' ' . substr($ym, 0, 4);
     $altasData[]   = (int) ($altasByMonth[$ym] ?? 0);
 }
 

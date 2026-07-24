@@ -58,7 +58,7 @@ $fom = date('Y-m-01');
 $actLabels = $actData = [];
 for ($i = 11; $i >= 0; $i--) {
     $ym = date('Y-m', strtotime("$fom -$i month"));
-    $actLabels[] = $MES[(int) substr($ym, 5, 2)] . ' ' . substr($ym, 2, 2);
+    $actLabels[] = $MES[(int) substr($ym, 5, 2)] . ' ' . substr($ym, 0, 4);
     $actData[]   = (int) ($actByMonth[$ym] ?? 0);
 }
 $newThisMonth = (int) ($actByMonth[date('Y-m')] ?? 0);
