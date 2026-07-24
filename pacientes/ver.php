@@ -14,6 +14,26 @@ try {
         ADD COLUMN IF NOT EXISTS frecuencia_respiratoria TINYINT DEFAULT NULL");
 } catch (Throwable $e) { /* MySQL viejo / ya existen */ }
 
+// Self-healing: medicamentos actuales del paciente (lista estructurada).
+try {
+    db()->exec("CREATE TABLE IF NOT EXISTS paciente_medicamentos (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        consultorio_id INT NOT NULL DEFAULT 1,
+        paciente_id INT NOT NULL,
+        nombre VARCHAR(160) NOT NULL,
+        dosis VARCHAR(80) DEFAULT NULL,
+        frecuencia VARCHAR(80) DEFAULT NULL,
+        via VARCHAR(40) DEFAULT NULL,
+        inicio DATE DEFAULT NULL,
+        activo TINYINT(1) NOT NULL DEFAULT 1,
+        suspendido_en DATE DEFAULT NULL,
+        notas VARCHAR(255) DEFAULT NULL,
+        creado_por INT DEFAULT NULL,
+        creado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_pacmed (paciente_id, activo)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+} catch (Throwable $e) { /* ya existe */ }
+
 $stmt = db()->prepare('SELECT * FROM pacientes WHERE id = ? AND consultorio_id = ?');
 $stmt->execute([$id, tenant_id()]);
 $p = $stmt->fetch();
@@ -59,6 +79,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'consu
         flash('Consulta agregada al expediente.');
     }
     redirect('/pacientes/ver?id=' . $id);
+}
+
+/* --- Medicamentos actuales: alta y suspensión. Solo médicos y admin. --- */
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'med_add') {
+    verify_csrf();
+    if (!has_role('medico', 'admin')) { http_response_code(403); die('Sin permiso.'); }
+    $nombre = trim($_POST['med_nombre'] ?? '');
+    if ($nombre !== '') {
+        db()->prepare('INSERT INTO paciente_medicamentos
+            (consultorio_id, paciente_id, nombre, dosis, frecuencia, via, inicio, notas, creado_por)
+            VALUES (?,?,?,?,?,?,?,?,?)')
+            ->execute([tenant_id(), $id, mb_substr($nombre,0,160),
+                trim($_POST['med_dosis'] ?? '') ?: null,
+                trim($_POST['med_frecuencia'] ?? '') ?: null,
+                trim($_POST['med_via'] ?? '') ?: null,
+                ($_POST['med_inicio'] ?? '') ?: null,
+                trim($_POST['med_notas'] ?? '') ?: null,
+                $u['id']]);
+        auditar('crear', 'medicamento', (int) db()->lastInsertId(), $nombre . ' · Paciente #' . $id);
+        flash('Medicamento agregado.');
+    }
+    redirect('/pacientes/ver?id=' . $id . '#tab-meds');
+}
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'med_baja') {
+    verify_csrf();
+    if (!has_role('medico', 'admin')) { http_response_code(403); die('Sin permiso.'); }
+    db()->prepare('UPDATE paciente_medicamentos SET activo = 0, suspendido_en = CURDATE()
+                   WHERE id = ? AND paciente_id = ? AND consultorio_id = ?')
+        ->execute([(int) ($_POST['med_id'] ?? 0), $id, tenant_id()]);
+    flash('Medicamento suspendido.');
+    redirect('/pacientes/ver?id=' . $id . '#tab-meds');
 }
 
 /* --- Subir archivo al expediente. Solo médicos y admin. --- */
@@ -186,6 +237,16 @@ foreach ($vsRows as $r) {
 $vsHas = fn($k) => count(array_filter($vsSeries[$k], fn($x) => $x !== null)) > 0;
 $vsAny = $vsHas('peso') || $vsHas('imc') || $vsHas('sistolica') || $vsHas('glucosa')
       || $vsHas('temperatura') || $vsHas('fc') || $vsHas('spo2');
+
+/* Medicamentos actuales del paciente (activos primero). */
+$meds = [];
+try {
+    $mq = db()->prepare('SELECT * FROM paciente_medicamentos WHERE paciente_id = ? AND consultorio_id = ?
+                         ORDER BY activo DESC, nombre');
+    $mq->execute([$id, tenant_id()]);
+    $meds = $mq->fetchAll();
+} catch (Throwable $e) { $meds = []; }
+$medsActivos = array_values(array_filter($meds, fn($m) => (int) $m['activo'] === 1));
 
 // Archivos del expediente
 $archivos = db()->prepare(
@@ -438,6 +499,7 @@ include __DIR__ . '/../includes/header.php';
     <div class="col-lg-8">
         <ul class="nav nav-tabs mb-3" role="tablist">
             <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-exp"><i class="bi bi-file-medical"></i> <?= et('Expediente') ?> (<?= $totCons ?>)</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-meds"><i class="bi bi-capsule"></i> <?= et('Medicamentos') ?> (<?= count($medsActivos) ?>)</button></li>
             <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-archivos"><i class="bi bi-paperclip"></i> <?= et('Archivos') ?> (<?= count($archivos) ?>)</button></li>
             <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-citas"><i class="bi bi-calendar-check"></i> <?= et('Citas') ?> (<?= count($citas) ?>)</button></li>
             <?php if (modulo_activo('documentos')): ?>
@@ -656,6 +718,61 @@ include __DIR__ . '/../includes/header.php';
                         </div>
                     </div>
                 <?php endforeach; endif; ?>
+            </div>
+
+            <!-- Medicamentos actuales -->
+            <div class="tab-pane fade" id="tab-meds">
+                <?php if (has_role('medico', 'admin')): ?>
+                <div class="card mb-3">
+                    <div class="card-header bg-white fw-semibold"><i class="bi bi-plus-circle text-brand"></i> <?= et('Agregar medicamento') ?></div>
+                    <div class="card-body">
+                        <form method="post" class="row g-2">
+                            <?= csrf_field() ?>
+                            <input type="hidden" name="accion" value="med_add">
+                            <div class="col-md-4"><label class="form-label small"><?= et('Medicamento') ?> *</label><input type="text" name="med_nombre" class="form-control" required maxlength="160" placeholder="<?= e(t('Ej. Metformina 850 mg')) ?>"></div>
+                            <div class="col-6 col-md-2"><label class="form-label small"><?= et('Dosis') ?></label><input type="text" name="med_dosis" class="form-control" maxlength="80" placeholder="1 tab"></div>
+                            <div class="col-6 col-md-3"><label class="form-label small"><?= et('Frecuencia') ?></label><input type="text" name="med_frecuencia" class="form-control" maxlength="80" placeholder="<?= e(t('cada 12 h')) ?>"></div>
+                            <div class="col-6 col-md-2"><label class="form-label small"><?= et('Vía') ?></label><input type="text" name="med_via" class="form-control" maxlength="40" placeholder="Oral"></div>
+                            <div class="col-6 col-md-1"><label class="form-label small"><?= et('Inicio') ?></label><input type="date" name="med_inicio" class="form-control"></div>
+                            <div class="col-md-10"><label class="form-label small"><?= et('Notas') ?></label><input type="text" name="med_notas" class="form-control" maxlength="255"></div>
+                            <div class="col-md-2 d-flex align-items-end"><button class="btn btn-primary w-100"><i class="bi bi-check-lg"></i> <?= et('Agregar') ?></button></div>
+                        </form>
+                    </div>
+                </div>
+                <?php endif; ?>
+
+                <div class="card">
+                    <div class="card-header bg-white fw-semibold"><i class="bi bi-capsule text-brand"></i> <?= et('Medicamentos actuales') ?></div>
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead class="table-light"><tr><th><?= et('Medicamento') ?></th><th><?= et('Dosis') ?></th><th><?= et('Frecuencia') ?></th><th><?= et('Vía') ?></th><th><?= et('Desde') ?></th><th><?= et('Estado') ?></th><?php if (has_role('medico','admin')): ?><th></th><?php endif; ?></tr></thead>
+                            <tbody>
+                            <?php if (!$meds): ?>
+                                <tr><td colspan="7" class="text-center text-muted py-4"><?= et('Sin medicamentos registrados.') ?></td></tr>
+                            <?php else: foreach ($meds as $m): $act = (int) $m['activo'] === 1; ?>
+                                <tr class="<?= $act ? '' : 'text-muted' ?>">
+                                    <td class="fw-semibold"><?= e($m['nombre']) ?><?php if ($m['notas']): ?><div class="small text-muted fw-normal"><?= e($m['notas']) ?></div><?php endif; ?></td>
+                                    <td><?= e($m['dosis'] ?: '—') ?></td>
+                                    <td><?= e($m['frecuencia'] ?: '—') ?></td>
+                                    <td><?= e($m['via'] ?: '—') ?></td>
+                                    <td class="small"><?= $m['inicio'] ? e(fmt_fecha($m['inicio'])) : '—' ?></td>
+                                    <td><?php if ($act): ?><span class="badge bg-success"><?= et('Activo') ?></span><?php else: ?><span class="badge bg-secondary"><?= et('Suspendido') ?><?= $m['suspendido_en'] ? ' ' . e(fmt_fecha($m['suspendido_en'])) : '' ?></span><?php endif; ?></td>
+                                    <?php if (has_role('medico','admin')): ?>
+                                    <td class="text-end">
+                                        <?php if ($act): ?>
+                                        <form method="post" class="m-0" onsubmit="return confirm('<?= e(t('¿Suspender este medicamento?')) ?>');">
+                                            <?= csrf_field() ?><input type="hidden" name="accion" value="med_baja"><input type="hidden" name="med_id" value="<?= (int) $m['id'] ?>">
+                                            <button class="btn btn-sm btn-outline-danger" title="<?= e(t('Suspender')) ?>"><i class="bi bi-x-lg"></i></button>
+                                        </form>
+                                        <?php endif; ?>
+                                    </td>
+                                    <?php endif; ?>
+                                </tr>
+                            <?php endforeach; endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
 
             <!-- Archivos -->
