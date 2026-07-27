@@ -115,6 +115,72 @@ body.lp .lp-quote, body.lp .lp-compare { border-radius: var(--md-r-lg) !importan
 body.lp .section-title { letter-spacing: -0.03em; }
 body.lp .lp-eyebrow { letter-spacing: .12em; }
 
+/* ════════════════════════════════════════════════════════════════════
+ *  Panel claro estilo "dashboard" (tema app-light): sidebar blanco,
+ *  secciones agrupadas, ítem activo tipo píldora. Solo afecta al tema claro.
+ * ════════════════════════════════════════════════════════════════════ */
+html.app-light body { background: #f4f6f9; }
+html.app-light main { background: transparent; }
+
+/* Barra superior clara y minimalista */
+html.app-light .app-navbar {
+    background: #ffffff !important;
+    border-bottom: 1px solid rgba(15,23,42,.07);
+    box-shadow: none;
+}
+html.app-light .app-navbar .navbar-brand,
+html.app-light .app-navbar .navbar-brand * { color: #1f2937 !important; }
+html.app-light .app-navbar .navbar-toggler { border-color: rgba(15,23,42,.15); }
+html.app-light .app-navbar .navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(31,41,55,0.8)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+html.app-light .app-navbar,
+html.app-light .app-navbar .nav-link,
+html.app-light .app-navbar .icon-btn { color: #1f2937; }
+html.app-light .top-menu .nav-link { color: #5b6472; }
+html.app-light .top-menu .nav-link:hover { color: #111827; background: rgba(15,23,42,.05); }
+html.app-light .top-menu .nav-link.active { color: var(--brand, #2563eb); background: color-mix(in srgb, var(--brand, #2563eb) 12%, transparent); }
+html.app-light .app-navbar .avatar-circle { box-shadow: 0 1px 4px rgba(15,23,42,.12); }
+
+/* Sidebar blanco tipo tarjeta */
+html.app-light .sidebar {
+    background: #ffffff;
+    border-right: 1px solid rgba(15,23,42,.07);
+    min-height: calc(100vh - 48px);
+}
+html.app-light .sidebar .brand { text-align: left; padding: .9rem 1.1rem .6rem; display: flex; align-items: center; gap: .6rem; }
+html.app-light .sidebar .brand-logo { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: color-mix(in srgb, var(--brand, #2563eb) 12%, #fff); flex: 0 0 auto; margin: 0; }
+html.app-light .sidebar .brand-name { color: #111827; font-size: 1.02rem; letter-spacing: -.01em; }
+html.app-light .sidebar .brand-sub { color: #9aa1ac; }
+
+/* Etiquetas de sección (GENERAL, CLÍNICO, …) */
+.sidebar .nav-sec {
+    font-size: .64rem; font-weight: 700; letter-spacing: .09em; text-transform: uppercase;
+    padding: 1rem 1.15rem .35rem; margin: 0;
+}
+html.app-light .sidebar .nav-sec { color: #9aa1ac; }
+html.app-dark  .sidebar .nav-sec { color: rgba(255,255,255,.38); }
+
+/* Ítems del menú (tema claro) */
+html.app-light .sidebar .nav-link {
+    color: #5b6472; border-radius: 11px; margin: .12rem .6rem; padding: .58rem .8rem;
+    font-weight: 500; display: flex; align-items: center; gap: .7rem;
+    transition: background-color .15s ease, color .15s ease;
+}
+html.app-light .sidebar .nav-link .bi { color: #94a0b0; font-size: 1.08rem; }
+html.app-light .sidebar .nav-link:hover { background: rgba(15,23,42,.045); color: #111827; }
+html.app-light .sidebar .nav-link:hover .bi { color: #4b5563; }
+html.app-light .sidebar .nav-link.active {
+    background: color-mix(in srgb, var(--brand, #2563eb) 12%, transparent);
+    color: var(--brand-dark, #1e40af); font-weight: 600; box-shadow: none;
+}
+html.app-light .sidebar .nav-link.active .bi { color: var(--brand, #2563eb); }
+/* Quita el separador mt-2 grande: ahora separan las etiquetas de sección */
+html.app-light .sidebar .nav-item.mt-2 { margin-top: 0 !important; }
+
+/* Caja de soporte al pie, clara */
+html.app-light .sidebar-soporte { border-top: 1px solid rgba(15,23,42,.08); }
+
 /* ── Modo oscuro (app-dark / lp-dark): sombras más marcadas ────────── */
 html.app-dark .card, html.lp-dark .card { border-color: rgba(255,255,255,.06); box-shadow: 0 2px 10px rgba(0,0,0,.35); }
 html.app-dark .dropdown-menu, html.lp-dark .dropdown-menu { border-color: rgba(255,255,255,.08); box-shadow: 0 8px 24px rgba(0,0,0,.5); }

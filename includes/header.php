@@ -157,13 +157,16 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
                     <div class="brand-name"><?= e($marca) ?></div>
                     <small class="brand-sub"><i class="bi bi-lightning-charge-fill"></i> <?= strtoupper(et('Panel')) ?></small>
                 </a>
+                <?php $secOper = modulo_activo('presupuestos') || modulo_activo('facturacion') || modulo_activo('farmacia') || modulo_activo('crm') || modulo_activo('laboratorio') || modulo_activo('optica'); ?>
                 <ul class="nav flex-column">
+                    <li class="nav-sec"><?= et('Principal') ?></li>
                     <li class="nav-item"><a class="nav-link<?= nav_active('dashboard', $activo) ?>" href="<?= BASE_URL ?>/dashboard"><i class="bi bi-grid-1x2-fill"></i> <?= et('Dashboard') ?></a></li>
                     <?php if (modulo_activo('citas')): ?><li class="nav-item"><a class="nav-link<?= nav_active('citas', $activo) ?>" href="<?= BASE_URL ?>/citas/index"><i class="bi bi-calendar-check"></i> <?= et('Agenda') ?></a></li><?php endif; ?>
                     <?php if (modulo_activo('citas') && has_role('medico', 'admin')): ?><li class="nav-item"><a class="nav-link<?= nav_active('horarios', $activo) ?>" href="<?= BASE_URL ?>/citas/horarios"><i class="bi bi-clock-history"></i> <?= has_role('admin') ? et('Horarios') : et('Mi horario') ?></a></li><?php endif; ?>
                     <?php if (modulo_activo('pacientes')): ?><li class="nav-item"><a class="nav-link<?= nav_active('pacientes', $activo) ?>" href="<?= BASE_URL ?>/pacientes/index"><i class="bi bi-people"></i> <?= et('Pacientes') ?></a></li><?php endif; ?>
                     <?php if (modulo_activo('expediente')): ?><li class="nav-item"><a class="nav-link<?= nav_active('expediente', $activo) ?>" href="<?= BASE_URL ?>/expediente/index"><i class="bi bi-folder2-open"></i> <?= et('Expediente') ?></a></li><?php endif; ?>
                     <?php if (modulo_activo('recetas')): ?><li class="nav-item"><a class="nav-link<?= nav_active('recetas', $activo) ?>" href="<?= BASE_URL ?>/recetas/index"><i class="bi bi-capsule"></i> <?= et('Recetas') ?></a></li><?php endif; ?>
+                    <?php if ($secOper): ?><li class="nav-sec"><?= et('Operación y ventas') ?></li><?php endif; ?>
                     <?php if (modulo_activo('presupuestos')): ?><li class="nav-item"><a class="nav-link<?= nav_active('presupuestos', $activo) ?>" href="<?= BASE_URL ?>/presupuestos/index"><i class="bi bi-clipboard2-check"></i> <?= et('Presupuestos') ?></a></li><?php endif; ?>
                     <?php if (modulo_activo('facturacion')): ?><li class="nav-item"><a class="nav-link<?= nav_active('facturacion', $activo) ?>" href="<?= BASE_URL ?>/facturacion/index"><i class="bi bi-receipt"></i> <?= et('Facturación') ?></a></li><?php endif; ?>
                     <?php if (modulo_activo('farmacia')): ?><li class="nav-item"><a class="nav-link<?= nav_active('pos', $activo) ?>" href="<?= BASE_URL ?>/pos/index"><i class="bi bi-shop"></i> <?= et('Punto de venta') ?></a></li><?php endif; ?>
@@ -177,21 +180,27 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
                     <?php if (modulo_activo('laboratorio')): ?><li class="nav-item"><a class="nav-link<?= nav_active('laboratorio', $activo) ?>" href="<?= BASE_URL ?>/laboratorio/index"><i class="bi bi-eyedropper"></i> <?= et('Laboratorio') ?></a></li><?php endif; ?>
                     <?php if (modulo_activo('optica')): ?><li class="nav-item"><a class="nav-link<?= nav_active('optica', $activo) ?>" href="<?= BASE_URL ?>/optica/index"><i class="bi bi-eyeglasses"></i> <?= et('Óptica') ?></a></li><?php endif; ?>
                     <?php if (has_role('admin')): ?>
-                    <?php if (modulo_activo('presupuestos')): ?><li class="nav-item mt-2"><a class="nav-link<?= nav_active('servicios', $activo) ?>" href="<?= BASE_URL ?>/servicios/index"><i class="bi bi-tags"></i> <?= et('Catálogo de servicios') ?></a></li><?php endif; ?>
+                    <li class="nav-sec"><?= et('Administración') ?></li>
+                    <?php if (modulo_activo('presupuestos')): ?><li class="nav-item"><a class="nav-link<?= nav_active('servicios', $activo) ?>" href="<?= BASE_URL ?>/servicios/index"><i class="bi bi-tags"></i> <?= et('Catálogo de servicios') ?></a></li><?php endif; ?>
                     <li class="nav-item<?= modulo_activo('presupuestos') ? '' : ' mt-2' ?>"><a class="nav-link<?= nav_active('medicos', $activo) ?>" href="<?= BASE_URL ?>/medicos/index"><i class="bi bi-person-vcard"></i> <?= et('Médicos') ?></a></li>
                     <li class="nav-item"><a class="nav-link<?= nav_active('usuarios', $activo) ?>" href="<?= BASE_URL ?>/usuarios/index"><i class="bi bi-person-badge"></i> <?= et('Personal') ?></a></li>
                     <li class="nav-item"><a class="nav-link<?= nav_active('suscripcion', $activo) ?>" href="<?= BASE_URL ?>/pagos/index"><i class="bi bi-stars"></i> <?= et('Mi suscripción') ?></a></li>
                     <li class="nav-item"><a class="nav-link<?= nav_active('configuracion', $activo) ?>" href="<?= BASE_URL ?>/configuracion/index"><i class="bi bi-gear"></i> <?= et('Configuración') ?></a></li>
+                    <?php endif; ?>
+                    <?php if (has_role('medico', 'admin') && (modulo_activo('plantillas') || modulo_activo('documentos'))): ?>
+                    <li class="nav-sec"><?= et('Herramientas') ?></li>
                     <?php endif; ?>
                     <?php if (has_role('medico', 'admin')): ?>
                     <?php if (modulo_activo('plantillas')): ?><li class="nav-item"><a class="nav-link<?= nav_active('plantillas', $activo) ?>" href="<?= BASE_URL ?>/plantillas/index"><i class="bi bi-file-earmark-text"></i> <?= et('Plantillas de consulta') ?></a></li><?php endif; ?>
                     <?php if (modulo_activo('documentos')): ?><li class="nav-item"><a class="nav-link<?= nav_active('documentos', $activo) ?>" href="<?= BASE_URL ?>/documentos/index"><i class="bi bi-file-earmark-medical"></i> <?= et('Documentos') ?></a></li><?php endif; ?>
                     <?php endif; ?>
                     <?php if (es_superadmin()): ?>
-                    <li class="nav-item mt-2"><a class="nav-link<?= nav_active('admin', $activo) ?>" href="<?= BASE_URL ?>/platform/index"><i class="bi bi-diagram-3"></i> <?= et('Plataforma') ?></a></li>
+                    <li class="nav-sec"><?= et('Plataforma') ?></li>
+                    <li class="nav-item"><a class="nav-link<?= nav_active('admin', $activo) ?>" href="<?= BASE_URL ?>/platform/index"><i class="bi bi-diagram-3"></i> <?= et('Consola de plataforma') ?></a></li>
                     <li class="nav-item"><a class="nav-link<?= nav_active('feedback_admin', $activo) ?>" href="<?= BASE_URL ?>/admin/feedback"><i class="bi bi-chat-left-dots"></i> <?= et('Comentarios') ?></a></li>
                     <?php endif; ?>
-                    <li class="nav-item mt-2"><a class="nav-link<?= nav_active('feedback', $activo) ?>" href="<?= BASE_URL ?>/feedback/index"><i class="bi bi-chat-left-dots"></i> <?= et('Enviar comentario') ?></a></li>
+                    <li class="nav-sec"><?= et('Soporte') ?></li>
+                    <li class="nav-item"><a class="nav-link<?= nav_active('feedback', $activo) ?>" href="<?= BASE_URL ?>/feedback/index"><i class="bi bi-chat-left-dots"></i> <?= et('Enviar comentario') ?></a></li>
                     <li class="nav-item"><a class="nav-link<?= nav_active('soporte', $activo) ?>" href="<?= BASE_URL ?>/soporte/index"><i class="bi bi-life-preserver"></i> <?= et('Ayuda y soporte') ?></a></li>
                 </ul>
 

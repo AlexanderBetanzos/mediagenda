@@ -292,8 +292,8 @@ function tema_actual(): string
     if (in_array($cookie, $valid, true)) {
         return $cookie;
     }
-    $def = cfg('tema_default', 'dark');
-    return in_array($def, $valid, true) ? $def : 'dark';
+    $def = cfg('tema_default', 'light');
+    return in_array($def, $valid, true) ? $def : 'light';
 }
 
 /* --------------------------------------------------------------------
