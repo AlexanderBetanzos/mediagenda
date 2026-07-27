@@ -2303,34 +2303,25 @@ function ensure_mapacorporal_table(): void
             id INT AUTO_INCREMENT PRIMARY KEY, consultorio_id INT NOT NULL DEFAULT 1, paciente_id INT NOT NULL,
             region VARCHAR(40) NOT NULL, titulo VARCHAR(160) NOT NULL, nota TEXT,
             severidad ENUM('leve','moderado','grave') NOT NULL DEFAULT 'moderado', activo TINYINT(1) NOT NULL DEFAULT 1,
+            pos_x SMALLINT DEFAULT NULL, pos_y SMALLINT DEFAULT NULL,
             creado_por INT, creado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, INDEX idx_mapc (consultorio_id, paciente_id, activo)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        db()->exec("ALTER TABLE mapa_corporal_hallazgos ADD COLUMN IF NOT EXISTS pos_x SMALLINT DEFAULT NULL");
+        db()->exec("ALTER TABLE mapa_corporal_hallazgos ADD COLUMN IF NOT EXISTS pos_y SMALLINT DEFAULT NULL");
     } catch (Throwable $e) { /* ya existe */ }
 }
 
-/**
- * Catálogo de zonas del mapa corporal: clave => [etiqueta, x, y] con las
- * coordenadas del marcador sobre el SVG del cuerpo (viewBox 0 0 200 440).
- */
+/** Etiquetas de zona del mapa corporal (para clasificar el hallazgo). */
 function mapa_corporal_regiones(): array
 {
-    // Coordenadas sobre el SVG del cuerpo (viewBox 0 0 200 470).
     return [
-        'cabeza'    => ['Cabeza / neurológico', 100, 34],
-        'ojos'      => ['Ojos', 100, 40],
-        'garganta'  => ['Cuello / garganta', 100, 70],
-        'corazon'   => ['Corazón', 90, 150],
-        'pulmones'  => ['Pulmones', 112, 140],
-        'higado'    => ['Hígado', 116, 186],
-        'estomago'  => ['Estómago', 87, 184],
-        'rinones'   => ['Riñones', 100, 206],
-        'abdomen'   => ['Abdomen / intestino', 100, 226],
-        'pelvis'    => ['Pelvis / urogenital', 100, 252],
-        'brazo_izq' => ['Brazo izquierdo', 51, 196],
-        'brazo_der' => ['Brazo derecho', 149, 196],
-        'pierna_izq'=> ['Pierna izquierda', 86, 360],
-        'pierna_der'=> ['Pierna derecha', 114, 360],
-        'piel'      => ['Piel / general', 138, 300],
+        'cabeza'   => 'Cabeza / neurológico', 'ojos' => 'Ojos', 'oidos' => 'Oídos',
+        'garganta' => 'Cuello / garganta',    'torax' => 'Tórax', 'corazon' => 'Corazón',
+        'pulmones' => 'Pulmones',             'estomago' => 'Estómago', 'higado' => 'Hígado',
+        'rinones'  => 'Riñones',              'abdomen' => 'Abdomen / intestino',
+        'pelvis'   => 'Pelvis / urogenital',  'espalda' => 'Espalda / columna',
+        'brazos'   => 'Brazos', 'manos' => 'Manos', 'piernas' => 'Piernas', 'pies' => 'Pies',
+        'piel'     => 'Piel', 'general' => 'General',
     ];
 }
 

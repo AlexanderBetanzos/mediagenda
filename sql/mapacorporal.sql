@@ -16,3 +16,5 @@ CREATE TABLE IF NOT EXISTS mapa_corporal_hallazgos (
   CONSTRAINT fk_mapc_paciente FOREIGN KEY (paciente_id) REFERENCES pacientes(id) ON DELETE CASCADE,
   INDEX idx_mapc (consultorio_id, paciente_id, activo)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ALTER TABLE mapa_corporal_hallazgos ADD COLUMN IF NOT EXISTS pos_x SMALLINT DEFAULT NULL;
+ALTER TABLE mapa_corporal_hallazgos ADD COLUMN IF NOT EXISTS pos_y SMALLINT DEFAULT NULL;

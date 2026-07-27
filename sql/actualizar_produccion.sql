@@ -598,3 +598,7 @@ CREATE TABLE IF NOT EXISTS mapa_corporal_hallazgos (
   severidad ENUM('leve','moderado','grave') NOT NULL DEFAULT 'moderado', activo TINYINT(1) NOT NULL DEFAULT 1,
   creado_por INT, creado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, INDEX idx_mapc (consultorio_id, paciente_id, activo)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============ 2026-07-27: mapa corporal — posición exacta del marcador (clic) ============
+ALTER TABLE mapa_corporal_hallazgos ADD COLUMN IF NOT EXISTS pos_x SMALLINT DEFAULT NULL;
+ALTER TABLE mapa_corporal_hallazgos ADD COLUMN IF NOT EXISTS pos_y SMALLINT DEFAULT NULL;
