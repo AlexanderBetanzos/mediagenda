@@ -3,6 +3,7 @@
     <?= e(APP_NAME) ?> · <?= et('Consola de plataforma') ?> · <?= date('Y') ?>
 </footer>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="<?= asset('assets/js/app.js') ?>"></script>
 <script>
 (function () {
     var t = document.getElementById('clkTime'), d = document.getElementById('clkDate');

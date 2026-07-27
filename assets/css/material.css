@@ -181,6 +181,37 @@ html.app-light .sidebar .nav-item.mt-2 { margin-top: 0 !important; }
 /* Caja de soporte al pie, clara */
 html.app-light .sidebar-soporte { border-top: 1px solid rgba(15,23,42,.08); }
 
+/* ════════════════════════════════════════════════════════════════════
+ *  Experiencia "tipo app": barra de progreso, spinner de botón, transición
+ * ════════════════════════════════════════════════════════════════════ */
+.app-progress {
+    position: fixed; top: 0; left: 0; height: 3px; width: 0;
+    background: var(--brand, #2563eb); z-index: 3000; opacity: 0;
+    box-shadow: 0 0 10px color-mix(in srgb, var(--brand, #2563eb) 70%, transparent);
+    border-radius: 0 3px 3px 0;
+}
+.app-progress.run { opacity: 1; width: 88%; transition: width 9s cubic-bezier(.08,.7,.55,1); }
+.app-progress.done { opacity: 0; width: 100%; transition: width .2s ease, opacity .4s ease .12s; }
+
+/* Botón cargando: oculta el texto y muestra un spinner (sin desactivarlo). */
+.btn.is-loading { color: transparent !important; pointer-events: none; position: relative; }
+.btn.is-loading > * { visibility: hidden; }
+.btn.is-loading::after {
+    content: ''; position: absolute; top: calc(50% - .55em); left: calc(50% - .55em);
+    width: 1.1em; height: 1.1em; border: 2px solid rgba(255,255,255,.65);
+    border-right-color: transparent; border-radius: 50%; animation: appspin .6s linear infinite;
+}
+.btn-light.is-loading::after, .btn-outline-secondary.is-loading::after, .btn-outline-primary.is-loading::after {
+    border-color: rgba(100,116,139,.55); border-right-color: transparent;
+}
+@keyframes appspin { to { transform: rotate(360deg); } }
+
+/* Fade-in suave del contenido en cada carga (puro CSS, sin riesgo). */
+@media (prefers-reduced-motion: no-preference) {
+    main, .pub-wrap, header.lp-hero { animation: appfade .34s ease both; }
+}
+@keyframes appfade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
 /* ── Modo oscuro (app-dark / lp-dark): sombras más marcadas ────────── */
 html.app-dark .card, html.lp-dark .card { border-color: rgba(255,255,255,.06); box-shadow: 0 2px 10px rgba(0,0,0,.35); }
 html.app-dark .dropdown-menu, html.lp-dark .dropdown-menu { border-color: rgba(255,255,255,.08); box-shadow: 0 8px 24px rgba(0,0,0,.5); }

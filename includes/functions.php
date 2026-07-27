@@ -487,7 +487,9 @@ function is_logged_in(): bool
 function require_login(): void
 {
     if (!is_logged_in()) {
-        flash('Debes iniciar sesión.', 'warning');
+        // Sin flash: el mensaje quedaba en la sesión y, tras iniciar sesión, se
+        // mostraba dentro del dashboard ("inicia sesión") aunque ya estabas
+        // dentro. El redirect al login ya es suficientemente claro.
         redirect('/auth/login');
     }
     // Si el código llegó antes que la migración, el esquema se crea aquí en vez
