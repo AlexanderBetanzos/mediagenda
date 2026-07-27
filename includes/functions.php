@@ -2293,6 +2293,44 @@ function gad7_nivel(?int $s): array
     return ['Grave', 'danger'];
 }
 
+/** Crea la tabla del mapa corporal si no existe (self-healing). */
+function ensure_mapacorporal_table(): void
+{
+    try {
+        db()->exec("CREATE TABLE IF NOT EXISTS mapa_corporal_hallazgos (
+            id INT AUTO_INCREMENT PRIMARY KEY, consultorio_id INT NOT NULL DEFAULT 1, paciente_id INT NOT NULL,
+            region VARCHAR(40) NOT NULL, titulo VARCHAR(160) NOT NULL, nota TEXT,
+            severidad ENUM('leve','moderado','grave') NOT NULL DEFAULT 'moderado', activo TINYINT(1) NOT NULL DEFAULT 1,
+            creado_por INT, creado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, INDEX idx_mapc (consultorio_id, paciente_id, activo)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    } catch (Throwable $e) { /* ya existe */ }
+}
+
+/**
+ * Catálogo de zonas del mapa corporal: clave => [etiqueta, x, y] con las
+ * coordenadas del marcador sobre el SVG del cuerpo (viewBox 0 0 200 440).
+ */
+function mapa_corporal_regiones(): array
+{
+    return [
+        'cabeza'    => ['Cabeza / neurológico', 100, 38],
+        'ojos'      => ['Ojos', 100, 32],
+        'garganta'  => ['Cuello / garganta', 100, 74],
+        'corazon'   => ['Corazón', 88, 150],
+        'pulmones'  => ['Pulmones', 116, 142],
+        'higado'    => ['Hígado', 120, 188],
+        'estomago'  => ['Estómago', 86, 186],
+        'rinones'   => ['Riñones', 100, 210],
+        'abdomen'   => ['Abdomen / intestino', 100, 228],
+        'pelvis'    => ['Pelvis / urogenital', 100, 258],
+        'brazo_izq' => ['Brazo izquierdo', 44, 200],
+        'brazo_der' => ['Brazo derecho', 156, 200],
+        'pierna_izq'=> ['Pierna izquierda', 82, 350],
+        'pierna_der'=> ['Pierna derecha', 118, 350],
+        'piel'      => ['Piel / general', 148, 300],
+    ];
+}
+
 /** Crea las tablas de dermatología si no existen (self-healing). */
 function ensure_derma_tables(): void
 {

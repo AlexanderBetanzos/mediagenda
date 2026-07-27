@@ -614,6 +614,8 @@ include __DIR__ . '/../includes/header.php';
                                 <i class="bi bi-clipboard2-pulse"></i> <?= et('Especialidad') ?>
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="<?= BASE_URL ?>/mapacorporal/index?paciente_id=<?= $id ?>"><i class="bi bi-person-bounding-box me-2"></i><?= et('Mapa corporal') ?></a></li>
+                                <li><hr class="dropdown-divider"></li>
                                 <?php if (strncasecmp((string) ($p['sexo'] ?? ''), 'F', 1) === 0): ?>
                                 <li><a class="dropdown-item" href="<?= BASE_URL ?>/prenatal/index?paciente_id=<?= $id ?>"><i class="bi bi-gender-female me-2"></i><?= et('Control prenatal') ?></a></li>
                                 <?php endif; ?>
