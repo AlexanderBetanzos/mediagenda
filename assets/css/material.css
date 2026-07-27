@@ -1,0 +1,122 @@
+/* =====================================================================
+ *  MediOS — Capa "Material Design" (overlay sobre Bootstrap + style.css)
+ *  Se carga DESPUÉS de style.css: refina tipografía, forma (esquinas),
+ *  elevación (sombras), botones tipo píldora/tonales, inputs y superficies,
+ *  sin reescribir el markup. Aplica a landing, micrositio y app.
+ * ===================================================================== */
+
+/* Íconos Material (disponibles con <span class="msym">nombre</span>). */
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0&display=swap');
+.msym {
+    font-family: 'Material Symbols Rounded';
+    font-weight: normal; font-style: normal; line-height: 1;
+    letter-spacing: normal; text-transform: none; display: inline-block;
+    white-space: nowrap; direction: ltr; -webkit-font-feature-settings: 'liga';
+    -webkit-font-smoothing: antialiased; vertical-align: middle;
+    font-variation-settings: 'opsz' 24;
+}
+
+:root {
+    /* Radios (Material usa formas generosas) */
+    --md-r-sm: 12px;
+    --md-r:    18px;
+    --md-r-lg: 28px;
+    --md-r-pill: 999px;
+    /* Elevación (dp) — sombras suaves y difusas */
+    --md-e1: 0 1px 2px rgba(15,23,42,.06), 0 1px 3px rgba(15,23,42,.10);
+    --md-e2: 0 2px 8px rgba(15,23,42,.06), 0 6px 18px rgba(15,23,42,.08);
+    --md-e3: 0 10px 30px rgba(15,23,42,.10), 0 4px 10px rgba(15,23,42,.05);
+}
+
+/* ── Tipografía ────────────────────────────────────────────────────── */
+body {
+    font-family: 'Inter', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+}
+h1, h2, h3, .h1, .h2, .h3, .section-title { letter-spacing: -0.02em; }
+h4, h5, .h4, .h5 { letter-spacing: -0.01em; }
+.display-1, .display-2, .display-3, .display-4, .display-5, .display-6 { letter-spacing: -0.03em; }
+
+/* ── Superficies (cards) ───────────────────────────────────────────── */
+.card {
+    border-radius: var(--md-r);
+    border: 1px solid rgba(15,23,42,.06);
+    box-shadow: var(--md-e1);
+}
+.card .card {
+    box-shadow: none;
+}
+.dropdown-menu {
+    border-radius: var(--md-r-sm);
+    border: 1px solid rgba(15,23,42,.08);
+    box-shadow: var(--md-e2);
+    padding: .4rem;
+}
+.dropdown-item { border-radius: 8px; padding: .5rem .75rem; }
+.modal-content { border-radius: var(--md-r); border: 0; box-shadow: var(--md-e3); }
+.list-group { border-radius: var(--md-r); }
+.alert { border-radius: var(--md-r-sm); }
+.badge { border-radius: 999px; font-weight: 600; }
+
+/* ── Botones (píldora + elevación tonal) ───────────────────────────── */
+.btn {
+    border-radius: var(--md-r-pill);
+    font-weight: 600;
+    letter-spacing: .01em;
+    padding-inline: 1.15rem;
+    transition: box-shadow .18s ease, transform .18s ease, background-color .18s ease, color .18s ease;
+}
+.btn-lg { padding-inline: 1.6rem; }
+.btn-sm { padding-inline: .85rem; }
+.btn:active { transform: translateY(1px); }
+.btn-primary, .btn-success, .btn-danger, .btn-cta {
+    border: 0; box-shadow: var(--md-e1);
+}
+.btn-primary:hover, .btn-success:hover, .btn-danger:hover, .btn-cta:hover {
+    box-shadow: var(--md-e2); transform: translateY(-1px);
+}
+/* Outline → estilo "tonal": relleno tenue en vez de borde duro */
+.btn-outline-primary, .btn-outline-secondary {
+    border-color: transparent;
+    background: color-mix(in srgb, currentColor 10%, transparent);
+}
+.btn-outline-primary { color: var(--brand, #2563eb); }
+.btn-outline-primary:hover { background: var(--brand, #2563eb); color: #fff; }
+.btn-outline-secondary:hover { background: rgba(100,116,139,.18); color: inherit; }
+.btn-light { box-shadow: var(--md-e1); border-color: transparent; }
+
+/* ── Campos de formulario (más redondeados, foco suave) ────────────── */
+.form-control, .form-select {
+    border-radius: var(--md-r-sm);
+    border-color: rgba(15,23,42,.14);
+    padding: .55rem .85rem;
+}
+.form-control:focus, .form-select:focus {
+    border-color: var(--brand, #2563eb);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand, #2563eb) 16%, transparent);
+}
+.input-group > .form-control, .input-group > .form-select { border-radius: var(--md-r-sm); }
+.input-group > :not(:first-child):not(.dropdown-menu):not(.valid-tooltip):not(.valid-feedback):not(.invalid-tooltip):not(.invalid-feedback) { margin-left: 0; }
+
+/* ── Navbar / tabs / tablas ────────────────────────────────────────── */
+.nav-tabs { border-bottom-color: rgba(15,23,42,.10); }
+.nav-tabs .nav-link { border: 0; font-weight: 600; color: #64748b; border-radius: var(--md-r-sm) var(--md-r-sm) 0 0; }
+.nav-tabs .nav-link.active { color: var(--brand, #2563eb); background: transparent; box-shadow: inset 0 -3px 0 var(--brand, #2563eb); }
+.table { --bs-table-border-color: rgba(15,23,42,.06); }
+
+/* ── Chips de KPI / stat cards más suaves ──────────────────────────── */
+.stat-card, .stat-icon { border-radius: var(--md-r); }
+
+/* ── Landing / micrositio: aire y superficies claras ───────────────── */
+body.lp .btn { border-radius: var(--md-r-pill); }
+body.lp .lp-card, body.lp .card { border-radius: var(--md-r-lg); box-shadow: var(--md-e2); border: 1px solid rgba(15,23,42,.05); }
+body.lp .lp-plan { border-radius: var(--md-r-lg) !important; }
+body.lp .lp-quote, body.lp .lp-compare { border-radius: var(--md-r-lg) !important; }
+body.lp .section-title { letter-spacing: -0.03em; }
+body.lp .lp-eyebrow { letter-spacing: .12em; }
+
+/* ── Modo oscuro (app-dark / lp-dark): sombras más marcadas ────────── */
+html.app-dark .card, html.lp-dark .card { border-color: rgba(255,255,255,.06); box-shadow: 0 2px 10px rgba(0,0,0,.35); }
+html.app-dark .dropdown-menu, html.lp-dark .dropdown-menu { border-color: rgba(255,255,255,.08); box-shadow: 0 8px 24px rgba(0,0,0,.5); }
+html.app-dark .form-control, html.app-dark .form-select { border-color: rgba(255,255,255,.14); }
+html.app-dark .btn-outline-secondary:hover { background: rgba(255,255,255,.12); }

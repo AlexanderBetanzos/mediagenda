@@ -57,6 +57,7 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="<?= asset('assets/css/style.css') ?>" rel="stylesheet">
+    <link href="<?= asset('assets/css/material.css') ?>" rel="stylesheet">
     <style>
         /* Color de acento configurable por consultorio (white-label). En el tema
            claro y la landing manda el acento de marca; el panel oscuro usa el
