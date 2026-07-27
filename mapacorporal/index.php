@@ -76,14 +76,43 @@ include __DIR__ . '/../includes/header.php';
     <div class="col-lg-5">
         <div class="card"><div class="card-body">
             <div class="mapc-stage">
-                <svg viewBox="0 0 200 440" class="mapc-svg" role="img" aria-label="<?= e(t('Cuerpo humano')) ?>">
-                    <!-- Silueta -->
-                    <g class="mapc-body">
-                        <circle cx="100" cy="40" r="24"/>
-                        <path d="M88 62 h24 v10 q14 3 20 14 l6 40 q3 16 -3 30 l-8 -4 -4 44 -6 60 q6 60 5 96 q-1 10 -11 10 q-9 0 -11 -10 l-4 -84 h-4 l-4 84 q-2 10 -11 10 q-10 0 -11 -10 q-1 -36 5 -96 l-6 -60 -4 -44 -8 4 q-6 -14 -3 -30 l6 -40 q6 -11 20 -14 z"/>
-                        <path d="M68 82 q-16 4 -20 20 l-14 74 q-2 10 6 12 q8 2 11 -8 l14 -70 z"/>
-                        <path d="M132 82 q16 4 20 20 l14 74 q2 10 -6 12 q-8 2 -11 -8 l-14 -70 z"/>
-                    </g>
+                <svg viewBox="0 0 200 470" class="mapc-svg" role="img" aria-label="<?= e(t('Cuerpo humano')) ?>">
+                    <!-- Silueta (cabeza + outline continuo con brazos y piernas) -->
+                    <circle class="mapc-body" cx="100" cy="40" r="23"/>
+                    <path class="mapc-body" d="
+                        M90 62
+                        C90 74 86 78 78 82
+                        C64 88 56 100 54 116
+                        C52 132 50 152 48 174
+                        C47 188 46 202 46 214
+                        C46 224 50 228 55 226
+                        C59 222 61 210 62 198
+                        C64 178 65 158 67 142
+                        C68 134 70 130 74 128
+                        C75 152 75 182 74 208
+                        C73 228 75 248 81 264
+                        C79 302 77 352 75 400
+                        C75 414 73 424 75 428
+                        C77 434 88 434 90 428
+                        C92 416 92 404 92 392
+                        C93 344 93 304 94 276
+                        L100 272 L106 276
+                        C107 304 107 344 108 392
+                        C108 404 108 416 110 428
+                        C112 434 123 434 125 428
+                        C127 424 125 414 125 400
+                        C123 352 121 302 119 264
+                        C125 248 127 228 126 208
+                        C125 182 125 152 126 128
+                        C130 130 132 134 133 142
+                        C135 158 136 178 138 198
+                        C139 210 141 222 145 226
+                        C150 228 154 224 154 214
+                        C154 202 153 188 152 174
+                        C150 152 148 132 146 116
+                        C144 100 136 88 122 82
+                        C114 78 110 74 110 62
+                        Z"/>
                     <!-- Marcadores por zona -->
                     <?php foreach ($regiones as $clave => [$lbl, $x, $y]):
                         $m = $marcadores[$clave] ?? null; ?>

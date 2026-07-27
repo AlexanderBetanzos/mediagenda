@@ -2312,22 +2312,23 @@ function ensure_mapacorporal_table(): void
  */
 function mapa_corporal_regiones(): array
 {
+    // Coordenadas sobre el SVG del cuerpo (viewBox 0 0 200 470).
     return [
-        'cabeza'    => ['Cabeza / neurológico', 100, 38],
-        'ojos'      => ['Ojos', 100, 32],
-        'garganta'  => ['Cuello / garganta', 100, 74],
-        'corazon'   => ['Corazón', 88, 150],
-        'pulmones'  => ['Pulmones', 116, 142],
-        'higado'    => ['Hígado', 120, 188],
-        'estomago'  => ['Estómago', 86, 186],
-        'rinones'   => ['Riñones', 100, 210],
-        'abdomen'   => ['Abdomen / intestino', 100, 228],
-        'pelvis'    => ['Pelvis / urogenital', 100, 258],
-        'brazo_izq' => ['Brazo izquierdo', 44, 200],
-        'brazo_der' => ['Brazo derecho', 156, 200],
-        'pierna_izq'=> ['Pierna izquierda', 82, 350],
-        'pierna_der'=> ['Pierna derecha', 118, 350],
-        'piel'      => ['Piel / general', 148, 300],
+        'cabeza'    => ['Cabeza / neurológico', 100, 34],
+        'ojos'      => ['Ojos', 100, 40],
+        'garganta'  => ['Cuello / garganta', 100, 70],
+        'corazon'   => ['Corazón', 90, 150],
+        'pulmones'  => ['Pulmones', 112, 140],
+        'higado'    => ['Hígado', 116, 186],
+        'estomago'  => ['Estómago', 87, 184],
+        'rinones'   => ['Riñones', 100, 206],
+        'abdomen'   => ['Abdomen / intestino', 100, 226],
+        'pelvis'    => ['Pelvis / urogenital', 100, 252],
+        'brazo_izq' => ['Brazo izquierdo', 51, 196],
+        'brazo_der' => ['Brazo derecho', 149, 196],
+        'pierna_izq'=> ['Pierna izquierda', 86, 360],
+        'pierna_der'=> ['Pierna derecha', 114, 360],
+        'piel'      => ['Piel / general', 138, 300],
     ];
 }
 
