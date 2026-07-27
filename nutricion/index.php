@@ -80,14 +80,42 @@ include __DIR__ . '/../includes/header.php';
 <?php foreach (get_flash() as $f): ?><div class="alert alert-<?= e($f['tipo']) ?>"><?= e($f['msg']) ?></div><?php endforeach; ?>
 
 <?php if ($ultima): ?>
+<?php
+    $imcColorHex = ['success'=>'#22c55e','info'=>'#38bdf8','warning'=>'#f59e0b','danger'=>'#ef4444','secondary'=>'#94a3b8'][$imcCls[1]] ?? '#22c55e';
+    $grasa = $ultima['grasa_pct'] !== null ? (float) $ultima['grasa_pct'] : null;
+    // Progreso hacia la meta: qué tan cerca está el peso de la meta (0..1).
+    $metaFrac = 0; $metaTxt = '—';
+    if ($ultima['peso'] !== null && $ultima['meta_peso'] !== null && (float) $ultima['meta_peso'] > 0) {
+        $peso0 = (float) $ultima['peso']; $meta = (float) $ultima['meta_peso'];
+        // Referencia: primer peso registrado (punto de partida).
+        $ini = null; foreach ($vals as $vv) { if ($vv['peso'] > 0) { $ini = (float) $vv['peso']; break; } }
+        if ($ini !== null && abs($ini - $meta) > 0.01) {
+            $metaFrac = max(0, min(1, ($ini - $peso0) / ($ini - $meta)));
+        }
+        $metaTxt = round($metaFrac * 100) . '%';
+    }
+?>
 <div class="card mb-4"><div class="card-body">
-    <div class="row g-4">
-        <div class="col-6 col-md-3"><div class="text-muted small text-uppercase"><?= et('IMC actual') ?></div><div class="h4 mb-0"><?= $imcAct ? number_format($imcAct,1) : '—' ?> <span class="badge bg-<?= $imcCls[1] ?> align-middle"><?= et($imcCls[0]) ?></span></div></div>
-        <div class="col-6 col-md-3"><div class="text-muted small text-uppercase"><?= et('Peso') ?></div><div class="fw-semibold"><?= $ultima['peso'] !== null ? e($ultima['peso']) . ' kg' : '—' ?></div></div>
-        <div class="col-6 col-md-3"><div class="text-muted small text-uppercase"><?= et('Meta de peso') ?></div><div class="fw-semibold"><?= $ultima['meta_peso'] !== null ? e($ultima['meta_peso']) . ' kg' : '—' ?></div></div>
-        <div class="col-6 col-md-3"><div class="text-muted small text-uppercase"><?= et('Plan (kcal)') ?></div><div class="fw-semibold"><?= $ultima['kcal_plan'] !== null ? e($ultima['kcal_plan']) . ' kcal' : '—' ?></div></div>
+    <div class="row g-3 text-center align-items-center">
+        <div class="col-6 col-md-3">
+            <div style="color:<?= $imcColorHex ?>"><?= $imcAct ? svg_gauge(min($imcAct,40)/40, $imcColorHex, number_format($imcAct,1), 'IMC') : svg_gauge(0, '#94a3b8', '—', 'IMC') ?></div>
+            <div class="small"><span class="badge bg-<?= $imcCls[1] ?>"><?= et($imcCls[0]) ?></span></div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div style="color:#f59e0b"><?= $grasa !== null ? svg_gauge(min($grasa,50)/50, '#f59e0b', number_format($grasa,1).'%', t('% Grasa')) : svg_gauge(0, '#94a3b8', '—', t('% Grasa')) ?></div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div style="color:#2563eb"><?= svg_gauge($metaFrac, '#2563eb', $metaTxt, t('a la meta')) ?></div>
+            <div class="small text-muted"><?= $ultima['meta_peso'] !== null ? et('Meta') . ': ' . e($ultima['meta_peso']) . ' kg' : '' ?></div>
+        </div>
+        <div class="col-6 col-md-3 text-md-start">
+            <div class="text-muted small text-uppercase"><?= et('Peso actual') ?></div>
+            <div class="h4 mb-2"><?= $ultima['peso'] !== null ? e($ultima['peso']) . ' kg' : '—' ?></div>
+            <div class="text-muted small text-uppercase"><?= et('Plan') ?></div>
+            <div class="fw-semibold"><?= $ultima['kcal_plan'] !== null ? e($ultima['kcal_plan']) . ' kcal' : '—' ?></div>
+        </div>
     </div>
-    <?php if ($ultima['plan']): ?><div class="mt-3 small"><strong><?= et('Plan alimenticio:') ?></strong> <?= nl2br(e($ultima['plan'])) ?></div><?php endif; ?>
+    <?php if ($ultima['plan']): ?><div class="mt-3 small border-top pt-3"><strong><?= et('Plan alimenticio:') ?></strong> <?= nl2br(e($ultima['plan'])) ?></div><?php endif; ?>
 </div></div>
 <?php endif; ?>
 

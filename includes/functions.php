@@ -2379,6 +2379,26 @@ function ensure_nutricion_table(): void
     } catch (Throwable $e) { /* ya existe */ }
 }
 
+/**
+ * Anillo/medidor circular (SVG donut) reutilizable. $frac es 0..1 (proporción
+ * llena). Devuelve el SVG listo para incrustar. Estilo "pro" de dashboard.
+ */
+function svg_gauge(float $frac, string $color, string $centro, string $sub = '', int $size = 118): string
+{
+    $frac = max(0.0, min(1.0, $frac));
+    $r = 52; $c = 2 * M_PI * $r;          // circunferencia
+    $off = $c * (1 - $frac);               // dashoffset
+    $cx = 60;
+    return '<svg class="gauge" viewBox="0 0 120 120" width="' . $size . '" height="' . $size . '" role="img">'
+        . '<circle class="gauge-track" cx="' . $cx . '" cy="60" r="' . $r . '" fill="none" stroke-width="11"/>'
+        . '<circle class="gauge-val" cx="' . $cx . '" cy="60" r="' . $r . '" fill="none" stroke="' . e($color) . '" '
+        . 'stroke-width="11" stroke-linecap="round" stroke-dasharray="' . round($c, 1) . '" '
+        . 'stroke-dashoffset="' . round($off, 1) . '" transform="rotate(-90 60 60)"/>'
+        . '<text x="60" y="58" text-anchor="middle" font-size="23" font-weight="800" fill="currentColor">' . e($centro) . '</text>'
+        . ($sub !== '' ? '<text x="60" y="77" text-anchor="middle" font-size="10" fill="#94a3b8">' . e($sub) . '</text>' : '')
+        . '</svg>';
+}
+
 /** Clasificación de IMC (OMS). Devuelve [etiqueta, color-bootstrap]. */
 function imc_clasificacion(float $imc): array
 {

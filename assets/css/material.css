@@ -106,6 +106,15 @@ h4, h5, .h4, .h5 { letter-spacing: -0.01em; }
 
 /* ── Chips de KPI / stat cards más suaves ──────────────────────────── */
 .stat-card, .stat-icon { border-radius: var(--md-r); }
+.kpi-card { transition: transform .18s ease, box-shadow .18s ease; }
+.kpi-card:hover { transform: translateY(-3px); box-shadow: var(--md-e2); }
+.stat-card .stat-num { font-weight: 800; letter-spacing: -.02em; }
+html.app-light .stat-card .stat-icon { box-shadow: 0 4px 12px color-mix(in srgb, currentColor 22%, transparent); }
+/* Anillos/medidores (usados en Nutrición, etc.) */
+.gauge { display:inline-block; }
+.gauge-track { stroke: rgba(15,23,42,.08); }
+html.app-dark .gauge-track { stroke: rgba(255,255,255,.10); }
+.gauge-val { transition: stroke-dashoffset .6s ease; }
 
 /* ── Landing / micrositio: aire y superficies claras ───────────────── */
 body.lp .btn { border-radius: var(--md-r-pill); }
