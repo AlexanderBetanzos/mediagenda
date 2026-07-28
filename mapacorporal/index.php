@@ -18,6 +18,17 @@ if (!$pac) { http_response_code(404); die('Paciente no encontrado.'); }
 $pacNombre = trim($pac['nombre'] . ' ' . ($pac['apellidos'] ?? ''));
 $regiones  = mapa_corporal_regiones();
 
+/* Ilustración anatómica (CC0, Wikimedia) según el sexo del paciente. El SVG va
+   de fondo y encima se captura el clic. Dimensiones intrínsecas de cada archivo
+   para que las coordenadas del clic/marcador coincidan. */
+$esF     = strncasecmp((string) ($pac['sexo'] ?? ''), 'F', 1) === 0;
+$bodyImg = $esF ? 'assets/img/cuerpo_m.svg' : 'assets/img/cuerpo_h.svg';
+$bw      = $esF ? 1387 : 1363;
+$bh      = $esF ? 2598 : 1234;
+$mr      = max(9, (int) round($bw * 0.016));   // radio del punto del marcador
+$mh      = (int) round($mr * 1.7);             // radio del halo
+$msw     = max(2, (int) round($bw * 0.004));   // grosor del borde del marcador
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
     $accion = $_POST['accion'] ?? '';
@@ -26,8 +37,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $titulo = trim($_POST['titulo'] ?? '');
         if ($titulo !== '') {
             $sev = in_array($_POST['severidad'] ?? '', ['leve','moderado','grave'], true) ? $_POST['severidad'] : 'moderado';
-            $px = ($_POST['pos_x'] ?? '') !== '' ? max(0, min(200, (int) $_POST['pos_x'])) : null;
-            $py = ($_POST['pos_y'] ?? '') !== '' ? max(0, min(470, (int) $_POST['pos_y'])) : null;
+            $px = ($_POST['pos_x'] ?? '') !== '' ? max(0, min($bw, (int) $_POST['pos_x'])) : null;
+            $py = ($_POST['pos_y'] ?? '') !== '' ? max(0, min($bh, (int) $_POST['pos_y'])) : null;
             db()->prepare('INSERT INTO mapa_corporal_hallazgos (consultorio_id, paciente_id, region, titulo, nota, severidad, pos_x, pos_y, creado_por)
                            VALUES (?,?,?,?,?,?,?,?,?)')
                 ->execute([tenant_id(), $pid, $region, mb_substr($titulo,0,160), trim($_POST['nota'] ?? '') ?: null, $sev, $px, $py, $u['id']]);
@@ -68,31 +79,22 @@ include __DIR__ . '/../includes/header.php';
     <div class="col-lg-5">
         <div class="card"><div class="card-body">
             <div class="mapc-stage">
-                <svg viewBox="0 0 200 470" class="mapc-svg" id="mapcSvg" role="img" aria-label="<?= e(t('Cuerpo humano — clic para marcar')) ?>">
-                    <defs>
-                        <linearGradient id="mapcGrad" x1="0" y1="0" x2="0.4" y2="1">
-                            <stop offset="0" class="mapc-g1"/>
-                            <stop offset="1" class="mapc-g2"/>
-                        </linearGradient>
-                    </defs>
-                    <g class="mapc-body" fill="url(#mapcGrad)">
-                        <circle cx="100" cy="40" r="23"/>
-                        <path d="M90 62 C90 74 86 78 78 82 C64 88 56 100 54 116 C52 132 50 152 48 174 C47 188 46 202 46 214 C46 224 50 228 55 226 C59 222 61 210 62 198 C64 178 65 158 67 142 C68 134 70 130 74 128 C75 152 75 182 74 208 C73 228 75 248 81 264 C79 302 77 352 75 400 C75 414 73 424 75 428 C77 434 88 434 90 428 C92 416 92 404 92 392 C93 344 93 304 94 276 L100 272 L106 276 C107 304 107 344 108 392 C108 404 108 416 110 428 C112 434 123 434 125 428 C127 424 125 414 125 400 C123 352 121 302 119 264 C125 248 127 228 126 208 C125 182 125 152 126 128 C130 130 132 134 133 142 C135 158 136 178 138 198 C139 210 141 222 145 226 C150 228 154 224 154 214 C154 202 153 188 152 174 C150 152 148 132 146 116 C144 100 136 88 122 82 C114 78 110 74 110 62 Z"/>
-                    </g>
+                <svg viewBox="0 0 <?= $bw ?> <?= $bh ?>" class="mapc-svg" id="mapcSvg" role="img" aria-label="<?= e(t('Cuerpo humano — clic para marcar')) ?>">
+                    <image class="mapc-img" href="<?= asset($bodyImg) ?>" x="0" y="0" width="<?= $bw ?>" height="<?= $bh ?>" preserveAspectRatio="xMidYMid meet"/>
 
                     <!-- Hallazgos existentes (en su posición exacta) -->
                     <?php foreach ($hall as $h): if ($h['pos_x'] === null || $h['pos_y'] === null) continue;
                         $col = $sevColor[$h['severidad']] ?? '#f59e0b'; ?>
                         <g class="mapc-pin" title="<?= e($h['titulo']) ?>">
-                            <circle class="mapc-halo" cx="<?= (int)$h['pos_x'] ?>" cy="<?= (int)$h['pos_y'] ?>" r="10" fill="<?= $col ?>" opacity="0.20"/>
-                            <circle cx="<?= (int)$h['pos_x'] ?>" cy="<?= (int)$h['pos_y'] ?>" r="6" fill="<?= $col ?>" stroke="#fff" stroke-width="1.5"/>
+                            <circle class="mapc-halo" cx="<?= (int)$h['pos_x'] ?>" cy="<?= (int)$h['pos_y'] ?>" r="<?= $mh ?>" fill="<?= $col ?>" opacity="0.20"/>
+                            <circle cx="<?= (int)$h['pos_x'] ?>" cy="<?= (int)$h['pos_y'] ?>" r="<?= $mr ?>" fill="<?= $col ?>" stroke="#fff" stroke-width="<?= $msw ?>"/>
                         </g>
                     <?php endforeach; ?>
 
                     <!-- Marcador temporal (donde haces clic) -->
                     <g id="ghost" style="display:none">
-                        <circle id="ghostHalo" cx="0" cy="0" r="11" fill="var(--brand,#2563eb)" opacity="0.18"/>
-                        <circle id="ghostDot"  cx="0" cy="0" r="6" fill="var(--brand,#2563eb)" stroke="#fff" stroke-width="1.5"/>
+                        <circle id="ghostHalo" cx="0" cy="0" r="<?= $mh ?>" fill="var(--brand,#2563eb)" opacity="0.18"/>
+                        <circle id="ghostDot"  cx="0" cy="0" r="<?= $mr ?>" fill="var(--brand,#2563eb)" stroke="#fff" stroke-width="<?= $msw ?>"/>
                     </g>
                 </svg>
             </div>
@@ -153,16 +155,13 @@ include __DIR__ . '/../includes/header.php';
 
 <style>
 .mapc-stage { display:flex; justify-content:center; padding:.5rem; }
-.mapc-svg { width:100%; max-width:300px; height:auto; cursor:crosshair; filter:drop-shadow(0 10px 18px rgba(15,23,42,.12)); }
-.mapc-g1 { stop-color:color-mix(in srgb, var(--brand,#2563eb) 24%, #fff); }
-.mapc-g2 { stop-color:color-mix(in srgb, var(--brand,#2563eb) 7%, #fff); }
-.mapc-body { stroke:color-mix(in srgb, var(--brand,#2563eb) 30%, #fff); stroke-width:1.4; }
-.mapc-body:hover { stroke:color-mix(in srgb, var(--brand,#2563eb) 45%, #fff); }
+.mapc-svg { width:100%; max-width:320px; max-height:560px; height:auto; cursor:crosshair;
+            filter:drop-shadow(0 10px 18px rgba(15,23,42,.10)); }
+.mapc-img { opacity:.9; }
+html.app-dark .mapc-img { filter:invert(.9) hue-rotate(180deg); opacity:.85; }
 .mapc-halo { transform-box:fill-box; transform-origin:center; animation:mapcPulse 1.6s ease-out infinite; }
 @keyframes mapcPulse { 0%{opacity:.28} 70%{opacity:.05} 100%{opacity:.28} }
 .mapc-leg { display:inline-block; width:11px; height:11px; border-radius:50%; }
-html.app-dark .mapc-g1 { stop-color:color-mix(in srgb, var(--brand,#2563eb) 34%, #0b1220); }
-html.app-dark .mapc-g2 { stop-color:color-mix(in srgb, var(--brand,#2563eb) 14%, #0b1220); }
 </style>
 <script>
 (function () {
