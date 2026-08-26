@@ -339,7 +339,8 @@ track_pageview('publico');
         <div class="text-center mb-4">
             <span class="lp-eyebrow">Planes</span>
             <h2 class="section-title">Elige cómo quieres crecer</h2>
-            <p class="text-muted">Tres planes, precios claros. Los tres empiezan igual: <strong>15 días gratis con acceso completo, sin tarjeta</strong>.</p>
+            <p class="text-muted">Tres planes, precios claros. El <strong>Profesional</strong> lo pruebas
+               <strong><?= trial_dias_oferta() ?> días gratis, con acceso completo y sin tarjeta</strong>.</p>
         </div>
         <div class="row g-4 justify-content-center align-items-stretch">
             <?php
@@ -364,7 +365,15 @@ track_pageview('publico');
                             <li><i class="bi bi-check-circle-fill"></i> <span><?= e($it) ?></span></li>
                         <?php endforeach; ?>
                     </ul>
-                    <a href="<?= e($href) ?>" class="btn btn-plan">Probarlo 15 días gratis</a>
+                    <?php /* Insignia y rótulo salen de la misma regla: solo Profesional lleva
+                             prueba, los otros dos van a contratar. Antes los tres botones
+                             decían "Probarlo 15 días gratis" y dos mandaban a pagar. */ ?>
+                    <?php if (plan_con_prueba($planKey)): ?>
+                        <div class="small text-center text-muted mb-2">
+                            <i class="bi bi-gift"></i> <?= trial_dias_oferta() ?> días gratis · sin tarjeta
+                        </div>
+                    <?php endif; ?>
+                    <a href="<?= e($href) ?>" class="btn btn-plan"><?= e(plan_cta($planKey)) ?></a>
                 </div>
             </div>
             <?php endforeach; ?>

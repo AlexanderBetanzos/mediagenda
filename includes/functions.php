@@ -132,6 +132,39 @@ function tenant_bloqueado(): bool
  *  Entitlements: módulos activos según el plan del consultorio
  * ------------------------------------------------------------------ */
 
+/* --------------------------------------------------------------------
+ *  Prueba gratis: qué plan la incluye
+ *
+ *  Vive aquí, y no en auth/registro.php, porque la landing tiene que poder
+ *  preguntarlo para rotular sus botones. Cuando el texto vivía en la landing y
+ *  la regla en el registro, los tres planes decían "Probarlo 15 días gratis" y
+ *  dos de ellos mandaban directo a pagar.
+ * ------------------------------------------------------------------ */
+
+/** Días que dura la prueba gratis. */
+function trial_dias_oferta(): int
+{
+    return 15;
+}
+
+/**
+ * ¿Este plan incluye prueba gratis sin tarjeta?
+ * Hoy solo Profesional: es el plan que se quiere empujar, y regalar la prueba
+ * en los tres quita la razón para subir de Básico.
+ */
+function plan_con_prueba(string $clave): bool
+{
+    return $clave === 'profesional';
+}
+
+/** Texto del botón de un plan en la landing, según lo que ese plan hace de verdad. */
+function plan_cta(string $clave): string
+{
+    return plan_con_prueba($clave)
+        ? t('Probarlo') . ' ' . trial_dias_oferta() . ' ' . t('días gratis')
+        : t('Elegir este plan');
+}
+
 /**
  * Módulos activos para el consultorio en sesión.
  * Devuelve ['*'] cuando aplica acceso total (fail-open): súper-admin, sin

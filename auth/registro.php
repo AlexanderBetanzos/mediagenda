@@ -10,15 +10,14 @@ if (is_logged_in()) {
     redirect(isset(planes_mp()[$planSel]) ? '/pagos/checkout?plan=' . $planSel : '/dashboard');
 }
 
-const TRIAL_DIAS = 15;
-
-// La prueba gratis de 15 días es EXCLUSIVA del plan Profesional.
+// La regla de quién tiene prueba vive en functions.php (plan_con_prueba),
+// porque la landing la necesita para rotular sus botones:
 //  - Profesional (o registro sin plan)  -> prueba de 15 días, sin tarjeta.
 //  - Básico / Clínica                   -> sin prueba, pago inmediato.
 $plan  = preg_replace('/[^a-z]/', '', (string) ($_GET['plan'] ?? $_POST['plan'] ?? ''));
 $planes = planes_mp();
 if (!isset($planes[$plan])) $plan = 'profesional';   // sin plan o inválido = Profesional
-$conPrueba = ($plan === 'profesional');               // solo Profesional incluye prueba
+$conPrueba = plan_con_prueba($plan);                   // misma regla que usa la landing
 $pagar     = !$conPrueba;                              // Básico/Clínica = pago inmediato
 
 $error = '';
@@ -74,7 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Profesional: 15 días de prueba (sin tarjeta).
                 // Básico/Clínica: sin prueba (trial_fin en el pasado → debe pagar).
                 $trialFin = $conPrueba
-                    ? date('Y-m-d', strtotime('+' . TRIAL_DIAS . ' days'))
+                    ? date('Y-m-d', strtotime('+' . trial_dias_oferta() . ' days'))
                     : date('Y-m-d', strtotime('-1 day'));
                 $pdo->prepare(
                     "INSERT INTO consultorios (nombre, slug, email, telefono, plan, estado, trial_inicio, trial_fin)
@@ -116,8 +115,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     // cae a redirect si no hay Public Key de Mercado Pago).
                     redirect('/pagos/checkout?plan=' . $plan);
                 }
-                @correo_bienvenida_trial($f['email'], $f['nombre'], TRIAL_DIAS);
-                flash('¡Tu consultorio fue creado! Tienes ' . TRIAL_DIAS . ' días de prueba gratis.');
+                @correo_bienvenida_trial($f['email'], $f['nombre'], trial_dias_oferta());
+                flash('¡Tu consultorio fue creado! Tienes ' . trial_dias_oferta() . ' días de prueba gratis.');
                 redirect('/dashboard');
             } catch (Throwable $e) {
                 if ($pdo->inTransaction()) $pdo->rollBack();
@@ -153,10 +152,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <p class="text-muted small mb-0">Al continuar te llevamos al <strong>pago</strong> para activar tu suscripción mensual.</p>
                 <?php else: ?>
                     <span class="badge bg-success-subtle text-success border border-success-subtle mb-2">
-                        <i class="bi bi-gift"></i> <?= TRIAL_DIAS ?> días gratis · acceso completo · sin tarjeta
+                        <i class="bi bi-gift"></i> <?= trial_dias_oferta() ?> días gratis · acceso completo · sin tarjeta
                     </span>
                     <h1 class="h4 mb-1"><?= et('Crea tu consultorio en') ?> <?= e(APP_NAME) ?></h1>
-                    <p class="text-muted small mb-0"><?= TRIAL_DIAS ?> días de prueba del plan <strong>Profesional</strong>: pacientes, citas, expediente, recetas, facturación y reportes.</p>
+                    <p class="text-muted small mb-0"><?= trial_dias_oferta() ?> días de prueba del plan <strong>Profesional</strong>: pacientes, citas, expediente, recetas, facturación y reportes.</p>
                 <?php endif; ?>
             </div>
 
@@ -219,7 +218,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <?php if ($pagar): ?>
                     <button class="btn btn-primary w-100 py-2"><i class="bi bi-credit-card"></i> <?= et('Continuar al pago') ?></button>
                 <?php else: ?>
-                    <button class="btn btn-primary w-100 py-2"><i class="bi bi-rocket-takeoff"></i> <?= et('Empezar mi prueba de') ?> <?= TRIAL_DIAS ?> <?= et('días') ?></button>
+                    <button class="btn btn-primary w-100 py-2"><i class="bi bi-rocket-takeoff"></i> <?= et('Empezar mi prueba de') ?> <?= trial_dias_oferta() ?> <?= et('días') ?></button>
                 <?php endif; ?>
             </form>
 
