@@ -29,7 +29,7 @@ track_pageview('publico');
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://images.unsplash.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Mulish:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="<?= asset('assets/css/style.css') ?>" rel="stylesheet">
@@ -301,37 +301,56 @@ track_pageview('publico');
 
 <!-- Planes -->
 <style>
-    .lp-planes { background: linear-gradient(180deg, #eaeefb 0%, #f3f6fd 55%, #fff 100%); }
+    /* Tarjetas de plan al estilo de apple.com: fondo gris muy claro, tarjeta
+       blanca flotando encima, esquinas grandes y sombra apenas perceptible.
+       Lo que da el aire "Apple" no es un efecto, es la RESTA: menos borde,
+       menos peso tipográfico y más aire. */
+    .lp-planes { background: linear-gradient(180deg, var(--surface) 0%, #fafafc 60%, #fff 100%); }
     .lp-planes .lp-eyebrow { color: var(--brand); }
-    .lp-plan { position: relative; background: #fff; border: 1px solid #e9edf7; border-radius: 26px;
-               padding: 2.4rem 1.9rem; height: 100%; display: flex; flex-direction: column;
-               box-shadow: 0 12px 40px rgba(30,45,80,.07); transition: transform .2s ease, box-shadow .2s ease; }
-    .lp-plan:hover { transform: translateY(-8px); box-shadow: 0 26px 64px rgba(30,45,80,.14); }
-    .lp-plan.feat { border: 0; box-shadow: 0 28px 70px rgba(37,99,235,.22);
-                    background: linear-gradient(180deg, #fff, #fbfdfd); }
-    .lp-plan.feat::before { content: ''; position: absolute; inset: 0; border-radius: 26px; padding: 2px;
-                            background: linear-gradient(135deg, var(--brand), var(--cta));
-                            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-                            -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none; }
-    .lp-plan-pop { position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
-                   background: var(--cta); color: #fff; font-weight: 700; font-size: .72rem; letter-spacing: .06em;
-                   text-transform: uppercase; padding: .35rem 1rem; border-radius: 999px;
-                   box-shadow: 0 8px 20px rgba(37,99,235,.35); }
-    .lp-plan-ic { width: 56px; height: 56px; border-radius: 16px; display: flex; align-items: center;
-                  justify-content: center; font-size: 1.5rem; color: var(--brand); margin-bottom: 1.1rem;
-                  background: linear-gradient(135deg, color-mix(in srgb, var(--brand) 16%, #fff), color-mix(in srgb, var(--brand) 6%, #fff)); }
-    .lp-plan.feat .lp-plan-ic { color: #fff; background: linear-gradient(135deg, var(--brand-dark), var(--brand)); }
-    .lp-plan-name { font-weight: 800; color: #1f2d3d; font-size: 1.15rem; }
-    .lp-plan-desc { color: #8a94a6; font-size: .9rem; margin-bottom: 1rem; }
-    .lp-plan-price { font-family: 'Mulish', sans-serif; font-weight: 800; color: #1f2d3d; font-size: 2.6rem; line-height: 1; }
-    .lp-plan-price .per { font-size: 1rem; color: #8a94a6; font-weight: 500; }
-    .lp-plan-feats { list-style: none; padding: 0; margin: 1.4rem 0 1.6rem; flex: 1; }
-    .lp-plan-feats li { display: flex; align-items: flex-start; gap: .55rem; padding: .38rem 0; color: #48566a; font-size: .94rem; }
-    .lp-plan-feats .bi { color: var(--brand); margin-top: .15rem; }
-    .lp-plan .btn-plan { border-radius: 999px; padding: .8rem; font-weight: 700; width: 100%; border: 1.5px solid var(--brand); color: var(--brand); background: #fff; }
+    .lp-plan { position: relative; background: #fff; border: 1px solid rgba(0,0,0,.04); border-radius: 22px;
+               padding: 2.5rem 2rem; height: 100%; display: flex; flex-direction: column;
+               box-shadow: 0 2px 8px rgba(0,0,0,.03), 0 12px 32px rgba(0,0,0,.05);
+               transition: transform .35s cubic-bezier(.28,.11,.32,1), box-shadow .35s cubic-bezier(.28,.11,.32,1); }
+    .lp-plan:hover { transform: translateY(-6px); box-shadow: 0 4px 12px rgba(0,0,0,.04), 0 24px 56px rgba(0,0,0,.09); }
+    /* El plan destacado se marca con un filo azul de 1px, no con una sombra de
+       color: en iOS la jerarquía se da con contorno, no con dramatismo. */
+    .lp-plan.feat { border-color: rgba(37,99,235,.35);
+                    box-shadow: 0 4px 14px rgba(37,99,235,.08), 0 24px 56px rgba(37,99,235,.10); }
+    .lp-plan-pop { position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
+                   background: var(--brand); color: #fff; font-weight: 590; font-size: .74rem;
+                   letter-spacing: -.01em; padding: .34rem 1rem; border-radius: 999px;
+                   box-shadow: 0 4px 14px rgba(37,99,235,.28); }
+    .lp-plan-ic { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center;
+                  justify-content: center; font-size: 1.4rem; color: var(--brand); margin-bottom: 1.4rem;
+                  background: color-mix(in srgb, var(--brand) 9%, #fff); }
+    .lp-plan.feat .lp-plan-ic { color: #fff; background: var(--brand); }
+    .lp-plan-name { font-family: var(--font-display); font-weight: 600; color: var(--ink);
+                    font-size: 1.35rem; letter-spacing: -.022em; }
+    .lp-plan-desc { color: var(--muted); font-size: .95rem; margin-bottom: 1.6rem; letter-spacing: -.01em; }
+    /* Precio en Display, Semibold y con tracking muy cerrado: es como Apple
+       compone las cifras grandes. El 800 de antes se veía pesado. */
+    .lp-plan-price { font-family: var(--font-display); font-weight: 600; color: var(--ink);
+                     font-size: 3rem; line-height: 1; letter-spacing: -.045em;
+                     font-variant-numeric: tabular-nums; }
+    .lp-plan-price .per { font-size: 1.05rem; color: var(--muted); font-weight: 400; letter-spacing: -.01em; }
+    .lp-plan-feats { list-style: none; padding: 0; margin: 1.8rem 0 1.6rem; flex: 1; }
+    .lp-plan-feats li { display: flex; align-items: flex-start; gap: .6rem; padding: .42rem 0;
+                        color: #424245; font-size: .97rem; line-height: 1.4; letter-spacing: -.01em; }
+    .lp-plan-feats .bi { color: var(--brand); margin-top: .18rem; font-size: .9rem; }
+    /* Botón tipo iOS: cápsula, Semibold, sin borde grueso. */
+    .lp-plan .btn-plan { border-radius: 980px; padding: .82rem; font-weight: 590; font-size: 1rem;
+                         letter-spacing: -.01em; width: 100%; border: 1px solid var(--brand);
+                         color: var(--brand); background: #fff;
+                         transition: background .25s ease, color .25s ease, transform .15s ease; }
     .lp-plan .btn-plan:hover { background: var(--brand); color: #fff; }
-    .lp-plan.feat .btn-plan { background: var(--cta); border-color: var(--cta); color: #fff; }
+    .lp-plan .btn-plan:active { transform: scale(.975); }
+    .lp-plan.feat .btn-plan { background: var(--brand); border-color: var(--brand); color: #fff; }
     .lp-plan.feat .btn-plan:hover { background: var(--cta-dark); border-color: var(--cta-dark); }
+
+    /* Encabezado de sección: el titular grande pide tracking negativo fuerte. */
+    body.lp .section-title { font-family: var(--font-display); font-weight: 600; color: var(--ink);
+                             letter-spacing: -.035em; line-height: 1.06; }
+    body.lp .lp-eyebrow { font-weight: 590; letter-spacing: .02em; font-size: .8rem; text-transform: uppercase; }
 </style>
 
 <section id="planes" class="lp-planes py-6">

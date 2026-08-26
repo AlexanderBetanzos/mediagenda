@@ -73,13 +73,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= et('Acceso a plataforma') ?> · <?= e(APP_NAME) ?></title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Mulish:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="<?= asset('assets/css/style.css') ?>" rel="stylesheet">
     <style>
         html.app-dark { --brand:#2563eb; --brand-dark:#1e40af; }
-        body { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:1.5rem; font-family:'Inter',sans-serif; }
+        body { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:1.5rem; font-family:var(--font-ui); }
         .plat-card { max-width:440px; width:100%; }
         .plat-badge { font-size:.6rem; letter-spacing:1.5px; font-weight:800; padding:.15rem .5rem; border-radius:6px; background:rgba(37,99,235,.18); color:#93c5fd; }
     </style>

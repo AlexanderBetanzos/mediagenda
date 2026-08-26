@@ -86,12 +86,12 @@ include __DIR__ . '/publico_header.php';
     .clx { --cl: <?= $acento ?>; --cl-d: color-mix(in srgb, <?= $acento ?> 78%, #000);
            --cta: #2563eb; --cta-d: #1d4ed8;
            --ink: #21384e; --mut: #6b7c93; --soft: color-mix(in srgb, <?= $acento ?> 6%, #fff);
-           font-family: 'Inter', system-ui, sans-serif; }
+           font-family: var(--font-ui); }
     html.lp-dark .clx { --ink: #e6e8ec; --mut: #9aa0aa; --soft: rgba(255,255,255,.035); }
 
     .clx section { padding: 4.5rem 1.5rem; }
     .clx .wrap { max-width: 1200px; margin: 0 auto; }
-    .clx h2.t { font-family: 'Mulish', sans-serif; color: var(--ink); font-weight: 800;
+    .clx h2.t { font-family: var(--font-display); color: var(--ink); font-weight: 600; letter-spacing: -.03em;
                 font-size: clamp(1.6rem, 3.4vw, 2.25rem); margin: 0; }
     .clx .sub { color: var(--mut); max-width: 56ch; margin: .8rem auto 0; }
     .clx .eyebrow { display: inline-block; color: var(--cl); font-weight: 700; font-size: .78rem;
@@ -122,7 +122,7 @@ include __DIR__ . '/publico_header.php';
     .clx .hero .pill { display: inline-flex; align-items: center; gap: .45rem; background: rgba(255,255,255,.14);
                        backdrop-filter: blur(6px); padding: .4rem .9rem; border-radius: 999px; font-weight: 600;
                        font-size: .78rem; letter-spacing: .02em; }
-    .clx .hero h1 { font-family: 'Mulish', sans-serif; font-weight: 800; font-size: clamp(2.3rem, 4.8vw, 3.6rem);
+    .clx .hero h1 { font-family: var(--font-display); font-weight: 600; letter-spacing: -.035em; font-size: clamp(2.3rem, 4.8vw, 3.6rem);
                     line-height: 1.08; margin: 1.2rem 0 1rem; text-shadow: 0 2px 24px rgba(0,0,0,.3); }
     .clx .hero .lead { font-size: 1.15rem; opacity: .94; max-width: 40ch; text-shadow: 0 1px 12px rgba(0,0,0,.3); }
     .clx .hero .logo { max-height: 48px; background: #fff; border-radius: 12px; padding: .4rem .7rem; margin-bottom: .3rem; }
@@ -139,7 +139,7 @@ include __DIR__ . '/publico_header.php';
     .clx .hero-info .hi-ic { width: 46px; height: 46px; flex-shrink: 0; border-radius: 13px; display: flex;
                              align-items: center; justify-content: center; font-size: 1.25rem;
                              background: rgba(255,255,255,.16); }
-    .clx .hero-info .hi-n { font-family: 'Mulish', sans-serif; font-weight: 800; font-size: 1.3rem; line-height: 1; }
+    .clx .hero-info .hi-n { font-family: var(--font-display); font-weight: 600; font-size: 1.3rem; line-height: 1; }
     .clx .hero-info .hi-l { font-size: .84rem; opacity: .85; }
     .clx .hero-info .hi-cta { display: block; text-align: center; margin-top: 1.2rem; background: var(--cta);
                               color: #fff; border-radius: 999px; padding: .8rem; font-weight: 700; text-decoration: none; }
@@ -201,7 +201,7 @@ include __DIR__ . '/publico_header.php';
                     border-radius: 20px; padding: 1.6rem; height: 100%; }
     html.lp-dark .clx .medcard { border-color: rgba(255,255,255,.08); }
     .clx .medcard .av { width: 92px; height: 92px; border-radius: 50%; margin: 0 auto .8rem; display: flex;
-                    align-items: center; justify-content: center; font-family: 'Mulish', sans-serif;
+                    align-items: center; justify-content: center; font-family: var(--font-display);
                     font-weight: 800; font-size: 2rem; color: #fff;
                     background: linear-gradient(135deg, var(--cl-d), var(--cl)); box-shadow: 0 10px 26px rgba(0,0,0,.12); }
     .clx .medcard .nm { color: var(--ink); font-weight: 700; } .clx .medcard .sp { color: var(--mut); font-size: .9rem; }

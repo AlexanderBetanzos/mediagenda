@@ -29,13 +29,13 @@
 }
 
 /* ── Tipografía ────────────────────────────────────────────────────── */
+/* Este archivo se carga DESPUÉS de style.css: si vuelve a declarar la
+   familia o el tracking, gana él. Por eso aquí solo se afina el render y
+   la familia sale del mismo token; la escala tipográfica vive en style.css. */
 body {
-    font-family: 'Inter', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-family: var(--font-ui);
     -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
 }
-h1, h2, h3, .h1, .h2, .h3, .section-title { letter-spacing: -0.02em; }
-h4, h5, .h4, .h5 { letter-spacing: -0.01em; }
-.display-1, .display-2, .display-3, .display-4, .display-5, .display-6 { letter-spacing: -0.03em; }
 
 /* ── Superficies (cards) ───────────────────────────────────────────── */
 .card {
