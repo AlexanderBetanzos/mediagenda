@@ -94,76 +94,98 @@ include __DIR__ . '/publico_header.php';
     .clx h2.t { font-family: var(--font-display); color: var(--ink); font-weight: 600; letter-spacing: -.03em;
                 font-size: clamp(1.6rem, 3.4vw, 2.25rem); margin: 0; }
     .clx .sub { color: var(--mut); max-width: 56ch; margin: .8rem auto 0; }
-    .clx .eyebrow { display: inline-block; color: var(--cl); font-weight: 700; font-size: .78rem;
+    .clx .eyebrow { display: inline-block; color: var(--cl); font-weight: 590; font-size: .78rem;
                     letter-spacing: .12em; text-transform: uppercase; }
-    .clx .btn-cta { background: var(--cta); color: #fff; border: 0; border-radius: 999px;
-                    padding: .85rem 1.9rem; font-weight: 700; }
+    .clx .btn-cta { background: var(--cta); color: #fff; border: 0; border-radius: 980px;
+                    padding: .82rem 1.6rem; font-weight: 590; letter-spacing: -.01em;
+                    text-decoration: none; display: inline-flex; align-items: center; gap: .45rem;
+                    transition: background .25s ease, transform .12s ease; }
     .clx .btn-cta:hover { background: var(--cta-d); color: #fff; }
-    .clx .btn-gho { background: transparent; color: #fff; border: 1.5px solid rgba(255,255,255,.6);
-                    border-radius: 999px; padding: .85rem 1.7rem; font-weight: 600; }
-    .clx .btn-gho:hover { background: rgba(255,255,255,.14); color: #fff; }
+    .clx .btn-gho { background: #fff; color: var(--cl); border: 1px solid color-mix(in srgb, var(--cl) 30%, transparent);
+                    border-radius: 980px; padding: .82rem 1.6rem; font-weight: 590; letter-spacing: -.01em;
+                    text-decoration: none; display: inline-flex; align-items: center; gap: .45rem;
+                    transition: background .25s ease, color .25s ease, transform .12s ease; }
+    .clx .btn-gho:hover { background: var(--cl); color: #fff; border-color: var(--cl); }
+    .clx .btn-gho:active, .clx .btn-cta:active { transform: scale(.975); }
+    html.lp-dark .clx .btn-gho { background: transparent; color: #e6e8ec; border-color: rgba(255,255,255,.18); }
 
-    /* ===== HERO (banner profesional a TODO el ancho) =====
-       Se rompe fuera de cualquier contenedor con 100vw, así ocupa la pantalla
-       completa aunque el envoltorio esté limitado. */
-    .clx .hero { position: relative; color: #fff; overflow: hidden; background: #0c1620;
-                 width: 100vw; margin-left: calc(50% - 50vw); }
-    /* Overlay elegante: oscuro con un toque de marca a la izquierda (donde va el
-       texto) y transparente a la derecha para que se luzca la foto. Nada de verde
-       saturado por todos lados. */
-    .clx .hero::before { content: ''; position: absolute; inset: 0; z-index: 0;
-        background: linear-gradient(95deg,
-                    color-mix(in srgb, var(--cl-d) 62%, #0b141d) 0%,
-                    color-mix(in srgb, var(--cl-d) 45%, #0b141d) 38%,
-                    rgba(11,20,29,.42) 66%, rgba(11,20,29,.08) 100%),
-                    url('<?= e($foto ?: 'https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=1920&q=80&auto=format&fit=crop') ?>') center/cover no-repeat; }
+    /* ===== HERO claro (homologado con la landing) =====
+       Antes era foto oscurecida con un degradado y texto blanco encima. Ese
+       patrón siempre pierde contraste en algún punto de la imagen, y en un
+       micrositio la foto la sube el consultorio: no hay forma de garantizar
+       que el texto se lea sobre ella. Ahora el fondo es claro, el color lo
+       pone una mancha orgánica con el acento de ESE consultorio, y la foto
+       pasa al lado, enmarcada, donde se luce en vez de estorbar. */
+    .clx .hero { position: relative; color: var(--ink); overflow: hidden;
+                 width: 100vw; margin-left: calc(50% - 50vw);
+                 background: linear-gradient(160deg,
+                             color-mix(in srgb, var(--cl) 9%, #fff) 0%,
+                             color-mix(in srgb, var(--cl) 4%, #fff) 46%, #fff 100%); }
+    .clx .hero::before { content: ''; position: absolute; top: -20%; right: -10%; width: 58%;
+        aspect-ratio: 1; z-index: 0; pointer-events: none;
+        background: radial-gradient(circle at 34% 34%,
+                    color-mix(in srgb, var(--cl) 30%, transparent),
+                    color-mix(in srgb, var(--cl) 8%, transparent) 60%, transparent 74%);
+        border-radius: 46% 54% 58% 42% / 52% 44% 56% 48%; }
+    html.lp-dark .clx .hero { background: linear-gradient(160deg, #14171d 0%, #0f1116 55%, #0c0d10 100%); }
+    html.lp-dark .clx .hero::before { opacity: .5; }
     .clx .hero .wrap { position: relative; z-index: 1; min-height: 560px; display: flex; align-items: center;
-                       padding: 5rem 1.5rem; }
-    .clx .hero .pill { display: inline-flex; align-items: center; gap: .45rem; background: rgba(255,255,255,.14);
-                       backdrop-filter: blur(6px); padding: .4rem .9rem; border-radius: 999px; font-weight: 600;
-                       font-size: .78rem; letter-spacing: .02em; }
-    .clx .hero h1 { font-family: var(--font-display); font-weight: 600; letter-spacing: -.035em; font-size: clamp(2.3rem, 4.8vw, 3.6rem);
-                    line-height: 1.08; margin: 1.2rem 0 1rem; text-shadow: 0 2px 24px rgba(0,0,0,.3); }
-    .clx .hero .lead { font-size: 1.15rem; opacity: .94; max-width: 40ch; text-shadow: 0 1px 12px rgba(0,0,0,.3); }
-    .clx .hero .logo { max-height: 48px; background: #fff; border-radius: 12px; padding: .4rem .7rem; margin-bottom: .3rem; }
+                       padding: 4.5rem 1.5rem 5rem; }
+    .clx .hero .pill { display: inline-flex; align-items: center; gap: .45rem; background: #fff;
+                       border: 1px solid color-mix(in srgb, var(--cl) 20%, transparent); color: var(--cl);
+                       box-shadow: 0 2px 10px rgba(30,45,80,.06);
+                       padding: .4rem .9rem; border-radius: 999px; font-weight: 590;
+                       font-size: .78rem; letter-spacing: -.005em; }
+    html.lp-dark .clx .hero .pill { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.12); }
+    .clx .hero h1 { font-family: var(--font-display); font-weight: 600; letter-spacing: -.038em;
+                    font-size: clamp(2.3rem, 4.8vw, 3.6rem); line-height: 1.05;
+                    margin: 1.2rem 0 1rem; text-shadow: none; color: var(--ink); }
+    .clx .hero .lead { font-size: 1.12rem; color: var(--mut); max-width: 40ch; text-shadow: none;
+                       line-height: 1.5; letter-spacing: -.011em; opacity: 1; }
+    .clx .hero .logo { max-height: 48px; background: #fff; border-radius: 12px; padding: .4rem .7rem;
+                       margin-bottom: .3rem; box-shadow: 0 2px 12px rgba(30,45,80,.08); }
 
-    /* Tarjeta de vidrio con la info del consultorio (elemento "pro"). */
-    .clx .hero-info { background: rgba(255,255,255,.11); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
-                      border: 1px solid rgba(255,255,255,.22); border-radius: 24px; padding: 1.7rem 1.8rem;
-                      box-shadow: 0 26px 64px rgba(0,0,0,.32); }
-    .clx .hero-info .hi-t { font-weight: 700; font-size: .82rem; letter-spacing: .08em; text-transform: uppercase;
-                            opacity: .8; margin-bottom: 1rem; }
-    .clx .hero-info .hi-row { display: flex; align-items: center; gap: .9rem; padding: .75rem 0;
-                              border-top: 1px solid rgba(255,255,255,.14); }
+    /* Foto del consultorio: deja de ser fondo y pasa a ser contenido. */
+    .clx .hero-img { border-radius: 22px; width: 100%; height: 260px; object-fit: cover;
+                     margin-bottom: 1.1rem; box-shadow: 0 2px 8px rgba(15,30,60,.05), 0 18px 44px rgba(15,30,60,.13); }
+
+    /* Tarjeta de datos: sobre fondo claro el vidrio ya no funciona, así que
+       pasa a tarjeta sólida con la misma sombra en dos capas de la landing. */
+    .clx .hero-info { background: #fff; color: var(--ink); border: 1px solid rgba(0,0,0,.05);
+                      backdrop-filter: none; -webkit-backdrop-filter: none;
+                      border-radius: 22px; padding: 1.7rem 1.8rem;
+                      box-shadow: 0 2px 8px rgba(15,30,60,.04), 0 18px 44px rgba(15,30,60,.10); }
+    html.lp-dark .clx .hero-info { background: rgba(255,255,255,.05); border-color: rgba(255,255,255,.08); color: #e6e8ec; }
+    .clx .hero-info .hi-t { font-weight: 590; font-size: .78rem; letter-spacing: .02em; text-transform: uppercase;
+                            color: var(--cl); opacity: 1; margin-bottom: 1rem; }
+    .clx .hero-info .hi-row { display: flex; align-items: center; gap: .9rem; padding: .8rem 0;
+                              border-top: 1px solid rgba(0,0,0,.06); }
+    html.lp-dark .clx .hero-info .hi-row { border-top-color: rgba(255,255,255,.08); }
     .clx .hero-info .hi-row:first-of-type { border-top: 0; }
-    .clx .hero-info .hi-ic { width: 46px; height: 46px; flex-shrink: 0; border-radius: 13px; display: flex;
-                             align-items: center; justify-content: center; font-size: 1.25rem;
-                             background: rgba(255,255,255,.16); }
-    .clx .hero-info .hi-n { font-family: var(--font-display); font-weight: 600; font-size: 1.3rem; line-height: 1; }
-    .clx .hero-info .hi-l { font-size: .84rem; opacity: .85; }
+    .clx .hero-info .hi-ic { width: 46px; height: 46px; flex-shrink: 0; border-radius: 14px; display: flex;
+                             align-items: center; justify-content: center; font-size: 1.2rem;
+                             background: color-mix(in srgb, var(--cl) 11%, #fff); color: var(--cl); }
+    html.lp-dark .clx .hero-info .hi-ic { background: color-mix(in srgb, var(--cl) 24%, transparent); }
+    .clx .hero-info .hi-n { font-family: var(--font-display); font-weight: 600; font-size: 1.32rem;
+                            line-height: 1.1; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+    .clx .hero-info .hi-l { font-size: .84rem; color: var(--mut); opacity: 1; }
     .clx .hero-info .hi-cta { display: block; text-align: center; margin-top: 1.2rem; background: var(--cta);
-                              color: #fff; border-radius: 999px; padding: .8rem; font-weight: 700; text-decoration: none; }
+                              color: #fff; border-radius: 980px; padding: .82rem; font-weight: 590;
+                              letter-spacing: -.01em; text-decoration: none;
+                              transition: background .25s ease, transform .12s ease; }
     .clx .hero-info .hi-cta:hover { background: var(--cta-d); }
+    .clx .hero-info .hi-cta:active { transform: scale(.975); }
+
     /* Imagen / tarjeta al lado */
-    .clx .hero-img { border-radius: 22px; width: 100%; height: 340px; object-fit: cover;
-                     box-shadow: 0 24px 60px rgba(0,0,0,.28); }
-    .clx .hero-card { background: #fff; color: var(--ink); border-radius: 22px; padding: 1.6rem;
-                      box-shadow: 0 24px 60px rgba(0,0,0,.24); }
-    .clx .hero-card .row-i { display: flex; align-items: center; gap: .8rem; padding: .7rem 0;
-                             border-bottom: 1px solid rgba(0,0,0,.06); }
-    .clx .hero-card .row-i:last-child { border-bottom: 0; }
-    .clx .hero-card .ci { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center;
-                          justify-content: center; font-size: 1.2rem;
-                          background: color-mix(in srgb, var(--cl) 12%, #fff); color: var(--cl); }
 
     /* ===== Widgets pastel (beneficios) ===== */
-    .clx .bene { border-radius: 20px; padding: 1.8rem; height: 100%; }
+    .clx .bene { border-radius: 22px; padding: 1.8rem; height: 100%; }
     .clx .bene.coral { background: #fbe6df; } .clx .bene.coral .bi { color: #d1694e; }
     .clx .bene.sage  { background: #dcebe4; } .clx .bene.sage  .bi { color: #3f7a63; }
     .clx .bene.teal  { background: #d7e8ea; } .clx .bene.teal  .bi { color: #2b6d76; }
     html.lp-dark .clx .bene { background: rgba(255,255,255,.05); }
     .clx .bene .ic { font-size: 2rem; margin-bottom: .8rem; display: block; }
-    .clx .bene h5 { font-weight: 800; color: #2a2f36; }
+    .clx .bene h5 { font-family: var(--font-display); font-weight: 600; letter-spacing: -.022em; color: var(--ink); }
     html.lp-dark .clx .bene h5 { color: #e6e8ec; }
     .clx .bene p { color: #4b5560; font-size: .93rem; margin: 0; }
     html.lp-dark .clx .bene p { color: #b8bcc4; }
@@ -182,11 +204,12 @@ include __DIR__ . '/publico_header.php';
                           background: linear-gradient(90deg, color-mix(in srgb, var(--cl) 18%, transparent), transparent); }
 
     /* Tarjeta vertical (icono arriba, nombre, precio), como los planes. */
-    .clx .serv { position: relative; background: #fff; border: 1px solid #e9edf7; border-radius: 22px;
+    .clx .serv { position: relative; background: #fff; border: 1px solid rgba(0,0,0,.05); border-radius: 22px;
                  padding: 1.6rem; height: 100%; display: flex; flex-direction: column;
-                 box-shadow: 0 10px 34px rgba(30,45,80,.06); transition: transform .2s ease, box-shadow .2s ease; }
+                 box-shadow: 0 2px 8px rgba(0,0,0,.03), 0 12px 32px rgba(0,0,0,.05);
+                 transition: transform .35s cubic-bezier(.28,.11,.32,1), box-shadow .35s cubic-bezier(.28,.11,.32,1); }
     html.lp-dark .clx .serv { background: rgba(255,255,255,.04); border-color: rgba(255,255,255,.08); box-shadow: none; }
-    .clx .serv:hover { transform: translateY(-6px); box-shadow: 0 22px 54px rgba(30,45,80,.13); }
+    .clx .serv:hover { transform: translateY(-6px); box-shadow: 0 4px 12px rgba(0,0,0,.04), 0 24px 56px rgba(0,0,0,.09); }
     .clx .serv .si { width: 52px; height: 52px; border-radius: 15px; display: flex; align-items: center;
                      justify-content: center; font-size: 1.4rem; color: var(--cl); margin-bottom: 1rem;
                      background: linear-gradient(135deg, color-mix(in srgb, var(--cl) 16%, #fff), color-mix(in srgb, var(--cl) 6%, #fff)); }
@@ -262,6 +285,9 @@ include __DIR__ . '/publico_header.php';
 
             <?php /* Tarjeta de vidrio con datos reales: el elemento "pro" del banner. */ ?>
             <div class="col-lg-5">
+                <?php if ($foto): ?>
+                    <img src="<?= e($foto) ?>" alt="<?= e($marca) ?>" class="hero-img" loading="lazy">
+                <?php endif; ?>
                 <div class="hero-info">
                     <div class="hi-t"><i class="bi bi-shield-check"></i> <?= et('Atención profesional') ?></div>
                     <?php if (count($medicos)): ?>
