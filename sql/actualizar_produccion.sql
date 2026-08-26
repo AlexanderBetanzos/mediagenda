@@ -93,9 +93,14 @@ INSERT INTO planes (clave, nombre, precio, descripcion, items, destacado, orden)
   '["Todo lo de Básico","WhatsApp y SMS","Portal del paciente","Telemedicina","Reportes y BI","Plantillas por especialidad"]', 1, 2),
  ('clinica', 'Clínica', 1199.00, 'Clínica / multi-sucursal',
   '["Todo lo de Profesional","Farmacia y POS","Laboratorio","Multi-sucursal","IA clínica","CFDI / SAT","Recursos Humanos"]', 0, 3)
+-- Un SEED solo debe rellenar lo que falta, nunca pisar lo que ya existe. Este
+-- bloque actualizaba precio, descripcion e items con los valores de junio, así
+-- que cada reimportación devolvía los planes a $299/$599/$1,199 y a las viñetas
+-- viejas, y solo se corregían si el archivo alcanzaba a llegar hasta el final.
+-- Ahora se limita a mantener el nombre y el orden: el precio y la presentación
+-- los fijan los bloques fechados de más abajo, que sí son migraciones.
 ON DUPLICATE KEY UPDATE
-  nombre=VALUES(nombre), precio=VALUES(precio), descripcion=VALUES(descripcion),
-  items=VALUES(items), destacado=VALUES(destacado), orden=VALUES(orden);
+  nombre=VALUES(nombre), orden=VALUES(orden);
 
 -- ---------------------------------------------------------------------------
 --  Seed: módulos (gateables). Los administrativos del núcleo (dashboard,
