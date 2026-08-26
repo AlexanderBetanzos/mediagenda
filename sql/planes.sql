@@ -49,11 +49,11 @@ CREATE TABLE IF NOT EXISTS consultorio_modulos (
 -- ---------------------------------------------------------------------------
 INSERT INTO planes (clave, nombre, precio, descripcion, items, destacado, orden) VALUES
  ('basico', 'Básico', 499.00, 'Un médico, todo bajo control',
-  '["Pacientes y citas sin papeles","Expediente clínico protegido","Recetas con tu marca","Control de ingresos","Recordatorios por correo"]', 0, 1),
+  '["Pacientes y citas sin papeles","Expediente clínico protegido","Recetas con tu marca","Presupuestos y control de ingresos","Órdenes de laboratorio y resultados","Recordatorios de cita por correo"]', 0, 1),
  ('profesional', 'Profesional', 999.00, 'El que eligen los consultorios que crecen',
-  '["Todo lo de Básico","Recordatorios por WhatsApp y SMS","Portal del paciente 24/7","Telemedicina","Reportes para decidir con números","Plantillas por especialidad"]', 1, 2),
- ('clinica', 'Clínica', 1999.00, 'Varias sucursales, un solo control',
-  '["Todo lo de Profesional","Farmacia y punto de venta","Laboratorio","Multi-sucursal en un solo panel","IA clínica","CFDI / SAT","Recursos Humanos"]', 0, 3)
+  '["Todo lo de Básico","Portal del paciente 24/7","Agenda en línea: se agendan solos","Avisos por WhatsApp en un clic","Reportes para decidir con números","Plantillas por especialidad","Óptica, odontograma, prenatal y más"]', 1, 2),
+ ('clinica', 'Clínica', 1999.00, 'Cuando el consultorio ya es un negocio',
+  '["Todo lo de Profesional","Farmacia y punto de venta","Inventario con alertas de stock","Ultrasonido con informe e imágenes"]', 0, 3)
 ON DUPLICATE KEY UPDATE
   nombre=VALUES(nombre), precio=VALUES(precio), descripcion=VALUES(descripcion),
   items=VALUES(items), destacado=VALUES(destacado), orden=VALUES(orden);

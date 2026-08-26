@@ -673,3 +673,19 @@ ON DUPLICATE KEY UPDATE plan_clave = VALUES(plan_clave);
 UPDATE planes SET precio =  499.00 WHERE clave = 'basico';
 UPDATE planes SET precio =  999.00 WHERE clave = 'profesional';
 UPDATE planes SET precio = 1999.00 WHERE clave = 'clinica';
+
+-- ============ 2026-08-26: bullets de planes alineados con lo que existe ============
+--  La tarjeta de Profesional prometía Telemedicina y SMS, y la de Clínica
+--  prometía Multi-sucursal, IA clínica, CFDI/SAT y Recursos Humanos. Ninguno
+--  de esos cinco módulos tiene código: solo eran filas en `modulos`, sin un
+--  require_modulo() que los gatee porque no hay qué gatear. Se venden cuando
+--  existan, no antes.
+UPDATE planes SET descripcion = 'Un médico, todo bajo control',
+       items = '["Pacientes y citas sin papeles","Expediente clínico protegido","Recetas con tu marca","Presupuestos y control de ingresos","Órdenes de laboratorio y resultados","Recordatorios de cita por correo"]'
+ WHERE clave = 'basico';
+UPDATE planes SET descripcion = 'El que eligen los consultorios que crecen',
+       items = '["Todo lo de Básico","Portal del paciente 24/7","Agenda en línea: se agendan solos","Avisos por WhatsApp en un clic","Reportes para decidir con números","Plantillas por especialidad","Óptica, odontograma, prenatal y más"]'
+ WHERE clave = 'profesional';
+UPDATE planes SET descripcion = 'Cuando el consultorio ya es un negocio',
+       items = '["Todo lo de Profesional","Farmacia y punto de venta","Inventario con alertas de stock","Ultrasonido con informe e imágenes"]'
+ WHERE clave = 'clinica';
