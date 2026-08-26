@@ -1374,6 +1374,16 @@ function wa_link(?string $telefono, string $mensaje): string
     return 'https://wa.me/' . $tel . '?text=' . rawurlencode($mensaje);
 }
 
+/**
+ * Enlace de WhatsApp SIN destinatario: abre el selector de contactos con el
+ * mensaje ya escrito. wa_link() necesita un teléfono; esto es para cuando el
+ * dueño quiere mandar algo y todavía no sabe a quién.
+ */
+function wa_compartir(string $texto): string
+{
+    return 'https://wa.me/?text=' . rawurlencode($texto);
+}
+
 /** Devuelve color de badge Bootstrap según el estado de la cita. */
 function estado_badge(string $estado): string
 {
@@ -1537,6 +1547,30 @@ function cita_folio(int $cita_id): string
 function agenda_online_url(string $slug): string
 {
     return url_absoluta('/agenda/reservar?c=' . rawurlencode($slug));
+}
+
+/**
+ * URL de la página pública del consultorio (su micrositio).
+ * Sin argumento usa el consultorio en sesión, que es el caso normal desde
+ * el panel: el dueño quiere abrir LA SUYA, no la de nadie más.
+ */
+function micrositio_url(?string $slug = null): string
+{
+    $slug = $slug ?? (string) (tenant()['slug'] ?? '');
+    return $slug !== '' ? url_absoluta('/c/' . rawurlencode($slug)) : '';
+}
+
+/**
+ * ¿La página pública del consultorio en sesión está visible para cualquiera?
+ * consultorio_publico() solo sirve las de estado 'activa' o 'trial': una
+ * cuenta suspendida o vencida deja de tener página, y el panel debe decirlo
+ * en vez de ofrecer un enlace que da 404.
+ */
+function micrositio_visible(): bool
+{
+    $t = tenant();
+    return $t !== null && ($t['slug'] ?? '') !== ''
+        && in_array($t['estado'] ?? '', ['activa', 'trial'], true);
 }
 
 /**

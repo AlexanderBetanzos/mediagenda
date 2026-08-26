@@ -375,6 +375,42 @@ include __DIR__ . '/includes/header.php';
     </div>
 </div>
 
+<?php if (micrositio_visible()): $urlPub = micrositio_url(); ?>
+<?php /* La página pública sirve sobre todo para MANDARLA: al paciente que
+         pregunta por WhatsApp, en la firma del correo, en el perfil de redes.
+         Por eso la tarjeta no es solo un enlace: copia y comparte en un clic. */ ?>
+<div class="card mb-4">
+    <div class="card-body d-flex flex-wrap align-items-center gap-3">
+        <div class="flex-grow-1 min-w-0">
+            <div class="fw-semibold mb-1"><i class="bi bi-globe2 text-brand"></i> <?= et('Tu página pública') ?></div>
+            <a href="<?= e($urlPub) ?>" target="_blank" rel="noopener"
+               class="small text-decoration-none d-inline-block text-truncate mw-100 font-monospace"><?= e($urlPub) ?></a>
+            <div class="form-text mb-0"><?= et('Compártela con tus pacientes: ahí ven tus servicios, tu equipo y pueden agendar.') ?></div>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="copiarWeb" data-url="<?= e($urlPub) ?>">
+                <i class="bi bi-clipboard"></i> <?= et('Copiar') ?>
+            </button>
+            <a href="<?= e(wa_compartir(t('Conoce nuestros servicios y agenda tu cita aquí') . ': ' . $urlPub)) ?>" target="_blank" rel="noopener" class="btn btn-sm btn-outline-success">
+                <i class="bi bi-whatsapp"></i> <?= et('Compartir') ?>
+            </a>
+            <a href="<?= e($urlPub) ?>" target="_blank" rel="noopener" class="btn btn-sm btn-primary">
+                <i class="bi bi-box-arrow-up-right"></i> <?= et('Abrir') ?>
+            </a>
+        </div>
+    </div>
+</div>
+<script>
+document.getElementById('copiarWeb').addEventListener('click', function (ev) {
+    var b = ev.currentTarget;
+    navigator.clipboard.writeText(b.dataset.url).then(function () {
+        b.innerHTML = '<i class="bi bi-check-lg"></i> <?= e(t('Copiado')) ?>';
+        setTimeout(function () { b.innerHTML = '<i class="bi bi-clipboard"></i> <?= e(t('Copiar')) ?>'; }, 2000);
+    });
+});
+</script>
+<?php endif; ?>
+
 <?php if ($verFacturacion && $esAdmin): ?>
 <!-- ── Finanzas del mes ─────────────────────────────────────────────── -->
 <div class="card mb-4">

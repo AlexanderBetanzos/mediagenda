@@ -161,6 +161,14 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
                 <ul class="nav flex-column">
                     <li class="nav-sec"><?= et('Principal') ?></li>
                     <li class="nav-item"><a class="nav-link<?= nav_active('dashboard', $activo) ?>" href="<?= BASE_URL ?>/dashboard"><i class="bi bi-grid-1x2-fill"></i> <?= et('Dashboard') ?></a></li>
+                    <?php if (micrositio_visible()): ?>
+                    <li class="nav-item">
+                        <a class="nav-link" href="<?= e(micrositio_url()) ?>" target="_blank" rel="noopener">
+                            <i class="bi bi-globe2"></i> <?= et('Mi página pública') ?>
+                            <i class="bi bi-box-arrow-up-right ms-auto small opacity-50"></i>
+                        </a>
+                    </li>
+                    <?php endif; ?>
                     <?php if (modulo_activo('citas')): ?><li class="nav-item"><a class="nav-link<?= nav_active('citas', $activo) ?>" href="<?= BASE_URL ?>/citas/index"><i class="bi bi-calendar-check"></i> <?= et('Agenda') ?></a></li><?php endif; ?>
                     <?php if (modulo_activo('citas') && has_role('medico', 'admin')): ?><li class="nav-item"><a class="nav-link<?= nav_active('horarios', $activo) ?>" href="<?= BASE_URL ?>/citas/horarios"><i class="bi bi-clock-history"></i> <?= has_role('admin') ? et('Horarios') : et('Mi horario') ?></a></li><?php endif; ?>
                     <?php if (modulo_activo('pacientes')): ?><li class="nav-item"><a class="nav-link<?= nav_active('pacientes', $activo) ?>" href="<?= BASE_URL ?>/pacientes/index"><i class="bi bi-people"></i> <?= et('Pacientes') ?></a></li><?php endif; ?>
