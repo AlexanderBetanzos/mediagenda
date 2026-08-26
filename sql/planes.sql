@@ -80,7 +80,8 @@ INSERT INTO modulos (clave, nombre, fase, orden) VALUES
  ('rh',            'Recursos Humanos',         4, 15),
  ('cfdi',          'CFDI / SAT',               1, 16),
  ('crm',           'CRM y seguimientos',       1, 17),
- ('plantillas',    'Plantillas de consulta',   1, 18)
+ ('plantillas',    'Plantillas de consulta',   1, 18),
+ ('imagenologia',  'Ultrasonido / Imagenología',4, 19)
 ON DUPLICATE KEY UPDATE nombre=VALUES(nombre), fase=VALUES(fase), orden=VALUES(orden);
 
 -- ---------------------------------------------------------------------------
@@ -102,7 +103,7 @@ INSERT INTO plan_modulos (plan_clave, modulo_clave) VALUES
  ('clinica','portal'),('clinica','whatsapp'),('clinica','telemedicina'),
  ('clinica','especialidades'),('clinica','farmacia'),('clinica','laboratorio'),
  ('clinica','multisucursal'),('clinica','ia'),('clinica','rh'),('clinica','cfdi'),
- ('clinica','crm'),('clinica','plantillas')
+ ('clinica','crm'),('clinica','plantillas'),('clinica','imagenologia')
 ON DUPLICATE KEY UPDATE plan_clave=VALUES(plan_clave);
 
 -- ---------------------------------------------------------------------------

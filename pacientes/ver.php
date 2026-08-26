@@ -363,6 +363,9 @@ include __DIR__ . '/../includes/header.php';
         <?php if (modulo_activo('laboratorio')): ?>
         <a href="<?= BASE_URL ?>/laboratorio/index?paciente_id=<?= $id ?>" class="btn btn-outline-primary"><i class="bi bi-eyedropper"></i> <?= et('Laboratorio') ?></a>
         <?php endif; ?>
+        <?php if (modulo_activo('imagenologia')): ?>
+        <a href="<?= BASE_URL ?>/imagenologia/index?paciente_id=<?= $id ?>" class="btn btn-outline-primary"><i class="bi bi-soundwave"></i> <?= et('Ultrasonidos') ?></a>
+        <?php endif; ?>
         <?php if (modulo_activo('optica')): ?>
         <a href="<?= BASE_URL ?>/optica/graduacion?paciente_id=<?= $id ?>" class="btn btn-outline-primary"><i class="bi bi-eyeglasses"></i> <?= et('Graduación') ?></a>
         <?php endif; ?>
@@ -629,6 +632,9 @@ include __DIR__ . '/../includes/header.php';
                                 <?php endif; ?>
                                 <?php if (modulo_activo('laboratorio')): ?>
                                 <li><a class="dropdown-item" href="<?= BASE_URL ?>/laboratorio/orden?paciente_id=<?= $id ?>"><i class="bi bi-eyedropper me-2"></i><?= et('Laboratorio (orden)') ?></a></li>
+                                <?php endif; ?>
+                                <?php if (modulo_activo('imagenologia')): ?>
+                                <li><a class="dropdown-item" href="<?= BASE_URL ?>/imagenologia/estudio?paciente_id=<?= $id ?>"><i class="bi bi-soundwave me-2"></i><?= et('Ultrasonido (estudio)') ?></a></li>
                                 <?php endif; ?>
                             </ul>
                         </div>

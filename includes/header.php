@@ -157,7 +157,7 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
                     <div class="brand-name"><?= e($marca) ?></div>
                     <small class="brand-sub"><i class="bi bi-lightning-charge-fill"></i> <?= strtoupper(et('Panel')) ?></small>
                 </a>
-                <?php $secOper = modulo_activo('presupuestos') || modulo_activo('facturacion') || modulo_activo('farmacia') || modulo_activo('crm') || modulo_activo('laboratorio') || modulo_activo('optica'); ?>
+                <?php $secOper = modulo_activo('presupuestos') || modulo_activo('facturacion') || modulo_activo('farmacia') || modulo_activo('crm') || modulo_activo('laboratorio') || modulo_activo('imagenologia') || modulo_activo('optica'); ?>
                 <ul class="nav flex-column">
                     <li class="nav-sec"><?= et('Principal') ?></li>
                     <li class="nav-item"><a class="nav-link<?= nav_active('dashboard', $activo) ?>" href="<?= BASE_URL ?>/dashboard"><i class="bi bi-grid-1x2-fill"></i> <?= et('Dashboard') ?></a></li>
@@ -178,6 +178,7 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
                              y se solapa con las campañas por segmento del CRM. */ ?>
                     <?php if (modulo_activo('farmacia')): ?><li class="nav-item"><a class="nav-link<?= nav_active('inventario', $activo) ?>" href="<?= BASE_URL ?>/inventario/index"><i class="bi bi-box-seam"></i> <?= et('Inventario') ?></a></li><?php endif; ?>
                     <?php if (modulo_activo('laboratorio')): ?><li class="nav-item"><a class="nav-link<?= nav_active('laboratorio', $activo) ?>" href="<?= BASE_URL ?>/laboratorio/index"><i class="bi bi-eyedropper"></i> <?= et('Laboratorio') ?></a></li><?php endif; ?>
+                    <?php if (modulo_activo('imagenologia')): ?><li class="nav-item"><a class="nav-link<?= nav_active('imagenologia', $activo) ?>" href="<?= BASE_URL ?>/imagenologia/index"><i class="bi bi-soundwave"></i> <?= et('Ultrasonidos') ?></a></li><?php endif; ?>
                     <?php if (modulo_activo('optica')): ?><li class="nav-item"><a class="nav-link<?= nav_active('optica', $activo) ?>" href="<?= BASE_URL ?>/optica/index"><i class="bi bi-eyeglasses"></i> <?= et('Óptica') ?></a></li><?php endif; ?>
                     <?php if (has_role('admin')): ?>
                     <li class="nav-sec"><?= et('Administración') ?></li>

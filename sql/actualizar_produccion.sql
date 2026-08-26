@@ -602,3 +602,61 @@ CREATE TABLE IF NOT EXISTS mapa_corporal_hallazgos (
 -- ============ 2026-07-27: mapa corporal — posición exacta del marcador (clic) ============
 ALTER TABLE mapa_corporal_hallazgos ADD COLUMN IF NOT EXISTS pos_x SMALLINT DEFAULT NULL;
 ALTER TABLE mapa_corporal_hallazgos ADD COLUMN IF NOT EXISTS pos_y SMALLINT DEFAULT NULL;
+
+-- ============ 2026-08-26: ultrasonido / imagenología ============
+--  Protocolos por región (qué se mide y qué se describe), estudios con informe
+--  estructurado y capturas del ecógrafo. Las imágenes viven en `archivos` con
+--  `img_estudio_id`, así que llegan solas al expediente y al portal.
+--  Detalle y comentarios completos en sql/imagenologia.sql.
+CREATE TABLE IF NOT EXISTS img_plantillas (
+  id INT AUTO_INCREMENT PRIMARY KEY, consultorio_id INT NOT NULL DEFAULT 1,
+  nombre VARCHAR(160) NOT NULL, region VARCHAR(60), campos TEXT, tecnica TEXT,
+  preparacion VARCHAR(255), precio DECIMAL(10,2) NOT NULL DEFAULT 0,
+  activo TINYINT(1) NOT NULL DEFAULT 1, creado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_iplant_tenant (consultorio_id, activo), INDEX idx_iplant_region (region)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS img_estudios (
+  id INT AUTO_INCREMENT PRIMARY KEY, consultorio_id INT NOT NULL DEFAULT 1,
+  folio VARCHAR(30) NOT NULL, paciente_id INT NOT NULL, plantilla_id INT, medico_id INT, consulta_id INT,
+  nombre VARCHAR(160) NOT NULL, region VARCHAR(60), fecha DATE NOT NULL,
+  estado ENUM('programado','realizado','informado','entregado','cancelado') NOT NULL DEFAULT 'programado',
+  referente VARCHAR(120), indicacion VARCHAR(255), equipo VARCHAR(120), transductor VARCHAR(60),
+  tecnica TEXT, hallazgos TEXT, impresion TEXT, recomendaciones TEXT,
+  precio DECIMAL(10,2) NOT NULL DEFAULT 0, informado_en DATETIME, entregado_en DATETIME, creado_por INT,
+  creado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  actualizado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_img_folio (consultorio_id, folio),
+  CONSTRAINT fk_img_paciente  FOREIGN KEY (paciente_id)  REFERENCES pacientes(id)      ON DELETE CASCADE,
+  CONSTRAINT fk_img_plantilla FOREIGN KEY (plantilla_id) REFERENCES img_plantillas(id) ON DELETE SET NULL,
+  CONSTRAINT fk_img_medico    FOREIGN KEY (medico_id)    REFERENCES usuarios(id)       ON DELETE SET NULL,
+  CONSTRAINT fk_img_creador   FOREIGN KEY (creado_por)   REFERENCES usuarios(id)       ON DELETE SET NULL,
+  INDEX idx_img_tenant (consultorio_id, estado), INDEX idx_img_paciente (paciente_id, fecha)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS img_hallazgos (
+  id INT AUTO_INCREMENT PRIMARY KEY, estudio_id INT NOT NULL, clave VARCHAR(60),
+  etiqueta VARCHAR(120) NOT NULL, tipo VARCHAR(20) NOT NULL DEFAULT 'texto', valor VARCHAR(255),
+  unidad VARCHAR(30), referencia VARCHAR(60), opciones VARCHAR(255),
+  anormal TINYINT(1) NOT NULL DEFAULT 0, orden INT NOT NULL DEFAULT 0,
+  CONSTRAINT fk_ihal_estudio FOREIGN KEY (estudio_id) REFERENCES img_estudios(id) ON DELETE CASCADE,
+  INDEX idx_ihal_estudio (estudio_id, orden)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+SET @existe := (SELECT COUNT(*) FROM information_schema.COLUMNS
+                WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'archivos'
+                  AND COLUMN_NAME = 'img_estudio_id');
+SET @sql := IF(@existe = 0,
+  'ALTER TABLE archivos
+     ADD COLUMN img_estudio_id INT DEFAULT NULL AFTER consulta_id,
+     ADD CONSTRAINT fk_arch_img FOREIGN KEY (img_estudio_id)
+         REFERENCES img_estudios(id) ON DELETE SET NULL',
+  'SELECT "archivos.img_estudio_id ya existe"');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+INSERT INTO modulos (clave, nombre, fase, orden) VALUES
+ ('imagenologia', 'Ultrasonido / Imagenología', 4, 19)
+ON DUPLICATE KEY UPDATE nombre = VALUES(nombre), fase = VALUES(fase), orden = VALUES(orden);
+INSERT INTO plan_modulos (plan_clave, modulo_clave) VALUES
+ ('clinica', 'imagenologia')
+ON DUPLICATE KEY UPDATE plan_clave = VALUES(plan_clave);

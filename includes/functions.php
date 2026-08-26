@@ -2128,6 +2128,322 @@ function lab_estudios_comunes(): array
     ];
 }
 
+/* --------------------------------------------------------------------
+ *  Ultrasonido / Imagenología (estudios e informes)
+ * ------------------------------------------------------------------ */
+
+/** Estados de un estudio de imagen: clave => [etiqueta, color de badge]. */
+function usg_estados(): array
+{
+    return [
+        'programado' => ['Programado', 'secondary'],
+        'realizado'  => ['Realizado',  'info'],
+        'informado'  => ['Informado',  'primary'],
+        'entregado'  => ['Entregado',  'success'],
+        'cancelado'  => ['Cancelado',  'dark'],
+    ];
+}
+
+function usg_estado_label(string $estado): string
+{
+    return t(usg_estados()[$estado][0] ?? $estado);
+}
+
+function usg_estado_badge(string $estado): string
+{
+    return usg_estados()[$estado][1] ?? 'secondary';
+}
+
+/** Siguiente folio de estudio de imagen del consultorio, por año: USG-2026-0007. */
+function usg_siguiente_folio(): string
+{
+    $prefijo = 'USG-' . date('Y') . '-';
+    $desde   = strlen($prefijo) + 1;
+    $st = db()->prepare(
+        "SELECT COALESCE(MAX(CAST(SUBSTRING(folio, $desde) AS UNSIGNED)), 0)
+         FROM img_estudios WHERE consultorio_id = ? AND folio LIKE ?"
+    );
+    $st->execute([tenant_id(), $prefijo . '%']);
+    $n = (int) $st->fetchColumn() + 1;
+    return $prefijo . str_pad((string) $n, 4, '0', STR_PAD_LEFT);
+}
+
+/** Tipos de renglón de un protocolo: clave => etiqueta para el editor. */
+function usg_tipos_campo(): array
+{
+    return [
+        'texto'  => 'Texto corto',
+        'area'   => 'Texto largo',
+        'numero' => 'Medición',
+        'opcion' => 'Lista de opciones',
+    ];
+}
+
+/**
+ * Normaliza el JSON de `img_plantillas.campos` a una lista de renglones con
+ * todas sus claves presentes. Una plantilla editada a mano puede traer campos
+ * incompletos o JSON roto: aquí se saneia una sola vez y el resto del módulo
+ * ya asume la forma completa.
+ */
+function usg_campos(?string $json): array
+{
+    $datos = json_decode((string) $json, true);
+    if (!is_array($datos)) return [];
+
+    $tipos  = usg_tipos_campo();
+    $campos = [];
+    foreach ($datos as $i => $c) {
+        if (!is_array($c)) continue;
+        $etiqueta = trim((string) ($c['etiqueta'] ?? ''));
+        if ($etiqueta === '') continue;
+        $tipo = (string) ($c['tipo'] ?? 'texto');
+        $campos[] = [
+            'clave'      => mb_substr(trim((string) ($c['clave'] ?? '')) ?: ('c' . $i), 0, 60),
+            'etiqueta'   => mb_substr($etiqueta, 0, 120),
+            'tipo'       => isset($tipos[$tipo]) ? $tipo : 'texto',
+            'unidad'     => mb_substr(trim((string) ($c['unidad'] ?? '')), 0, 30),
+            'referencia' => mb_substr(trim((string) ($c['referencia'] ?? '')), 0, 60),
+            'opciones'   => mb_substr(trim((string) ($c['opciones'] ?? '')), 0, 255),
+        ];
+    }
+    return $campos;
+}
+
+/**
+ * Protocolos de ultrasonido de arranque, para que el catálogo no nazca vacío.
+ * Cada uno lista lo que se mide y lo que se describe en esa región; el
+ * consultorio los carga con un botón y luego los ajusta a su forma de reportar.
+ * Los precios van en 0 a propósito: nadie debe cobrar un precio inventado.
+ *
+ * Formato de cada renglón: [clave, etiqueta, tipo, unidad, referencia, opciones]
+ * y los valores de referencia son los de adulto normal, como recordatorio para
+ * quien reporta, NO como un criterio que el sistema valide por su cuenta.
+ */
+function usg_protocolos(): array
+{
+    $normal = 'Normal|Anormal|No valorable';
+
+    return [
+        'abdominal' => [
+            'nombre'      => 'Ultrasonido abdominal completo',
+            'preparacion' => 'Ayuno de 6 a 8 h. Evitar bebidas gaseosas el día previo.',
+            'tecnica'     => 'Estudio en tiempo real, escala de grises, transductor convexo de 3.5 MHz, '
+                           . 'cortes longitudinales, transversales y oblicuos.',
+            'campos'      => [
+                ['higado_long',   'Hígado (lóbulo derecho)',       'numero', 'mm', '< 155',    ''],
+                ['higado_eco',    'Ecogenicidad hepática',         'opcion', '',   '',         'Normal|Aumentada (esteatosis)|Heterogénea'],
+                ['via_biliar',    'Vía biliar intrahepática',      'opcion', '',   '',         'No dilatada|Dilatada'],
+                ['coledoco',      'Colédoco',                      'numero', 'mm', '< 6',      ''],
+                ['vesicula',      'Vesícula biliar',               'area',   '',   '',         ''],
+                ['pared_vesicula','Pared vesicular',               'numero', 'mm', '< 3',      ''],
+                ['pancreas',      'Páncreas',                      'area',   '',   '',         ''],
+                ['bazo',          'Bazo (eje mayor)',              'numero', 'mm', '< 120',    ''],
+                ['rinon_der',     'Riñón derecho',                 'area',   '',   '',         ''],
+                ['rinon_izq',     'Riñón izquierdo',               'area',   '',   '',         ''],
+                ['aorta',         'Aorta abdominal',               'numero', 'mm', '< 30',     ''],
+                ['liquido_libre', 'Líquido libre en cavidad',      'opcion', '',   '',         'Ausente|Presente'],
+            ],
+        ],
+
+        'higado_vias' => [
+            'nombre'      => 'Ultrasonido de hígado y vías biliares',
+            'preparacion' => 'Ayuno de 8 h.',
+            'tecnica'     => 'Transductor convexo de 3.5 MHz, cortes subcostales e intercostales, '
+                           . 'en inspiración sostenida.',
+            'campos'      => [
+                ['higado_long',   'Hígado (lóbulo derecho)',       'numero', 'mm', '< 155',    ''],
+                ['higado_eco',    'Ecogenicidad hepática',         'opcion', '',   '',         'Normal|Grado I|Grado II|Grado III'],
+                ['contornos',     'Contornos hepáticos',           'opcion', '',   '',         'Regulares|Irregulares'],
+                ['lesiones',      'Lesiones focales',              'area',   '',   '',         ''],
+                ['vesicula',      'Vesícula biliar',               'area',   '',   '',         ''],
+                ['litos',         'Litos vesiculares',             'opcion', '',   '',         'Ausentes|Único|Múltiples'],
+                ['pared_vesicula','Pared vesicular',               'numero', 'mm', '< 3',      ''],
+                ['coledoco',      'Colédoco',                      'numero', 'mm', '< 6',      ''],
+                ['porta',         'Vena porta',                    'numero', 'mm', '< 13',     ''],
+                ['murphy',        'Murphy ecográfico',             'opcion', '',   '',         'Negativo|Positivo'],
+            ],
+        ],
+
+        'renal' => [
+            'nombre'      => 'Ultrasonido renal y de vías urinarias',
+            'preparacion' => 'Vejiga llena: tomar 1 L de agua una hora antes y no orinar.',
+            'tecnica'     => 'Transductor convexo de 3.5 MHz, decúbito supino y decúbito lateral, '
+                           . 'con medición de residuo posmiccional.',
+            'campos'      => [
+                ['rd_long',       'Riñón derecho (eje mayor)',     'numero', 'mm', '90 - 120', ''],
+                ['rd_cortical',   'Cortical derecha',              'numero', 'mm', '> 10',     ''],
+                ['rd_desc',       'Riñón derecho: descripción',    'area',   '',   '',         ''],
+                ['ri_long',       'Riñón izquierdo (eje mayor)',   'numero', 'mm', '90 - 120', ''],
+                ['ri_cortical',   'Cortical izquierda',            'numero', 'mm', '> 10',     ''],
+                ['ri_desc',       'Riñón izquierdo: descripción',  'area',   '',   '',         ''],
+                ['litiasis',      'Litiasis',                      'area',   '',   '',         ''],
+                ['ectasia',       'Ectasia pielocalicial',         'opcion', '',   '',         'Ausente|Grado I|Grado II|Grado III|Grado IV'],
+                ['vejiga',        'Vejiga',                        'area',   '',   '',         ''],
+                ['residuo',       'Residuo posmiccional',          'numero', 'ml', '< 50',     ''],
+                ['prostata_vol',  'Próstata (volumen)',            'numero', 'ml', '< 30',     ''],
+            ],
+        ],
+
+        'pelvico' => [
+            'nombre'      => 'Ultrasonido pélvico ginecológico',
+            'preparacion' => 'Vía abdominal: vejiga llena. Vía endovaginal: vejiga vacía.',
+            'tecnica'     => 'Transductor convexo de 3.5 MHz por vía abdominal y endocavitario de '
+                           . '7.5 MHz por vía endovaginal, cortes longitudinales y transversales.',
+            'campos'      => [
+                ['via',           'Vía de abordaje',               'opcion', '',   '',         'Abdominal|Endovaginal|Ambas'],
+                ['utero_long',    'Útero: longitud',               'numero', 'mm', '70 - 90',  ''],
+                ['utero_ap',      'Útero: anteroposterior',        'numero', 'mm', '30 - 50',  ''],
+                ['utero_trans',   'Útero: transverso',             'numero', 'mm', '40 - 60',  ''],
+                ['posicion',      'Posición uterina',              'opcion', '',   '',         'Anteverso|Retroverso|Medio'],
+                ['miometrio',     'Miometrio',                     'area',   '',   '',         ''],
+                ['endometrio',    'Endometrio (grosor)',           'numero', 'mm', '',         ''],
+                ['endo_desc',     'Endometrio: descripción',       'texto',  '',   '',         ''],
+                ['ovario_der',    'Ovario derecho',                'area',   '',   '',         ''],
+                ['ovario_izq',    'Ovario izquierdo',              'area',   '',   '',         ''],
+                ['fondo_saco',    'Fondo de saco de Douglas',      'opcion', '',   '',         'Libre|Con líquido'],
+                ['diu',           'DIU',                           'opcion', '',   '',         'No aplica|Bien posicionado|Descendido'],
+            ],
+        ],
+
+        'obstetrico_1t' => [
+            'nombre'      => 'Ultrasonido obstétrico de primer trimestre',
+            'preparacion' => 'Vía abdominal: vejiga llena. Vía endovaginal: sin preparación.',
+            'tecnica'     => 'Transductor endocavitario de 7.5 MHz y/o convexo de 3.5 MHz, '
+                           . 'biometría embrionaria y evaluación de anexos.',
+            'campos'      => [
+                ['fum',           'FUM referida',                  'texto',  '',   '',         ''],
+                ['sdg_fum',       'SDG por FUM',                   'numero', 'sem','',         ''],
+                ['saco',          'Saco gestacional (diámetro)',   'numero', 'mm', '',         ''],
+                ['saco_impl',     'Implantación',                  'opcion', '',   '',         'Intrauterina normoinserta|Baja|Ectópica|No visible'],
+                ['vitelino',      'Saco vitelino',                 'opcion', '',   '',         'Presente|Ausente'],
+                ['lcc',           'Longitud craneocaudal (LCC)',   'numero', 'mm', '',         ''],
+                ['sdg_usg',       'SDG por USG',                   'numero', 'sem','',         ''],
+                ['fcf',           'Frecuencia cardiaca fetal',     'numero', 'lpm','120 - 180',''],
+                ['tn',            'Translucencia nucal',           'numero', 'mm', '< 3',      ''],
+                ['numero_fetos',  'Número de fetos',               'texto',  '',   '',         ''],
+                ['fpp',           'FPP por USG',                   'texto',  '',   '',         ''],
+                ['anexos',        'Anexos y hematomas',            'area',   '',   '',         ''],
+            ],
+        ],
+
+        'obstetrico' => [
+            'nombre'      => 'Ultrasonido obstétrico (2.º y 3.er trimestre)',
+            'preparacion' => 'No requiere preparación.',
+            'tecnica'     => 'Transductor convexo de 3.5 MHz, biometría fetal, valoración de placenta, '
+                           . 'líquido amniótico y bienestar fetal.',
+            'campos'      => [
+                ['fum',           'FUM referida',                  'texto',  '',   '',         ''],
+                ['sdg_fum',       'SDG por FUM',                   'numero', 'sem','',         ''],
+                ['situacion',     'Situación',                     'opcion', '',   '',         'Longitudinal|Transversa|Oblicua'],
+                ['presentacion',  'Presentación',                  'opcion', '',   '',         'Cefálica|Pélvica|Variable'],
+                ['dorso',         'Dorso',                         'opcion', '',   '',         'Izquierdo|Derecho|Anterior|Posterior'],
+                ['fcf',           'Frecuencia cardiaca fetal',     'numero', 'lpm','110 - 160',''],
+                ['dbp',           'Diámetro biparietal (DBP)',     'numero', 'mm', '',         ''],
+                ['cc',            'Circunferencia cefálica (CC)',  'numero', 'mm', '',         ''],
+                ['ca',            'Circunferencia abdominal (CA)', 'numero', 'mm', '',         ''],
+                ['lf',            'Longitud femoral (LF)',         'numero', 'mm', '',         ''],
+                ['sdg_usg',       'SDG por USG',                   'numero', 'sem','',         ''],
+                ['pfe',           'Peso fetal estimado',           'numero', 'g',  '',         ''],
+                ['percentil',     'Percentil de peso',             'texto',  '',   '',         ''],
+                ['placenta_loc',  'Localización placentaria',      'opcion', '',   '',         'Fúndica|Anterior|Posterior|Lateral|Previa'],
+                ['placenta_grado','Grado placentario',             'opcion', '',   '',         'Grado 0|Grado I|Grado II|Grado III'],
+                ['ila',           'Índice de líquido amniótico',   'numero', 'cm', '8 - 24',   ''],
+                ['bolsillo',      'Bolsillo mayor',                'numero', 'cm', '2 - 8',    ''],
+                ['cordon',        'Cordón umbilical',              'texto',  '',   '',         ''],
+                ['movimientos',   'Movimientos fetales',           'opcion', '',   '',         'Presentes|Ausentes'],
+                ['anatomia',      'Anatomía fetal',                'area',   '',   '',         ''],
+                ['fpp',           'FPP por USG',                   'texto',  '',   '',         ''],
+            ],
+        ],
+
+        'tiroides' => [
+            'nombre'      => 'Ultrasonido de tiroides',
+            'preparacion' => 'No requiere preparación.',
+            'tecnica'     => 'Transductor lineal de alta frecuencia (7.5 - 12 MHz), cortes '
+                           . 'longitudinales y transversales, con Doppler color.',
+            'campos'      => [
+                ['ld_dim',        'Lóbulo derecho (L x AP x T)',   'texto',  'mm', '',         ''],
+                ['ld_desc',       'Lóbulo derecho: ecoestructura', 'opcion', '',   '',         'Homogénea|Heterogénea'],
+                ['li_dim',        'Lóbulo izquierdo (L x AP x T)', 'texto',  'mm', '',         ''],
+                ['li_desc',       'Lóbulo izquierdo: ecoestructura','opcion','',   '',         'Homogénea|Heterogénea'],
+                ['istmo',         'Istmo',                         'numero', 'mm', '< 4',      ''],
+                ['nodulos',       'Nódulos (número, tamaño, sitio)','area',  '',   '',         ''],
+                ['tirads',        'TI-RADS del nódulo dominante',  'opcion', '',   '',         'No aplica|TR1|TR2|TR3|TR4|TR5'],
+                ['vascularidad',  'Vascularidad al Doppler',       'opcion', '',   '',         'Normal|Aumentada|Disminuida'],
+                ['ganglios',      'Ganglios cervicales',           'area',   '',   '',         ''],
+            ],
+        ],
+
+        'mama' => [
+            'nombre'      => 'Ultrasonido de mama',
+            'preparacion' => 'Acudir sin desodorante, talco ni crema en la zona.',
+            'tecnica'     => 'Transductor lineal de alta frecuencia (7.5 - 12 MHz), barrido radial y '
+                           . 'antirradial de los cuatro cuadrantes y regiones axilares.',
+            'campos'      => [
+                ['patron',        'Patrón mamario',                'opcion', '',   '',         'Graso|Fibroglandular|Denso'],
+                ['md_desc',       'Mama derecha',                  'area',   '',   '',         ''],
+                ['md_lesion',     'Mama derecha: lesión dominante','texto',  '',   '',         ''],
+                ['mi_desc',       'Mama izquierda',                'area',   '',   '',         ''],
+                ['mi_lesion',     'Mama izquierda: lesión dominante','texto','',   '',         ''],
+                ['axila_der',     'Región axilar derecha',         'texto',  '',   '',         ''],
+                ['axila_izq',     'Región axilar izquierda',       'texto',  '',   '',         ''],
+                ['birads',        'BI-RADS',                       'opcion', '',   '',         'BI-RADS 1|BI-RADS 2|BI-RADS 3|BI-RADS 4A|BI-RADS 4B|BI-RADS 4C|BI-RADS 5|BI-RADS 6'],
+            ],
+        ],
+
+        'testicular' => [
+            'nombre'      => 'Ultrasonido testicular / escrotal',
+            'preparacion' => 'No requiere preparación.',
+            'tecnica'     => 'Transductor lineal de alta frecuencia (7.5 - 12 MHz), estudio bilateral '
+                           . 'comparativo con Doppler color.',
+            'campos'      => [
+                ['td_dim',        'Testículo derecho (L x AP x T)','texto',  'mm', '',         ''],
+                ['td_desc',       'Testículo derecho: ecoestructura','opcion','',  '',         $normal],
+                ['ti_dim',        'Testículo izquierdo (L x AP x T)','texto','mm', '',         ''],
+                ['ti_desc',       'Testículo izquierdo: ecoestructura','opcion','','',         $normal],
+                ['epididimos',    'Epidídimos',                    'area',   '',   '',         ''],
+                ['hidrocele',     'Hidrocele',                     'opcion', '',   '',         'Ausente|Derecho|Izquierdo|Bilateral'],
+                ['varicocele',    'Varicocele',                    'opcion', '',   '',         'Ausente|Grado I|Grado II|Grado III'],
+                ['flujo',         'Flujo al Doppler',              'opcion', '',   '',         'Conservado bilateral|Disminuido|Ausente'],
+            ],
+        ],
+
+        'partes_blandas' => [
+            'nombre'      => 'Ultrasonido de partes blandas',
+            'preparacion' => 'No requiere preparación.',
+            'tecnica'     => 'Transductor lineal de alta frecuencia (7.5 - 12 MHz) sobre la zona de '
+                           . 'interés, con estudio comparativo y Doppler color.',
+            'campos'      => [
+                ['sitio',         'Sitio explorado',               'texto',  '',   '',         ''],
+                ['lesion',        'Lesión: descripción',           'area',   '',   '',         ''],
+                ['dimensiones',   'Dimensiones (L x AP x T)',      'texto',  'mm', '',         ''],
+                ['profundidad',   'Plano / profundidad',           'texto',  '',   '',         ''],
+                ['margenes',      'Márgenes',                      'opcion', '',   '',         'Bien definidos|Mal definidos'],
+                ['contenido',     'Contenido',                     'opcion', '',   '',         'Sólido|Quístico|Mixto'],
+                ['vascularidad',  'Vascularidad al Doppler',       'opcion', '',   '',         'Ausente|Periférica|Central|Mixta'],
+                ['ganglios',      'Ganglios regionales',           'texto',  '',   '',         ''],
+            ],
+        ],
+
+        'doppler_mp' => [
+            'nombre'      => 'Doppler venoso de miembros pélvicos',
+            'preparacion' => 'No requiere preparación. Acudir con ropa cómoda.',
+            'tecnica'     => 'Transductor lineal de 7.5 MHz y convexo de 3.5 MHz, con maniobras de '
+                           . 'compresión, Valsalva y Doppler color y espectral.',
+            'campos'      => [
+                ['lado',          'Extremidad explorada',          'opcion', '',   '',         'Derecha|Izquierda|Bilateral'],
+                ['femoral_comun', 'Vena femoral común',            'opcion', '',   '',         'Permeable y compresible|Trombosada'],
+                ['femoral_super', 'Vena femoral superficial',      'opcion', '',   '',         'Permeable y compresible|Trombosada'],
+                ['poplitea',      'Vena poplítea',                 'opcion', '',   '',         'Permeable y compresible|Trombosada'],
+                ['infrapopliteas','Venas infrapoplíteas',          'opcion', '',   '',         'Permeables|Trombosadas|No valorables'],
+                ['safena_int',    'Safena interna',                'texto',  '',   '',         ''],
+                ['reflujo',       'Reflujo valvular',              'numero', 's',  '< 0.5',    ''],
+                ['trombo',        'Trombo: extensión y antigüedad','area',   '',   '',         ''],
+            ],
+        ],
+    ];
+}
+
 /**
  * Catálogo de especialidades médicas (para etiquetar plantillas, médicos, etc.).
  * Lista abierta: el usuario puede escribir cualquier otra. Orden alfabético.
