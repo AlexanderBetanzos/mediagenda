@@ -322,7 +322,7 @@ include __DIR__ . '/_head.php';
     if (typeof Chart === 'undefined') return;
     var isLight = document.documentElement.classList.contains('app-light');
     var tick = isLight ? '#6b7c93' : '#9aa0aa', grid = isLight ? 'rgba(15,39,71,.07)' : 'rgba(255,255,255,.07)';
-    Chart.defaults.color = tick; Chart.defaults.font.family = "'Inter',sans-serif";
+    Chart.defaults.color = tick; Chart.defaults.font.family = getComputedStyle(document.documentElement).getPropertyValue('--font-ui').trim();
     var a = document.getElementById('chartAct');
     if (a) new Chart(a, { type: 'bar',
         data: { labels: <?= json_encode($actLabels) ?>, datasets: [{ label: 'Altas', data: <?= json_encode($actData) ?>, backgroundColor: '#2563eb', borderRadius: 6 }] },

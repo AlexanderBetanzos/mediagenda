@@ -675,7 +675,7 @@ html.app-light .welcome-banner {
     var PALETTE = [brand, '#60a5fa', '#ffd60a', '#38bdf8', '#22c55e', '#a78bfa', '#ef4444', '#3b82f6', '#14b8a6', '#ec4899'];
     var moneyFmt = function (v) { return '$' + Number(v).toLocaleString('es-MX'); };
     Chart.defaults.color = tick;
-    Chart.defaults.font.family = "'Inter', sans-serif";
+    Chart.defaults.font.family = getComputedStyle(document.documentElement).getPropertyValue('--font-ui').trim();
 
     function fade(c, a) {
         c = c.trim();

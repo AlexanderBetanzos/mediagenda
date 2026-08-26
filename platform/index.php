@@ -294,7 +294,7 @@ document.getElementById('buscar').oninput = function () {
     if (typeof Chart === 'undefined') return;
     var isLight = document.documentElement.classList.contains('app-light');
     var tick = isLight ? '#6b7c93' : '#9aa0aa', grid = isLight ? 'rgba(15,39,71,.07)' : 'rgba(255,255,255,.07)';
-    Chart.defaults.color = tick; Chart.defaults.font.family = "'Inter',sans-serif";
+    Chart.defaults.color = tick; Chart.defaults.font.family = getComputedStyle(document.documentElement).getPropertyValue('--font-ui').trim();
     var PAL = ['#2563eb', '#60a5fa', '#ffd60a', '#38bdf8', '#22c55e', '#a78bfa'];
     var a = document.getElementById('chartAltas');
     if (a) new Chart(a, { type: 'bar',
