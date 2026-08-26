@@ -49,6 +49,7 @@ $u = current_user();
                 </div>
                 <div class="text-end">
                     <div class="h3 fw-bold text-brand mb-0">$<?= number_format($p['precio'], 0) ?></div>
+                    <div class="small text-muted">IVA incluido</div>
                     <span class="text-muted small">/<?= et('mes') ?></span>
                 </div>
             </div>

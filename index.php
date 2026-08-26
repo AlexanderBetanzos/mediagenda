@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/includes/functions.php';
 require_once __DIR__ . '/includes/mercadopago.php';
+require_once __DIR__ . '/includes/ia.php';
 
 // Micrositio por consultorio: igual que GymOS con ?t=slug. La raíz del dominio es
 // la landing del PRODUCTO; cuando llega el slug de un consultorio vigente, se
@@ -345,6 +346,7 @@ track_pageview('publico');
                      font-size: 3rem; line-height: 1; letter-spacing: -.045em;
                      font-variant-numeric: tabular-nums; }
     .lp-plan-price .per { font-size: 1.05rem; color: var(--muted); font-weight: 400; letter-spacing: -.01em; }
+    .lp-plan-iva { font-size: .82rem; color: var(--muted); margin-top: .35rem; letter-spacing: -.005em; }
     .lp-plan-feats { list-style: none; padding: 0; margin: 1.8rem 0 1.6rem; flex: 1; }
     .lp-plan-feats li { display: flex; align-items: flex-start; gap: .6rem; padding: .42rem 0;
                         color: #424245; font-size: .97rem; line-height: 1.4; letter-spacing: -.01em; }
@@ -466,7 +468,8 @@ track_pageview('publico');
             <span class="lp-eyebrow">Planes</span>
             <h2 class="section-title">Elige cómo quieres crecer</h2>
             <p class="text-muted">Tres planes, precios claros. El <strong>Profesional</strong> lo pruebas
-               <strong><?= trial_dias_oferta() ?> días gratis, con acceso completo y sin tarjeta</strong>.</p>
+               <strong><?= trial_dias_oferta() ?> días gratis, con acceso completo y sin tarjeta</strong>.
+               Todos los precios <strong>ya incluyen IVA</strong>.</p>
         </div>
         <div class="row g-4 justify-content-center align-items-stretch">
             <?php
@@ -474,6 +477,9 @@ track_pageview('publico');
             // con más (o menos) de tres opciones; la prueba gratis va en el texto.
             $planes = [];
             foreach (planes_mp() as $planKey => $pl) {
+                if ($planKey === 'clinica' && ia_configurada()) {
+                    $pl['items'][] = 'IA que redacta la consulta por ti';
+                }
                 $planes[] = [$pl['nombre'], '$' . number_format($pl['precio'], 0), $pl['descripcion'], $pl['items'], $pl['destacado'], $planKey];
             }
             $iconos = ['bi-heart-pulse', 'bi-star-fill', 'bi-hospital', 'bi-building'];
@@ -486,6 +492,7 @@ track_pageview('publico');
                     <div class="lp-plan-name"><?= e($nombre) ?></div>
                     <div class="lp-plan-desc"><?= e($desc) ?></div>
                     <div class="lp-plan-price"><?= e($precio) ?><span class="per">/mes</span></div>
+                    <div class="lp-plan-iva">IVA incluido · sin costo de instalación</div>
                     <ul class="lp-plan-feats">
                         <?php foreach ($items as $it): ?>
                             <li><i class="bi bi-check-circle-fill"></i> <span><?= e($it) ?></span></li>

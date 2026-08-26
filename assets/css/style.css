@@ -193,23 +193,25 @@ html.app-light .topbar-clock #clkDate { color: var(--muted); }
 .app-dark .sidebar .soon { margin-left: auto; font-size: .6rem; background: rgba(255,255,255,.08); color: var(--d-muted); padding: .1rem .4rem; border-radius: .4rem; }
 
 /* ---- Tarjetas ---- */
-.card { border-radius: .9rem; }
 .app-dark .card {
-    background: var(--d-panel); border: 1px solid var(--d-border); color: var(--d-ink);
-    border-radius: 16px;
-    backdrop-filter: saturate(140%) blur(14px);
-    -webkit-backdrop-filter: saturate(140%) blur(14px);
-    box-shadow: 0 18px 38px rgba(0,0,0,.32);
+    background: var(--d-panel); border: 1px solid rgba(255,255,255,.06); color: var(--d-ink);
+    border-radius: 18px;
+    backdrop-filter: saturate(140%) blur(18px);
+    -webkit-backdrop-filter: saturate(140%) blur(18px);
+    /* Dos capas: una corta que asienta la tarjeta y una larga y suave que
+       la separa del fondo. Una sola sombra dura se ve pegada. */
+    box-shadow: 0 1px 2px rgba(0,0,0,.28), 0 16px 40px rgba(0,0,0,.26);
 }
 .app-dark .card-header, .app-dark .card-footer { background: transparent; border-color: var(--d-border); color: var(--d-ink); }
 
 /* ---- Tarjetas de estadística ---- */
-.stat-card { border: none; border-radius: .9rem; }
+.stat-card { border: none; border-radius: 18px; }
 .app-dark .stat-card { background: linear-gradient(180deg, var(--d-panel2), var(--d-panel)); position: relative; overflow: hidden; }
 .app-dark .stat-card::after { content: ''; position: absolute; top: -40%; right: -20%; width: 180px; height: 180px; background: radial-gradient(circle, rgba(37,99,235,.16), transparent 62%); pointer-events: none; z-index: 0; }
 .app-dark .stat-card .card-body { position: relative; z-index: 1; }
-.stat-card .stat-icon { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: .75rem; font-size: 1.35rem; }
-.stat-card .stat-num { font-size: 2rem; font-weight: 700; line-height: 1; color: #fff; }
+.stat-card .stat-icon { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 14px; font-size: 1.35rem; }
+.stat-card .stat-num { font-family: var(--font-display); font-size: 2rem; font-weight: 600;
+                       line-height: 1; letter-spacing: -.035em; color: #fff; }
 .stat-label { font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color: var(--d-muted); }
 .delta { font-size: .72rem; font-weight: 600; padding: .12rem .45rem; border-radius: .5rem; }
 .delta-up { background: rgba(34,197,94,.16); color: #4ade80; }
@@ -225,7 +227,7 @@ html.app-light .topbar-clock #clkDate { color: var(--muted); }
 
 /* ---- Listas, badges, formularios ---- */
 .app-dark .list-group-item { background: transparent; border-color: var(--d-border); color: var(--d-ink); }
-.app-dark .form-control, .app-dark .form-select { background: rgba(255,255,255,.04); border: 1px solid var(--d-border); color: var(--d-ink); }
+.app-dark .form-control, .app-dark .form-select { background: rgba(255,255,255,.045); border: 1px solid rgba(255,255,255,.07); color: var(--d-ink); }
 .app-dark .form-control::placeholder { color: #7b8494; }
 .app-dark .form-control:focus, .app-dark .form-select:focus { background: rgba(255,255,255,.06); color: var(--d-ink); border-color: var(--d-accent); box-shadow: 0 0 0 .2rem rgba(37,99,235,.22); }
 .app-dark .input-group-text { background: rgba(255,255,255,.06); border-color: var(--d-border); color: var(--d-muted); }
@@ -370,13 +372,9 @@ html.app-light footer.border-top { color: var(--muted) !important; border-color:
 
 /* =====================================================================
    REFINAMIENTO GLOBAL (ambos temas) — toques de SaaS profesional.
+   OJO: la FORMA (radios de .card, .btn, .form-control) la define
+   material.css, que se carga después. Ponerla aquí no hace nada.
    ===================================================================== */
-.card { border-radius: 1rem; }
-.btn {
-    border-radius: .6rem; font-weight: 600;
-    transition: transform .12s ease, box-shadow .15s ease, background-color .15s ease, border-color .15s ease;
-}
-.btn-sm { border-radius: .5rem; }
 .btn-primary { box-shadow: 0 1px 2px rgba(16,24,40,.12); }
 .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px color-mix(in srgb, var(--brand) 35%, transparent); }
 .btn-primary:active { transform: translateY(0); }

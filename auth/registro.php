@@ -146,7 +146,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="text-center mb-4">
                 <?php if ($pagar): $p = $planes[$plan]; ?>
                     <span class="badge bg-primary-subtle text-primary border border-primary-subtle mb-2">
-                        <i class="bi bi-stars"></i> Plan <?= e($p['nombre']) ?> · $<?= number_format($p['precio'], 0) ?>/mes
+                        <i class="bi bi-stars"></i> Plan <?= e($p['nombre']) ?> · $<?= number_format($p['precio'], 0) ?>/mes · IVA incluido
                     </span>
                     <h1 class="h4 mb-1">Crea tu cuenta y activa <?= e($p['nombre']) ?></h1>
                     <p class="text-muted small mb-0">Al continuar te llevamos al <strong>pago</strong> para activar tu suscripción mensual.</p>

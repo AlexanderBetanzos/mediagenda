@@ -90,7 +90,7 @@ include __DIR__ . '/../includes/header.php';
                 <?php foreach ($planes as $key => $p): ?>
                 <div class="d-flex align-items-center justify-content-between border rounded p-3">
                     <div>
-                        <div class="fw-semibold"><?= e($p['nombre']) ?> <span class="text-brand">$<?= number_format($p['precio'], 0) ?></span><span class="text-muted small">/mes</span></div>
+                        <div class="fw-semibold"><?= e($p['nombre']) ?> <span class="text-brand">$<?= number_format($p['precio'], 0) ?></span><span class="text-muted small">/mes · IVA incluido</span></div>
                         <div class="small text-muted"><?= e($p['descripcion']) ?></div>
                     </div>
                     <?php if (mp_configurado()): ?>

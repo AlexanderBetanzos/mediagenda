@@ -61,14 +61,15 @@ body {
 /* ── Botones (píldora + elevación tonal) ───────────────────────────── */
 .btn {
     border-radius: var(--md-r-pill);
-    font-weight: 600;
-    letter-spacing: .01em;
+    font-weight: 590;
+    /* Tracking NEGATIVO: SF ya viene apretada y el positivo la desarma. */
+    letter-spacing: -.01em;
     padding-inline: 1.15rem;
-    transition: box-shadow .18s ease, transform .18s ease, background-color .18s ease, color .18s ease;
+    transition: box-shadow .18s ease, transform .12s ease, background-color .18s ease, color .18s ease;
 }
 .btn-lg { padding-inline: 1.6rem; }
 .btn-sm { padding-inline: .85rem; }
-.btn:active { transform: translateY(1px); }
+.btn:active { transform: scale(.97); }
 .btn-primary, .btn-success, .btn-danger, .btn-cta {
     border: 0; box-shadow: var(--md-e1);
 }
