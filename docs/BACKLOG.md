@@ -37,14 +37,20 @@ vendido como SaaS multi-tenant white-label, por **capas/planes**.
 
 ## 2. Modelo de planes (base para los cobros)
 
-3 niveles. Precios *propuestos* (MXN/mes, ajustables). Hoy existen 2 planes
-hardcodeados en `planes_mp()` (Estándar $299 / Premium $599); esto los reemplaza.
+3 niveles (MXN/mes). La **fuente de verdad es la tabla `planes`**: `planes_mp()`
+la lee y de ahí salen la landing, el registro, el checkout, `/platform` y el
+`transaction_amount` que se manda a Mercado Pago. El array de `planes_mp()` solo
+es el fallback para cuando la tabla aún no existe. Cambiar un precio se hace en
+un solo lugar; ver `sql/actualizar_produccion.sql`.
 
-| Plan | Precio aprox. | Para quién | Incluye (resumen) |
+| Plan | Precio | Para quién | Incluye (resumen) |
 |---|---|---|---|
-| **Básico** | $299 | Médico solo / consultorio chico | Núcleo: citas, expediente, recetas, facturación simple, recordatorios por correo |
-| **Profesional** | $599 | Consultorio en crecimiento | Todo Básico + WhatsApp, portal del paciente, telemedicina básica, reportes, plantillas por especialidad |
-| **Clínica** | $1,199 | Clínica / multi-médico / multi-sucursal | Todo Profesional + farmacia/POS, laboratorio, multi-sucursal, IA clínica, RH, CFDI/SAT, integraciones avanzadas |
+| **Básico** | $499 | Médico solo / consultorio chico | Núcleo: citas, expediente, recetas, facturación simple, recordatorios por correo |
+| **Profesional** | $999 | Consultorio en crecimiento | Todo Básico + WhatsApp, portal del paciente, telemedicina básica, reportes, plantillas por especialidad |
+| **Clínica** | $1,999 | Clínica / multi-médico / multi-sucursal | Todo Profesional + farmacia/POS, laboratorio, ultrasonido, multi-sucursal, IA clínica, RH, CFDI/SAT, integraciones avanzadas |
+
+> Escalera x2 y cada plan bajo una barrera redonda ($500 / $1,000 / $2,000).
+> Precios anteriores: $799 / $1,299 / $2,799 (hasta 2026-08-26).
 
 > Regla de oro: **cada función nueva nace etiquetada con su plan** (columna
 > "Plan" en las tablas de fases). Sin la infraestructura de entitlements (§3.1)

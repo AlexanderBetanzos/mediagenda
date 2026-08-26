@@ -660,3 +660,16 @@ ON DUPLICATE KEY UPDATE nombre = VALUES(nombre), fase = VALUES(fase), orden = VA
 INSERT INTO plan_modulos (plan_clave, modulo_clave) VALUES
  ('clinica', 'imagenologia')
 ON DUPLICATE KEY UPDATE plan_clave = VALUES(plan_clave);
+
+-- ============ 2026-08-26: precios más competitivos ============
+--  $799/$1,299/$2,799 -> $499/$999/$1,999. Cada plan queda debajo de una
+--  barrera redonda ($500, $1,000, $2,000) y la escalera se empareja a x2.
+--
+--  OJO: esto cambia lo que se cobrará a las suscripciones NUEVAS, porque
+--  `transaction_amount` se toma de esta tabla al crear el preapproval. Las
+--  suscripciones YA activas en Mercado Pago conservan su monto original: para
+--  bajárselo hay que actualizar cada preapproval en Mercado Pago (o cancelarlo
+--  y volver a suscribir al consultorio).
+UPDATE planes SET precio =  499.00 WHERE clave = 'basico';
+UPDATE planes SET precio =  999.00 WHERE clave = 'profesional';
+UPDATE planes SET precio = 1999.00 WHERE clave = 'clinica';
