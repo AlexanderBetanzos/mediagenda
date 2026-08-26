@@ -416,15 +416,13 @@ body.lp .bg-primary { background-color: var(--brand) !important; }
 .landing-nav .nav-link { font-weight: 500; color: #41506a; }
 .landing-nav .nav-link:hover { color: var(--brand); }
 
-/* Hero banner (foto de fondo + overlay) */
-.lp-hero { position: relative; color: #fff; background-color: var(--brand-dark); background-size: cover; background-position: center right; background-repeat: no-repeat; }
-.lp-hero::before { content: ''; position: absolute; inset: 0; background: linear-gradient(100deg, rgba(8,14,22,.95) 0%, rgba(9,20,33,.90) 34%, rgba(37,99,235,.55) 62%, rgba(37,99,235,.22) 82%, rgba(111,185,192,.10) 100%); }
+/* Hero banner. El aspecto (fondo claro, mancha de color, franja de datos)
+   vive en el <style> de index.php, junto al resto de la landing. Aquí solo
+   queda lo estructural, para no tener dos archivos discutiendo el mismo
+   selector. */
+.lp-hero { position: relative; }
 .lp-hero > .container { position: relative; z-index: 1; }
-.lp-hero-row { min-height: 720px; padding: 5rem 0; align-items: center; }
-.lp-hero-text { text-shadow: 0 1px 16px rgba(0,0,0,.18); }
-.lp-pill { display: inline-flex; align-items: center; gap: .4rem; background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.32); color: #fff; padding: .35rem .85rem; border-radius: 999px; font-size: .85rem; font-weight: 600; }
-.lp-hero .lead { color: rgba(255,255,255,.94); }
-.lp-hero .small span i { color: #9ff3c0; }
+.lp-pill { display: inline-flex; align-items: center; gap: .4rem; padding: .35rem .85rem; border-radius: 999px; font-size: .85rem; font-weight: 600; }
 
 /* Mockup del panel sobre el hero */
 .lp-dash { border-radius: 1.1rem; max-width: 440px; margin-left: auto; }
@@ -434,9 +432,6 @@ body.lp .bg-primary { background-color: var(--brand) !important; }
 .lp-ag { border: 1px solid #eef2f7; border-radius: .55rem; padding: .45rem .6rem; margin-bottom: .4rem; font-size: .82rem; }
 .lp-ag-h { background: #eef2f7; border-radius: .35rem; padding: .05rem .35rem; font-size: .72rem; font-weight: 600; margin-right: .3rem; }
 @media (max-width: 991px) {
-    .lp-hero { background-position: center; }
-    .lp-hero::before { background: linear-gradient(180deg, rgba(8,14,22,.94), rgba(214,95,15,.9)); }
-    .lp-hero-row { min-height: 0; }
     .lp-dash { margin: 0 auto; }
 }
 

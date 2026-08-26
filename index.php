@@ -70,28 +70,40 @@ track_pageview('publico');
     </div>
 </nav>
 
-<!-- Hero (banner con foto de fondo) -->
-<header class="lp-hero" style="background-image:url('https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=1600&q=80&auto=format&fit=crop')">
+<!-- Hero claro, estilo clínica: titular partido, franja de datos y mock flotando -->
+<header class="lp-hero">
+    <span class="lp-blob" aria-hidden="true"></span>
     <div class="container">
-        <div class="row align-items-center g-4 lp-hero-row">
+        <div class="row align-items-center g-5 lp-hero-row">
             <div class="col-lg-6 lp-hero-text">
-                <span class="lp-pill mb-3"><i class="bi bi-patch-check-fill"></i> Para consultorios, clínicas y hospitales</span>
-                <h1 class="display-4 fw-bold mb-3">Toma el control total de tu consultorio</h1>
-                <p class="lead mb-4">Protege el expediente de cada paciente, deja que la agenda confirme las citas por ti y cobra sin perseguir pagos. Tú atiendes; <?= e($marca) ?> se encarga del resto.</p>
-                <div class="d-flex flex-wrap gap-2">
-                    <a href="<?= BASE_URL ?>/auth/registro" class="btn btn-light btn-lg px-4 text-brand fw-semibold"><i class="bi bi-rocket-takeoff"></i> Prueba gratis 15 días</a>
-                    <a href="#funciones" class="btn btn-outline-light btn-lg px-4">Ver cómo funciona</a>
+                <span class="lp-pill mb-3"><i class="bi bi-patch-check-fill"></i> Hecho para consultorios de México</span>
+                <h1 class="lp-h1 mb-3">Toma el control<br><span class="lp-h1-ac">de tu consultorio</span></h1>
+                <p class="lp-sub mb-4">Protege el expediente de cada paciente, deja que la agenda confirme las citas por ti y cobra sin perseguir pagos. Tú atiendes; <?= e($marca) ?> se encarga del resto.</p>
+                <div class="d-flex flex-wrap gap-2 mb-4">
+                    <a href="<?= BASE_URL ?>/auth/registro" class="btn lp-btn lp-btn-fill"><i class="bi bi-rocket-takeoff"></i> Prueba gratis <?= trial_dias_oferta() ?> días</a>
+                    <a href="#funciones" class="btn lp-btn lp-btn-ghost">Ver cómo funciona</a>
                 </div>
-                <div class="d-flex align-items-center flex-wrap gap-3 mt-4">
-                    <div class="lp-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div>
-                    <span class="small">Pensado para consultorios de México 🇲🇽</span>
+
+                <?php
+                /* Franja de datos. Todo lo de aquí es COMPROBABLE en el producto:
+                   nada de "10 mil pacientes felices" ni médicos inventados. El
+                   16 sale de contar los módulos que exigen require_modulo('especialidades'). */
+                $datos = [
+                    ['bi-clipboard2-pulse', '16',  'Especialidades clínicas'],
+                    ['bi-gift',             trial_dias_oferta() . ' días', 'De prueba, sin tarjeta'],
+                    ['bi-cash-coin',        '0%',  'Comisión sobre tus cobros'],
+                ];
+                foreach ($datos as [$ic, $n, $l]): ?>
+                <div class="lp-stat">
+                    <span class="lp-stat-ic"><i class="bi <?= $ic ?>"></i></span>
+                    <span>
+                        <span class="lp-stat-n"><?= e($n) ?></span>
+                        <span class="lp-stat-l"><?= e($l) ?></span>
+                    </span>
                 </div>
-                <div class="d-flex flex-wrap gap-4 mt-3 small opacity-75">
-                    <span><i class="bi bi-check-circle-fill"></i> Sin tarjeta</span>
-                    <span><i class="bi bi-check-circle-fill"></i> Acceso completo</span>
-                    <span><i class="bi bi-check-circle-fill"></i> Cancela cuando quieras</span>
-                </div>
+                <?php endforeach; ?>
             </div>
+
             <div class="col-lg-6">
                 <div class="lp-mock">
                     <div class="lp-mock-bar"><span></span><span></span><span></span></div>
@@ -118,12 +130,12 @@ track_pageview('publico');
                             <?php endforeach; ?>
                         </div>
                     </div>
-                    <!-- Tarjeta flotante: pago en línea confirmado -->
+                    <!-- Tarjeta flotante: el equivalente honesto al "24/7" de las clínicas -->
                     <div class="lp-float">
-                        <div class="lp-float-ic"><i class="bi bi-check-lg"></i></div>
+                        <div class="lp-float-ic"><i class="bi bi-shield-lock-fill"></i></div>
                         <div>
-                            <div class="lp-float-t">Pago recibido</div>
-                            <div class="lp-float-s">$1,200 · Mercado Pago</div>
+                            <div class="lp-float-t">Tus datos, tuyos</div>
+                            <div class="lp-float-s">Cifrados y con respaldo</div>
                         </div>
                     </div>
                 </div>
@@ -351,6 +363,101 @@ track_pageview('publico');
     body.lp .section-title { font-family: var(--font-display); font-weight: 600; color: var(--ink);
                              letter-spacing: -.035em; line-height: 1.06; }
     body.lp .lp-eyebrow { font-weight: 590; letter-spacing: .02em; font-size: .8rem; text-transform: uppercase; }
+
+    /* ── Hero claro ────────────────────────────────────────────────────
+       El banner deja de ser una foto oscura con texto encima. Texto en
+       negro sobre fondo claro se lee mejor y aguanta cualquier pantalla:
+       la foto de stock tapada por un degradado siempre pierde contraste
+       en algún punto. El color lo pone una mancha orgánica detrás. */
+    .lp-hero { position: relative; overflow: hidden; color: var(--ink);
+               background: linear-gradient(160deg, #eef3fe 0%, #f6f9ff 46%, #fff 100%); }
+    .lp-hero::before { content: none; }
+    .lp-hero-row { min-height: 640px; padding: 4.5rem 0 5rem; align-items: center; }
+    .lp-hero-text { text-shadow: none; }
+    /* Mancha de color detrás del mock: es lo que da el aire de clínica sin
+       pagar un banco de imágenes ni cargar 400 KB de foto. */
+    .lp-blob { position: absolute; top: -18%; right: -12%; width: 62%; aspect-ratio: 1;
+               background: radial-gradient(circle at 32% 32%,
+                           color-mix(in srgb, var(--brand) 26%, transparent),
+                           color-mix(in srgb, var(--brand) 6%, transparent) 62%, transparent 74%);
+               border-radius: 46% 54% 58% 42% / 52% 44% 56% 48%; pointer-events: none; }
+    .lp-hero .lp-pill { background: #fff; border: 1px solid rgba(37,99,235,.18); color: var(--brand);
+                        box-shadow: 0 2px 10px rgba(30,45,80,.06); font-weight: 590; }
+    .lp-h1 { font-family: var(--font-display); font-weight: 600; font-size: clamp(2.5rem, 5.2vw, 4rem);
+             line-height: 1.05; letter-spacing: -.038em; color: var(--ink); }
+    .lp-h1-ac { color: var(--brand); }
+    .lp-sub { color: var(--muted); font-size: 1.12rem; line-height: 1.5; max-width: 33rem; letter-spacing: -.011em; }
+    .lp-btn { border-radius: 980px; padding: .82rem 1.6rem; font-weight: 590; font-size: 1rem;
+              letter-spacing: -.01em; border: 1px solid transparent;
+              transition: background .25s ease, color .25s ease, transform .15s ease; }
+    .lp-btn:active { transform: scale(.975); }
+    .lp-btn-fill { background: var(--brand); color: #fff; }
+    .lp-btn-fill:hover { background: var(--cta-dark); color: #fff; }
+    .lp-btn-ghost { background: #fff; color: var(--brand); border-color: rgba(37,99,235,.28); }
+    .lp-btn-ghost:hover { background: var(--brand); color: #fff; border-color: var(--brand); }
+
+    /* Franja de datos: icono en pastilla, cifra en Display, etiqueta debajo. */
+    .lp-stat { display: inline-flex; align-items: center; gap: .7rem; margin: 0 2.2rem .6rem 0; vertical-align: top; }
+    .lp-stat-ic { width: 42px; height: 42px; flex: 0 0 42px; border-radius: 50%; display: flex;
+                  align-items: center; justify-content: center; font-size: 1.05rem;
+                  color: var(--brand); background: color-mix(in srgb, var(--brand) 11%, #fff); }
+    .lp-stat-n { display: block; font-family: var(--font-display); font-weight: 600; font-size: 1.32rem;
+                 line-height: 1.1; letter-spacing: -.03em; color: var(--ink); font-variant-numeric: tabular-nums; }
+    .lp-stat-l { display: block; font-size: .82rem; color: var(--muted); letter-spacing: -.005em; }
+
+    /* El mock deja de flotar sobre un fondo oscuro, así que necesita su
+       propio contorno para no disolverse en el blanco. */
+    .lp-hero .lp-mock .lp-dash { box-shadow: 0 2px 10px rgba(15,30,60,.05), 0 30px 70px rgba(15,30,60,.13); }
+    .lp-hero .lp-mock-bar { border: 1px solid rgba(0,0,0,.05); border-bottom: 0; }
+
+    /* ── Tarjetas de sección ───────────────────────────────────────────
+       Mismo lenguaje que las tarjetas de plan: blanco, esquina grande,
+       sombra en dos capas y el icono en un cuadrado redondeado. */
+    .lp-feature { background: #fff; border: 1px solid rgba(0,0,0,.05) !important; border-radius: 20px;
+                  box-shadow: 0 1px 4px rgba(0,0,0,.03), 0 10px 28px rgba(0,0,0,.045);
+                  transition: transform .35s cubic-bezier(.28,.11,.32,1), box-shadow .35s cubic-bezier(.28,.11,.32,1); }
+    .lp-feature:hover { transform: translateY(-6px); box-shadow: 0 4px 12px rgba(0,0,0,.05), 0 22px 48px rgba(0,0,0,.09); }
+    .lp-feature .lp-feature-ic { width: 58px; height: 58px; border-radius: 16px; display: flex;
+                                 align-items: center; justify-content: center; font-size: 1.5rem; }
+    .lp-feature h5 { font-family: var(--font-display); font-weight: 600; letter-spacing: -.022em;
+                     color: var(--ink); font-size: 1.12rem; }
+    .lp-feature p { font-size: .95rem; line-height: 1.5; letter-spacing: -.008em; }
+
+    @media (max-width: 991.98px) {
+        .lp-hero-row { min-height: 0; padding: 3rem 0 3.5rem; text-align: center; }
+        .lp-sub { margin-inline: auto; }
+        .lp-hero .d-flex.flex-wrap.gap-2 { justify-content: center; }
+        .lp-stat { margin-right: 1.4rem; text-align: left; }
+        .lp-blob { top: -10%; right: -30%; width: 110%; opacity: .7; }
+    }
+
+    /* ── Variantes oscuras ─────────────────────────────────────────────
+       style.css ya trae un bloque html.lp-dark para la landing, pero estos
+       selectores nuevos viven en el bloque de la landing, que se carga después,
+       así que
+       sus variantes tienen que estar aquí también o el hero se quedaría en
+       blanco sobre fondo negro. */
+    html.lp-dark .lp-hero { background: linear-gradient(160deg, #14171d 0%, #0f1116 55%, var(--d-bg) 100%); color: var(--d-ink); }
+    html.lp-dark .lp-blob { opacity: .5; }
+    html.lp-dark .lp-h1, html.lp-dark .lp-stat-n { color: var(--d-ink); }
+    html.lp-dark .lp-h1-ac { color: var(--d-accent2); }
+    html.lp-dark .lp-sub, html.lp-dark .lp-stat-l { color: var(--d-muted); }
+    html.lp-dark .lp-hero .lp-pill { background: var(--d-panel); border-color: var(--d-border); color: var(--d-accent2); box-shadow: none; }
+    html.lp-dark .lp-stat-ic { background: rgba(37,99,235,.16); color: var(--d-accent2); }
+    html.lp-dark .lp-btn-ghost { background: transparent; color: var(--d-accent2); border-color: var(--d-border); }
+    html.lp-dark .lp-btn-ghost:hover { background: var(--brand); color: #fff; border-color: var(--brand); }
+    html.lp-dark .lp-planes { background: var(--d-bg); }
+    html.lp-dark .lp-plan { background: var(--d-panel); border-color: var(--d-border);
+                            box-shadow: 0 18px 46px rgba(0,0,0,.5); }
+    html.lp-dark .lp-plan.feat { border-color: rgba(96,165,250,.45); }
+    html.lp-dark .lp-plan-name, html.lp-dark .lp-plan-price { color: var(--d-ink); }
+    html.lp-dark .lp-plan-desc, html.lp-dark .lp-plan-price .per { color: var(--d-muted); }
+    html.lp-dark .lp-plan-feats li { color: #c5c9d1; }
+    html.lp-dark .lp-plan .btn-plan { background: transparent; color: var(--d-accent2); border-color: var(--d-border); }
+    html.lp-dark .lp-plan .btn-plan:hover,
+    html.lp-dark .lp-plan.feat .btn-plan { background: var(--brand); color: #fff; border-color: var(--brand); }
+    html.lp-dark .lp-feature h5 { color: var(--d-ink); }
+    html.lp-dark body.lp .section-title { color: var(--d-ink); }
 </style>
 
 <section id="planes" class="lp-planes py-6">
