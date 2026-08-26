@@ -2444,6 +2444,76 @@ function usg_protocolos(): array
     ];
 }
 
+/* --------------------------------------------------------------------
+ *  Telemedicina (videoconsulta por cita)
+ * ------------------------------------------------------------------ */
+
+/**
+ * Servidor de video del consultorio. Por omisión la instancia pública de
+ * Jitsi; un consultorio que monte la suya solo cambia este ajuste y todo lo
+ * demás sigue igual, porque el resto del código nunca asume el dominio.
+ */
+function jitsi_dominio(): string
+{
+    $d = trim((string) cfg('jitsi_dominio', ''));
+    // Solo el host: si alguien pega "https://meet.ejemplo.com/", se limpia.
+    $d = preg_replace('#^https?://#i', '', $d);
+    $d = trim((string) $d, '/ ');
+    return preg_match('/^[a-z0-9.-]+$/i', (string) $d) ? $d : 'meet.jit.si';
+}
+
+/**
+ * Nombre de la sala de video de una cita. Se genera la primera vez que se pide
+ * y vive en la propia cita, igual que cita_token(): muere con ella.
+ *
+ * Es un valor aleatorio propio, NO el token del paciente. Ver sql/telemedicina.sql.
+ */
+function cita_sala(int $cita_id): string
+{
+    $st = db()->prepare('SELECT sala FROM citas WHERE id = ? AND consultorio_id = ?');
+    $st->execute([$cita_id, tenant_id()]);
+    $sala = (string) ($st->fetchColumn() ?: '');
+
+    if ($sala === '') {
+        // El prefijo evita colisionar con salas ajenas en un servidor público.
+        $sala = 'medios' . bin2hex(random_bytes(12));
+        db()->prepare('UPDATE citas SET sala = ? WHERE id = ? AND consultorio_id = ?')
+            ->execute([$sala, $cita_id, tenant_id()]);
+    }
+    return $sala;
+}
+
+/** URL pública para que el paciente entre a su videoconsulta. */
+function cita_sala_enlace(int $cita_id): string
+{
+    return url_absoluta('/telemedicina/consulta?t=' . cita_token($cita_id));
+}
+
+/**
+ * ¿La sala está abierta? Devuelve 'antes', 'abierta' o 'cerrada'.
+ *
+ * Se abre 15 min antes de la hora y se cierra una hora después de que la cita
+ * debía terminar. La ventana existe para que el enlace del recordatorio, que
+ * el paciente recibe el día anterior, no le abra una sala vacía a medianoche
+ * ni siga viva una semana después.
+ */
+function cita_ventana_sala(string $fecha, string $hora, int $duracion = 30): string
+{
+    $inicio = strtotime($fecha . ' ' . $hora);
+    if ($inicio === false) return 'cerrada';
+
+    $ahora = time();
+    if ($ahora < $inicio - 15 * 60)                     return 'antes';
+    if ($ahora > $inicio + ($duracion + 60) * 60)       return 'cerrada';
+    return 'abierta';
+}
+
+/** ¿Esta cita es una videoconsulta con el módulo contratado? */
+function cita_es_en_linea(array $c): bool
+{
+    return ($c['modalidad'] ?? 'presencial') === 'en_linea' && modulo_activo('telemedicina');
+}
+
 /**
  * Catálogo de especialidades médicas (para etiquetar plantillas, médicos, etc.).
  * Lista abierta: el usuario puede escribir cualquier otra. Orden alfabético.

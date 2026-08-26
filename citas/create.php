@@ -23,8 +23,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!isset($intervalos[$repetir])) { $reps = 1; }
 
         $stmt = db()->prepare(
-            'INSERT INTO citas (consultorio_id, paciente_id, medico_id, fecha, hora, duracion, tipo, motivo, estado, notas)
-             VALUES (?,?,?,?,?,?,?,?,?,?)'
+            'INSERT INTO citas (consultorio_id, paciente_id, medico_id, fecha, hora, duracion, tipo, motivo, estado, notas, modalidad)
+             VALUES (?,?,?,?,?,?,?,?,?,?,?)'
         );
         $fecha = $c['fecha'];
         $creadas = 0;
@@ -36,6 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 (int) ($c['duracion'] ?: 30), $c['tipo'] ?? 'medica',
                 trim($c['motivo'] ?? '') ?: null, $c['estado'] ?? 'programada',
                 trim($c['notas'] ?? '') ?: null,
+                ($c['modalidad'] ?? '') === 'en_linea' ? 'en_linea' : 'presencial',
             ]);
             if ($i === 0) { $primera = (int) db()->lastInsertId(); }
             $creadas++;

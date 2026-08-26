@@ -122,6 +122,11 @@ include __DIR__ . '/../includes/header.php';
                                         <i class="bi bi-check2-circle"></i> <?= et('Confirmó el paciente') ?>
                                     </span>
                                 <?php endif; ?>
+                                <?php if (cita_es_en_linea($c)): ?>
+                                    <span class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-25">
+                                        <i class="bi bi-camera-video"></i> <?= et('Videoconsulta') ?>
+                                    </span>
+                                <?php endif; ?>
                                 <?php if (($c['origen'] ?? '') === 'online'): ?>
                                     <span class="badge bg-info bg-opacity-25 text-info border border-info border-opacity-25">
                                         <i class="bi bi-globe"></i> <?= et('En línea') ?>
@@ -158,6 +163,11 @@ include __DIR__ . '/../includes/header.php';
                             if ($wa): ?>
                         <a href="<?= e($wa) ?>" target="_blank" rel="noopener" class="btn btn-sm btn-outline-success" title="Recordatorio por WhatsApp"><i class="bi bi-whatsapp"></i></a>
                         <?php endif; endif; ?>
+                        <?php if (cita_es_en_linea($c)): ?>
+                        <a href="<?= BASE_URL ?>/telemedicina/sala?id=<?= $c['id'] ?>" target="_blank"
+                           class="btn btn-sm btn-<?= cita_ventana_sala($c['fecha'], $c['hora'], (int) ($c['duracion'] ?: 30)) === 'abierta' ? 'success' : 'outline-secondary' ?>"
+                           title="<?= e(t('Entrar a la videoconsulta')) ?>"><i class="bi bi-camera-video"></i></a>
+                        <?php endif; ?>
                         <a href="<?= BASE_URL ?>/citas/edit?id=<?= $c['id'] ?>" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
                     </td>
                 </tr>

@@ -22,13 +22,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!$errores) {
         $stmt = db()->prepare(
-            'UPDATE citas SET paciente_id=?, medico_id=?, fecha=?, hora=?, duracion=?, tipo=?, motivo=?, estado=?, notas=? WHERE id=? AND consultorio_id=?'
+            'UPDATE citas SET paciente_id=?, medico_id=?, fecha=?, hora=?, duracion=?, tipo=?, motivo=?, estado=?, notas=?, modalidad=? WHERE id=? AND consultorio_id=?'
         );
         $stmt->execute([
             (int) $c['paciente_id'], (int) $c['medico_id'], $c['fecha'], $c['hora'],
             (int) ($c['duracion'] ?: 30), $c['tipo'] ?? 'medica',
             trim($c['motivo'] ?? '') ?: null, $c['estado'] ?? 'programada',
-            trim($c['notas'] ?? '') ?: null, $id, tenant_id(),
+            trim($c['notas'] ?? '') ?: null,
+            ($c['modalidad'] ?? '') === 'en_linea' ? 'en_linea' : 'presencial',
+            $id, tenant_id(),
         ]);
         flash('Cita actualizada.');
         redirect('/citas/index?desde=' . urlencode($c['fecha']));

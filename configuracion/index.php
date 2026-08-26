@@ -86,6 +86,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'agenda_online_duracion' => (string) max(10, min(180, (int) ($_POST['agenda_online_duracion'] ?? 30))),
         'agenda_online_aviso'    => trim($_POST['agenda_online_aviso'] ?? ''),
         'agenda_online_precio'   => (string) max(0, round((float) ($_POST['agenda_online_precio'] ?? 0), 2)),
+        // Servidor de video. Vacío = instancia pública (jitsi_dominio() decide).
+        'jitsi_dominio'          => trim($_POST['jitsi_dominio'] ?? ''),
     ]);
     /* Pago en línea: credenciales de Mercado Pago DEL CONSULTORIO, con las que
        cobra a sus propios pacientes. Un campo vacío no borra el que ya había. */
@@ -359,6 +361,26 @@ include __DIR__ . '/../includes/header.php';
                 <i class="bi bi-info-circle"></i>
                 <?= et('Solo se ofrecen huecos reales: salen del horario de cada médico, menos sus bloqueos y menos las citas ya tomadas. Si un médico no tiene horario configurado, no aparece.') ?>
                 <a href="<?= BASE_URL ?>/citas/horarios"><?= et('Configurar horarios') ?></a>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
+
+    <?php if (modulo_activo('telemedicina')): ?>
+    <!-- Telemedicina -->
+    <div class="card mb-4">
+        <div class="card-header fw-semibold"><i class="bi bi-camera-video text-brand"></i> <?= et('Videoconsulta') ?></div>
+        <div class="card-body">
+            <label class="form-label"><?= et('Servidor de video') ?></label>
+            <input name="jitsi_dominio" class="form-control" maxlength="120"
+                   placeholder="meet.jit.si" value="<?= e(cfg('jitsi_dominio', '')) ?>">
+            <div class="form-text">
+                <?= et('Déjalo vacío para usar la instancia pública de Jitsi (meet.jit.si), que es gratis.') ?>
+                <?= et('Si montas tu propio servidor Jitsi, escribe aquí su dominio y las videoconsultas pasarán por él.') ?>
+            </div>
+            <div class="alert alert-warning small mt-3 mb-0">
+                <i class="bi bi-exclamation-triangle"></i>
+                <?= et('En meet.jit.si el médico debe iniciar sesión (Google, GitHub o Facebook) la primera vez que abre una sala; el paciente no necesita cuenta. Con servidor propio no se pide nada.') ?>
             </div>
         </div>
     </div>

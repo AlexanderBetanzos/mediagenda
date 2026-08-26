@@ -123,6 +123,21 @@ $badgeCls = $cancelada ? 'ag-badge-off' : 'ag-badge-ok';
                 </div>
             </div>
 
+            <?php if (cita_es_en_linea($c) && !$cancelada):
+                $vent = cita_ventana_sala($c['fecha'], $c['hora'], (int) ($c['duracion'] ?: 30)); ?>
+                <?php if ($vent === 'abierta'): ?>
+                <a href="<?= e(url_absoluta('/telemedicina/consulta?t=' . $token)) ?>"
+                   class="btn btn-primary btn-lg w-100 mb-3 py-3 fw-semibold">
+                    <i class="bi bi-camera-video"></i> <?= et('Entrar a mi videoconsulta') ?>
+                </a>
+                <?php elseif ($vent === 'antes'): ?>
+                <div class="alert alert-info py-2 small">
+                    <i class="bi bi-camera-video"></i>
+                    <?= et('Tu consulta es por video. El botón para entrar aparece aquí 15 minutos antes de tu hora.') ?>
+                </div>
+                <?php endif; ?>
+            <?php endif; ?>
+
             <?php if ($abierta && $c['estado'] === 'programada'): ?>
                 <form method="post" class="d-grid gap-2">
                     <input type="hidden" name="t" value="<?= e($token) ?>">

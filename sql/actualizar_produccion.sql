@@ -684,8 +684,30 @@ UPDATE planes SET descripcion = 'Un médico, todo bajo control',
        items = '["Pacientes y citas sin papeles","Expediente clínico protegido","Recetas con tu marca","Presupuestos y control de ingresos","Órdenes de laboratorio y resultados","Recordatorios de cita por correo"]'
  WHERE clave = 'basico';
 UPDATE planes SET descripcion = 'El que eligen los consultorios que crecen',
-       items = '["Todo lo de Básico","Portal del paciente 24/7","Agenda en línea: se agendan solos","Avisos por WhatsApp en un clic","Reportes para decidir con números","Plantillas por especialidad","Óptica, odontograma, prenatal y más"]'
+       items = '["Todo lo de Básico","Portal del paciente 24/7","Agenda en línea: se agendan solos","Videoconsulta sin instalar nada","Avisos por WhatsApp en un clic","Reportes para decidir con números","Plantillas y módulos por especialidad"]'
  WHERE clave = 'profesional';
 UPDATE planes SET descripcion = 'Cuando el consultorio ya es un negocio',
        items = '["Todo lo de Profesional","Farmacia y punto de venta","Inventario con alertas de stock","Ultrasonido con informe e imágenes"]'
  WHERE clave = 'clinica';
+
+-- ============ 2026-08-26: telemedicina (videoconsulta por cita) ============
+--  La videollamada cuelga de la cita: no hay tabla nueva. `sala` es un valor
+--  aleatorio propio, distinto de `citas.token`, para que el servidor de video
+--  nunca vea la credencial del paciente. Ver sql/telemedicina.sql.
+SET @existe := (SELECT COUNT(*) FROM information_schema.COLUMNS
+                WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'citas'
+                  AND COLUMN_NAME = 'modalidad');
+SET @sql := IF(@existe = 0,
+  "ALTER TABLE citas
+     ADD COLUMN modalidad ENUM('presencial','en_linea') NOT NULL DEFAULT 'presencial',
+     ADD COLUMN sala VARCHAR(40) DEFAULT NULL,
+     ADD COLUMN sala_abierta_en DATETIME DEFAULT NULL",
+  'SELECT "citas ya tiene modalidad/sala"');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+INSERT INTO modulos (clave, nombre, fase, orden) VALUES
+ ('telemedicina', 'Telemedicina', 2, 9)
+ON DUPLICATE KEY UPDATE nombre = VALUES(nombre);
+INSERT INTO plan_modulos (plan_clave, modulo_clave) VALUES
+ ('profesional', 'telemedicina'), ('clinica', 'telemedicina')
+ON DUPLICATE KEY UPDATE plan_clave = VALUES(plan_clave);

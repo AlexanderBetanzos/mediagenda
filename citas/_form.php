@@ -53,7 +53,17 @@ $medicos = $medicos->fetchAll();
             <option value="dental" <?= $tp==='dental'?'selected':'' ?>><?= et('Dental') ?></option>
         </select>
     </div>
-    <div class="col-md-8">
+    <?php if (modulo_activo('telemedicina')): ?>
+    <div class="col-md-3">
+        <label class="form-label"><?= et('Modalidad') ?></label>
+        <select name="modalidad" class="form-select">
+            <?php $md = $c['modalidad'] ?? 'presencial'; ?>
+            <option value="presencial" <?= $md==='presencial'?'selected':'' ?>><?= et('Presencial') ?></option>
+            <option value="en_linea"   <?= $md==='en_linea'?'selected':'' ?>><?= et('Videoconsulta') ?></option>
+        </select>
+    </div>
+    <?php endif; ?>
+    <div class="col-md-5">
         <label class="form-label"><?= et('Motivo') ?></label>
         <input type="text" name="motivo" class="form-control" value="<?= $val('motivo') ?>">
     </div>
