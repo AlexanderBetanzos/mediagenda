@@ -50,6 +50,12 @@ un solo lugar; ver `sql/actualizar_produccion.sql`.
 | **Clínica** | $1,999 | Clínica / multi-médico / multi-sucursal | Todo Profesional + farmacia/POS, laboratorio, ultrasonido, multi-sucursal, IA clínica, RH, CFDI/SAT, integraciones avanzadas |
 
 > Escalera x2 y cada plan bajo una barrera redonda ($500 / $1,000 / $2,000).
+>
+> **Quién paga cada integración.** WhatsApp usa credenciales DEL CONSULTORIO
+> (`configuracion`, vía `cfg()`), porque el mensaje sale del número del doctor y
+> Meta le cobra a él; la IA clínica usa la llave DE LA PLATAFORMA
+> (`plataforma_config`), porque un médico no administra una API key — y por eso
+> el consumo lo pagamos nosotros y va medido y con tope (`ia_uso`).
 > Precios anteriores: $799 / $1,299 / $2,799 (hasta 2026-08-26).
 
 > Regla de oro: **cada función nueva nace etiquetada con su plan** (columna
@@ -236,7 +242,7 @@ e incapacidades · OCR de INE/CURP. → la mayoría cuelgan de **Flujo de sala**
 | Farmacia/POS | — | — | ✓ |
 | Laboratorio | — | — | ✓ |
 | Ultrasonido / Imagenología | — | add-on | ✓ |
-| IA clínica | — | — | ✓ |
+| IA clínica | — | — | ✓ (con tope mensual) |
 | Multi-sucursal / RH / ERP | — | — | ✓ |
 | CFDI/SAT | — | — | ✓ |
 | OCR / DICOM / IA avanzada | — | add-on | ✓ |

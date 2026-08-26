@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/ia.php';
 require_login();
 
 $u  = current_user();
@@ -696,6 +697,36 @@ include __DIR__ . '/../includes/header.php';
                             <?php else: ?>
                             <div class="mb-2 small"><a href="<?= BASE_URL ?>/plantillas/index" class="text-decoration-none"><i class="bi bi-file-earmark-text"></i> <?= et('Crear plantillas de consulta') ?></a></div>
                             <?php endif; ?>
+                            <?php if (ia_disponible() && has_role('medico', 'admin')): ?>
+                            <?php /* Atajo, no sustituto: la IA rellena los campos y el médico
+                                     los revisa y firma. Se puede capturar todo a mano igual. */ ?>
+                            <div class="border rounded p-3 mb-3" style="background:rgba(127,127,127,.06)">
+                                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+                                    <span class="fw-semibold small">
+                                        <i class="bi bi-stars text-brand"></i> <?= et('Dicta o pega tus notas y la IA las acomoda') ?>
+                                    </span>
+                                    <span class="small text-muted" id="iaRestantes">
+                                        <?= (int) ia_restantes() ?> <?= et('de este mes') ?>
+                                    </span>
+                                </div>
+                                <textarea id="iaTexto" class="form-control mb-2" rows="3" maxlength="20000"
+                                          placeholder="<?= e(t('Ej. Paciente refiere dolor abdominal de tres días, TA 120/80, abdomen blando, sin datos de irritación peritoneal. Probable gastritis. Omeprazol 20 mg cada 24 horas por 14 días.')) ?>"></textarea>
+                                <div class="d-flex flex-wrap gap-2 align-items-center">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary d-none" id="iaDictar">
+                                        <i class="bi bi-mic"></i> <?= et('Dictar') ?>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-primary" id="iaAcomodar">
+                                        <i class="bi bi-magic"></i> <?= et('Acomodar en los campos') ?>
+                                    </button>
+                                    <span class="small text-muted" id="iaAviso"></span>
+                                </div>
+                                <div class="form-text mt-2">
+                                    <i class="bi bi-shield-exclamation"></i>
+                                    <?= et('Revisa siempre lo que rellene: la consulta la firmas tú.') ?>
+                                </div>
+                            </div>
+                            <?php endif; ?>
+
                             <div class="row g-3">
                                 <div class="col-12">
                                     <label class="form-label"><?= et('Motivo de consulta') ?></label>
@@ -750,6 +781,107 @@ include __DIR__ . '/../includes/header.php';
                 })();
                 </script>
                 <?php endif; ?>
+                <?php endif; ?>
+
+                <?php if (ia_disponible() && has_role('medico', 'admin')): ?>
+                <script>
+                (function () {
+                    var caja      = document.getElementById('formConsulta');
+                    var texto     = document.getElementById('iaTexto');
+                    var btn       = document.getElementById('iaAcomodar');
+                    var btnDictar = document.getElementById('iaDictar');
+                    var aviso     = document.getElementById('iaAviso');
+                    var restantes = document.getElementById('iaRestantes');
+                    if (!caja || !texto || !btn) return;
+
+                    function decir(msg, clase) {
+                        aviso.textContent = msg || '';
+                        aviso.className = 'small ' + (clase || 'text-muted');
+                    }
+
+                    /* Dictado: lo transcribe el NAVEGADOR, no el servidor. Es gratis y
+                       el audio nunca sale de la máquina del médico; a la API solo viaja
+                       el texto. Chrome y Edge lo traen; en el resto el botón no aparece. */
+                    var Reco = window.SpeechRecognition || window.webkitSpeechRecognition;
+                    if (Reco && btnDictar) {
+                        var reco = new Reco();
+                        reco.lang = 'es-MX';
+                        reco.continuous = true;
+                        reco.interimResults = false;
+                        var grabando = false;
+
+                        btnDictar.classList.remove('d-none');
+                        btnDictar.addEventListener('click', function () {
+                            if (grabando) { reco.stop(); return; }
+                            try { reco.start(); } catch (e) { return; }
+                        });
+                        reco.addEventListener('start', function () {
+                            grabando = true;
+                            btnDictar.className = 'btn btn-sm btn-danger';
+                            btnDictar.innerHTML = '<i class="bi bi-stop-fill"></i> <?= e(t('Detener')) ?>';
+                            decir('<?= e(t('Escuchando…')) ?>');
+                        });
+                        reco.addEventListener('end', function () {
+                            grabando = false;
+                            btnDictar.className = 'btn btn-sm btn-outline-secondary';
+                            btnDictar.innerHTML = '<i class="bi bi-mic"></i> <?= e(t('Dictar')) ?>';
+                            decir('');
+                        });
+                        reco.addEventListener('result', function (ev) {
+                            for (var i = ev.resultIndex; i < ev.results.length; i++) {
+                                if (ev.results[i].isFinal) {
+                                    texto.value += (texto.value ? ' ' : '') + ev.results[i][0].transcript.trim();
+                                }
+                            }
+                        });
+                        reco.addEventListener('error', function (ev) {
+                            decir(ev.error === 'not-allowed'
+                                ? '<?= e(t('Permite el micrófono para dictar.')) ?>'
+                                : '<?= e(t('No se pudo usar el micrófono.')) ?>', 'text-danger');
+                        });
+                    }
+
+                    btn.addEventListener('click', function () {
+                        if (texto.value.trim().length < 20) {
+                            decir('<?= e(t('Escribe o dicta un poco más.')) ?>', 'text-warning-emphasis');
+                            return;
+                        }
+                        btn.disabled = true;
+                        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> <?= e(t('Acomodando…')) ?>';
+                        decir('');
+
+                        var datos = new FormData();
+                        datos.append('csrf', <?= json_encode($_SESSION['csrf'] ?? '') ?>);
+                        datos.append('texto', texto.value);
+                        datos.append('paciente_id', '<?= (int) $id ?>');
+
+                        fetch('<?= BASE_URL ?>/ia/estructurar', { method: 'POST', body: datos })
+                            .then(function (r) { return r.json(); })
+                            .then(function (r) {
+                                if (!r.ok) { decir(r.error || '<?= e(t('No se pudo procesar.')) ?>', 'text-danger'); return; }
+                                /* Se rellena por .value, nunca interpolando en HTML: el texto
+                                   viene de un modelo y no debe poder inyectar marcado. */
+                                var puestos = 0;
+                                Object.keys(r.campos || {}).forEach(function (k) {
+                                    var el = caja.querySelector('[name="' + k + '"]');
+                                    if (el && r.campos[k]) { el.value = r.campos[k]; puestos++; }
+                                });
+                                decir(puestos
+                                    ? '<?= e(t('Listo. Revísalo antes de guardar.')) ?>'
+                                    : '<?= e(t('No se encontró información para los campos.')) ?>',
+                                    puestos ? 'text-success' : 'text-warning-emphasis');
+                                if (restantes && typeof r.restantes === 'number') {
+                                    restantes.textContent = r.restantes + ' <?= e(t('de este mes')) ?>';
+                                }
+                            })
+                            .catch(function () { decir('<?= e(t('Falló la conexión.')) ?>', 'text-danger'); })
+                            .finally(function () {
+                                btn.disabled = false;
+                                btn.innerHTML = '<i class="bi bi-magic"></i> <?= e(t('Acomodar en los campos')) ?>';
+                            });
+                    });
+                })();
+                </script>
                 <?php endif; ?>
 
                 <?php if (!$cons): ?>

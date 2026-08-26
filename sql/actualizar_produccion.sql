@@ -711,3 +711,17 @@ ON DUPLICATE KEY UPDATE nombre = VALUES(nombre);
 INSERT INTO plan_modulos (plan_clave, modulo_clave) VALUES
  ('profesional', 'telemedicina'), ('clinica', 'telemedicina')
 ON DUPLICATE KEY UPDATE plan_clave = VALUES(plan_clave);
+
+-- ============ 2026-08-26: IA clínica (medidor de uso) ============
+--  Ver sql/ia.sql. La llave vive en plataforma_config; esto solo mide gasto.
+CREATE TABLE IF NOT EXISTS ia_uso (
+  id INT AUTO_INCREMENT PRIMARY KEY, consultorio_id INT NOT NULL, periodo CHAR(7) NOT NULL,
+  usos INT NOT NULL DEFAULT 0, tokens_in BIGINT NOT NULL DEFAULT 0, tokens_out BIGINT NOT NULL DEFAULT 0,
+  actualizado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_ia_uso (consultorio_id, periodo), INDEX idx_ia_periodo (periodo)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO modulos (clave, nombre, fase, orden) VALUES ('ia', 'IA clínica', 3, 14)
+ON DUPLICATE KEY UPDATE nombre = VALUES(nombre);
+INSERT INTO plan_modulos (plan_clave, modulo_clave) VALUES ('clinica', 'ia')
+ON DUPLICATE KEY UPDATE plan_clave = VALUES(plan_clave);

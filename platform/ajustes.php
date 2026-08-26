@@ -10,6 +10,7 @@ require_once __DIR__ . '/../includes/functions.php';
 require_platform_super();
 require_once __DIR__ . '/../includes/mercadopago.php';
 require_once __DIR__ . '/../includes/correo.php';
+require_once __DIR__ . '/../includes/ia.php';
 require_once __DIR__ . '/../includes/recordatorios.php';
 
 $prueba  = null;   // resultado de "Probar conexión"
@@ -29,6 +30,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         guardar_plataforma_cfg(['mp_access_token' => '', 'mp_public_key' => '']);
         auditar('plataforma_mp_limpiar', 'plataforma', null, null, null, $actor);
         flash('Credenciales de Mercado Pago borradas. Vuelve a mandar el archivo de secretos.', 'warning');
+        redirect('/platform/ajustes');
+    }
+
+    if ($accion === 'ia') {
+        $pares = ['ia_limite_mes' => (string) max(0, (int) ($_POST['ia_limite_mes'] ?? 200))];
+        // La llave es larga y se pega una vez: vacío significa "déjala", no "bórrala".
+        $key = trim((string) ($_POST['anthropic_api_key'] ?? ''));
+        if ($key !== '') {
+            if (!preg_match('/^sk-ant-[A-Za-z0-9._-]{20,}$/', $key)) {
+                flash('Esa no parece una API key de Anthropic (empieza con sk-ant-).', 'danger');
+                redirect('/platform/ajustes');
+            }
+            $pares['anthropic_api_key'] = $key;
+        }
+        guardar_plataforma_cfg($pares);
+        auditar('plataforma_ia_guardar', 'plataforma', null, implode(', ', array_keys($pares)), null, $actor);
+        flash('Ajustes de IA clínica guardados.');
+        redirect('/platform/ajustes');
+    }
+
+    if ($accion === 'ia_limpiar') {
+        guardar_plataforma_cfg(['anthropic_api_key' => '']);
+        auditar('plataforma_ia_limpiar', 'plataforma', null, null, null, $actor);
+        flash('Llave de IA borrada. La IA clínica queda apagada para todos.', 'warning');
         redirect('/platform/ajustes');
     }
 
@@ -114,13 +139,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $r = recordatorios_enviar($fecha);
             auditar('plataforma_recordatorios_manual', 'plataforma', null,
-                    "{$r['fecha']}: {$r['procesadas']} citas, {$r['correos']} correos", null, $actor);
+                    "{$r['fecha']}: {$r['procesadas']} citas, {$r['correos']} correos, {$r['whatsapp']} WhatsApp", null, $actor);
             $recResultado = ['ok' => true] + $r;
         } catch (Throwable $e) {
             $recResultado = ['ok' => false, 'mensaje' => $e->getMessage()];
         }
     }
 }
+
+/* Consumo de IA del mes en curso: la plataforma paga esto, así que se ve. */
+$iaMes = ['usos' => 0, 'tokens_in' => 0, 'tokens_out' => 0, 'consultorios' => 0];
+$iaTop = [];
+try {
+    $q = db()->prepare(
+        'SELECT COUNT(*) AS consultorios, COALESCE(SUM(usos),0) AS usos,
+                COALESCE(SUM(tokens_in),0) AS tokens_in, COALESCE(SUM(tokens_out),0) AS tokens_out
+         FROM ia_uso WHERE periodo = ?'
+    );
+    $q->execute([date('Y-m')]);
+    $iaMes = $q->fetch() ?: $iaMes;
+
+    $q = db()->prepare(
+        'SELECT u.consultorio_id, u.usos, u.tokens_in, u.tokens_out, c.nombre
+         FROM ia_uso u LEFT JOIN consultorios c ON c.id = u.consultorio_id
+         WHERE u.periodo = ? ORDER BY u.usos DESC LIMIT 8'
+    );
+    $q->execute([date('Y-m')]);
+    $iaTop = $q->fetchAll();
+} catch (Throwable $e) { /* la tabla ia_uso aún no existe */ }
 
 /* Últimas líneas de la bitácora de correos, para diagnosticar entregas. */
 $correoLog = '';
@@ -248,6 +294,84 @@ include __DIR__ . '/_head.php';
     </div>
 </div>
 
+<!-- IA clínica: la llave es NUESTRA y el consumo lo pagamos nosotros -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-stars"></i> IA clínica</span>
+                <?php if (ia_configurada()): ?>
+                    <span class="badge bg-success">Activa</span>
+                <?php else: ?>
+                    <span class="badge bg-secondary">Sin llave</span>
+                <?php endif; ?>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small">
+                    Esta llave es de la plataforma, no de los consultorios: un médico no administra
+                    una API key. La contrapartida es que <strong>el consumo lo pagas tú</strong>, así que
+                    cada uso se mide por consultorio y hay tope mensual.
+                </p>
+                <form method="post" class="row g-3">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="accion" value="ia">
+                    <div class="col-md-8">
+                        <label class="form-label">API key de Anthropic</label>
+                        <input name="anthropic_api_key" class="form-control" autocomplete="off"
+                               placeholder="<?= ia_configurada() ? 'Guardada. Escribe una nueva solo si quieres cambiarla.' : 'sk-ant-…' ?>">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Tope por consultorio / mes</label>
+                        <input type="number" min="0" name="ia_limite_mes" class="form-control"
+                               value="<?= e(plataforma_cfg('ia_limite_mes', '200')) ?>">
+                        <div class="form-text">0 = apagada para todos.</div>
+                    </div>
+                    <div class="col-12 d-flex gap-2">
+                        <button class="btn btn-primary"><i class="bi bi-check-lg"></i> Guardar</button>
+                        <?php if (ia_configurada()): ?>
+                        <button name="accion" value="ia_limpiar" class="btn btn-outline-danger"
+                                onclick="return confirm('¿Borrar la llave? La IA clínica se apaga para todos los consultorios.')">
+                            Borrar llave
+                        </button>
+                        <?php endif; ?>
+                    </div>
+                </form>
+
+                <?php $costo = ia_costo_usd((int) $iaMes['tokens_in'], (int) $iaMes['tokens_out']); ?>
+                <hr>
+                <div class="d-flex flex-wrap gap-4 mb-3">
+                    <div>
+                        <div class="text-muted small text-uppercase">Consultas este mes</div>
+                        <div class="h4 mb-0"><?= (int) $iaMes['usos'] ?></div>
+                    </div>
+                    <div>
+                        <div class="text-muted small text-uppercase">Consultorios usándola</div>
+                        <div class="h4 mb-0"><?= (int) $iaMes['consultorios'] ?></div>
+                    </div>
+                    <div>
+                        <div class="text-muted small text-uppercase">Costo estimado</div>
+                        <div class="h4 mb-0">US$<?= number_format($costo, 2) ?></div>
+                    </div>
+                </div>
+                <?php if ($iaTop): ?>
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead><tr><th>Consultorio</th><th class="text-end">Consultas</th><th class="text-end">Costo est.</th></tr></thead>
+                        <tbody>
+                        <?php foreach ($iaTop as $t): ?>
+                            <tr>
+                                <td><?= e($t['nombre'] ?: ('#' . (int) $t['consultorio_id'])) ?></td>
+                                <td class="text-end"><?= (int) $t['usos'] ?></td>
+                                <td class="text-end">US$<?= number_format(ia_costo_usd((int) $t['tokens_in'], (int) $t['tokens_out']), 2) ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+                <?php else: ?>
+                    <p class="text-muted small mb-0">Nadie la ha usado este mes.</p>
+                <?php endif; ?>
+            </div>
+        </div>
+
 <!-- ── Diagnóstico de correo ──────────────────────────────────────────── -->
 <div class="row g-3 mt-1">
     <div class="col-lg-7">
@@ -310,6 +434,9 @@ include __DIR__ . '/_head.php';
                             <i class="bi bi-check-circle"></i>
                             <?= (int) $recResultado['procesadas'] ?> citas procesadas ·
                             <strong><?= (int) $recResultado['correos'] ?> correos enviados</strong>
+                            <?php if ((int) ($recResultado['whatsapp'] ?? 0) > 0): ?>
+                                · <strong><?= (int) $recResultado['whatsapp'] ?> por WhatsApp</strong>
+                            <?php endif; ?>
                             para el <?= e($recResultado['fecha']) ?>.
                             <?php if ((int) $recResultado['procesadas'] === 0): ?>
                                 <br>No había citas pendientes de recordatorio ese día.

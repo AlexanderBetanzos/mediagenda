@@ -25,4 +25,5 @@ if (!$cli) {
 
 $r = recordatorios_enviar(null, function ($linea) { echo $linea . "\n"; });
 
-echo "Total: {$r['procesadas']} citas procesadas, {$r['correos']} correos enviados (mañana = {$r['fecha']})\n";
+echo "Total: {$r['procesadas']} citas procesadas, {$r['correos']} correos, "
+   . "{$r['whatsapp']} WhatsApp (mañana = {$r['fecha']})\n";

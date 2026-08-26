@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/mercadopago.php';
+require_once __DIR__ . '/../includes/whatsapp.php';
 require_role('admin');
 
 $temas = ['dark' => 'Oscuro', 'light' => 'Claro', 'auto' => 'Automático (según el sistema)'];
@@ -88,7 +89,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'agenda_online_precio'   => (string) max(0, round((float) ($_POST['agenda_online_precio'] ?? 0), 2)),
         // Servidor de video. Vacío = instancia pública (jitsi_dominio() decide).
         'jitsi_dominio'          => trim($_POST['jitsi_dominio'] ?? ''),
+        'wa_auto'                => !empty($_POST['wa_auto']) ? '1' : '0',
+        'wa_phone_id'            => trim($_POST['wa_phone_id'] ?? ''),
+        'wa_plantilla'           => trim($_POST['wa_plantilla'] ?? ''),
+        'wa_idioma'              => trim($_POST['wa_idioma'] ?? '') ?: 'es_MX',
     ]);
+    /* El token de WhatsApp es largo y se pega una vez: un campo vacío significa
+       "déjalo como está", no "bórralo". */
+    if (($waTok = trim($_POST['wa_token'] ?? '')) !== '') {
+        guardar_cfg(['wa_token' => $waTok]);
+    }
+
     /* Pago en línea: credenciales de Mercado Pago DEL CONSULTORIO, con las que
        cobra a sus propios pacientes. Un campo vacío no borra el que ya había. */
     ['nuevos' => $mpNuevos, 'errores' => $mpErrores] =
@@ -405,6 +416,69 @@ include __DIR__ . '/../includes/header.php';
                 <div class="form-text">
                     <?= et('Marcadores:') ?> <code>{paciente}</code> <code>{consultorio}</code> <code>{fecha}</code> <code>{hora}</code> <code>{enlace}</code>.
                     <br><?= et('El {enlace} deja que el paciente confirme o cancele con un clic. Si no lo pones, se agrega al final igualmente.') ?>
+                </div>
+            </div>
+
+            <?php /* Envío AUTOMÁTICO por la API de Meta. Lo de arriba (plantilla con
+                     marcadores) es para el enlace wa.me que se pulsa a mano; esto de
+                     aquí manda solo, y por eso exige credenciales y plantilla aprobada. */ ?>
+            <div class="col-12"><hr class="my-1">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="fw-semibold small text-muted text-uppercase">
+                        <i class="bi bi-send"></i> <?= et('Envío automático (WhatsApp Business API)') ?>
+                    </span>
+                    <?php if (wa_configurado()): ?>
+                        <span class="badge bg-success"><?= et('Conectado') ?></span>
+                    <?php else: ?>
+                        <span class="badge bg-secondary"><?= et('Sin conectar') ?></span>
+                    <?php endif; ?>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" id="wa_auto" name="wa_auto" value="1"
+                           <?= cfg('wa_auto', '0') === '1' ? 'checked' : '' ?>>
+                    <label class="form-check-label" for="wa_auto">
+                        <?= et('Mandar el recordatorio por WhatsApp automáticamente') ?>
+                    </label>
+                </div>
+                <div class="form-text"><?= et('Se envía junto con el correo, el día anterior a la cita.') ?></div>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label"><?= et('Phone Number ID') ?></label>
+                <input name="wa_phone_id" class="form-control" maxlength="40"
+                       value="<?= e(cfg('wa_phone_id', '')) ?>">
+            </div>
+            <div class="col-md-8">
+                <label class="form-label"><?= et('Token permanente') ?></label>
+                <input name="wa_token" class="form-control" autocomplete="off"
+                       placeholder="<?= e(wa_token() !== '' ? t('Guardado. Escribe uno nuevo solo si quieres cambiarlo.') : 'EAAG…') ?>">
+            </div>
+            <div class="col-md-8">
+                <label class="form-label"><?= et('Nombre de la plantilla aprobada') ?></label>
+                <input name="wa_plantilla" class="form-control" maxlength="120"
+                       placeholder="recordatorio_cita" value="<?= e(cfg('wa_plantilla', '')) ?>">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label"><?= et('Idioma de la plantilla') ?></label>
+                <input name="wa_idioma" class="form-control" maxlength="10"
+                       placeholder="es_MX" value="<?= e(cfg('wa_idioma', 'es_MX')) ?>">
+            </div>
+            <div class="col-12">
+                <div class="alert alert-info small mb-0">
+                    <div class="fw-semibold mb-1"><i class="bi bi-info-circle"></i> <?= et('Cómo debe ser tu plantilla') ?></div>
+                    <?= et('Meta no deja mandar texto libre a quien no te escribió primero: el recordatorio tiene que ser una plantilla que ellos aprueben. Créala en tu WhatsApp Manager con CUATRO variables, en este orden:') ?>
+                    <div class="font-monospace mt-2 p-2 rounded" style="background:rgba(127,127,127,.12)">
+                        Hola {{1}}, le recordamos su cita del {{2}} a las {{3}} con {{4}}.
+                    </div>
+                    <div class="mt-2">
+                        <?= et('1 = paciente · 2 = fecha · 3 = hora · 4 = médico.') ?>
+                        <?= et('El orden lo fija Meta al aprobarla, así que tiene que coincidir.') ?>
+                    </div>
+                    <div class="mt-2 text-warning-emphasis">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <?= et('El número que registres en Meta NO puede estar dado de alta en la app normal de WhatsApp. Necesitas uno dedicado.') ?>
+                    </div>
                 </div>
             </div>
         </div>

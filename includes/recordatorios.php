@@ -10,13 +10,14 @@
  */
 require_once __DIR__ . '/functions.php';
 require_once __DIR__ . '/correo.php';
+require_once __DIR__ . '/whatsapp.php';
 
 /**
  * Corre los recordatorios de un día.
  *
  * @param string|null $fecha   Y-m-d; null = mañana.
  * @param callable|null $echo  Recibe cada línea de progreso (para el CLI). Opcional.
- * @return array{fecha:string,procesadas:int,correos:int,detalle:array}
+ * @return array{fecha:string,procesadas:int,correos:int,whatsapp:int,detalle:array}
  */
 function recordatorios_enviar(?string $fecha = null, ?callable $echo = null): array
 {
@@ -28,7 +29,7 @@ function recordatorios_enviar(?string $fecha = null, ?callable $echo = null): ar
     // un admin de plataforma en el navegador).
     $sesionPrevia = $_SESSION['usuario'] ?? null;
 
-    $totProc = 0; $totMail = 0; $detalle = [];
+    $totProc = 0; $totMail = 0; $totWa = 0; $detalle = [];
 
     $consultorios = db()->query('SELECT id FROM consultorios')->fetchAll(PDO::FETCH_COLUMN);
     foreach ($consultorios as $cid) {
@@ -39,7 +40,7 @@ function recordatorios_enviar(?string $fecha = null, ?callable $echo = null): ar
         if (cfg('recordatorio_auto', '1') !== '1') continue;
 
         $st = db()->prepare(
-            "SELECT c.id, c.fecha, c.hora, p.nombre, p.apellidos, p.email, u.nombre AS med_nombre
+            "SELECT c.id, c.fecha, c.hora, p.nombre, p.apellidos, p.email, p.telefono, u.nombre AS med_nombre
              FROM citas c
              JOIN pacientes p ON p.id = c.paciente_id
              JOIN usuarios  u ON u.id = c.medico_id
@@ -51,7 +52,10 @@ function recordatorios_enviar(?string $fecha = null, ?callable $echo = null): ar
         if (!$citas) continue;
 
         $marca = db()->prepare('UPDATE citas SET recordatorio_en = NOW() WHERE id = ? AND consultorio_id = ?');
-        $proc = $mail = 0;
+        $proc = $mail = $wa = 0;
+        // Se resuelve una vez por consultorio: depende de cfg(), que ya está
+        // cargada para este tenant, y no cambia entre citas.
+        $porWhats = wa_auto_activo();
         foreach ($citas as $c) {
             $proc++;
             if (filter_var($c['email'] ?? '', FILTER_VALIDATE_EMAIL)) {
@@ -62,12 +66,17 @@ function recordatorios_enviar(?string $fecha = null, ?callable $echo = null): ar
                     $mail++;
                 }
             }
+            if ($porWhats && !empty($c['telefono'])) {
+                $r = wa_recordatorio_cita($c['telefono'], $c['nombre'] . ' ' . $c['apellidos'],
+                        fmt_fecha($c['fecha']), fmt_hora($c['hora']), $c['med_nombre']);
+                if ($r['ok']) { $wa++; }
+            }
             $marca->execute([$c['id'], $cid]);
         }
-        if ($proc) { auditar('recordatorios', null, $cid, "$proc procesadas, $mail por correo", $cid); }
-        $totProc += $proc; $totMail += $mail;
-        $detalle[$cid] = ['procesadas' => $proc, 'correos' => $mail];
-        $log("consultorio $cid: $proc citas, $mail correos");
+        if ($proc) { auditar('recordatorios', null, $cid, "$proc procesadas, $mail por correo, $wa por WhatsApp", $cid); }
+        $totProc += $proc; $totMail += $mail; $totWa += $wa;
+        $detalle[$cid] = ['procesadas' => $proc, 'correos' => $mail, 'whatsapp' => $wa];
+        $log("consultorio $cid: $proc citas, $mail correos, $wa WhatsApp");
     }
 
     // Restaura la sesión de quien disparó el envío.
@@ -75,5 +84,6 @@ function recordatorios_enviar(?string $fecha = null, ?callable $echo = null): ar
     else                        $_SESSION['usuario'] = $sesionPrevia;
     cfg_all(true);
 
-    return ['fecha' => $fecha, 'procesadas' => $totProc, 'correos' => $totMail, 'detalle' => $detalle];
+    return ['fecha' => $fecha, 'procesadas' => $totProc, 'correos' => $totMail,
+            'whatsapp' => $totWa, 'detalle' => $detalle];
 }
