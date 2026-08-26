@@ -620,6 +620,9 @@ include __DIR__ . '/../includes/header.php';
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a class="dropdown-item" href="<?= BASE_URL ?>/mapacorporal/index?paciente_id=<?= $id ?>"><i class="bi bi-person-bounding-box me-2"></i><?= et('Mapa corporal') ?></a></li>
                                 <li><hr class="dropdown-divider"></li>
+                                <?php /* Los módulos de especialidad son del plan Profesional en adelante.
+                                         Sin este gate un consultorio Básico los veía y los usaba completos. */ ?>
+                                <?php if (modulo_activo('especialidades')): ?>
                                 <?php if (strncasecmp((string) ($p['sexo'] ?? ''), 'F', 1) === 0): ?>
                                 <li><a class="dropdown-item" href="<?= BASE_URL ?>/prenatal/index?paciente_id=<?= $id ?>"><i class="bi bi-gender-female me-2"></i><?= et('Control prenatal') ?></a></li>
                                 <?php endif; ?>
@@ -628,6 +631,16 @@ include __DIR__ . '/../includes/header.php';
                                 <li><a class="dropdown-item" href="<?= BASE_URL ?>/dermatologia/index?paciente_id=<?= $id ?>"><i class="bi bi-bandaid me-2"></i><?= et('Dermatología') ?></a></li>
                                 <li><a class="dropdown-item" href="<?= BASE_URL ?>/psicologia/index?paciente_id=<?= $id ?>"><i class="bi bi-chat-heart me-2"></i><?= et('Psicología') ?></a></li>
                                 <li><a class="dropdown-item" href="<?= BASE_URL ?>/oftalmologia/index?paciente_id=<?= $id ?>"><i class="bi bi-eye me-2"></i><?= et('Oftalmología') ?></a></li>
+                                <li><a class="dropdown-item" href="<?= BASE_URL ?>/traumatologia/index?paciente_id=<?= $id ?>"><i class="bi bi-bandaid-fill me-2"></i><?= et('Traumatología') ?></a></li>
+                                <li><a class="dropdown-item" href="<?= BASE_URL ?>/cirugia/index?paciente_id=<?= $id ?>"><i class="bi bi-scissors me-2"></i><?= et('Cirugía general') ?></a></li>
+                                <li><a class="dropdown-item" href="<?= BASE_URL ?>/urologia/index?paciente_id=<?= $id ?>"><i class="bi bi-droplet-half me-2"></i><?= et('Urología') ?></a></li>
+                                <li><a class="dropdown-item" href="<?= BASE_URL ?>/otorrino/index?paciente_id=<?= $id ?>"><i class="bi bi-ear me-2"></i><?= et('Otorrinolaringología') ?></a></li>
+                                <li><a class="dropdown-item" href="<?= BASE_URL ?>/gastroenterologia/index?paciente_id=<?= $id ?>"><i class="bi bi-clipboard2-pulse me-2"></i><?= et('Gastroenterología') ?></a></li>
+                                <li><a class="dropdown-item" href="<?= BASE_URL ?>/neumologia/index?paciente_id=<?= $id ?>"><i class="bi bi-lungs me-2"></i><?= et('Neumología') ?></a></li>
+                                <li><a class="dropdown-item" href="<?= BASE_URL ?>/endocrinologia/index?paciente_id=<?= $id ?>"><i class="bi bi-activity me-2"></i><?= et('Endocrinología') ?></a></li>
+                                <li><a class="dropdown-item" href="<?= BASE_URL ?>/estetica/index?paciente_id=<?= $id ?>"><i class="bi bi-magic me-2"></i><?= et('Medicina estética') ?></a></li>
+                                <?php endif; ?>
+                                <li><hr class="dropdown-divider"></li>
                                 <?php if (modulo_activo('optica')): ?>
                                 <li><a class="dropdown-item" href="<?= BASE_URL ?>/optica/graduacion?paciente_id=<?= $id ?>"><i class="bi bi-eyeglasses me-2"></i><?= et('Óptica (graduación)') ?></a></li>
                                 <?php endif; ?>

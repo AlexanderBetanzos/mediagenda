@@ -2830,6 +2830,148 @@ function fpp_desde_fum(?string $fum): ?string
     catch (Throwable $e) { return null; }
 }
 
+/** Crea la tabla de valoraciones de traumatología si no existe (self-healing). */
+function ensure_trauma_table(): void
+{
+    try {
+        db()->exec("CREATE TABLE IF NOT EXISTS trauma_valoraciones (
+            id INT AUTO_INCREMENT PRIMARY KEY, consultorio_id INT NOT NULL DEFAULT 1, paciente_id INT NOT NULL,
+            fecha DATE NOT NULL, region VARCHAR(40), lado ENUM('derecho','izquierdo','bilateral','no_aplica'),
+            mecanismo VARCHAR(255), eva TINYINT, flexion SMALLINT, extension SMALLINT, abduccion SMALLINT,
+            rotacion SMALLINT, fuerza TINYINT, estabilidad ENUM('estable','inestable','no_valorada'),
+            pruebas TEXT, imagen TEXT, diagnostico VARCHAR(255),
+            plan ENUM('conservador','rehabilitacion','infiltracion','cirugia','vigilancia'),
+            notas TEXT, creado_por INT, creado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_trauma (consultorio_id, paciente_id, fecha)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    } catch (Throwable $e) { /* ya existe */ }
+}
+
+/** Crea la tabla de procedimientos quirúrgicos si no existe (self-healing). */
+function ensure_cirugia_table(): void
+{
+    try {
+        db()->exec("CREATE TABLE IF NOT EXISTS cirugia_procedimientos (
+            id INT AUTO_INCREMENT PRIMARY KEY, consultorio_id INT NOT NULL DEFAULT 1, paciente_id INT NOT NULL,
+            fecha DATE NOT NULL, procedimiento VARCHAR(200) NOT NULL,
+            caracter ENUM('programada','urgencia') NOT NULL DEFAULT 'programada',
+            abordaje ENUM('abierta','laparoscopica','endoscopica','percutanea','mixta'),
+            sede VARCHAR(160), dx_pre VARCHAR(255), dx_post VARCHAR(255), hallazgos TEXT,
+            asa ENUM('I','II','III','IV','V'), duracion_min SMALLINT, sangrado_ml SMALLINT,
+            anestesia ENUM('local','regional','general','sedacion'), cirujano VARCHAR(160), ayudante VARCHAR(160),
+            estado ENUM('programada','realizada','suspendida','cancelada') NOT NULL DEFAULT 'programada',
+            complicaciones TEXT, alta_en DATE, seguimiento TEXT, notas TEXT, creado_por INT,
+            creado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_cirugia (consultorio_id, paciente_id, fecha)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    } catch (Throwable $e) { /* ya existe */ }
+}
+
+/** Crea la tabla de valoraciones urológicas si no existe (self-healing). */
+function ensure_uro_table(): void
+{
+    try {
+        db()->exec("CREATE TABLE IF NOT EXISTS uro_valoraciones (
+            id INT AUTO_INCREMENT PRIMARY KEY, consultorio_id INT NOT NULL DEFAULT 1, paciente_id INT NOT NULL,
+            fecha DATE NOT NULL, ipss TINYINT, calidad_vida TINYINT, psa DECIMAL(6,2), psa_libre DECIMAL(6,2),
+            volumen_prostatico DECIMAL(6,1), qmax DECIMAL(5,1), residuo_ml SMALLINT,
+            tacto ENUM('normal','aumentada','nodular','no_realizado'),
+            ego VARCHAR(160), urocultivo VARCHAR(160), diagnostico VARCHAR(255),
+            tratamiento TEXT, notas TEXT, creado_por INT, creado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_uro (consultorio_id, paciente_id, fecha)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    } catch (Throwable $e) { /* ya existe */ }
+}
+
+/** Crea la tabla de valoraciones de otorrinolaringología si no existe (self-healing). */
+function ensure_orl_table(): void
+{
+    try {
+        db()->exec("CREATE TABLE IF NOT EXISTS orl_valoraciones (
+            id INT AUTO_INCREMENT PRIMARY KEY, consultorio_id INT NOT NULL DEFAULT 1, paciente_id INT NOT NULL,
+            fecha DATE NOT NULL, motivo VARCHAR(255), otoscopia_der TEXT, otoscopia_izq TEXT,
+            pta_der SMALLINT, pta_izq SMALLINT, acufeno ENUM('no','derecho','izquierdo','bilateral'),
+            vertigo TINYINT(1) NOT NULL DEFAULT 0, rinoscopia TEXT, septum ENUM('central','desviado_der','desviado_izq'),
+            cornetes ENUM('normales','hipertroficos'), faringe TEXT,
+            amigdalas ENUM('grado_0','grado_1','grado_2','grado_3','grado_4','amigdalectomia'),
+            laringoscopia TEXT, diagnostico VARCHAR(255), plan TEXT, notas TEXT, creado_por INT,
+            creado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_orl (consultorio_id, paciente_id, fecha)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    } catch (Throwable $e) { /* ya existe */ }
+}
+
+/** Crea la tabla de estudios de gastroenterología si no existe (self-healing). */
+function ensure_gastro_table(): void
+{
+    try {
+        db()->exec("CREATE TABLE IF NOT EXISTS gastro_estudios (
+            id INT AUTO_INCREMENT PRIMARY KEY, consultorio_id INT NOT NULL DEFAULT 1, paciente_id INT NOT NULL,
+            fecha DATE NOT NULL,
+            estudio ENUM('consulta','endoscopia_alta','colonoscopia','rectosigmoidoscopia','cpre','manometria','ph_metria','otro')
+                NOT NULL DEFAULT 'consulta',
+            indicacion VARCHAR(255), preparacion ENUM('excelente','buena','regular','mala','no_aplica'),
+            boston TINYINT, esofago TEXT, estomago TEXT, duodeno TEXT, colon TEXT,
+            los_angeles ENUM('A','B','C','D','no_aplica'), helicobacter ENUM('positivo','negativo','no_buscado'),
+            polipos SMALLINT, biopsias VARCHAR(255), diagnostico VARCHAR(255), plan TEXT,
+            proximo_control DATE, notas TEXT, creado_por INT, creado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_gastro (consultorio_id, paciente_id, fecha)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    } catch (Throwable $e) { /* ya existe */ }
+}
+
+/** Crea la tabla de valoraciones de neumología si no existe (self-healing). */
+function ensure_neumo_table(): void
+{
+    try {
+        db()->exec("CREATE TABLE IF NOT EXISTS neumo_valoraciones (
+            id INT AUTO_INCREMENT PRIMARY KEY, consultorio_id INT NOT NULL DEFAULT 1, paciente_id INT NOT NULL,
+            fecha DATE NOT NULL, mmrc TINYINT, sato2 TINYINT, fr SMALLINT,
+            fev1 DECIMAL(5,2), fev1_pct SMALLINT, fvc DECIMAL(5,2), relacion DECIMAL(4,2), pef SMALLINT,
+            act TINYINT, paquetes_ano DECIMAL(5,1), oxigeno TINYINT(1) NOT NULL DEFAULT 0,
+            auscultacion TEXT, diagnostico VARCHAR(255), tratamiento TEXT, notas TEXT, creado_por INT,
+            creado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_neumo (consultorio_id, paciente_id, fecha)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    } catch (Throwable $e) { /* ya existe */ }
+}
+
+/** Crea la tabla de valoraciones de endocrinología si no existe (self-healing). */
+function ensure_endo_table(): void
+{
+    try {
+        db()->exec("CREATE TABLE IF NOT EXISTS endo_valoraciones (
+            id INT AUTO_INCREMENT PRIMARY KEY, consultorio_id INT NOT NULL DEFAULT 1, paciente_id INT NOT NULL,
+            fecha DATE NOT NULL, peso DECIMAL(5,2), cintura DECIMAL(5,1), imc DECIMAL(5,2),
+            glucosa DECIMAL(5,1), hba1c DECIMAL(4,2), insulina DECIMAL(6,2), homa DECIMAL(5,2),
+            tsh DECIMAL(7,3), t4l DECIMAL(5,2), t3 DECIMAL(5,2),
+            retinopatia TINYINT(1) NOT NULL DEFAULT 0, nefropatia TINYINT(1) NOT NULL DEFAULT 0,
+            neuropatia TINYINT(1) NOT NULL DEFAULT 0, pie_diabetico TINYINT(1) NOT NULL DEFAULT 0,
+            diagnostico VARCHAR(255), tratamiento TEXT, notas TEXT, creado_por INT,
+            creado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_endo (consultorio_id, paciente_id, fecha)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    } catch (Throwable $e) { /* ya existe */ }
+}
+
+/** Crea la tabla de procedimientos estéticos si no existe (self-healing). */
+function ensure_estetica_table(): void
+{
+    try {
+        db()->exec("CREATE TABLE IF NOT EXISTS estetica_procedimientos (
+            id INT AUTO_INCREMENT PRIMARY KEY, consultorio_id INT NOT NULL DEFAULT 1, paciente_id INT NOT NULL,
+            fecha DATE NOT NULL, procedimiento VARCHAR(200) NOT NULL,
+            tipo ENUM('no_invasivo','minimamente_invasivo','quirurgico') NOT NULL DEFAULT 'no_invasivo',
+            zona VARCHAR(160), producto VARCHAR(160), cantidad DECIMAL(7,2), unidad VARCHAR(20),
+            lote VARCHAR(60), caducidad DATE, sesion SMALLINT, sesiones_total SMALLINT,
+            consentimiento TINYINT(1) NOT NULL DEFAULT 0, resultado TEXT, efectos TEXT,
+            proxima_sesion DATE, precio DECIMAL(10,2) NOT NULL DEFAULT 0, notas TEXT, creado_por INT,
+            creado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_estetica (consultorio_id, paciente_id, fecha)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    } catch (Throwable $e) { /* ya existe */ }
+}
+
 /** Crea la tabla de consentimientos si no existe (self-healing). */
 function ensure_consentimientos_table(): void
 {

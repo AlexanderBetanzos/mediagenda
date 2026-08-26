@@ -51,6 +51,13 @@ un solo lugar; ver `sql/actualizar_produccion.sql`.
 
 > Escalera x2 y cada plan bajo una barrera redonda ($500 / $1,000 / $2,000).
 >
+> **Especialidades cubiertas (15).** Cardiología, dermatología, oftalmología,
+> psicología, nutrición, control prenatal, crecimiento infantil, odontograma,
+> traumatología, cirugía general, urología, otorrinolaringología,
+> gastroenterología, neumología, endocrinología y medicina estética. Todas
+> gateadas con `require_modulo('especialidades')` — Profesional en adelante.
+> Cada una crea su tabla sola (`ensure_*_table()`), sin migración.
+>
 > **Quién paga cada integración.** WhatsApp usa credenciales DEL CONSULTORIO
 > (`configuracion`, vía `cfg()`), porque el mensaje sale del número del doctor y
 > Meta le cobra a él; la IA clínica usa la llave DE LA PLATAFORMA

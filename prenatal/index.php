@@ -6,6 +6,7 @@
  */
 require_once __DIR__ . '/../includes/functions.php';
 require_login();
+require_modulo('especialidades');
 if (!has_role('medico', 'admin')) { http_response_code(403); die('Solo médico o admin.'); }
 ensure_prenatal_tables();
 

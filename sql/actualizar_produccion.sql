@@ -725,3 +725,20 @@ INSERT INTO modulos (clave, nombre, fase, orden) VALUES ('ia', 'IA clínica', 3,
 ON DUPLICATE KEY UPDATE nombre = VALUES(nombre);
 INSERT INTO plan_modulos (plan_clave, modulo_clave) VALUES ('clinica', 'ia')
 ON DUPLICATE KEY UPDATE plan_clave = VALUES(plan_clave);
+
+-- ============ 2026-08-26: 8 especialidades nuevas ============
+--  Traumatología, cirugía general, urología, otorrinolaringología,
+--  gastroenterología, neumología, endocrinología y medicina estética.
+--
+--  NO hace falta correr nada: cada módulo crea su tabla sola la primera vez
+--  que se abre (ensure_*_table() en includes/functions.php), igual que las
+--  especialidades que ya existían. Se listan aquí solo como referencia de qué
+--  tablas van a aparecer:
+--    trauma_valoraciones · cirugia_procedimientos · uro_valoraciones
+--    orl_valoraciones · gastro_estudios · neumo_valoraciones
+--    endo_valoraciones · estetica_procedimientos
+--
+--  Todas quedan gateadas por require_modulo('especialidades'), es decir plan
+--  Profesional en adelante. Las especialidades que ya existían NO comprobaban
+--  el plan (bastaba teclear la URL); ahora también lo comprueban.
+SELECT 'especialidades nuevas: tablas autocreadas, nada que migrar' AS nota;
