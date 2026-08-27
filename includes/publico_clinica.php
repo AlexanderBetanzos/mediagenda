@@ -130,8 +130,8 @@ include __DIR__ . '/publico_header.php';
         border-radius: 46% 54% 58% 42% / 52% 44% 56% 48%; }
     html.lp-dark .clx .hero { background: linear-gradient(160deg, #14171d 0%, #0f1116 55%, #0c0d10 100%); }
     html.lp-dark .clx .hero::before { opacity: .5; }
-    .clx .hero .wrap { position: relative; z-index: 1; min-height: 560px; display: flex; align-items: center;
-                       padding: 4.5rem 1.5rem 5rem; }
+    .clx .hero .wrap { position: relative; z-index: 1; min-height: 480px; display: flex; align-items: center;
+                       padding: 3.5rem 1.5rem 4rem; }
     .clx .hero .pill { display: inline-flex; align-items: center; gap: .45rem; background: #fff;
                        border: 1px solid color-mix(in srgb, var(--cl) 20%, transparent); color: var(--cl);
                        box-shadow: 0 2px 10px rgba(30,45,80,.06);
@@ -148,8 +148,11 @@ include __DIR__ . '/publico_header.php';
                        margin-bottom: .3rem; box-shadow: 0 2px 12px rgba(30,45,80,.08); }
 
     /* Foto del consultorio: deja de ser fondo y pasa a ser contenido. */
-    .clx .hero-img { border-radius: 22px; width: 100%; height: 260px; object-fit: cover;
-                     margin-bottom: 1.1rem; box-shadow: 0 2px 8px rgba(15,30,60,.05), 0 18px 44px rgba(15,30,60,.13); }
+    /* La portada sangra el relleno de la tarjeta con márgenes negativos:
+       así llega a los bordes y se ve parte de la tarjeta, no encima. */
+    .clx .hero-info.con-foto { padding-top: 0; overflow: hidden; }
+    .clx .hero-img { width: calc(100% + 3.6rem); height: 190px; object-fit: cover; display: block;
+                     margin: 0 -1.8rem 1.5rem; border-radius: 0; }
 
     /* Tarjeta de datos: sobre fondo claro el vidrio ya no funciona, así que
        pasa a tarjeta sólida con la misma sombra en dos capas de la landing. */
@@ -309,10 +312,12 @@ include __DIR__ . '/publico_header.php';
 
             <?php /* Tarjeta de vidrio con datos reales: el elemento "pro" del banner. */ ?>
             <div class="col-lg-5">
-                <?php if ($foto): ?>
-                    <img src="<?= e($foto) ?>" alt="<?= e($marca) ?>" class="hero-img" loading="lazy">
-                <?php endif; ?>
-                <div class="hero-info">
+                <div class="hero-info<?= $foto ? ' con-foto' : '' ?>">
+                    <?php if ($foto): ?>
+                        <?php /* Portada de la tarjeta: sangra hasta el borde para que
+                                 no parezca una foto pegada encima. */ ?>
+                        <img src="<?= e($foto) ?>" alt="<?= e($marca) ?>" class="hero-img" loading="lazy">
+                    <?php endif; ?>
                     <div class="hi-t"><i class="bi bi-shield-check"></i> <?= et('Atención profesional') ?></div>
                     <?php if (count($medicos)): ?>
                     <div class="hi-row"><div class="hi-ic"><i class="bi bi-person-badge"></i></div>
