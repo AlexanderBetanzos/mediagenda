@@ -244,18 +244,43 @@ include __DIR__ . '/../includes/header.php';
                 </div>
             </div>
             <div class="col-md-5">
-                <label class="form-label"><?= et('Enlace de Google Maps') ?> <span class="text-muted"><?= et('(opcional)') ?></span></label>
-                <input type="text" name="web_mapa" class="form-control" value="<?= e(cfg('web_mapa')) ?>"
-                       placeholder="https://www.google.com/maps/place/…">
-                <div class="form-text">
-                    <?= et('Busca tu consultorio en Google Maps, pulsa Compartir y pega aquí el enlace. Así el pin cae exacto.') ?>
+                <label class="form-label"><?= et('Ubicación en el mapa') ?></label>
+                <?php /* El campo real: guarda "lat,lng". Se deja visible y editable
+                         porque sigue aceptando un enlace de Google Maps pegado, que
+                         es el camino de quien ya lo tenía a mano. */ ?>
+                <input type="text" name="web_mapa" id="webMapa" class="form-control"
+                       value="<?= e(cfg('web_mapa')) ?>"
+                       placeholder="<?= e(t('Mueve el pin o busca tu dirección')) ?>">
+                <div class="form-text" id="mapaEstado">
                     <?php $_c = mapa_coords(cfg('web_mapa', '')); if ($_c): ?>
-                        <br><span class="text-success"><i class="bi bi-check-circle"></i>
-                        <?= et('Ubicación exacta detectada') ?>: <?= e($_c) ?></span>
-                    <?php elseif (trim((string) cfg('web_mapa', '')) !== ''): ?>
-                        <br><span class="text-warning-emphasis"><i class="bi bi-exclamation-triangle"></i>
-                        <?= et('De ese enlace no se pueden sacar coordenadas (los enlaces cortos no las traen). Se usará la dirección de texto. Abre el enlace corto y copia la URL larga de la barra.') ?></span>
+                        <span class="text-success"><i class="bi bi-check-circle"></i>
+                        <?= et('Ubicación exacta') ?>: <?= e($_c) ?></span>
+                    <?php else: ?>
+                        <?= et('Sin ubicación exacta: el mapa buscará por tu dirección de texto.') ?>
                     <?php endif; ?>
+                </div>
+            </div>
+            <div class="col-12">
+                <?php /* Mapa para elegir el punto sin salir de aquí. Va con
+                         OpenStreetMap y Leaflet: no necesita API key ni cuenta de
+                         facturación, que es lo que haría falta para el mapa de
+                         Google en modo interactivo. El micrositio sigue
+                         enseñándoselo al paciente con Google, que es el que
+                         reconoce y el que da "Cómo llegar". */ ?>
+                <div class="d-flex flex-wrap gap-2 mb-2">
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="mapaAqui">
+                        <i class="bi bi-crosshair"></i> <?= et('Estoy en mi consultorio') ?>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="mapaBuscar">
+                        <i class="bi bi-search"></i> <?= et('Buscar mi dirección') ?>
+                    </button>
+                    <span class="small text-muted align-self-center" id="mapaAviso"></span>
+                </div>
+                <div id="mapaPicker" style="height:320px;border-radius:14px;overflow:hidden;
+                                            border:1px solid rgba(127,127,127,.25)"></div>
+                <div class="form-text">
+                    <i class="bi bi-hand-index"></i>
+                    <?= et('Toca el mapa o arrastra el pin para poner tu consultorio exactamente donde está.') ?>
                 </div>
             </div>
             <div class="col-md-4">
@@ -574,4 +599,104 @@ document.querySelector('input[name="color_acento"]').addEventListener('input', f
     this.nextElementSibling.value = this.value;
 });
 </script>
+<?php /* ── Selector de ubicación ─────────────────────────────────────────
+         Leaflet + OpenStreetMap: sin API key y sin cuenta de facturación.
+         Google Maps en modo interactivo exige las dos cosas; su modo
+         EMBEBIDO (el que ve el paciente en el micrositio) no, y por eso
+         cada uno usa lo que le conviene. */ ?>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(function () {
+    var campo  = document.getElementById('webMapa');
+    var caja   = document.getElementById('mapaPicker');
+    var estado = document.getElementById('mapaEstado');
+    var aviso  = document.getElementById('mapaAviso');
+    if (!campo || !caja || typeof L === 'undefined') return;
+
+    /* Punto inicial: lo guardado, o el centro de México si no hay nada. */
+    var guardado = <?= json_encode(mapa_coords(cfg('web_mapa', ''))) ?>;
+    var inicio = guardado ? guardado.split(',').map(Number) : [23.6345, -102.5528];
+    var zoom   = guardado ? 17 : 5;
+
+    var mapa = L.map(caja).setView(inicio, zoom);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap'
+    }).addTo(mapa);
+
+    var pin = null;
+    function ponerPin(lat, lng, acercar) {
+        if (pin) { pin.setLatLng([lat, lng]); }
+        else {
+            pin = L.marker([lat, lng], { draggable: true }).addTo(mapa);
+            pin.on('dragend', function () {
+                var p = pin.getLatLng();
+                guardar(p.lat, p.lng);
+            });
+        }
+        if (acercar) mapa.setView([lat, lng], 17);
+        guardar(lat, lng);
+    }
+
+    function guardar(lat, lng) {
+        /* 6 decimales ≈ 11 cm: de sobra, y no llena el campo de ruido. */
+        campo.value = lat.toFixed(6) + ',' + lng.toFixed(6);
+        estado.innerHTML = '<span class="text-success">'
+            + '<i class="bi bi-check-circle"></i> <?= e(t('Ubicación exacta')) ?>: '
+            + campo.value + '</span>';
+    }
+
+    if (guardado) ponerPin(inicio[0], inicio[1], false);
+
+    /* Tocar el mapa coloca el pin: es el gesto que espera cualquiera. */
+    mapa.on('click', function (ev) { ponerPin(ev.latlng.lat, ev.latlng.lng, false); });
+
+    /* Pegar un enlace de Google Maps sigue funcionando: si trae coordenadas,
+       el pin se mueve solo. Es el camino de quien ya lo tenía copiado. */
+    campo.addEventListener('change', function () {
+        var m = campo.value.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/)
+             || campo.value.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/)
+             || campo.value.match(/^\s*(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)\s*$/);
+        if (m) ponerPin(parseFloat(m[1]), parseFloat(m[2]), true);
+    });
+
+    /* "Estoy en mi consultorio": el caso más común es que lo configure ahí
+       mismo, y entonces el GPS del aparato es la respuesta más exacta. */
+    var btnAqui = document.getElementById('mapaAqui');
+    btnAqui.addEventListener('click', function () {
+        if (!navigator.geolocation) { aviso.textContent = '<?= e(t('Tu navegador no comparte ubicación.')) ?>'; return; }
+        aviso.textContent = '<?= e(t('Buscando…')) ?>';
+        navigator.geolocation.getCurrentPosition(function (pos) {
+            aviso.textContent = '';
+            ponerPin(pos.coords.latitude, pos.coords.longitude, true);
+        }, function () {
+            aviso.textContent = '<?= e(t('No se pudo obtener tu ubicación. Permítela o toca el mapa.')) ?>';
+        }, { enableHighAccuracy: true, timeout: 10000 });
+    });
+
+    /* Buscar por la dirección ya escrita, con el geocodificador de
+       OpenStreetMap. Es gratis pero pide no abusar, así que solo corre
+       cuando el usuario lo pulsa, nunca al teclear. */
+    var btnBuscar = document.getElementById('mapaBuscar');
+    btnBuscar.addEventListener('click', function () {
+        var dir = (document.querySelector('[name="direccion"]') || {}).value || '';
+        if (dir.trim().length < 6) { aviso.textContent = '<?= e(t('Escribe primero tu dirección.')) ?>'; return; }
+        aviso.textContent = '<?= e(t('Buscando…')) ?>';
+        fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(dir))
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+                if (!d || !d.length) { aviso.textContent = '<?= e(t('No la encontré. Toca el mapa para marcarla a mano.')) ?>'; return; }
+                aviso.textContent = '';
+                ponerPin(parseFloat(d[0].lat), parseFloat(d[0].lon), true);
+            })
+            .catch(function () { aviso.textContent = '<?= e(t('No se pudo buscar. Toca el mapa para marcarla a mano.')) ?>'; });
+    });
+
+    /* El mapa nace dentro de una tarjeta que puede estar oculta al cargar;
+       sin esto Leaflet dibuja los mosaicos a medias. */
+    setTimeout(function () { mapa.invalidateSize(); }, 300);
+})();
+</script>
+
 <?php include __DIR__ . '/../includes/footer.php'; ?>
