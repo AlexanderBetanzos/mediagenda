@@ -145,7 +145,11 @@ include __DIR__ . '/publico_header.php';
     html.lp-dark .clx .hero .pill { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.12); }
     .clx .hero h1 { font-family: var(--font-display); font-weight: 600; letter-spacing: -.038em;
                     font-size: clamp(2.3rem, 4.8vw, 3.6rem); line-height: 1.05;
-                    margin: 1.2rem 0 1rem; text-shadow: none; color: var(--ink); }
+                    margin: 1.2rem 0 1rem; color: var(--ink); }
+    /* Sobre una foto clara el texto pierde borde: un halo blanco lo separa
+       sin oscurecer la imagen, que es lo que haría una sombra negra. */
+    .clx .hero.con-foto h1,
+    .clx .hero.con-foto .lead { text-shadow: 0 1px 14px rgba(255,255,255,.85); }
     .clx .hero .lead { font-size: 1.12rem; color: var(--mut); max-width: 40ch; text-shadow: none;
                        line-height: 1.5; letter-spacing: -.011em; opacity: 1; }
     .clx .hero .logo { max-height: 48px; max-width: 220px; object-fit: contain;
@@ -159,16 +163,17 @@ include __DIR__ . '/publico_header.php';
        velo uniforme apagaría la foto entera, que es lo que hacía el hero
        oscuro de antes. */
     .clx .hero.con-foto { background-image: var(--foto); background-size: cover;
-                          background-position: center right; background-repeat: no-repeat; }
+                          background-position: center center; background-repeat: no-repeat; }
     .clx .hero.con-foto::before { opacity: 0; }   /* la mancha estorba sobre la foto */
     .clx .hero.con-foto::after {
         content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none;
         background: linear-gradient(100deg,
-            #fff 0%, #fff 30%,
-            color-mix(in srgb, #fff 92%, transparent) 42%,
-            color-mix(in srgb, #fff 55%, transparent) 56%,
-            color-mix(in srgb, #fff 15%, transparent) 70%,
-            transparent 84%);
+            color-mix(in srgb, #fff 95%, transparent) 0%,
+            color-mix(in srgb, #fff 90%, transparent) 38%,
+            color-mix(in srgb, #fff 72%, transparent) 52%,
+            color-mix(in srgb, #fff 38%, transparent) 64%,
+            color-mix(in srgb, #fff 12%, transparent) 76%,
+            transparent 88%);
     }
     html.lp-dark .clx .hero.con-foto::after {
         background: linear-gradient(100deg,
@@ -191,6 +196,7 @@ include __DIR__ . '/publico_header.php';
 
     /* Tarjeta de datos: sobre fondo claro el vidrio ya no funciona, así que
        pasa a tarjeta sólida con la misma sombra en dos capas de la landing. */
+    .clx .hero.con-foto .hero-info { box-shadow: 0 4px 14px rgba(15,30,60,.10), 0 26px 60px rgba(15,30,60,.20); }
     .clx .hero-info { background: #fff; color: var(--ink); border: 1px solid rgba(0,0,0,.05);
                       backdrop-filter: none; -webkit-backdrop-filter: none;
                       border-radius: 22px; padding: 1.7rem 1.8rem;
