@@ -90,7 +90,7 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
          la marca vive en el sidebar como "ficha" (estilo GymOS). -->
     <a class="navbar-brand d-flex d-md-none me-0 px-3 fs-6 align-items-center gap-2" href="<?= BASE_URL ?>/dashboard">
         <?php if (cfg('marca_logo')): ?>
-            <img src="<?= e(cfg('marca_logo')) ?>" alt="<?= e($marca) ?>" style="height:26px;width:auto">
+            <img src="<?= e(cfg('marca_logo')) ?>" alt="<?= e($marca) ?>" style="max-height:26px;max-width:150px;width:auto;object-fit:contain">
         <?php else: ?>
             <i class="bi bi-heart-pulse-fill text-info"></i>
         <?php endif; ?>

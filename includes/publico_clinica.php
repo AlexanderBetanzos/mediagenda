@@ -142,7 +142,8 @@ include __DIR__ . '/publico_header.php';
                     margin: 1.2rem 0 1rem; text-shadow: none; color: var(--ink); }
     .clx .hero .lead { font-size: 1.12rem; color: var(--mut); max-width: 40ch; text-shadow: none;
                        line-height: 1.5; letter-spacing: -.011em; opacity: 1; }
-    .clx .hero .logo { max-height: 48px; background: #fff; border-radius: 12px; padding: .4rem .7rem;
+    .clx .hero .logo { max-height: 48px; max-width: 220px; object-fit: contain;
+                       background: #fff; border-radius: 12px; padding: .4rem .7rem;
                        margin-bottom: .3rem; box-shadow: 0 2px 12px rgba(30,45,80,.08); }
 
     /* Foto del consultorio: deja de ser fondo y pasa a ser contenido. */

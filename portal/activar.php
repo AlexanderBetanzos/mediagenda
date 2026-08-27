@@ -91,7 +91,7 @@ $slug   = $clin['slug'] ?? '';
         <div class="card-body p-4 p-sm-5">
             <div class="text-center mb-4">
                 <?php if ($logo): ?>
-                    <img src="<?= e($logo) ?>" alt="<?= e($marca) ?>" style="max-height:56px;width:auto">
+                    <img src="<?= e($logo) ?>" alt="<?= e($marca) ?>" style="max-height:56px;max-width:210px;width:auto;object-fit:contain">
                 <?php else: ?>
                     <div class="display-5 text-brand"><i class="bi bi-person-heart"></i></div>
                 <?php endif; ?>

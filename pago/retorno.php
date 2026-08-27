@@ -46,7 +46,7 @@ $acento   = color_acento();
 <body>
 <div class="hoja w-100">
     <?php if (cfg('marca_logo')): ?>
-        <img src="<?= e(cfg('marca_logo')) ?>" alt="<?= e($marca) ?>" style="max-height:48px;width:auto" class="mb-3">
+        <img src="<?= e(cfg('marca_logo')) ?>" alt="<?= e($marca) ?>" style="max-height:48px;max-width:180px;width:auto;object-fit:contain" class="mb-3">
     <?php endif; ?>
 
     <?php if ($pagado): ?>

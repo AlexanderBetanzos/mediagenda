@@ -70,7 +70,7 @@ $acento = $cobro ? color_acento() : '#2563eb';
     <?php else: ?>
         <div class="text-center mb-4">
             <?php if (cfg('marca_logo')): ?>
-                <img src="<?= e(cfg('marca_logo')) ?>" alt="<?= e($marca) ?>" style="max-height:56px;width:auto">
+                <img src="<?= e(cfg('marca_logo')) ?>" alt="<?= e($marca) ?>" style="max-height:56px;max-width:210px;width:auto;object-fit:contain">
             <?php else: ?>
                 <i class="bi bi-heart-pulse-fill acento" style="font-size:2.2rem"></i>
             <?php endif; ?>

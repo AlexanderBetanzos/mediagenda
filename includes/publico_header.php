@@ -82,7 +82,7 @@ $agendarUrl = BASE_URL . '/agenda/reservar?c=' . rawurlencode($slugPub);
     <div class="container">
         <a href="<?= e($inicioUrl) ?>" class="navbar-brand fw-bold text-brand d-flex align-items-center gap-2 text-decoration-none">
             <?php if (cfg('marca_logo')): ?>
-                <img src="<?= e(cfg('marca_logo')) ?>" alt="" style="max-height:32px;width:auto">
+                <img src="<?= e(cfg('marca_logo')) ?>" alt="" style="max-height:32px;max-width:140px;width:auto;object-fit:contain">
             <?php else: ?>
                 <i class="bi bi-heart-pulse-fill"></i>
             <?php endif; ?>

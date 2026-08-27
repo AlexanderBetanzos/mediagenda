@@ -87,7 +87,7 @@ $acento    = color_acento();
     <div class="d-flex justify-content-between align-items-start border-bottom pb-3 mb-4">
         <div class="d-flex align-items-center gap-3">
             <?php if (cfg('marca_logo')): ?>
-                <img src="<?= e(cfg('marca_logo')) ?>" alt="" style="max-height:60px;width:auto">
+                <img src="<?= e(cfg('marca_logo')) ?>" alt="" style="max-height:60px;max-width:220px;width:auto;object-fit:contain">
             <?php else: ?>
                 <i class="bi bi-heart-pulse-fill acento" style="font-size:2.5rem"></i>
             <?php endif; ?>

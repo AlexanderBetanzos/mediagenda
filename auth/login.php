@@ -61,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="card-body p-4 p-sm-5">
             <div class="text-center mb-4">
                 <?php if (cfg('marca_logo')): ?>
-                    <img src="<?= e(cfg('marca_logo')) ?>" alt="<?= e(marca_nombre()) ?>" style="max-height:56px;width:auto">
+                    <img src="<?= e(cfg('marca_logo')) ?>" alt="<?= e(marca_nombre()) ?>" style="max-height:56px;max-width:210px;width:auto;object-fit:contain">
                 <?php else: ?>
                     <div class="display-5 text-brand"><i class="bi bi-heart-pulse-fill"></i></div>
                 <?php endif; ?>
