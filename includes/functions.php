@@ -1550,6 +1550,48 @@ function agenda_online_url(string $slug): string
 }
 
 /**
+ * Guarda una imagen de marca subida por el consultorio (logo o portada) y
+ * devuelve su URL pública.
+ *
+ * Vive aquí porque lo necesitan dos campos y la validación no es trivial:
+ * extensión, MIME real del contenido y tamaño. Duplicarla era pedir que una
+ * de las dos copias se quedara sin alguna comprobación.
+ *
+ * Ambas van a assets/logos/ —ya está fuera de git y excluida del despliegue,
+ * así que un archivo subido por el consultorio nunca se pierde al publicar—
+ * y se distinguen por el prefijo del nombre.
+ *
+ * @return array{ok:bool, url:string, error:string}
+ */
+function subir_imagen_marca(?array $f, string $prefijo): array
+{
+    $nada = ['ok' => false, 'url' => '', 'error' => ''];
+    if (!$f || empty($f['name'])) return $nada;   // no subieron nada: no es error
+
+    $perm = ['jpg' => 1, 'jpeg' => 1, 'png' => 1, 'gif' => 1, 'webp' => 1];
+    $ext  = strtolower(pathinfo($f['name'], PATHINFO_EXTENSION));
+
+    if (($f['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK || !is_uploaded_file($f['tmp_name'])) {
+        return ['ok' => false, 'url' => '', 'error' => t('No se pudo subir la imagen. Inténtalo de nuevo.')];
+    }
+    // Se comprueba el contenido real, no solo la extensión del nombre.
+    if (!isset($perm[$ext]) || strpos((string) mime_content_type($f['tmp_name']), 'image/') !== 0) {
+        return ['ok' => false, 'url' => '', 'error' => t('Debe ser una imagen PNG, JPG, WEBP o GIF.')];
+    }
+    if ($f['size'] > 2 * 1024 * 1024) {
+        return ['ok' => false, 'url' => '', 'error' => t('La imagen supera el máximo de 2 MB.')];
+    }
+
+    $dir = __DIR__ . '/../assets/logos';
+    if (!is_dir($dir)) @mkdir($dir, 0775, true);
+    $nombre = $prefijo . '_' . tenant_id() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
+    if (!move_uploaded_file($f['tmp_name'], $dir . '/' . $nombre)) {
+        return ['ok' => false, 'url' => '', 'error' => t('No se pudo guardar la imagen en el servidor.')];
+    }
+    return ['ok' => true, 'url' => BASE_URL . '/assets/logos/' . $nombre, 'error' => ''];
+}
+
+/**
  * URL de la página pública del consultorio (su micrositio).
  * Sin argumento usa el consultorio en sesión, que es el caso normal desde
  * el panel: el dueño quiere abrir LA SUYA, no la de nadie más.
@@ -1616,7 +1658,7 @@ function micrositio_checklist(): array
         ['clave' => 'acerca',   'ok' => $lleno('web_acerca'),
          'etiqueta' => 'Cuenta quiénes son en "Sobre nosotros"', 'url' => $cfgUrl],
         ['clave' => 'foto',     'ok' => $lleno('web_foto'),
-         'etiqueta' => 'Agrega una foto de tu consultorio', 'url' => $cfgUrl],
+         'etiqueta' => 'Sube la foto de portada', 'url' => $cfgUrl],
         ['clave' => 'contacto', 'ok' => $lleno('telefono') && $lleno('direccion'),
          'etiqueta' => 'Completa teléfono y dirección', 'url' => $cfgUrl],
 
