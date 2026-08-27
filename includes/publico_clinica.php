@@ -18,7 +18,12 @@ $marca    = marca_nombre();
 $lema     = cfg('marca_lema');
 $titular  = cfg('web_titular') ?: $marca;
 $acerca   = cfg('web_acerca');
-$foto     = cfg('web_foto');
+/* La foto entra en un atributo style como url(). e() ya escapa las comillas
+   —ENT_QUOTES— así que no se puede romper el atributo, pero además se exige
+   que sea http(s) o una ruta del propio sitio: en una página pública no
+   conviene depender de una sola capa. */
+$foto     = (string) cfg('web_foto');
+if ($foto !== '' && !preg_match("#^(https?://|/)[^\s'\"()]+$#i", $foto)) { $foto = ''; }
 $dir      = cfg('direccion');
 $tel      = cfg('telefono');
 $correo   = cfg('email');
@@ -130,7 +135,7 @@ include __DIR__ . '/publico_header.php';
         border-radius: 46% 54% 58% 42% / 52% 44% 56% 48%; }
     html.lp-dark .clx .hero { background: linear-gradient(160deg, #14171d 0%, #0f1116 55%, #0c0d10 100%); }
     html.lp-dark .clx .hero::before { opacity: .5; }
-    .clx .hero .wrap { position: relative; z-index: 1; min-height: 480px; display: flex; align-items: center;
+    .clx .hero .wrap { position: relative; z-index: 1; min-height: 560px; display: flex; align-items: center;
                        padding: 3.5rem 1.5rem 4rem; }
     .clx .hero .pill { display: inline-flex; align-items: center; gap: .45rem; background: #fff;
                        border: 1px solid color-mix(in srgb, var(--cl) 20%, transparent); color: var(--cl);
@@ -147,12 +152,42 @@ include __DIR__ . '/publico_header.php';
                        background: #fff; border-radius: 12px; padding: .4rem .7rem;
                        margin-bottom: .3rem; box-shadow: 0 2px 12px rgba(30,45,80,.08); }
 
-    /* Foto del consultorio: deja de ser fondo y pasa a ser contenido. */
-    /* La portada sangra el relleno de la tarjeta con márgenes negativos:
-       así llega a los bordes y se ve parte de la tarjeta, no encima. */
-    .clx .hero-info.con-foto { padding-top: 0; overflow: hidden; }
-    .clx .hero-img { width: calc(100% + 3.6rem); height: 190px; object-fit: cover; display: block;
-                     margin: 0 -1.8rem 1.5rem; border-radius: 0; }
+    /* ── Banner con foto ──────────────────────────────────────────────
+       Con foto, el hero ES la foto. La mancha de color se apaga (sobra) y
+       un degradado la cubre: blanco sólido a la izquierda, donde va el
+       texto, abriéndose hacia la derecha para que la imagen se vea. Un
+       velo uniforme apagaría la foto entera, que es lo que hacía el hero
+       oscuro de antes. */
+    .clx .hero.con-foto { background-image: var(--foto); background-size: cover;
+                          background-position: center right; background-repeat: no-repeat; }
+    .clx .hero.con-foto::before { opacity: 0; }   /* la mancha estorba sobre la foto */
+    .clx .hero.con-foto::after {
+        content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+        background: linear-gradient(100deg,
+            #fff 0%, #fff 30%,
+            color-mix(in srgb, #fff 92%, transparent) 42%,
+            color-mix(in srgb, #fff 55%, transparent) 56%,
+            color-mix(in srgb, #fff 15%, transparent) 70%,
+            transparent 84%);
+    }
+    html.lp-dark .clx .hero.con-foto::after {
+        background: linear-gradient(100deg,
+            #0f1116 0%, #0f1116 30%,
+            color-mix(in srgb, #0f1116 90%, transparent) 44%,
+            color-mix(in srgb, #0f1116 45%, transparent) 62%,
+            transparent 84%);
+    }
+    /* En móvil el texto queda ENCIMA de la foto: el degradado se vuelve
+       vertical o el titular se pierde sobre la imagen. */
+    @media (max-width: 991.98px) {
+        .clx .hero.con-foto { background-position: center; }
+        .clx .hero.con-foto::after {
+            background: linear-gradient(180deg,
+                color-mix(in srgb, #fff 94%, transparent) 0%,
+                color-mix(in srgb, #fff 88%, transparent) 55%,
+                color-mix(in srgb, #fff 70%, transparent) 100%);
+        }
+    }
 
     /* Tarjeta de datos: sobre fondo claro el vidrio ya no funciona, así que
        pasa a tarjeta sólida con la misma sombra en dos capas de la landing. */
@@ -287,7 +322,8 @@ include __DIR__ . '/publico_header.php';
 <div class="clx">
 
 <!-- ===== HERO (banner) ===== -->
-<header class="hero">
+<header class="hero<?= $foto ? ' con-foto' : '' ?>"
+        <?php if ($foto): ?>style="--foto:url('<?= e($foto) ?>')"<?php endif; ?>>
     <div class="wrap">
         <div class="row align-items-center g-4 g-lg-5 w-100">
             <div class="col-lg-7">
@@ -312,12 +348,7 @@ include __DIR__ . '/publico_header.php';
 
             <?php /* Tarjeta de vidrio con datos reales: el elemento "pro" del banner. */ ?>
             <div class="col-lg-5">
-                <div class="hero-info<?= $foto ? ' con-foto' : '' ?>">
-                    <?php if ($foto): ?>
-                        <?php /* Portada de la tarjeta: sangra hasta el borde para que
-                                 no parezca una foto pegada encima. */ ?>
-                        <img src="<?= e($foto) ?>" alt="<?= e($marca) ?>" class="hero-img" loading="lazy">
-                    <?php endif; ?>
+                <div class="hero-info">
                     <div class="hi-t"><i class="bi bi-shield-check"></i> <?= et('Atención profesional') ?></div>
                     <?php if (count($medicos)): ?>
                     <div class="hi-row"><div class="hi-ic"><i class="bi bi-person-badge"></i></div>
