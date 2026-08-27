@@ -40,7 +40,8 @@ try {
 // médico que atiende. Cada médico trae SU propio horario (cada quien su agenda).
 $medicos = [];
 try {
-    $st = db()->prepare("SELECT id, nombre, especialidad FROM usuarios
+    asegurar_perfil_medico();
+    $st = db()->prepare("SELECT id, nombre, especialidad, cedula, foto, semblanza FROM usuarios
                          WHERE consultorio_id = ? AND activo = 1 AND rol = 'medico' ORDER BY nombre");
     $st->execute([(int) $con['id']]);
     $medicos = $st->fetchAll();
@@ -178,6 +179,15 @@ include __DIR__ . '/publico_header.php';
     .clx .hero-info .hi-cta:active { transform: scale(.975); }
 
     /* Imagen / tarjeta al lado */
+
+    /* Perfil del médico: foto redonda del mismo tamaño que la inicial, para
+       que la rejilla no salte según quién tenga foto y quién no. */
+    .clx .medcard .av-img { width: 96px; height: 96px; border-radius: 50%; object-fit: cover;
+                            display: block; margin: 0 auto .9rem;
+                            border: 3px solid color-mix(in srgb, var(--cl) 22%, #fff); }
+    .clx .medcard .ced { font-size: .8rem; color: var(--cl); font-weight: 590; margin-top: .2rem; }
+    .clx .medcard .sem { font-size: .9rem; color: var(--mut); line-height: 1.5; margin: .8rem 0 0;
+                         text-align: left; }
 
     /* ===== Reseñas ===== */
     .clx .rs-prom { font-family: var(--font-display); font-weight: 600; font-size: 2.2rem;
@@ -416,10 +426,20 @@ include __DIR__ . '/publico_header.php';
             <?php foreach ($medicos as $m): ?>
             <div class="col-sm-6 col-lg-4">
                 <div class="medcard">
-                    <div class="av"><?= e(strtoupper(mb_substr($m['nombre'], 0, 1))) ?></div>
+                    <?php if (!empty($m['foto'])): ?>
+                        <img src="<?= e($m['foto']) ?>" alt="<?= e($m['nombre']) ?>" class="av-img" loading="lazy">
+                    <?php else: ?>
+                        <div class="av"><?= e(strtoupper(mb_substr($m['nombre'], 0, 1))) ?></div>
+                    <?php endif; ?>
                     <div class="text-center">
                         <div class="nm"><?= e($m['nombre']) ?></div>
-                        <?php if ($m['especialidad']): ?><div class="sp mb-2"><?= e($m['especialidad']) ?></div><?php endif; ?>
+                        <?php if ($m['especialidad']): ?><div class="sp"><?= e($m['especialidad']) ?></div><?php endif; ?>
+                        <?php if (!empty($m['cedula'])): ?>
+                            <div class="ced"><i class="bi bi-patch-check-fill"></i> <?= et('Céd. Prof.') ?> <?= e($m['cedula']) ?></div>
+                        <?php endif; ?>
+                        <?php if (!empty($m['semblanza'])): ?>
+                            <p class="sem"><?= e($m['semblanza']) ?></p>
+                        <?php endif; ?>
                     </div>
                     <?php /* Cada médico con SU propio horario (cada quien su agenda). */ ?>
                     <?php if (!empty($m['horario'])): ?>
@@ -491,6 +511,8 @@ $resLista   = $resResumen['total'] ? resenas_publicas((int) $con['id'], 9) : [];
 <?php endif; ?>
 
 <!-- ===== CONTACTO ===== -->
+<?php $hayContacto = $correo || $tel || $dir || $wa || mapa_coords(cfg('web_mapa', '')); ?>
+<?php if ($hayContacto): ?>
 <section id="contacto">
     <div class="wrap">
         <div class="text-center mb-5">
@@ -538,6 +560,8 @@ $resLista   = $resResumen['total'] ? resenas_publicas((int) $con['id'], 9) : [];
         <?php endif; ?>
     </div>
 </section>
+
+<?php endif; ?>
 
 <!-- ===== RESERVA (lleva a la página dedicada) ===== -->
 <?php if ($reservar): ?>

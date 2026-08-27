@@ -766,3 +766,9 @@ CREATE TABLE IF NOT EXISTS resenas (
   INDEX idx_res_tenant (consultorio_id, estado, respondida_en),
   INDEX idx_res_medico (medico_id, estado)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============ 2026-08-27: perfil público del médico ============
+--  Foto y semblanza para la sección "Nuestro equipo" del micrositio.
+--  La cédula ya existía; solo faltaba mostrarla.
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS foto      VARCHAR(255) DEFAULT NULL;
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS semblanza VARCHAR(600) DEFAULT NULL;

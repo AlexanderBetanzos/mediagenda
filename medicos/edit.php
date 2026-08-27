@@ -10,9 +10,11 @@
  */
 require_once __DIR__ . '/../includes/functions.php';
 require_role('admin');
+asegurar_perfil_medico();
 
 $id  = (int) ($_GET['id'] ?? 0);
-$m   = ['nombre' => '', 'especialidad' => '', 'cedula' => '', 'telefono' => '', 'email' => ''];
+$m   = ['nombre' => '', 'especialidad' => '', 'cedula' => '', 'telefono' => '', 'email' => '',
+        'foto' => '', 'semblanza' => ''];
 $errores = [];
 
 if ($id) {
@@ -57,6 +59,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Resuelve email y password según el acceso.
         $emailFinal = $acceso ? $email : null;   // sin acceso: sin correo -> no puede entrar
         $hashSql = ''; $hashParam = [];
+        $semblanza = trim($_POST['semblanza'] ?? '') ?: null;
+        $foto = $m['foto'] ?? null;
+        $rf = subir_imagen_marca($_FILES['foto_file'] ?? null, 'medico');
+        if ($rf['ok'])        { $foto = $rf['url']; }
+        elseif ($rf['error']) { flash($rf['error'], 'warning'); }
+
         if ($acceso) {
             if ($pass !== '') { $hashSql = ', password_hash = ?'; $hashParam = [password_hash($pass, PASSWORD_DEFAULT)]; }
         } else {
@@ -64,18 +72,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if ($id) {
-            $sql = "UPDATE usuarios SET nombre = ?, especialidad = ?, cedula = ?, telefono = ?, email = ?$hashSql
+            $sql = "UPDATE usuarios SET nombre = ?, especialidad = ?, cedula = ?, telefono = ?, email = ?,
+                           foto = ?, semblanza = ?$hashSql
                     WHERE id = ? AND consultorio_id = ? AND rol = 'medico'";
-            $params = array_merge([$nombre, $especialidad, $cedula, $telefono, $emailFinal], $hashParam, [$id, tenant_id()]);
+            $params = array_merge([$nombre, $especialidad, $cedula, $telefono, $emailFinal, $foto, $semblanza],
+                                  $hashParam, [$id, tenant_id()]);
             db()->prepare($sql)->execute($params);
             auditar('medico_editar', 'usuario', $id, $nombre);
             flash('Médico actualizado.');
         } else {
             $hash = ($acceso && $pass !== '') ? password_hash($pass, PASSWORD_DEFAULT) : null;
             db()->prepare(
-                "INSERT INTO usuarios (consultorio_id, nombre, email, password_hash, rol, especialidad, cedula, telefono)
-                 VALUES (?,?,?,?, 'medico', ?,?,?)"
-            )->execute([tenant_id(), $nombre, $emailFinal, $hash, $especialidad, $cedula, $telefono]);
+                "INSERT INTO usuarios (consultorio_id, nombre, email, password_hash, rol, especialidad,
+                                       cedula, telefono, foto, semblanza)
+                 VALUES (?,?,?,?, 'medico', ?,?,?,?,?)"
+            )->execute([tenant_id(), $nombre, $emailFinal, $hash, $especialidad, $cedula, $telefono,
+                        $foto, $semblanza]);
             auditar('medico_crear', 'usuario', (int) db()->lastInsertId(), $nombre);
             flash('Médico agregado. Ya puedes asignarle citas.');
         }
@@ -107,7 +119,7 @@ include __DIR__ . '/../includes/header.php';
     <div class="alert alert-danger"><ul class="mb-0"><?php foreach ($errores as $er) echo '<li>' . e($er) . '</li>'; ?></ul></div>
 <?php endif; ?>
 
-<form method="post" class="card" style="max-width:720px">
+<form method="post" enctype="multipart/form-data" class="card" style="max-width:720px">
     <div class="card-body row g-3">
         <?= csrf_field() ?>
 
@@ -128,6 +140,31 @@ include __DIR__ . '/../includes/header.php';
         <div class="col-md-6">
             <label class="form-label"><?= et('Teléfono') ?></label>
             <input type="text" name="telefono" class="form-control" maxlength="40" value="<?= e($m['telefono'] ?? '') ?>">
+        </div>
+
+        <?php /* Perfil público: sale en "Nuestro equipo" del micrositio. Una
+                 cara y una cédula convierten un nombre en una persona, que es
+                 justo lo que el paciente busca antes de pedir cita. */ ?>
+        <div class="col-12"><hr class="my-1">
+            <span class="small fw-semibold text-muted text-uppercase">
+                <i class="bi bi-globe"></i> <?= et('Cómo se ve en tu página pública') ?>
+            </span>
+        </div>
+        <div class="col-md-5">
+            <label class="form-label"><?= et('Foto del médico') ?></label>
+            <input type="file" name="foto_file" class="form-control"
+                   accept="image/png,image/jpeg,image/webp">
+            <div class="form-text"><?= et('De frente y con bata si se puede · máx. 2 MB.') ?></div>
+            <?php if (!empty($m['foto'])): ?>
+                <img src="<?= e($m['foto']) ?>" alt="" class="rounded-circle mt-2"
+                     style="width:72px;height:72px;object-fit:cover">
+            <?php endif; ?>
+        </div>
+        <div class="col-md-7">
+            <label class="form-label"><?= et('Semblanza') ?> <span class="text-muted"><?= et('(opcional)') ?></span></label>
+            <textarea name="semblanza" class="form-control" rows="4" maxlength="600"
+                      placeholder="<?= e(t('Dónde estudió, cuántos años lleva atendiendo, en qué se especializa.')) ?>"><?= e($m['semblanza'] ?? '') ?></textarea>
+            <div class="form-text"><?= et('Dos o tres frases. Es lo que lee el paciente antes de elegir médico.') ?></div>
         </div>
 
         <div class="col-12"><hr class="my-1"></div>

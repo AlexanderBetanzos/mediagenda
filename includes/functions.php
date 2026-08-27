@@ -1756,6 +1756,26 @@ function mapa_ir_url(string $mapa, string $direccion): string
 }
 
 /**
+ * Añade foto y semblanza a `usuarios` si aún no existen (self-healing, igual
+ * que ensure_cardio_table y compañía). El equipo del micrositio las necesita
+ * y no conviene que la página falle porque falta correr un .sql.
+ */
+function asegurar_perfil_medico(): void
+{
+    static $listo = false;
+    if ($listo) return;
+    $listo = true;
+    try {
+        if (!db()->query("SHOW COLUMNS FROM usuarios LIKE 'foto'")->fetch()) {
+            db()->exec('ALTER TABLE usuarios ADD COLUMN foto VARCHAR(255) DEFAULT NULL');
+        }
+        if (!db()->query("SHOW COLUMNS FROM usuarios LIKE 'semblanza'")->fetch()) {
+            db()->exec('ALTER TABLE usuarios ADD COLUMN semblanza VARCHAR(600) DEFAULT NULL');
+        }
+    } catch (Throwable $e) { /* sin permisos de ALTER: el perfil queda sin foto */ }
+}
+
+/**
  * URL de la página pública del consultorio (su micrositio).
  * Sin argumento usa el consultorio en sesión, que es el caso normal desde
  * el panel: el dueño quiere abrir LA SUYA, no la de nadie más.
@@ -1832,6 +1852,10 @@ function micrositio_checklist(): array
          'etiqueta' => 'Da de alta tus servicios y precios', 'url' => BASE_URL . '/servicios/index'],
         ['clave' => 'medicos',   'ok' => $cuenta("SELECT COUNT(*) FROM usuarios WHERE consultorio_id = ? AND activo = 1 AND rol = 'medico'") > 0,
          'etiqueta' => 'Registra a tus médicos', 'url' => BASE_URL . '/medicos/index'],
+        // Un equipo sin caras se lee como una lista de nombres. La foto es lo
+        // que convierte al médico en una persona a la que pedirle cita.
+        ['clave' => 'fotos_med', 'ok' => $cuenta("SELECT COUNT(*) FROM usuarios WHERE consultorio_id = ? AND activo = 1 AND rol = 'medico' AND foto IS NOT NULL AND foto <> ''") > 0,
+         'etiqueta' => 'Ponle foto a tus médicos', 'url' => BASE_URL . '/medicos/index'],
         ['clave' => 'horarios',  'ok' => $cuenta('SELECT COUNT(*) FROM medico_horarios h
                                                   JOIN usuarios u ON u.id = h.medico_id
                                                   WHERE u.consultorio_id = ?') > 0,
