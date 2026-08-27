@@ -59,16 +59,30 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
     <link href="<?= asset('assets/css/style.css') ?>" rel="stylesheet">
     <link href="<?= asset('assets/css/material.css') ?>" rel="stylesheet">
     <style>
-        /* Color de acento configurable por consultorio (white-label). En el tema
-           claro y la landing manda el acento de marca; el panel oscuro usa el
-           skin "GymOS" en azul clínico, donde --brand queda fijado al azul
-           para que íconos de estadística, enlaces y la gráfica combinen. */
-        :root { --brand: <?= $acento ?>; --brand-dark: color-mix(in srgb, <?= $acento ?> 78%, #000); }
-        /* El panel (claro y oscuro) usa el acento azul GymOS; la landing
-           pública conserva el color de marca de :root. */
-        html.app-dark  { --brand: #2563eb; --brand-dark: #1e40af; }
-        html.app-light { --brand: #2563eb; --brand-dark: #1e40af; }
-        /* El botón primario oscuro (degradado azul) se define en style.css. */
+        /* Color de acento del consultorio (white-label).
+
+           Antes se inyectaba en :root y DOS LÍNEAS DESPUÉS se pisaba con un
+           azul fijo para el panel, así que el color elegido solo se veía en el
+           micrositio. En un producto que se vende como white-label, el panel
+           es justo donde el dueño pasa el día: si su marca no está ahí, no
+           está en ninguna parte.
+
+           Ahora el acento manda en los dos temas. Las variantes se derivan con
+           color-mix en vez de pedir más colores: --brand-dark oscurece para
+           los estados activos, y en el panel OSCURO los acentos se ACLARAN,
+           porque un color de marca oscuro sobre fondo casi negro no se ve. */
+        :root {
+            --brand:      <?= $acento ?>;
+            --brand-dark: color-mix(in srgb, <?= $acento ?> 78%, #000);
+            --cta:        <?= $acento ?>;
+            --cta-dark:   color-mix(in srgb, <?= $acento ?> 82%, #000);
+        }
+        html.app-dark {
+            --d-accent:  <?= $acento ?>;
+            /* Aclarados: sobre #0c0d10 un acento oscuro desaparece. */
+            --d-accent2: color-mix(in srgb, <?= $acento ?> 62%, #fff);
+            --d-accent3: color-mix(in srgb, <?= $acento ?> 48%, #fff);
+        }
 
         /* Bloque de soporte al pie del menú. Hereda el color de texto del
            sidebar, así funciona igual en tema claro y oscuro. */

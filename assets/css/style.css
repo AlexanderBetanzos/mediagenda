@@ -94,7 +94,7 @@ h5, .h5, h6, .h6 { line-height: 1.25; letter-spacing: -.015em; }
    ===================================================================== */
 html.app-dark {
     background:
-        radial-gradient(circle at 12% -8%, rgba(37,99,235,.14), transparent 42%),
+        radial-gradient(circle at 12% -8%, color-mix(in srgb, var(--brand) 14%, transparent), transparent 42%),
         radial-gradient(circle at 108% 4%, rgba(255,214,10,.08), transparent 40%),
         var(--d-bg);
     background-attachment: fixed;
@@ -129,7 +129,7 @@ html.app-light .topbar-clock { color: #14161a; }
 html.app-light .topbar-clock #clkDate { color: var(--muted); }
 .top-menu .nav-link { color: rgba(255,255,255,.72); font-weight: 500; padding: .35rem .85rem; border-radius: .5rem; }
 .top-menu .nav-link:hover { color: #fff; background: rgba(255,255,255,.08); }
-.top-menu .nav-link.active { color: #fff; background: rgba(37,99,235,.20); }
+.top-menu .nav-link.active { color: #fff; background: color-mix(in srgb, var(--brand) 20%, transparent); }
 .top-menu .nav-link .badge { font-size: .6rem; }
 .icon-btn { color: rgba(255,255,255,.85); font-size: 1.15rem; position: relative; text-decoration: none; }
 .icon-btn .dot { position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; border-radius: 50%; background: var(--d-green); border: 2px solid #0e1016; }
@@ -188,7 +188,7 @@ html.app-light .topbar-clock #clkDate { color: var(--muted); }
 .app-dark .sidebar .nav-link .bi { color: var(--d-muted); font-size: 1.05rem; }
 .app-dark .sidebar .nav-link:hover { background: rgba(255,255,255,.06); color: #fff; }
 .app-dark .sidebar .nav-link:hover .bi { color: var(--d-accent2); }
-.app-dark .sidebar .nav-link.active { background: rgba(37,99,235,.18); color: #fff; box-shadow: inset 3px 0 0 var(--d-accent), inset 0 0 18px rgba(37,99,235,.12); }
+.app-dark .sidebar .nav-link.active { background: color-mix(in srgb, var(--brand) 18%, transparent); color: #fff; box-shadow: inset 3px 0 0 var(--d-accent), inset 0 0 18px color-mix(in srgb, var(--brand) 12%, transparent); }
 .app-dark .sidebar .nav-link.active .bi { color: var(--d-accent2); }
 .app-dark .sidebar .soon { margin-left: auto; font-size: .6rem; background: rgba(255,255,255,.08); color: var(--d-muted); padding: .1rem .4rem; border-radius: .4rem; }
 
@@ -207,7 +207,7 @@ html.app-light .topbar-clock #clkDate { color: var(--muted); }
 /* ---- Tarjetas de estadística ---- */
 .stat-card { border: none; border-radius: 18px; }
 .app-dark .stat-card { background: linear-gradient(180deg, var(--d-panel2), var(--d-panel)); position: relative; overflow: hidden; }
-.app-dark .stat-card::after { content: ''; position: absolute; top: -40%; right: -20%; width: 180px; height: 180px; background: radial-gradient(circle, rgba(37,99,235,.16), transparent 62%); pointer-events: none; z-index: 0; }
+.app-dark .stat-card::after { content: ''; position: absolute; top: -40%; right: -20%; width: 180px; height: 180px; background: radial-gradient(circle, color-mix(in srgb, var(--brand) 16%, transparent), transparent 62%); pointer-events: none; z-index: 0; }
 .app-dark .stat-card .card-body { position: relative; z-index: 1; }
 .stat-card .stat-icon { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 14px; font-size: 1.35rem; }
 .stat-card .stat-num { font-family: var(--font-display); font-size: 2rem; font-weight: 600;
@@ -229,7 +229,7 @@ html.app-light .topbar-clock #clkDate { color: var(--muted); }
 .app-dark .list-group-item { background: transparent; border-color: var(--d-border); color: var(--d-ink); }
 .app-dark .form-control, .app-dark .form-select { background: rgba(255,255,255,.045); border: 1px solid rgba(255,255,255,.07); color: var(--d-ink); }
 .app-dark .form-control::placeholder { color: #7b8494; }
-.app-dark .form-control:focus, .app-dark .form-select:focus { background: rgba(255,255,255,.06); color: var(--d-ink); border-color: var(--d-accent); box-shadow: 0 0 0 .2rem rgba(37,99,235,.22); }
+.app-dark .form-control:focus, .app-dark .form-select:focus { background: rgba(255,255,255,.06); color: var(--d-ink); border-color: var(--d-accent); box-shadow: 0 0 0 .2rem color-mix(in srgb, var(--brand) 22%, transparent); }
 .app-dark .input-group-text { background: rgba(255,255,255,.06); border-color: var(--d-border); color: var(--d-muted); }
 .app-dark .form-label { color: var(--d-muted); font-weight: 500; }
 
@@ -245,14 +245,14 @@ html.app-light .topbar-clock #clkDate { color: var(--muted); }
     --bs-btn-color: #ffffff; --bs-btn-hover-color: #ffffff; --bs-btn-active-color: #ffffff;
     position: relative; z-index: 0; font-weight: 600;
     background-image: linear-gradient(135deg, var(--cta) 0%, color-mix(in srgb, var(--cta) 75%, #93c5fd) 100%);
-    box-shadow: 0 6px 18px rgba(37,99,235,.32);
+    box-shadow: 0 6px 18px color-mix(in srgb, var(--brand) 32%, transparent);
 }
-.app-dark .btn-primary:hover { background-image: linear-gradient(135deg, var(--cta-dark) 0%, var(--cta) 100%); box-shadow: 0 8px 22px rgba(37,99,235,.42); }
+.app-dark .btn-primary:hover { background-image: linear-gradient(135deg, var(--cta-dark) 0%, var(--cta) 100%); box-shadow: 0 8px 22px color-mix(in srgb, var(--brand) 42%, transparent); }
 .app-dark .btn-light { background: rgba(255,255,255,.08); border-color: var(--d-border); color: var(--d-ink); }
 .app-dark .btn-light:hover { background: rgba(255,255,255,.15); color: #fff; }
 .app-dark .btn-outline-secondary { color: var(--d-muted); border-color: var(--d-border); }
 .app-dark .btn-outline-secondary:hover { background: rgba(255,255,255,.08); color: #fff; border-color: var(--d-border); }
-.app-dark .btn-outline-primary { color: var(--d-accent2); border-color: rgba(37,99,235,.5); }
+.app-dark .btn-outline-primary { color: var(--d-accent2); border-color: color-mix(in srgb, var(--brand) 50%, transparent); }
 .app-dark .btn-outline-primary:hover { background: var(--d-accent); border-color: var(--d-accent); color: #ffffff; }
 
 /* ---- Otros componentes en oscuro ---- */
@@ -282,7 +282,7 @@ html.app-light .topbar-clock #clkDate { color: var(--muted); }
    ===================================================================== */
 html.app-light {
     background:
-        radial-gradient(circle at 12% -8%, rgba(37,99,235,.06), transparent 42%),
+        radial-gradient(circle at 12% -8%, color-mix(in srgb, var(--brand) 6%, transparent), transparent 42%),
         radial-gradient(circle at 108% 4%, rgba(255,214,10,.06), transparent 40%),
         #f4f6fa;
     background-attachment: fixed;
@@ -301,7 +301,7 @@ html.app-light .app-navbar .navbar-brand { color: var(--ink); }
    usan texto blanco y aquí se perdería sobre el fondo claro. */
 html.app-light .top-menu .nav-link { color: #51627a; }
 html.app-light .top-menu .nav-link:hover { color: var(--brand-dark); background: #f1f5fa; }
-html.app-light .top-menu .nav-link.active { color: var(--brand-dark); background: rgba(37,99,235,.12); font-weight: 600; }
+html.app-light .top-menu .nav-link.active { color: var(--brand-dark); background: color-mix(in srgb, var(--brand) 12%, transparent); font-weight: 600; }
 /* Hamburguesa visible sobre barra blanca (navbar-dark trae icono blanco). */
 html.app-light .navbar-toggler { border-color: #dde5ee; }
 html.app-light .navbar-toggler-icon {
@@ -327,7 +327,7 @@ html.app-light .sidebar .nav-link .bi { color: #94a3b8; font-size: 1.1rem; }
 html.app-light .sidebar .nav-link:hover { background: #f1f5fa; color: var(--brand-dark); }
 html.app-light .sidebar .nav-link:hover .bi { color: var(--brand); }
 html.app-light .sidebar .nav-link.active {
-    background: rgba(37,99,235,.10);
+    background: color-mix(in srgb, var(--brand) 10%, transparent);
     color: var(--brand-dark); font-weight: 600;
     box-shadow: inset 3px 0 0 var(--brand);
 }
@@ -516,7 +516,7 @@ html.lp-dark .lp-ag-h  { background: var(--d-panel2); }
 html.lp-dark .lp-feature,
 html.lp-dark .lp-quote { background: var(--d-panel); border-color: var(--d-border) !important; }
 html.lp-dark .lp-feature:hover { box-shadow: 0 16px 40px rgba(0,0,0,.55); }
-html.lp-dark .feature-icon { background: rgba(37,99,235,.14); }
+html.lp-dark .feature-icon { background: color-mix(in srgb, var(--brand) 14%, transparent); }
 
 html.lp-dark .lp-checklist li,
 html.lp-dark .lp-compare-item { color: var(--d-muted); }
@@ -524,7 +524,7 @@ html.lp-dark .lp-compare-bad  { background: rgba(220,53,69,.10); border-color: r
 html.lp-dark .lp-compare-good { background: rgba(34,197,94,.10);  border-color: rgba(34,197,94,.32); }
 
 html.lp-dark .lp-faq .accordion-item { border-color: var(--d-border); }
-html.lp-dark .lp-faq .accordion-button:not(.collapsed) { background: rgba(37,99,235,.14); color: var(--d-accent3); }
+html.lp-dark .lp-faq .accordion-button:not(.collapsed) { background: color-mix(in srgb, var(--brand) 14%, transparent); color: var(--d-accent3); }
 
 html.lp-dark .price-card:hover  { box-shadow: 0 10px 30px rgba(0,0,0,.5); }
 html.lp-dark .price-card.featured { border-color: var(--brand); }
@@ -584,7 +584,7 @@ html.lp-dark body.lp .badge.bg-light.text-dark { color: var(--d-ink) !important;
 /* CTA con imagen de fondo sobre el degradado de marca */
 .lp-cta { position: relative; background-size: cover; background-position: center; overflow: hidden; }
 .lp-cta::before { content: ''; position: absolute; inset: 0;
-    background: linear-gradient(135deg, rgba(30,64,175,.94) 0%, rgba(37,99,235,.90) 55%, rgba(63,154,163,.86) 130%); }
+    background: linear-gradient(135deg, rgba(30,64,175,.94) 0%, color-mix(in srgb, var(--brand) 90%, transparent) 55%, rgba(63,154,163,.86) 130%); }
 .lp-cta > .container { z-index: 1; }
 
 /* ---- Variante oscura ---- */
