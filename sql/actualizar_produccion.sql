@@ -747,3 +747,22 @@ ON DUPLICATE KEY UPDATE plan_clave = VALUES(plan_clave);
 --  Profesional en adelante. Las especialidades que ya existían NO comprobaban
 --  el plan (bastaba teclear la URL); ahora también lo comprueban.
 SELECT 'especialidades nuevas: tablas autocreadas, nada que migrar' AS nota;
+
+-- ============ 2026-08-27: reseñas de pacientes ============
+--  Ver sql/resenas.sql. Una reseña nace SIEMPRE de una cita atendida; el
+--  paciente califica con un enlace de token, sin cuenta.
+CREATE TABLE IF NOT EXISTS resenas (
+  id INT AUTO_INCREMENT PRIMARY KEY, consultorio_id INT NOT NULL DEFAULT 1,
+  cita_id INT NOT NULL, paciente_id INT NOT NULL, medico_id INT DEFAULT NULL,
+  token VARCHAR(32) NOT NULL, estrellas TINYINT DEFAULT NULL, comentario VARCHAR(1000) DEFAULT NULL,
+  estado ENUM('pendiente','publicada','oculta') NOT NULL DEFAULT 'pendiente',
+  motivo_oculta VARCHAR(160) DEFAULT NULL, respuesta VARCHAR(600) DEFAULT NULL,
+  invitada_en DATETIME DEFAULT NULL, respondida_en DATETIME DEFAULT NULL,
+  creado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_resena_cita (cita_id), UNIQUE KEY uq_resena_token (token),
+  CONSTRAINT fk_res_cita     FOREIGN KEY (cita_id)     REFERENCES citas(id)     ON DELETE CASCADE,
+  CONSTRAINT fk_res_paciente FOREIGN KEY (paciente_id) REFERENCES pacientes(id) ON DELETE CASCADE,
+  CONSTRAINT fk_res_medico   FOREIGN KEY (medico_id)   REFERENCES usuarios(id)  ON DELETE SET NULL,
+  INDEX idx_res_tenant (consultorio_id, estado, respondida_en),
+  INDEX idx_res_medico (medico_id, estado)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

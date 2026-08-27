@@ -1591,6 +1591,119 @@ function subir_imagen_marca(?array $f, string $prefijo): array
     return ['ok' => true, 'url' => BASE_URL . '/assets/logos/' . $nombre, 'error' => ''];
 }
 
+/* --------------------------------------------------------------------
+ *  Reseñas de pacientes
+ * ------------------------------------------------------------------ */
+
+/**
+ * Crea (o recupera) la invitación a reseñar de una cita atendida y devuelve su
+ * token. Idempotente: reenviar la invitación no genera una reseña nueva ni
+ * borra la que el paciente ya escribió.
+ *
+ * Devuelve '' si la cita no da derecho a reseña.
+ */
+function resena_invitar(int $cita_id): string
+{
+    $st = db()->prepare(
+        "SELECT id, paciente_id, medico_id, estado FROM citas
+         WHERE id = ? AND consultorio_id = ?"
+    );
+    $st->execute([$cita_id, tenant_id()]);
+    $c = $st->fetch();
+    // Solo se pide opinión de una consulta que de verdad ocurrió.
+    if (!$c || $c['estado'] !== 'atendida') return '';
+
+    $ya = db()->prepare('SELECT token FROM resenas WHERE cita_id = ? AND consultorio_id = ?');
+    $ya->execute([$cita_id, tenant_id()]);
+    if ($tok = $ya->fetchColumn()) return (string) $tok;
+
+    $token = bin2hex(random_bytes(16));
+    try {
+        db()->prepare(
+            'INSERT INTO resenas (consultorio_id, cita_id, paciente_id, medico_id, token, invitada_en)
+             VALUES (?,?,?,?,?,NOW())'
+        )->execute([tenant_id(), $cita_id, (int) $c['paciente_id'],
+                    ((int) $c['medico_id']) ?: null, $token]);
+    } catch (Throwable $e) {
+        return '';   // carrera contra otra pestaña, o la tabla aún no existe
+    }
+    return $token;
+}
+
+/** URL pública donde el paciente deja su reseña. */
+function resena_enlace(string $token): string
+{
+    return url_absoluta('/resena/index?t=' . $token);
+}
+
+/**
+ * Promedio y total de las reseñas PUBLICADAS de un consultorio.
+ * @return array{promedio:float, total:int}
+ */
+function resenas_resumen(?int $cid = null): array
+{
+    $cid = $cid ?: tenant_id();
+    try {
+        $st = db()->prepare(
+            "SELECT ROUND(AVG(estrellas), 1) AS promedio, COUNT(*) AS total
+             FROM resenas WHERE consultorio_id = ? AND estado = 'publicada' AND estrellas IS NOT NULL"
+        );
+        $st->execute([$cid]);
+        $r = $st->fetch() ?: [];
+        return ['promedio' => (float) ($r['promedio'] ?? 0), 'total' => (int) ($r['total'] ?? 0)];
+    } catch (Throwable $e) {
+        return ['promedio' => 0.0, 'total' => 0];
+    }
+}
+
+/**
+ * Reseñas publicadas de un consultorio, para la página pública.
+ * El nombre del paciente se recorta a nombre + inicial del apellido: la
+ * reseña es pública y el expediente no.
+ */
+function resenas_publicas(?int $cid = null, int $limite = 12): array
+{
+    $cid = $cid ?: tenant_id();
+    try {
+        $st = db()->prepare(
+            "SELECT r.estrellas, r.comentario, r.respuesta, r.respondida_en,
+                    p.nombre AS pac_nombre, p.apellidos AS pac_ape, u.nombre AS med_nombre
+             FROM resenas r
+             JOIN pacientes p ON p.id = r.paciente_id
+             LEFT JOIN usuarios u ON u.id = r.medico_id
+             WHERE r.consultorio_id = ? AND r.estado = 'publicada' AND r.estrellas IS NOT NULL
+             ORDER BY r.respondida_en DESC
+             LIMIT " . max(1, min(50, $limite))
+        );
+        $st->execute([$cid]);
+        $out = [];
+        foreach ($st->fetchAll() as $r) {
+            $ini = trim((string) $r['pac_ape']) !== '' ? mb_substr(trim($r['pac_ape']), 0, 1) . '.' : '';
+            $out[] = [
+                'estrellas'  => (int) $r['estrellas'],
+                'comentario' => (string) ($r['comentario'] ?? ''),
+                'respuesta'  => (string) ($r['respuesta'] ?? ''),
+                'fecha'      => (string) ($r['respondida_en'] ?? ''),
+                'autor'      => trim($r['pac_nombre'] . ' ' . $ini),
+                'medico'     => (string) ($r['med_nombre'] ?? ''),
+            ];
+        }
+        return $out;
+    } catch (Throwable $e) {
+        return [];
+    }
+}
+
+/** Pinta las estrellas de una calificación (llenas y vacías). */
+function resena_estrellas(float $n, string $clase = ''): string
+{
+    $html = '<span class="' . e($clase) . '">';
+    for ($i = 1; $i <= 5; $i++) {
+        $html .= '<i class="bi bi-star' . ($i <= round($n) ? '-fill' : '') . '"></i>';
+    }
+    return $html . '</span>';
+}
+
 /**
  * URL de la página pública del consultorio (su micrositio).
  * Sin argumento usa el consultorio en sesión, que es el caso normal desde

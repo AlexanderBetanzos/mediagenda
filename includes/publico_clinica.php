@@ -179,6 +179,19 @@ include __DIR__ . '/publico_header.php';
 
     /* Imagen / tarjeta al lado */
 
+    /* ===== Reseñas ===== */
+    .clx .rs-prom { font-family: var(--font-display); font-weight: 600; font-size: 2.2rem;
+                    line-height: 1; letter-spacing: -.04em; color: var(--ink); font-variant-numeric: tabular-nums; }
+    .clx .rs-star { color: #f5a524; letter-spacing: .06rem; }
+    .clx .rs-card { background: #fff; border: 1px solid rgba(0,0,0,.05); border-radius: 22px; padding: 1.6rem;
+                    box-shadow: 0 2px 8px rgba(0,0,0,.03), 0 12px 32px rgba(0,0,0,.05); }
+    html.lp-dark .clx .rs-card { background: rgba(255,255,255,.04); border-color: rgba(255,255,255,.08); box-shadow: none; }
+    .clx .rs-txt { color: var(--ink); font-size: .98rem; line-height: 1.55; letter-spacing: -.008em; }
+    .clx .rs-autor { font-weight: 590; font-size: .9rem; color: var(--ink); }
+    .clx .rs-med { font-weight: 400; color: var(--mut); }
+    .clx .rs-resp { margin-top: .9rem; padding-left: .9rem; border-left: 3px solid color-mix(in srgb, var(--cl) 45%, transparent);
+                    font-size: .9rem; color: var(--mut); }
+
     /* ===== Widgets pastel (beneficios) ===== */
     .clx .bene { border-radius: 22px; padding: 1.8rem; height: 100%; }
     .clx .bene.coral { background: #fbe6df; } .clx .bene.coral .bi { color: #d1694e; }
@@ -420,6 +433,54 @@ include __DIR__ . '/publico_header.php';
                     </div>
                     <?php else: ?>
                     <div class="medhor text-muted small text-center"><?= et('Consulta con cita') ?></div>
+                    <?php endif; ?>
+                </div>
+            </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</section>
+<?php endif; ?>
+
+<!-- ===== RESEÑAS ===== -->
+<?php
+/* Solo se pinta si hay reseñas publicadas. Una sección de opiniones vacía
+   —"Sé el primero en opinar"— resta en vez de sumar: le dice al paciente que
+   nadie ha venido. Mejor que no exista hasta que tenga algo que enseñar. */
+$resResumen = resenas_resumen((int) $con['id']);
+$resLista   = $resResumen['total'] ? resenas_publicas((int) $con['id'], 9) : [];
+?>
+<?php if ($resLista): ?>
+<section id="resenas" class="soft-planes">
+    <div class="wrap">
+        <div class="text-center mb-4">
+            <span class="eyebrow"><?= et('Opiniones') ?></span>
+            <h2 class="t"><?= et('Lo que dicen nuestros pacientes') ?></h2>
+            <div class="d-flex align-items-center justify-content-center gap-2 mt-2">
+                <span class="rs-prom"><?= number_format($resResumen['promedio'], 1) ?></span>
+                <span class="rs-star"><?= resena_estrellas($resResumen['promedio']) ?></span>
+                <span class="sub m-0"><?= $resResumen['total'] ?> <?= $resResumen['total'] === 1 ? et('reseña') : et('reseñas') ?></span>
+            </div>
+            <p class="sub"><?= et('Todas provienen de pacientes que sí tuvieron consulta aquí.') ?></p>
+        </div>
+        <div class="row g-4">
+            <?php foreach ($resLista as $rs): ?>
+            <div class="col-md-6 col-lg-4">
+                <div class="rs-card h-100">
+                    <div class="rs-star mb-2"><?= resena_estrellas((float) $rs['estrellas']) ?></div>
+                    <?php if ($rs['comentario']): ?>
+                        <p class="rs-txt">“<?= e($rs['comentario']) ?>”</p>
+                    <?php endif; ?>
+                    <div class="rs-autor">
+                        <?= e($rs['autor']) ?>
+                        <?php if ($rs['medico']): ?>
+                            <span class="rs-med">· <?= et('con') ?> <?= e($rs['medico']) ?></span>
+                        <?php endif; ?>
+                    </div>
+                    <?php if ($rs['respuesta']): ?>
+                    <div class="rs-resp">
+                        <span class="fw-semibold"><?= e($marca) ?>:</span> <?= e($rs['respuesta']) ?>
+                    </div>
                     <?php endif; ?>
                 </div>
             </div>
