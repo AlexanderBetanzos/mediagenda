@@ -50,6 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'web_titular'   => trim($_POST['web_titular'] ?? ''),
         'web_acerca'    => trim($_POST['web_acerca'] ?? ''),
         'web_foto'      => $webFoto,
+        'web_mapa'      => trim($_POST['web_mapa'] ?? ''),
         // Apariencia
         'tema_default'  => $tema,
         'color_acento'  => $acento,
@@ -233,9 +234,29 @@ include __DIR__ . '/../includes/header.php';
                 <label class="form-label"><?= et('RFC / Id. fiscal') ?></label>
                 <input type="text" name="rfc" class="form-control" value="<?= e(cfg('rfc')) ?>">
             </div>
-            <div class="col-12">
+            <div class="col-md-7">
                 <label class="form-label"><?= et('Dirección') ?></label>
-                <input type="text" name="direccion" class="form-control" value="<?= e(cfg('direccion')) ?>">
+                <input type="text" name="direccion" class="form-control" value="<?= e(cfg('direccion')) ?>"
+                       placeholder="<?= e(t('Calle, número, colonia, ciudad')) ?>">
+                <div class="form-text">
+                    <i class="bi bi-globe"></i>
+                    <?= et('Aparece en tu página pública y en tus documentos impresos.') ?>
+                </div>
+            </div>
+            <div class="col-md-5">
+                <label class="form-label"><?= et('Enlace de Google Maps') ?> <span class="text-muted"><?= et('(opcional)') ?></span></label>
+                <input type="text" name="web_mapa" class="form-control" value="<?= e(cfg('web_mapa')) ?>"
+                       placeholder="https://www.google.com/maps/place/…">
+                <div class="form-text">
+                    <?= et('Busca tu consultorio en Google Maps, pulsa Compartir y pega aquí el enlace. Así el pin cae exacto.') ?>
+                    <?php $_c = mapa_coords(cfg('web_mapa', '')); if ($_c): ?>
+                        <br><span class="text-success"><i class="bi bi-check-circle"></i>
+                        <?= et('Ubicación exacta detectada') ?>: <?= e($_c) ?></span>
+                    <?php elseif (trim((string) cfg('web_mapa', '')) !== ''): ?>
+                        <br><span class="text-warning-emphasis"><i class="bi bi-exclamation-triangle"></i>
+                        <?= et('De ese enlace no se pueden sacar coordenadas (los enlaces cortos no las traen). Se usará la dirección de texto. Abre el enlace corto y copia la URL larga de la barra.') ?></span>
+                    <?php endif; ?>
+                </div>
             </div>
             <div class="col-md-4">
                 <label class="form-label"><?= et('Teléfono') ?></label>

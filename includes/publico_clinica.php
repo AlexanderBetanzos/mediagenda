@@ -516,12 +516,24 @@ $resLista   = $resResumen['total'] ? resenas_publicas((int) $con['id'], 9) : [];
             <?php endif; ?>
         </div>
 
-        <?php /* Mapa de Google embebido con la dirección (sin API key). */ ?>
-        <?php if ($dir): ?>
+        <?php /* Mapa embebido, sin API key. Prefiere las coordenadas del enlace
+                 de Maps que pegó el consultorio; si no hay, busca por dirección. */ ?>
+        <?php $mapaSrc = mapa_embed_url(cfg('web_mapa', ''), (string) $dir); ?>
+        <?php if ($mapaSrc): ?>
         <div class="cl-map mt-5">
-            <iframe title="<?= e($marca) ?>" width="100%" height="380" style="border:0;border-radius:20px"
+            <iframe title="<?= e($marca) ?>" width="100%" height="380" style="border:0;border-radius:22px"
                     loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen
-                    src="https://maps.google.com/maps?q=<?= rawurlencode($dir) ?>&z=16&output=embed"></iframe>
+                    src="<?= e($mapaSrc) ?>"></iframe>
+            <?php $irUrl = mapa_ir_url(cfg('web_mapa', ''), (string) $dir); ?>
+            <?php if ($irUrl): ?>
+            <div class="text-center mt-3">
+                <?php /* En un móvil esto abre la app de mapas con la ruta trazada,
+                         que es lo que el paciente necesita de verdad. */ ?>
+                <a href="<?= e($irUrl) ?>" target="_blank" rel="noopener" class="btn-cta">
+                    <i class="bi bi-signpost-split"></i> <?= et('Cómo llegar') ?>
+                </a>
+            </div>
+            <?php endif; ?>
         </div>
         <?php endif; ?>
     </div>

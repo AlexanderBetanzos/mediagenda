@@ -1705,6 +1705,57 @@ function resena_estrellas(float $n, string $clase = ''): string
 }
 
 /**
+ * Coordenadas de un enlace de Google Maps, o '' si no se pueden sacar.
+ *
+ * El consultorio pega la URL que le da "Compartir" en Maps. Las formas útiles
+ * traen la posición dentro de la propia URL:
+ *   .../@19.4326,-99.1332,17z/...      el centro del mapa
+ *   ...!3d19.4326!4d-99.1332           el pin exacto del lugar
+ * Los enlaces cortos (maps.app.goo.gl) NO la traen: son una redirección, y
+ * seguirla desde el servidor en cada visita sería lento y frágil. En ese caso
+ * se devuelve '' y el mapa cae a buscar por dirección, que es lo que había.
+ */
+function mapa_coords(string $url): string
+{
+    $url = trim($url);
+    if ($url === '') return '';
+
+    // El pin real (!3d lat !4d lng) manda sobre el centro de la vista (@).
+    if (preg_match('/!3d(-?\d{1,3}\.\d+)!4d(-?\d{1,3}\.\d+)/', $url, $m)) {
+        return $m[1] . ',' . $m[2];
+    }
+    if (preg_match('/@(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/', $url, $m)) {
+        return $m[1] . ',' . $m[2];
+    }
+    // También se acepta pegar las coordenadas a secas: "19.4326, -99.1332".
+    if (preg_match('/^\s*(-?\d{1,3}\.\d+)\s*,\s*(-?\d{1,3}\.\d+)\s*$/', $url, $m)) {
+        return $m[1] . ',' . $m[2];
+    }
+    return '';
+}
+
+/**
+ * URL del mapa embebido del consultorio. Prefiere las coordenadas exactas y
+ * cae a la dirección en texto: una dirección como "Consultorio 3, Centro" la
+ * sitúa Google donde puede, y muchas veces no es donde está la clínica.
+ * Devuelve '' si no hay ni una cosa ni la otra.
+ */
+function mapa_embed_url(string $mapa, string $direccion): string
+{
+    $q = mapa_coords($mapa) ?: trim($direccion);
+    if ($q === '') return '';
+    return 'https://maps.google.com/maps?q=' . rawurlencode($q) . '&z=16&output=embed';
+}
+
+/** URL para ABRIR el mapa en la app o en el navegador (botón "Cómo llegar"). */
+function mapa_ir_url(string $mapa, string $direccion): string
+{
+    $q = mapa_coords($mapa) ?: trim($direccion);
+    if ($q === '') return '';
+    return 'https://www.google.com/maps/dir/?api=1&destination=' . rawurlencode($q);
+}
+
+/**
  * URL de la página pública del consultorio (su micrositio).
  * Sin argumento usa el consultorio en sesión, que es el caso normal desde
  * el panel: el dueño quiere abrir LA SUYA, no la de nadie más.
