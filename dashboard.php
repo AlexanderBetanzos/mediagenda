@@ -375,10 +375,16 @@ include __DIR__ . '/includes/header.php';
     </div>
 </div>
 
-<?php if (micrositio_visible()): $urlPub = micrositio_url(); ?>
+<?php if (micrositio_visible()):
+    $urlPub  = micrositio_url();
+    $pendWeb = $esAdmin ? micrositio_pendientes() : [];   // solo el admin puede arreglarlo
+    $avance  = $esAdmin ? micrositio_avance() : 100;
+?>
 <?php /* La página pública sirve sobre todo para MANDARLA: al paciente que
          pregunta por WhatsApp, en la firma del correo, en el perfil de redes.
-         Por eso la tarjeta no es solo un enlace: copia y comparte en un clic. */ ?>
+         Por eso la tarjeta no es solo un enlace: copia y comparte en un clic.
+         Y si está a medio llenar lo dice, porque una página vacía no vende y
+         el dueño no tiene cómo enterarse salvo abriéndola. */ ?>
 <div class="card mb-4">
     <div class="card-body d-flex flex-wrap align-items-center gap-3">
         <div class="flex-grow-1 min-w-0">
@@ -391,7 +397,8 @@ include __DIR__ . '/includes/header.php';
             <button type="button" class="btn btn-sm btn-outline-secondary" id="copiarWeb" data-url="<?= e($urlPub) ?>">
                 <i class="bi bi-clipboard"></i> <?= et('Copiar') ?>
             </button>
-            <a href="<?= e(wa_compartir(t('Conoce nuestros servicios y agenda tu cita aquí') . ': ' . $urlPub)) ?>" target="_blank" rel="noopener" class="btn btn-sm btn-outline-success">
+            <a href="<?= e(wa_compartir(t('Conoce nuestros servicios y agenda tu cita aquí') . ': ' . $urlPub)) ?>"
+               target="_blank" rel="noopener" class="btn btn-sm btn-outline-success">
                 <i class="bi bi-whatsapp"></i> <?= et('Compartir') ?>
             </a>
             <a href="<?= e($urlPub) ?>" target="_blank" rel="noopener" class="btn btn-sm btn-primary">
@@ -399,6 +406,31 @@ include __DIR__ . '/includes/header.php';
             </a>
         </div>
     </div>
+
+    <?php if ($pendWeb): ?>
+    <div class="card-body border-top pt-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="small fw-semibold">
+                <i class="bi bi-clipboard-check text-brand"></i>
+                <?= et('Completa tu página') ?>
+            </span>
+            <span class="small text-muted"><?= $avance ?>%</span>
+        </div>
+        <div class="progress mb-3" style="height:6px">
+            <div class="progress-bar bg-success" style="width:<?= $avance ?>%"></div>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <?php foreach ($pendWeb as [$clave, $etiqueta, $url]): ?>
+                <a href="<?= e($url) ?>" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-plus-lg"></i> <?= et($etiqueta) ?>
+                </a>
+            <?php endforeach; ?>
+        </div>
+        <div class="form-text mt-2">
+            <?= et('Cada punto que llenes aparece solo en tu página. Nadie contrata a un consultorio cuya página está vacía.') ?>
+        </div>
+    </div>
+    <?php endif; ?>
 </div>
 <script>
 document.getElementById('copiarWeb').addEventListener('click', function (ev) {
@@ -410,7 +442,6 @@ document.getElementById('copiarWeb').addEventListener('click', function (ev) {
 });
 </script>
 <?php endif; ?>
-
 <?php if ($verFacturacion && $esAdmin): ?>
 <!-- ── Finanzas del mes ─────────────────────────────────────────────── -->
 <div class="card mb-4">

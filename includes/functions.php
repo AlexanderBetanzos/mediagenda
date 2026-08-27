@@ -1574,6 +1574,88 @@ function micrositio_visible(): bool
 }
 
 /**
+ * Checklist de la página pública del consultorio: TODOS los puntos, cada uno
+ * con si ya está cumplido, su etiqueta y dónde se arregla.
+ *
+ * Existe porque un consultorio recién dado de alta estrena micrositio vacío:
+ * sin logo, sin servicios y con el nombre del producto en vez del suyo. La
+ * página funciona igual, pero no vende, y el dueño no tiene forma de saber qué
+ * le falta salvo abrirla y compararla con lo que imaginaba.
+ *
+ * Devuelve la lista COMPLETA (no solo lo pendiente) para que el porcentaje y
+ * los botones salgan del mismo sitio: con dos listas separadas, añadir una
+ * comprobación y olvidar el total daba un avance mentiroso.
+ *
+ * @return list<array{clave:string, ok:bool, etiqueta:string, url:string}>
+ */
+function micrositio_checklist(): array
+{
+    $cfgUrl = BASE_URL . '/configuracion/index';
+    $lleno  = fn(string $k) => trim((string) cfg($k, '')) !== '';
+
+    /** Cuenta filas de una consulta; 0 si la tabla aún no existe. */
+    $cuenta = function (string $sql) {
+        try {
+            $st = db()->prepare($sql);
+            $st->execute([tenant_id()]);
+            return (int) $st->fetchColumn();
+        } catch (Throwable $e) {
+            return 0;
+        }
+    };
+
+    return [
+        // El nombre por omisión es el del PRODUCTO: si sigue ahí, el paciente
+        // lee "MediOS" en vez del nombre de su clínica. El peor de los vacíos.
+        ['clave' => 'marca',    'ok' => $lleno('marca_nombre') && marca_nombre() !== APP_NAME,
+         'etiqueta' => 'Ponle el nombre de tu consultorio', 'url' => $cfgUrl],
+        ['clave' => 'logo',     'ok' => $lleno('marca_logo'),
+         'etiqueta' => 'Sube tu logo', 'url' => $cfgUrl],
+        ['clave' => 'titular',  'ok' => $lleno('web_titular') || $lleno('marca_lema'),
+         'etiqueta' => 'Escribe el titular de tu página', 'url' => $cfgUrl],
+        ['clave' => 'acerca',   'ok' => $lleno('web_acerca'),
+         'etiqueta' => 'Cuenta quiénes son en "Sobre nosotros"', 'url' => $cfgUrl],
+        ['clave' => 'foto',     'ok' => $lleno('web_foto'),
+         'etiqueta' => 'Agrega una foto de tu consultorio', 'url' => $cfgUrl],
+        ['clave' => 'contacto', 'ok' => $lleno('telefono') && $lleno('direccion'),
+         'etiqueta' => 'Completa teléfono y dirección', 'url' => $cfgUrl],
+
+        // Servicios, equipo y horarios NO se configuran: salen de la operación
+        // diaria. Si están vacíos, la página se ve a medio hacer.
+        ['clave' => 'servicios', 'ok' => $cuenta('SELECT COUNT(*) FROM servicios WHERE consultorio_id = ? AND activo = 1') > 0,
+         'etiqueta' => 'Da de alta tus servicios y precios', 'url' => BASE_URL . '/servicios/index'],
+        ['clave' => 'medicos',   'ok' => $cuenta("SELECT COUNT(*) FROM usuarios WHERE consultorio_id = ? AND activo = 1 AND rol = 'medico'") > 0,
+         'etiqueta' => 'Registra a tus médicos', 'url' => BASE_URL . '/medicos/index'],
+        ['clave' => 'horarios',  'ok' => $cuenta('SELECT COUNT(*) FROM medico_horarios h
+                                                  JOIN usuarios u ON u.id = h.medico_id
+                                                  WHERE u.consultorio_id = ?') > 0,
+         'etiqueta' => 'Define el horario de atención', 'url' => BASE_URL . '/citas/horarios'],
+    ];
+}
+
+/**
+ * Solo lo que falta, como [clave, etiqueta, url] para pintarlo directo.
+ * Lista vacía = la página está completa.
+ */
+function micrositio_pendientes(): array
+{
+    $falta = [];
+    foreach (micrositio_checklist() as $p) {
+        if (!$p['ok']) $falta[] = [$p['clave'], $p['etiqueta'], $p['url']];
+    }
+    return $falta;
+}
+
+/** Porcentaje de la página pública que ya está lleno (0-100). */
+function micrositio_avance(): int
+{
+    $lista = micrositio_checklist();
+    if (!$lista) return 100;
+    $ok = count(array_filter($lista, fn($p) => $p['ok']));
+    return (int) round(100 * $ok / count($lista));
+}
+
+/**
  * Huecos libres de un médico en un día.
  *
  * Un hueco se ofrece solo si: cae dentro del horario que el médico configuró
