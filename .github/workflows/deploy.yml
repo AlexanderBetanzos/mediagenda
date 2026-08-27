@@ -1,0 +1,75 @@
+# =====================================================================
+#  Despliegue automático: cada push a main publica en mediagenda.com.mx
+#
+#  Antes de esto el despliegue era FTP a mano, así que el código podía estar
+#  en GitHub y el servidor seguir sirviendo la versión anterior — que fue
+#  exactamente lo que pasó con el banner y las viñetas de los planes.
+#
+#  LO QUE NUNCA SE TOCA (ver `exclude` más abajo):
+#    · uploads/      expedientes y fotos de pacientes. Vive SOLO en el
+#                    servidor; si el despliegue lo borrara, se pierden
+#                    archivos clínicos que nadie puede reponer.
+#    · config/secrets.php   credenciales de producción, fuera de git.
+#    · logs/         bitácoras de correo, WhatsApp e IA.
+#    · assets/logos/ logos que sube cada consultorio.
+# =====================================================================
+name: Desplegar a producción
+
+on:
+  push:
+    branches: [main]
+  # Permite lanzarlo a mano desde la pestaña Actions sin tener que
+  # inventar un commit vacío.
+  workflow_dispatch:
+
+# Dos pushes seguidos no deben pisarse a media subida: el segundo espera.
+concurrency:
+  group: deploy-produccion
+  cancel-in-progress: false
+
+jobs:
+  ftp:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Traer el código
+        uses: actions/checkout@v4
+
+      - name: Comprobar que el PHP no tenga errores de sintaxis
+        # Barato y evita el peor accidente: publicar un archivo que rompe
+        # el sitio entero por un punto y coma. Si falla, no se despliega.
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq php-cli
+          errores=0
+          while IFS= read -r f; do
+            php -l "$f" > /dev/null 2>&1 || { echo "SINTAXIS: $f"; errores=1; }
+          done < <(find . -name '*.php' -not -path './.git/*')
+          [ "$errores" -eq 0 ] || { echo "Hay errores de sintaxis; no se despliega."; exit 1; }
+          echo "PHP OK"
+
+      - name: Subir por FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server:   ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ${{ vars.FTP_PROTOCOL || 'ftps' }}
+          # Carpeta del sitio en el servidor. Si el hosting entrega la raíz
+          # ya dentro de public_html, déjalo en ./
+          server-dir: ${{ vars.FTP_SERVER_DIR || './' }}
+          # NUNCA borrar lo que no está en el repo: el servidor guarda
+          # archivos de pacientes que git no conoce.
+          dangerous-clean-slate: false
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/.github/**
+            **/node_modules/**
+            **/.DS_Store
+            **/.vscode/**
+            **/.idea/**
+            **/.claude/**
+            config/secrets.php
+            uploads/**
+            logs/**
+            assets/logos/**
+            .ftp-deploy-sync-state.json

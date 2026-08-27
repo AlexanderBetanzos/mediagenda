@@ -153,3 +153,34 @@ hacer *Deploy* (o automáticamente con un webhook).
 - Cambia las contraseñas de las cuentas demo antes de usar en producción.
 - `display_errors` se desactiva solo en producción (se activa únicamente en
   `localhost`/CLI o con `APP_DEBUG=1`).
+
+---
+
+## Despliegue
+
+Cada `git push` a `main` publica en producción automáticamente
+(`.github/workflows/deploy.yml`). No hay que subir nada por FTP a mano.
+
+El workflow primero comprueba que ningún `.php` tenga errores de sintaxis; si
+alguno falla, **no despliega**. Después sincroniza por FTP.
+
+**Nunca toca** lo que vive solo en el servidor: `uploads/` (expedientes y fotos
+de pacientes), `config/secrets.php`, `logs/` y `assets/logos/`. Y va con
+`dangerous-clean-slate: false`, así que jamás borra en el servidor un archivo
+que no esté en el repositorio.
+
+### Configurarlo una sola vez
+
+En GitHub → *Settings* → *Secrets and variables* → *Actions*:
+
+| Tipo | Nombre | Valor |
+|---|---|---|
+| Secret | `FTP_SERVER` | host FTP (ej. `ftp.mediagenda.com.mx`) |
+| Secret | `FTP_USERNAME` | usuario FTP |
+| Secret | `FTP_PASSWORD` | contraseña FTP |
+| Variable | `FTP_SERVER_DIR` | carpeta del sitio (ej. `public_html/`). Por omisión `./` |
+| Variable | `FTP_PROTOCOL` | `ftps` (recomendado) o `ftp`. Por omisión `ftps` |
+
+> Los cambios de **base de datos** no viajan en el despliegue: los `.sql` se
+> siguen importando a mano (phpMyAdmin). El código y el esquema se despliegan
+> por separado a propósito — una migración mal aplicada no se deshace sola.
