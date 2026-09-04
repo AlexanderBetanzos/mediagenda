@@ -5,6 +5,24 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="<?= asset('assets/js/app.js') ?>"></script>
 <script>
+/* Guarda la preferencia de tema (misma cookie que el panel del consultorio,
+   así la consola y el panel se ven igual) y la aplica al instante. */
+function setTema(pref) {
+    document.cookie = 'tema=' + pref + ';path=<?= BASE_URL ?>/;max-age=31536000;samesite=Lax';
+    var resolved = pref === 'auto'
+        ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+        : pref;
+    var el = document.documentElement;
+    el.classList.remove('app-dark', 'app-light');
+    el.classList.add(resolved === 'light' ? 'app-light' : 'app-dark');
+    if (resolved === 'light') { el.setAttribute('data-bs-theme', 'light'); }
+    else { el.removeAttribute('data-bs-theme'); }
+    document.querySelectorAll('[onclick^="setTema"]').forEach(function (a) {
+        a.classList.toggle('active', a.getAttribute('onclick').indexOf("'" + pref + "'") > -1);
+    });
+}
+</script>
+<script>
 (function () {
     var t = document.getElementById('clkTime'), d = document.getElementById('clkDate');
     if (!t || !d) return;

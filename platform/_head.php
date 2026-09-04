@@ -77,6 +77,17 @@ if ($esSuper) {
             <div id="clkDate" class="small text-muted text-capitalize"></div>
         </div>
         <div class="dropdown">
+            <a href="#" class="icon-btn dropdown-toggle" data-bs-toggle="dropdown" title="<?= et('Tema') ?>" aria-label="<?= et('Cambiar tema') ?>">
+                <i class="bi bi-circle-half"></i>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li><h6 class="dropdown-header"><?= et('Apariencia') ?></h6></li>
+                <li><a class="dropdown-item<?= $tema === 'light' ? ' active' : '' ?>" href="#" onclick="setTema('light');return false"><i class="bi bi-sun me-2"></i><?= et('Claro') ?></a></li>
+                <li><a class="dropdown-item<?= $tema === 'dark' ? ' active' : '' ?>" href="#" onclick="setTema('dark');return false"><i class="bi bi-moon-stars me-2"></i><?= et('Oscuro') ?></a></li>
+                <li><a class="dropdown-item<?= $tema === 'auto' ? ' active' : '' ?>" href="#" onclick="setTema('auto');return false"><i class="bi bi-circle-half me-2"></i><?= et('Automático') ?></a></li>
+            </ul>
+        </div>
+        <div class="dropdown">
             <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
                 <span class="avatar-circle"><?= e($ini) ?></span>
             </a>
