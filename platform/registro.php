@@ -75,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="text-center mb-4">
             <div class="display-6" style="color:#2563eb"><i class="bi bi-person-badge-fill"></i></div>
             <h1 class="h4 mt-2 mb-1"><?= e(APP_NAME) ?> <span class="plat-badge">SOCIO</span></h1>
-            <p class="text-muted small mb-0"><?= et('Crea tu cuenta de socio. El dueño la aprobará y te asignará qué clientes puedes ver.') ?></p>
+            <p class="text-muted small mb-0"><?= et('Crea tu cuenta de socio. El dueño la aprobará.') ?></p>
         </div>
 
         <?php if ($error): ?><div class="alert alert-danger py-2"><?= e($error) ?></div><?php endif; ?>
