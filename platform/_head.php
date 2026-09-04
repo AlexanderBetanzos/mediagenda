@@ -43,21 +43,33 @@ $ini     = strtoupper(mb_substr($parts[0] ?? '', 0, 1) . (isset($parts[1]) ? mb_
         html.app-dark, html.app-light { --brand: #2563eb; --brand-dark: #1e40af; }
         .plat-badge { font-size:.6rem; letter-spacing:1.5px; font-weight:800; padding:.15rem .5rem; border-radius:6px;
             background:rgba(37,99,235,.18); color:#93c5fd; }
+        .plat-nav-movil { border-top:1px solid rgba(255,255,255,.08); }
+        html.app-light .plat-nav-movil { border-top-color:#e7edf4; }
+        .plat-nav-movil .nav-link { padding:.6rem .85rem; }
     </style>
 </head>
 <body>
+<?php
+/* Las mismas opciones alimentan el menú de escritorio y el desplegable móvil,
+   para que en el celular no se pierda la navegación de la consola. */
+$platLinks = [
+    ['consultorios', 'index',   'bi-buildings',       et('Consultorios')],
+    ['metrics',      'metrics', 'bi-graph-up-arrow',  et('Métricas')],
+];
+if ($esSuper) {
+    $platLinks[] = ['socios',  'socios',  'bi-people', et('Socios')];
+    $platLinks[] = ['ajustes', 'ajustes', 'bi-gear',   et('Ajustes')];
+}
+?>
 <nav class="navbar navbar-dark app-navbar sticky-top flex-md-nowrap p-0">
     <a class="navbar-brand d-flex me-0 px-3 fs-6 align-items-center gap-2" href="<?= BASE_URL ?>/platform/index">
         <i class="bi bi-diagram-3-fill" style="color:#2563eb"></i>
         <span><?= e(APP_NAME) ?></span> <span class="plat-badge">PLATAFORMA</span>
     </a>
     <ul class="navbar-nav flex-row top-menu gap-1 ms-2 d-none d-md-flex">
-        <li class="nav-item"><a class="nav-link<?= ($platNav ?? '') === 'consultorios' ? ' active' : '' ?>" href="<?= BASE_URL ?>/platform/index"><i class="bi bi-buildings"></i> <?= et('Consultorios') ?></a></li>
-        <li class="nav-item"><a class="nav-link<?= ($platNav ?? '') === 'metrics' ? ' active' : '' ?>" href="<?= BASE_URL ?>/platform/metrics"><i class="bi bi-graph-up-arrow"></i> <?= et('Métricas') ?></a></li>
-        <?php if ($esSuper): ?>
-        <li class="nav-item"><a class="nav-link<?= ($platNav ?? '') === 'socios' ? ' active' : '' ?>" href="<?= BASE_URL ?>/platform/socios"><i class="bi bi-people"></i> <?= et('Socios') ?></a></li>
-        <li class="nav-item"><a class="nav-link<?= ($platNav ?? '') === 'ajustes' ? ' active' : '' ?>" href="<?= BASE_URL ?>/platform/ajustes"><i class="bi bi-gear"></i> <?= et('Ajustes') ?></a></li>
-        <?php endif; ?>
+        <?php foreach ($platLinks as [$slug, $file, $icono, $texto]): ?>
+        <li class="nav-item"><a class="nav-link<?= ($platNav ?? '') === $slug ? ' active' : '' ?>" href="<?= BASE_URL ?>/platform/<?= $file ?>"><i class="bi <?= $icono ?>"></i> <?= $texto ?></a></li>
+        <?php endforeach; ?>
     </ul>
     <div class="navbar-nav flex-row ms-auto align-items-center gap-3 px-3">
         <div class="topbar-clock text-end lh-1 d-none d-sm-block">
@@ -74,6 +86,16 @@ $ini     = strtoupper(mb_substr($parts[0] ?? '', 0, 1) . (isset($parts[1]) ? mb_
                 <li><a class="dropdown-item" href="<?= BASE_URL ?>/platform/logout"><i class="bi bi-box-arrow-right me-2"></i><?= et('Cerrar sesión') ?></a></li>
             </ul>
         </div>
+        <button class="navbar-toggler d-md-none border-0 p-1" type="button" data-bs-toggle="collapse" data-bs-target="#platNavMovil" aria-controls="platNavMovil" aria-expanded="false" aria-label="<?= et('Menú') ?>">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    </div>
+    <div class="collapse w-100 d-md-none plat-nav-movil" id="platNavMovil">
+        <ul class="navbar-nav top-menu px-2 pb-2">
+            <?php foreach ($platLinks as [$slug, $file, $icono, $texto]): ?>
+            <li class="nav-item"><a class="nav-link d-flex align-items-center gap-2<?= ($platNav ?? '') === $slug ? ' active' : '' ?>" href="<?= BASE_URL ?>/platform/<?= $file ?>"><i class="bi <?= $icono ?>"></i> <?= $texto ?></a></li>
+            <?php endforeach; ?>
+        </ul>
     </div>
 </nav>
 <main class="container-fluid px-md-4 py-4">
