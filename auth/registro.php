@@ -227,6 +227,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <?php endif; ?>
             </form>
 
+            <p class="text-center small text-muted mt-3 mb-0">
+                <?= et('Al crear tu cuenta aceptas el') ?>
+                <a href="<?= BASE_URL ?>/privacidad" target="_blank" rel="noopener"><?= et('Aviso de privacidad') ?></a>.
+            </p>
+
             <div class="text-center mt-3 small text-muted">
                 <?= et('¿Ya tienes cuenta?') ?> <a href="<?= BASE_URL ?>/auth/login"><?= et('Inicia sesión') ?></a>
                 &middot; <a href="<?= BASE_URL ?>/index" class="text-muted"><?= et('Volver al sitio') ?></a>

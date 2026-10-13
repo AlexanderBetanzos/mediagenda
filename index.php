@@ -588,6 +588,7 @@ track_pageview('publico');
                 <div class="fw-semibold mb-2">Cuenta</div>
                 <a class="lp-foot-link" href="<?= BASE_URL ?>/auth/registro">Prueba gratis</a>
                 <a class="lp-foot-link" href="<?= BASE_URL ?>/auth/login">Iniciar sesión</a>
+                <a class="lp-foot-link" href="<?= BASE_URL ?>/privacidad">Aviso de privacidad</a>
             </div>
             <div class="col-lg-4">
                 <div class="fw-semibold mb-2">¿Listo para empezar?</div>
