@@ -524,6 +524,9 @@ track_pageview('publico');
     @media (max-width: 991.98px) {
         .lp-stats { justify-content: center; }
     }
+    /* En celular el aviso "Cita confirmada" asoma sobre la ventana: necesita
+       aire para no encimarse con las cifras. */
+    @media (max-width: 991.98px) { .lp-hero .lp-mock { margin-top: 2.6rem; } }
     @media (max-width: 575.98px) {
         .lp-stats { grid-template-columns: repeat(3, 1fr); width: 100%; }
         .lp-stats .lp-stat { flex-direction: column; text-align: center; gap: .4rem; padding: 0 .4rem; }
