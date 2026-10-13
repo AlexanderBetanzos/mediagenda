@@ -52,15 +52,16 @@ include __DIR__ . '/../includes/header.php';
     <div class="alert alert-danger"><ul class="mb-0"><?php foreach ($errores as $e) echo '<li>' . e($e) . '</li>'; ?></ul></div>
 <?php endif; ?>
 
-<form method="post" class="card" enctype="multipart/form-data">
-    <div class="card-body">
+<form method="post" class="pf-form" enctype="multipart/form-data">
+    <div>
         <?= csrf_field() ?>
         <input type="hidden" name="id" value="<?= $id ?>">
         <?php include __DIR__ . '/_form.php'; ?>
     </div>
-    <div class="card-footer bg-white text-end">
+    <div class="pf-bar">
+        <span class="pf-bar-txt"><i class="bi bi-shield-lock"></i> <?= et('Tus datos viajan cifrados') ?></span>
         <a href="<?= BASE_URL ?>/pacientes/ver?id=<?= $id ?>" class="btn btn-light"><?= et('Cancelar') ?></a>
-        <button class="btn btn-primary"><i class="bi bi-check-lg"></i> <?= et('Guardar cambios') ?></button>
+        <button class="btn btn-primary px-4"><i class="bi bi-check-lg"></i> <?= et('Guardar cambios') ?></button>
     </div>
 </form>
 

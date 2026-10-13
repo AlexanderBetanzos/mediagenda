@@ -3,9 +3,10 @@
 $p = $p ?? [];
 $v = fn(string $k) => e($p[$k] ?? '');
 ?>
-<div class="row g-3">
+<div class="pf-grid">
+<aside class="pf-side">
     <!-- Foto del paciente: subir del dispositivo o tomar con la cámara -->
-    <div class="col-12 text-center pb-2">
+    <div class="pf-card text-center">
         <label class="form-label d-block"><?= et('Foto del paciente') ?></label>
         <div class="d-inline-flex flex-column align-items-center">
             <?php $fotoUrl = foto_paciente_url($p); ?>
@@ -36,7 +37,35 @@ $v = fn(string $k) => e($p[$k] ?? '');
             <canvas id="fotoCanvas" class="d-none"></canvas>
             <div class="form-text"><?= et('Sube una imagen del dispositivo o tómala con la cámara (PC o celular).') ?></div>
         </div>
+        <?php /* Vista previa en vivo: se llena mientras escribes. */ ?>
+        <div class="pf-preview">
+            <div class="pf-prev-n" id="pfNombre"><?= e(trim(($p['nombre'] ?? '') . (es_veterinaria() ? '' : ' ' . ($p['apellidos'] ?? '')))) ?: et(es_veterinaria() ? 'Nueva mascota' : 'Nuevo paciente') ?></div>
+            <div class="pf-prev-s" id="pfSub"></div>
+        </div>
     </div>
+
+    <div class="pf-card">
+        <div class="d-flex align-items-center gap-3">
+            <div class="pf-ring" id="pfRing" style="--p:0"><span id="pfPct">0%</span></div>
+            <div>
+                <div class="fw-semibold"><?= et('Expediente completo') ?></div>
+                <div class="small text-muted"><?= et('Entre más datos, mejor atención. Solo lo marcado con * es obligatorio.') ?></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="pf-card pf-tip">
+        <div class="fw-semibold mb-1"><i class="bi bi-lightbulb-fill"></i> <?= et('Consejo') ?></div>
+        <div class="small"><?= es_veterinaria()
+            ? et('Anota el teléfono del propietario: ahí le llegan los recordatorios de cita por WhatsApp.')
+            : et('Anota su teléfono para mandarle recordatorios por WhatsApp. Las alergias se resaltan en rojo en su expediente.') ?></div>
+    </div>
+</aside>
+
+<div class="pf-main">
+<section class="pf-sec">
+    <div class="pf-sec-h"><i class="bi <?= es_veterinaria() ? 'bi-house-heart' : 'bi-person-vcard' ?>"></i> <?= es_veterinaria() ? et('Mascota') : et('Datos personales') ?></div>
+    <div class="row g-3">
 
     <?php if (es_veterinaria()): asegurar_campos_veterinaria(); $sx = $p['sexo'] ?? ''; ?>
     <?php /* Veterinaria: la ficha es de la MASCOTA. "apellidos" guarda los del
@@ -89,7 +118,11 @@ $v = fn(string $k) => e($p[$k] ?? '');
         <input type="text" name="microchip" class="form-control" maxlength="40" value="<?= $v('microchip') ?>">
     </div>
 
-    <div class="col-12"><hr class="my-1"><span class="fw-semibold small text-muted text-uppercase"><i class="bi bi-person-heart"></i> <?= et('Propietario') ?></span></div>
+    </div>
+</section>
+<section class="pf-sec">
+    <div class="pf-sec-h"><i class="bi bi-person-heart"></i> <?= et('Propietario') ?></div>
+    <div class="row g-3">
     <div class="col-md-6">
         <label class="form-label"><?= et('Nombre del propietario') ?></label>
         <input type="text" name="propietario" class="form-control" maxlength="120" value="<?= $v('propietario') ?>">
@@ -156,7 +189,11 @@ $v = fn(string $k) => e($p[$k] ?? '');
     </div>
 
     <!-- Identificación -->
-    <div class="col-12"><hr class="my-1"><span class="fw-semibold small text-muted text-uppercase"><i class="bi bi-card-text"></i> <?= et('Identificación') ?></span></div>
+    </div>
+</section>
+<section class="pf-sec">
+    <div class="pf-sec-h"><i class="bi bi-card-text"></i> <?= et('Identificación') ?> <span class="pf-opc"><?= et('Opcional') ?></span></div>
+    <div class="row g-3">
     <div class="col-md-3">
         <label class="form-label">CURP</label>
         <input type="text" name="curp" class="form-control text-uppercase" maxlength="18" value="<?= $v('curp') ?>" placeholder="<?= et('18 caracteres') ?>">
@@ -179,7 +216,11 @@ $v = fn(string $k) => e($p[$k] ?? '');
     </div>
 
     <!-- Contacto de emergencia -->
-    <div class="col-12"><hr class="my-1"><span class="fw-semibold small text-muted text-uppercase"><i class="bi bi-telephone-plus"></i> <?= et('Contacto de emergencia') ?></span></div>
+    </div>
+</section>
+<section class="pf-sec">
+    <div class="pf-sec-h"><i class="bi bi-telephone-plus"></i> <?= et('Contacto de emergencia') ?> <span class="pf-opc"><?= et('Opcional') ?></span></div>
+    <div class="row g-3">
     <div class="col-md-5">
         <label class="form-label"><?= et('Nombre') ?></label>
         <input type="text" name="contacto_nombre" class="form-control" maxlength="120" value="<?= $v('contacto_nombre') ?>">
@@ -196,7 +237,11 @@ $v = fn(string $k) => e($p[$k] ?? '');
     <?php endif; ?>
 
     <!-- Antecedentes clínicos -->
-    <div class="col-12"><hr class="my-1"><span class="fw-semibold small text-muted text-uppercase"><i class="bi bi-clipboard2-pulse"></i> <?= et('Antecedentes clínicos') ?></span></div>
+    </div>
+</section>
+<section class="pf-sec">
+    <div class="pf-sec-h"><i class="bi bi-clipboard2-pulse"></i> <?= et('Antecedentes clínicos') ?> <span class="pf-opc"><?= et('Opcional') ?></span></div>
+    <div class="row g-3">
     <div class="col-md-6">
         <label class="form-label"><?= et('Alergias') ?></label>
         <textarea name="alergias" class="form-control" rows="2"><?= $v('alergias') ?></textarea>
@@ -236,7 +281,10 @@ $v = fn(string $k) => e($p[$k] ?? '');
         <label class="form-label"><?= et('Notas') ?></label>
         <textarea name="notas" class="form-control" rows="2"><?= $v('notas') ?></textarea>
     </div>
-</div>
+    </div>
+</section>
+</div><!-- /.pf-main -->
+</div><!-- /.pf-grid -->
 
 <script>
 (function () {
@@ -297,5 +345,70 @@ $v = fn(string $k) => e($p[$k] ?? '');
         }, 'image/jpeg', 0.9);
     });
     window.addEventListener('beforeunload', stopCam);
+})();
+</script>
+
+<style>
+.pf-grid { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 1.25rem; align-items: start; }
+@media (max-width: 991.98px) { .pf-grid { grid-template-columns: 1fr; } }
+.pf-side { position: sticky; top: 90px; display: grid; gap: 1rem; }
+@media (max-width: 991.98px) { .pf-side { position: static; } }
+.pf-card, .pf-sec { background: var(--bs-body-bg); border-radius: 18px; padding: 1.2rem; box-shadow: 0 1px 4px rgba(0,0,0,.04), 0 10px 28px rgba(15,30,60,.06); }
+body.ui-glass .pf-card, body.ui-glass .pf-sec { background: var(--g-glass-2, #fff); box-shadow: var(--g-shadow-sm); backdrop-filter: var(--g-blur-sm); -webkit-backdrop-filter: var(--g-blur-sm); }
+.pf-sec + .pf-sec { margin-top: 1rem; }
+.pf-sec-h { display: flex; align-items: center; gap: .55rem; font-weight: 650; letter-spacing: -.01em; margin-bottom: 1rem; font-size: 1.02rem; }
+.pf-sec-h .bi { width: 34px; height: 34px; border-radius: 11px; display: inline-flex; align-items: center; justify-content: center;
+                color: var(--brand); background: color-mix(in srgb, var(--brand) 11%, transparent); font-size: 1.05rem; }
+.pf-opc { margin-left: auto; font-size: .68rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; opacity: .55;
+          border: 1px solid rgba(127,127,127,.3); border-radius: 999px; padding: .15rem .55rem; }
+.pf-side #fotoPreview, .pf-side #fotoPlaceholder { width: 120px !important; height: 120px !important; box-shadow: 0 10px 26px rgba(15,30,60,.15); border: 4px solid #fff !important; }
+.pf-preview { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(127,127,127,.15); }
+.pf-prev-n { font-weight: 700; font-size: 1.15rem; letter-spacing: -.02em; word-break: break-word; }
+.pf-prev-s { font-size: .85rem; opacity: .65; min-height: 1.2em; }
+.pf-ring { --p: 0; width: 62px; height: 62px; flex: none; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+           background: conic-gradient(var(--brand) calc(var(--p) * 1%), rgba(127,127,127,.15) 0); position: relative; transition: background .3s; }
+.pf-ring::before { content: ''; position: absolute; inset: 6px; border-radius: 50%; background: var(--bs-body-bg); }
+.pf-ring span { position: relative; font-weight: 750; font-size: .88rem; }
+.pf-tip { background: color-mix(in srgb, var(--brand) 7%, var(--bs-body-bg)) !important; }
+.pf-tip .bi { color: #f59e0b; }
+.pf-bar { position: sticky; bottom: 12px; z-index: 20; margin-top: 1.25rem; display: flex; justify-content: flex-end; align-items: center; gap: .6rem;
+          padding: .7rem .9rem; border-radius: 999px; background: rgba(255,255,255,.85); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+          box-shadow: 0 10px 30px rgba(15,30,60,.14); }
+html.app-dark .pf-bar { background: rgba(30,30,36,.85); }
+.pf-bar .pf-bar-txt { margin-right: auto; font-size: .85rem; opacity: .7; padding-left: .4rem; }
+.pf-main .form-control:focus, .pf-main .form-select:focus { border-color: var(--brand); box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand) 22%, transparent); }
+</style>
+<script>
+/* Vista previa y avance del expediente, en vivo. */
+(function () {
+    var main = document.querySelector('.pf-main');
+    if (!main) return;
+    var form = main.closest('form');
+    var vet = <?= es_veterinaria() ? 'true' : 'false' ?>;
+    var q = function (n) { var el = form.elements[n]; return el ? (el.value || '').trim() : ''; };
+    var nombre = document.getElementById('pfNombre'), sub = document.getElementById('pfSub');
+    var ring = document.getElementById('pfRing'), pct = document.getElementById('pfPct');
+    var vacio = nombre.textContent;
+    function edad(f) {
+        if (!f) return '';
+        var n = new Date(f), h = new Date(), a = h.getFullYear() - n.getFullYear();
+        if (h < new Date(h.getFullYear(), n.getMonth(), n.getDate())) a--;
+        return a >= 0 ? a + (a === 1 ? ' año' : ' años') : '';
+    }
+    function pinta() {
+        var nm = vet ? q('nombre') : (q('nombre') + ' ' + q('apellidos')).trim();
+        nombre.textContent = nm || vacio;
+        var partes = vet ? [q('especie'), q('raza'), edad(q('fecha_nacimiento'))] : [edad(q('fecha_nacimiento')), q('telefono')];
+        if (vet && (q('propietario') || q('apellidos'))) partes.push('Dueño: ' + (q('propietario') + ' ' + q('apellidos')).trim());
+        sub.textContent = partes.filter(Boolean).join(' · ');
+        var campos = main.querySelectorAll('input:not([type=hidden]):not([type=file]):not([type=checkbox]), select, textarea');
+        var llenos = 0;
+        campos.forEach(function (c) { if ((c.value || '').trim() !== '') llenos++; });
+        var p = campos.length ? Math.round(llenos / campos.length * 100) : 0;
+        ring.style.setProperty('--p', p); pct.textContent = p + '%';
+    }
+    form.addEventListener('input', pinta);
+    form.addEventListener('change', pinta);
+    pinta();
 })();
 </script>
