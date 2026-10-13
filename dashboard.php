@@ -11,6 +11,13 @@ $pdo      = db();
 $tid       = (int) tenant_id();
 $medFiltro = $esMedico ? ' AND medico_id = ' . (int) $u['id'] : '';
 
+/* Ocultar "Primeros pasos" (antes de imprimir nada). */
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'ocultar_pasos' && $esAdmin) {
+    verify_csrf();
+    guardar_cfg(['onboarding_oculto' => '1']);
+    redirect('/dashboard');
+}
+
 /* Módulos activos según el plan (gatea secciones). */
 $verFacturacion = modulo_activo('facturacion');
 $verRecetas     = modulo_activo('recetas');
@@ -227,6 +234,69 @@ if ($verFacturacion) {
     $ultimasFacturas = $uf->fetchAll();
 }
 
+/* ── Funciones "pro" traídas del dashboard de Khronos ─────────────────── */
+
+/* Egresos del mes y balance (utilidad): ingresos − egresos. La tabla la crea
+   el módulo de egresos la primera vez que se abre; si aún no existe, cero. */
+$egresosMes = 0.0;
+if ($verFacturacion && $esAdmin) {
+    try {
+        $egresosMes = (float) $pdo->query(
+            "SELECT COALESCE(SUM(monto),0) FROM egresos WHERE consultorio_id = $tid
+             AND YEAR(fecha)=YEAR(CURDATE()) AND MONTH(fecha)=MONTH(CURDATE())"
+        )->fetchColumn();
+    } catch (Throwable $e) {}
+}
+$balanceMes = $ingresosMes - $egresosMes;
+
+/* Por cobrar: facturas pendientes, la más vieja primero (en Khronos son las
+   "membresías vencidas": lo que se le escapa al negocio si nadie lo mira). */
+$porCobrar = [];
+$porCobrarTotal = 0;
+if ($verFacturacion && !$esMedico) {
+    $pc = $pdo->prepare(
+        "SELECT f.id, f.folio, f.total, f.fecha, DATEDIFF(CURDATE(), f.fecha) dias,
+                p.id pac_id, p.nombre, p.apellidos, COALESCE(p.foto_mime, p.foto) AS foto
+         FROM facturas f JOIN pacientes p ON p.id = f.paciente_id
+         WHERE f.consultorio_id = ? AND f.estado = 'pendiente'
+         ORDER BY f.fecha ASC, f.id ASC LIMIT 6"
+    );
+    $pc->execute([$tid]);
+    $porCobrar = $pc->fetchAll();
+    $porCobrarTotal = (int) $pdo->query("SELECT COUNT(*) FROM facturas WHERE consultorio_id = $tid AND estado = 'pendiente'")->fetchColumn();
+}
+
+/* Por confirmar en las próximas 48 h, con recordatorio por WhatsApp en un
+   clic (en Khronos: "por vencer en 7 días" + recordatorio wa.me). */
+$porConfirmar = [];
+if ($verCitas) {
+    $pf = $pdo->prepare(
+        "SELECT c.id, c.fecha, c.hora, p.id pac_id, p.nombre, p.apellidos, p.telefono, COALESCE(p.foto_mime, p.foto) AS foto
+         FROM citas c JOIN pacientes p ON p.id = c.paciente_id
+         WHERE c.consultorio_id = ? AND c.estado = 'programada'
+           AND TIMESTAMP(c.fecha, c.hora) BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL 48 HOUR) $medFiltro
+         ORDER BY c.fecha, c.hora LIMIT 6"
+    );
+    $pf->execute([$tid]);
+    $porConfirmar = $pf->fetchAll();
+}
+$verWhatsapp = modulo_activo('whatsapp');
+
+/* Primeros pasos (solo admin, hasta completarlos u ocultarlos). Cada paso se
+   comprueba contra los datos reales, no contra una casilla que alguien marca. */
+$pasos = [];
+if ($esAdmin && cfg('onboarding_oculto') !== '1') {
+    $cuenta = fn (string $sql) => (int) $pdo->query($sql)->fetchColumn();
+    $pasos[] = [cfg('marca_logo') !== '' || cfg('marca_nombre') !== '', t('Personaliza tu consultorio (nombre y logo)'), BASE_URL . '/configuracion/index', t('Ir a Configuración')];
+    $pasos[] = [$cuenta("SELECT COUNT(*) FROM usuarios WHERE consultorio_id = $tid AND rol = 'medico'") > 0, t('Da de alta a tus médicos'), BASE_URL . '/medicos/edit', t('Nuevo médico')];
+    try { $nServ = $cuenta("SELECT COUNT(*) FROM servicios WHERE consultorio_id = $tid"); } catch (Throwable $e) { $nServ = 0; }
+    $pasos[] = [$nServ > 0, t('Agrega tus servicios y precios'), BASE_URL . '/servicios/index', t('Agregar servicios')];
+    $pasos[] = [$totPacientes > 0, t('Registra tu primer paciente'), BASE_URL . '/pacientes/create', t('Nuevo paciente')];
+    if ($verCitas) $pasos[] = [$cuenta("SELECT COUNT(*) FROM citas WHERE consultorio_id = $tid") > 0, t('Agenda tu primera cita'), BASE_URL . '/citas/create', t('Nueva cita')];
+    if ($verFacturacion) $pasos[] = [$cuenta("SELECT COUNT(*) FROM facturas WHERE consultorio_id = $tid") > 0, t('Registra tu primer cobro'), BASE_URL . '/facturacion/create', t('Nuevo cobro')];
+    if (count(array_filter($pasos, fn ($p) => $p[0])) === count($pasos)) $pasos = [];   // todo listo: no estorba
+}
+
 /* ── Exportar a CSV por módulo (antes de imprimir el layout) ─────────── */
 /* Cada módulo se descarga en su propio archivo, con metadatos al inicio.
  * La lista respeta plan y rol: solo se ofrece lo que el usuario puede ver. */
@@ -369,11 +439,43 @@ include __DIR__ . '/includes/header.php';
                     <?php foreach ($modulosCsv as $modClave => $modNombre): ?>
                         <li><a class="dropdown-item" href="<?= BASE_URL ?>/dashboard?export=csv&mod=<?= e($modClave) ?>"><?= et($modNombre) ?></a></li>
                     <?php endforeach; ?>
+                    <?php if ($esAdmin): ?>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="<?= BASE_URL ?>/configuracion/exportar">
+                            <i class="bi bi-file-earmark-zip"></i> <?= et('Todos mis datos (Excel, ZIP)') ?></a></li>
+                    <?php endif; ?>
                 </ul>
             </div>
         </div>
     </div>
 </div>
+
+<?php if ($pasos):
+    $hechos = count(array_filter($pasos, fn ($x) => $x[0]));
+    $pct    = (int) round($hechos / count($pasos) * 100); ?>
+<!-- ── Primeros pasos (de Khronos) ──────────────────────────────────── -->
+<div class="card mb-4 pasos-card">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h2 class="h6 fw-bold mb-0"><i class="bi bi-rocket-takeoff text-brand"></i> <?= et('Primeros pasos') ?>
+                <span class="text-muted small fw-normal">· <?= $hechos ?>/<?= count($pasos) ?></span></h2>
+            <form method="post" class="m-0"><?= csrf_field() ?><input type="hidden" name="action" value="ocultar_pasos">
+                <button class="btn btn-sm btn-link text-muted p-0 text-decoration-none"><?= et('Ocultar') ?></button></form>
+        </div>
+        <div class="progress mb-3" style="height:6px"><div class="progress-bar" style="width:<?= $pct ?>%;background:var(--brand)"></div></div>
+        <div class="row g-2">
+            <?php foreach ($pasos as [$ok, $lbl, $url, $cta]): ?>
+            <div class="col-md-6">
+                <div class="paso d-flex align-items-center justify-content-between gap-2<?= $ok ? ' ok' : '' ?>">
+                    <span class="small"><i class="bi bi-<?= $ok ? 'check-circle-fill text-success' : 'circle text-muted' ?>"></i> <?= e($lbl) ?></span>
+                    <?php if (!$ok): ?><a href="<?= e($url) ?>" class="btn btn-sm btn-outline-secondary text-nowrap"><?= e($cta) ?></a><?php endif; ?>
+                </div>
+            </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
 
 <?php if (micrositio_visible()):
     $urlPub  = micrositio_url();
@@ -448,13 +550,20 @@ document.getElementById('copiarWeb').addEventListener('click', function (ev) {
     <div class="card-body">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h2 class="h6 fw-bold mb-0"><i class="bi bi-wallet2 text-brand"></i> <?= et('Finanzas del mes') ?></h2>
-            <a href="<?= BASE_URL ?>/facturacion/index" class="btn btn-sm btn-outline-secondary"><?= et('Ver facturación') ?></a>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="<?= BASE_URL ?>/corte/index" class="btn btn-sm btn-outline-secondary"><i class="bi bi-cash-stack"></i> <?= et('Corte de hoy') ?></a>
+                <a href="<?= BASE_URL ?>/egresos/index" class="btn btn-sm btn-outline-secondary"><i class="bi bi-plus-lg"></i> <?= et('Gestionar egresos') ?></a>
+            </div>
         </div>
-        <div class="row g-3 text-center">
-            <div class="col-md-4"><div class="p-2"><div class="fw-bold" style="font-size:1.5rem;color:#22c55e"><?= fmt_money($ingresosMes) ?></div><div class="text-muted small"><?= et('Cobrado') ?></div></div></div>
-            <div class="col-md-4"><div class="p-2"><div class="fw-bold" style="font-size:1.5rem;color:#3b82f6"><?= fmt_money($pendienteCobrar) ?></div><div class="text-muted small"><?= et('Pendiente por cobrar') ?></div></div></div>
-            <div class="col-md-4"><div class="p-2"><div class="fw-bold" style="font-size:1.5rem;color:var(--brand)"><?= fmt_money($ticketProm) ?></div><div class="text-muted small"><?= et('Ticket promedio') ?></div></div></div>
+        <?php /* Como en Khronos: ingresos − egresos = utilidad. Antes solo se veía
+                 lo cobrado, y un mes "bueno" podía ser de pérdida. */ ?>
+        <div class="row g-3 text-center fin-row">
+            <div class="col-6 col-md-3"><div class="p-2"><div class="fin-n" style="color:#22c55e"><?= fmt_money($ingresosMes) ?></div><div class="text-muted small"><?= et('Cobrado') ?></div></div></div>
+            <div class="col-6 col-md-3"><div class="p-2"><div class="fin-n" style="color:#ef4444"><?= fmt_money($egresosMes) ?></div><div class="text-muted small"><?= et('Egresos') ?></div></div></div>
+            <div class="col-6 col-md-3"><div class="p-2"><div class="fin-n" style="color:<?= $balanceMes >= 0 ? '#22c55e' : '#ef4444' ?>"><?= fmt_money($balanceMes) ?></div><div class="text-muted small"><?= et('Balance (utilidad)') ?></div></div></div>
+            <div class="col-6 col-md-3"><div class="p-2"><div class="fin-n" style="color:#3b82f6"><?= fmt_money($pendienteCobrar) ?></div><div class="text-muted small"><?= et('Pendiente por cobrar') ?></div></div></div>
         </div>
+        <div class="text-center text-muted small mt-1"><?= et('Ticket promedio') ?>: <strong><?= fmt_money($ticketProm) ?></strong> · <?= et('Hoy') ?>: <strong><?= fmt_money($ingresosHoy) ?></strong></div>
     </div>
 </div>
 <?php endif; ?>
@@ -601,6 +710,71 @@ document.getElementById('copiarWeb').addEventListener('click', function (ev) {
 </div>
 <?php endif; ?>
 
+<?php if ($porConfirmar || $porCobrar): ?>
+<!-- ── Para atender hoy (de Khronos: vencidas / por vencer) ─────────── -->
+<div class="row g-3 mb-3">
+    <?php if ($verCitas): ?>
+    <div class="col-lg-<?= ($verFacturacion && !$esMedico) ? '6' : '12' ?>">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="fw-semibold"><i class="bi bi-hourglass-split text-warning"></i> <?= et('Por confirmar · próximas 48 h') ?></span>
+                <a href="<?= BASE_URL ?>/citas/index" class="small"><?= et('Ver citas →') ?></a>
+            </div>
+            <div class="card-body py-2">
+                <?php if (!$porConfirmar): ?>
+                    <p class="text-muted text-center small py-3 mb-0"><i class="bi bi-check-circle text-success fs-5 d-block mb-1"></i><?= et('Todas las citas próximas están confirmadas.') ?></p>
+                <?php else: foreach ($porConfirmar as $c):
+                    $wa = $verWhatsapp ? wa_link($c['telefono'], mensaje_recordatorio(
+                        $c['nombre'] . ' ' . $c['apellidos'], fmt_fecha($c['fecha']), fmt_hora($c['hora']), cita_enlace((int) $c['id']))) : '';
+                    $esHoy = $c['fecha'] === date('Y-m-d'); ?>
+                    <div class="d-flex justify-content-between align-items-center gap-2 py-2 border-bottom border-opacity-10">
+                        <span class="small d-flex align-items-center gap-2 min-w-0">
+                            <?= avatar_paciente((int) $c['pac_id'], $c['nombre'], $c['apellidos'], $c['foto'] ?? null, 28) ?>
+                            <span class="text-truncate"><?= e($c['apellidos'] . ', ' . $c['nombre']) ?></span>
+                        </span>
+                        <span class="d-flex align-items-center gap-2 flex-shrink-0">
+                            <span class="small <?= $esHoy ? 'text-danger fw-semibold' : 'text-muted' ?>"><?= $esHoy ? et('Hoy') : ($c['fecha'] === date('Y-m-d', strtotime('+1 day')) ? et('Mañana') : e(fmt_fecha($c['fecha']))) ?> · <?= fmt_hora($c['hora']) ?></span>
+                            <?php if ($wa): ?>
+                            <a href="<?= e($wa) ?>" target="_blank" rel="noopener" class="btn btn-sm btn-outline-success py-0" title="<?= e(t('Recordatorio por WhatsApp')) ?>"><i class="bi bi-whatsapp"></i></a>
+                            <?php endif; ?>
+                            <a href="<?= BASE_URL ?>/citas/edit?id=<?= (int) $c['id'] ?>" class="btn btn-sm btn-outline-secondary py-0"><?= et('Ver') ?></a>
+                        </span>
+                    </div>
+                <?php endforeach; endif; ?>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
+    <?php if ($verFacturacion && !$esMedico): ?>
+    <div class="col-lg-<?= $verCitas ? '6' : '12' ?>">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="fw-semibold"><i class="bi bi-exclamation-triangle-fill text-danger"></i> <?= et('Por cobrar') ?></span>
+                <?php if ($porCobrarTotal > count($porCobrar)): ?><span class="badge rounded-pill text-bg-danger"><?= number_format($porCobrarTotal) ?> <?= et('en total') ?></span><?php endif; ?>
+            </div>
+            <div class="card-body py-2">
+                <?php if (!$porCobrar): ?>
+                    <p class="text-muted text-center small py-3 mb-0"><i class="bi bi-check-circle text-success fs-5 d-block mb-1"></i><?= et('Nada pendiente por cobrar.') ?></p>
+                <?php else: foreach ($porCobrar as $f): $d = (int) $f['dias']; ?>
+                    <div class="d-flex justify-content-between align-items-center gap-2 py-2 border-bottom border-opacity-10">
+                        <span class="small d-flex align-items-center gap-2 min-w-0">
+                            <?= avatar_paciente((int) $f['pac_id'], $f['nombre'], $f['apellidos'], $f['foto'] ?? null, 28) ?>
+                            <span class="text-truncate"><?= e($f['nombre'] . ' ' . $f['apellidos']) ?> <span class="text-muted">· <?= e($f['folio']) ?></span></span>
+                        </span>
+                        <span class="d-flex align-items-center gap-2 flex-shrink-0">
+                            <span class="badge rounded-pill <?= $d > 30 ? 'text-bg-danger' : ($d > 7 ? 'text-bg-warning' : 'text-bg-light border') ?>"><?= $d <= 0 ? et('hoy') : sprintf(t('hace %dd'), $d) ?></span>
+                            <span class="fw-semibold small"><?= fmt_money($f['total']) ?></span>
+                            <a href="<?= BASE_URL ?>/facturacion/ver?id=<?= (int) $f['id'] ?>" class="btn btn-sm btn-outline-secondary py-0"><?= et('Ver') ?></a>
+                        </span>
+                    </div>
+                <?php endforeach; endif; ?>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
+</div>
+<?php endif; ?>
+
 <!-- ── Agenda de hoy + Próximas citas ───────────────────────────────── -->
 <div class="row g-3 mb-3">
     <div class="col-lg-6">
@@ -726,6 +900,10 @@ html.app-light .welcome-banner {
 .kpi-card .stat-num { font-size: 1.5rem; }
 .kpi-card .kpi-sub { font-size: .7rem; opacity: .8; }
 .min-w-0 { min-width: 0; }
+.fin-row .fin-n { font-weight: 700; font-size: 1.45rem; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.pasos-card { border-left: 4px solid var(--brand) !important; }
+.pasos-card .paso { padding: .55rem .75rem; border-radius: 12px; border: 1px solid rgba(127,127,127,.18); }
+.pasos-card .paso.ok { opacity: .7; }
 </style>
 
 <?php if ($verReportes): ?>
