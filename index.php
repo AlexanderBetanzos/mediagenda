@@ -26,6 +26,7 @@ track_pageview('publico');
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= e($marca) ?> · Software para consultorios, clínicas y hospitales</title>
+    <meta name="facebook-domain-verification" content="an6t5igljwq4s8ggj27mbj3f1fprhb">
     <meta name="description" content="Toma el control de tu consultorio: agenda que confirma citas, expediente clínico protegido y cobros claros. Prueba 15 días gratis, sin tarjeta.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
