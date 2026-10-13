@@ -117,11 +117,16 @@ $titulo = t('Configuración');
 $activo = 'configuracion';
 include __DIR__ . '/../includes/header.php';
 ?>
-<h1 class="h3 mb-1"><i class="bi bi-gear text-brand"></i> <?= et('Configuración') ?></h1>
+<h1 class="h3 mb-1"><i class="bi bi-gear"></i> <?= et('Configuración') ?></h1>
 <p class="text-muted"><?= et('Personaliza esta instalación para tu consultorio. Estos ajustes aplican a todo el sistema.') ?></p>
 
-<form method="post" enctype="multipart/form-data">
+<form method="post" enctype="multipart/form-data" class="cfg-form">
     <?= csrf_field() ?>
+    <?php /* Índice lateral: se arma solo con los encabezados de cada tarjeta
+             (JS abajo) y marca la sección en la que vas. */ ?>
+    <div class="cfg-grid">
+    <nav class="cfg-nav" id="cfgNav" aria-label="<?= e(t('Secciones de configuración')) ?>"></nav>
+    <div class="cfg-main">
 
     <!-- Interfaz por especialidad (giro) -->
     <div class="card mb-4">
@@ -612,10 +617,64 @@ include __DIR__ . '/../includes/header.php';
         </div>
     </div>
 
-    <div class="text-end mb-4">
-        <button class="btn btn-primary"><i class="bi bi-check-lg"></i> <?= et('Guardar configuración') ?></button>
+    </div><!-- /.cfg-main -->
+    </div><!-- /.cfg-grid -->
+
+    <div class="pf-bar cfg-bar">
+        <span class="pf-bar-txt"><i class="bi bi-info-circle"></i> <?= et('Los cambios aplican a todo tu consultorio al guardar.') ?></span>
+        <button class="btn btn-primary px-4"><i class="bi bi-check-lg"></i> <?= et('Guardar configuración') ?></button>
     </div>
 </form>
+
+<style>
+.cfg-grid { display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 1.25rem; align-items: start; }
+@media (max-width: 991.98px) { .cfg-grid { grid-template-columns: 1fr; } .cfg-nav { display: none; } }
+.cfg-nav { position: sticky; top: 90px; display: grid; gap: 2px; padding: .6rem; border-radius: 18px;
+           background: var(--g-glass-2, var(--bs-body-bg)); box-shadow: var(--g-shadow-sm, 0 8px 24px rgba(30,40,80,.08)); }
+.cfg-nav a { display: flex; align-items: center; gap: .55rem; padding: .5rem .65rem; border-radius: 11px; font-size: .86rem; font-weight: 500;
+             color: inherit !important; text-decoration: none !important; transition: background .15s ease; }
+.cfg-nav a .bi { color: var(--brand); width: 18px; text-align: center; }
+.cfg-nav a:hover { background: rgba(127,127,127,.1); }
+.cfg-nav a.on { background: linear-gradient(180deg, color-mix(in srgb, var(--brand) 75%, #fff), var(--brand)); color: #fff !important; font-weight: 600; }
+.cfg-nav a.on .bi { color: #fff; }
+.cfg-main > .card { scroll-margin-top: 90px; border-radius: 18px !important; }
+.cfg-main > .card > .card-header { font-size: 1rem; padding: 1rem 1.2rem; }
+.cfg-main > .card > .card-header .bi:first-child { width: 32px; height: 32px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center;
+                                                   background: color-mix(in srgb, var(--brand) 11%, transparent); margin-right: .35rem; }
+.pf-bar { position: sticky; bottom: 12px; z-index: 20; margin-top: 1.25rem; display: flex; justify-content: flex-end; align-items: center; gap: .6rem;
+          padding: .7rem .9rem; border-radius: 999px; background: rgba(255,255,255,.88); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+          box-shadow: 0 10px 30px rgba(15,30,60,.14); }
+html.app-dark .pf-bar { background: rgba(30,30,36,.88); }
+.pf-bar .pf-bar-txt { margin-right: auto; font-size: .85rem; opacity: .7; padding-left: .4rem; }
+</style>
+<script>
+/* Índice de secciones: un enlace por tarjeta, con su icono, y la sección
+   visible marcada mientras bajas. */
+(function () {
+    var nav = document.getElementById('cfgNav');
+    if (!nav) return;
+    var cards = document.querySelectorAll('.cfg-main > .card');
+    cards.forEach(function (c, i) {
+        var h = c.querySelector(':scope > .card-header');
+        if (!h) return;
+        c.id = c.id || 'cfg-' + i;
+        var ic = h.querySelector('.bi'), a = document.createElement('a');
+        a.href = '#' + c.id;
+        a.innerHTML = (ic ? '<i class="bi ' + [].filter.call(ic.classList, function (k) { return k.indexOf('bi-') === 0; }).join(' ') + '"></i>' : '')
+                    + '<span>' + h.textContent.trim().replace(/\s+/g, ' ').replace(/(Modo pruebas|Producción)$/, '') + '</span>';
+        nav.appendChild(a);
+    });
+    var links = nav.querySelectorAll('a');
+    if (!('IntersectionObserver' in window)) return;
+    var io = new IntersectionObserver(function (en) {
+        en.forEach(function (x) {
+            if (!x.isIntersecting) return;
+            links.forEach(function (l) { l.classList.toggle('on', l.getAttribute('href') === '#' + x.target.id); });
+        });
+    }, { rootMargin: '-35% 0px -60% 0px' });
+    cards.forEach(function (c) { io.observe(c); });
+})();
+</script>
 
 <script>
 /* Sincroniza el texto del color con el selector. */
