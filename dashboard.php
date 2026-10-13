@@ -80,7 +80,7 @@ if ($verFacturacion) {
  */
 $revLabels = $revData = $newData = $consLabels = $consData = [];
 $estLabels = $estData = $horasLabels = $metodoLabels = $metodoData = [];
-$horas = $porTipo = [];
+$horas = $porTipo = $tipoLabels = [];
 $topMedicos = [];
 
 if ($verReportes):
@@ -160,6 +160,17 @@ $horasLabels = array_map(fn($h) => sprintf('%02d:00', $h), array_keys($horas));
 
 /* ── Gráfica: pacientes por tipo ─────────────────────────────────────── */
 $porTipo = ['medico' => 0, 'dental' => 0];
+$tipoLabels = [tipo_paciente_label('medico'), tipo_paciente_label('dental')];
+if (es_veterinaria()) {
+    /* Veterinaria: mascotas por especie (no tiene sentido médico/dental). */
+    asegurar_campos_veterinaria();
+    $porTipo = [];
+    foreach ($pdo->query("SELECT COALESCE(NULLIF(especie,''),'Sin especie') e, COUNT(*) c FROM pacientes
+                          WHERE consultorio_id = $tid GROUP BY e ORDER BY c DESC") as $r) {
+        $porTipo[$r['e']] = (int) $r['c'];
+    }
+    $tipoLabels = array_map('t', array_keys($porTipo));
+} else
 foreach ($pdo->query("SELECT tipo, COUNT(*) c FROM pacientes WHERE consultorio_id = $tid GROUP BY tipo") as $r) {
     if (isset($porTipo[$r['tipo']])) $porTipo[$r['tipo']] = (int) $r['c'];
 }
@@ -706,7 +717,7 @@ document.getElementById('copiarWeb').addEventListener('click', function (ev) {
     </div>
     <div class="col-lg-<?= $topMedicos ? '3' : '4' ?>">
         <div class="card h-100">
-            <div class="card-header fw-semibold"><i class="bi bi-pie-chart text-brand"></i> <?= et('Pacientes por tipo') ?></div>
+            <div class="card-header fw-semibold"><i class="bi bi-pie-chart text-brand"></i> <?= es_veterinaria() ? et('Mascotas por especie') : et('Pacientes por tipo') ?></div>
             <div class="card-body d-flex align-items-center justify-content-center">
                 <?php if ($totPacientes): ?><div style="height:260px;width:100%"><canvas id="chartTipo"></canvas></div>
                 <?php else: ?><p class="text-muted small mb-0"><?= et('Sin pacientes registrados.') ?></p><?php endif; ?>
@@ -1021,7 +1032,7 @@ html.app-light .welcome-banner {
     var elT = document.getElementById('chartTipo');
     if (elT) new Chart(elT, {
         type: 'doughnut',
-        data: { labels: <?= json_encode([tipo_paciente_label('medico'), tipo_paciente_label('dental')]) ?>,
+        data: { labels: <?= json_encode($tipoLabels) ?>,
             datasets: [{ data: <?= json_encode(array_values($porTipo)) ?>, backgroundColor: PALETTE, borderWidth: 0 }] },
         options: { responsive: true, maintainAspectRatio: false, cutout: '62%', plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 12 } } } }
     });

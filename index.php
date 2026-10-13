@@ -71,6 +71,7 @@ track_pageview('publico');
         <div class="collapse navbar-collapse" id="nav">
             <ul class="navbar-nav mx-auto align-items-lg-center gap-lg-1">
                 <li class="nav-item"><a class="nav-link" href="#funciones">Funciones</a></li>
+                <li class="nav-item"><a class="nav-link" href="#especialidades">Especialidades</a></li>
                 <li class="nav-item"><a class="nav-link" href="#beneficios">Beneficios</a></li>
                 <li class="nav-item"><a class="nav-link" href="#planes">Planes</a></li>
                 <li class="nav-item"><a class="nav-link" href="#faq">Preguntas</a></li>
@@ -205,7 +206,7 @@ track_pageview('publico');
             <div class="lp-marquee">
                 <div class="lp-marquee-track">
                     <?php foreach ([false, true] as $copia): ?>
-                    <?php foreach (['Medicina general','Odontología','Oftalmología y ópticas','Nutrición','Pediatría','Dermatología','Psicología','Clínicas y hospitales'] as $esp): ?>
+                    <?php foreach (['Medicina general','Odontología','Oftalmología y ópticas','Nutrición','Pediatría','Dermatología','Psicología','Veterinarias','Clínicas y hospitales'] as $esp): ?>
                     <span class="badge rounded-pill bg-light text-dark border fw-normal px-3 py-2"<?= $copia ? ' aria-hidden="true"' : '' ?>><?= e($esp) ?></span>
                     <?php endforeach; ?>
                     <?php endforeach; ?>
@@ -236,6 +237,55 @@ track_pageview('publico');
         </div>
     </div>
 </section>
+
+<!-- Interfaz por especialidad (giro) -->
+<?php /* Cada consultorio elige su interfaz al registrarse (includes/giros.php):
+         cambia el lenguaje del panel, las herramientas al frente y, en
+         veterinaria, el expediente completo (mascota, especie, propietario).
+         Cada tarjeta lleva al registro con esa interfaz ya elegida: sirve
+         como enlace directo para anuncios por especialidad. */ ?>
+<section id="especialidades" class="py-6 bg-white">
+    <div class="container">
+        <div class="text-center mb-5" data-reveal>
+            <span class="lp-eyebrow">Hecho a tu medida</span>
+            <h2 class="section-title">Una interfaz para tu especialidad</h2>
+            <p class="text-muted">Al registrarte eliges tu práctica y el panel habla tu idioma. La cambias cuando quieras.</p>
+        </div>
+        <div class="row g-3" data-stagger>
+            <?php foreach (giros_lista() as $gk => $gd): ?>
+            <div class="col-sm-6 col-lg-4">
+                <a href="<?= BASE_URL ?>/auth/registro?giro=<?= e($gk) ?>" class="lp-giro<?= $gk === 'veterinaria' ? ' vet' : '' ?>">
+                    <span class="lp-giro-ic"><i class="bi <?= e($gd['icono']) ?>"></i></span>
+                    <span class="flex-grow-1">
+                        <span class="lp-giro-t"><?= e($gd['nombre']) ?><?= $gk === 'veterinaria' ? ' <span class="lp-giro-new">Nuevo</span>' : '' ?></span>
+                        <span class="lp-giro-d"><?= e($gd['desc']) ?></span>
+                    </span>
+                    <i class="bi bi-arrow-right lp-giro-go"></i>
+                </a>
+            </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</section>
+<style>
+    .lp-giro { display: flex; align-items: center; gap: 1rem; height: 100%; padding: 1.15rem 1.25rem; border-radius: 20px;
+               background: #fff; border: 1px solid rgba(0,0,0,.06); color: var(--ink); text-decoration: none;
+               box-shadow: 0 1px 4px rgba(0,0,0,.03), 0 10px 26px rgba(15,30,60,.05);
+               transition: transform .35s cubic-bezier(.22,1,.36,1), box-shadow .35s ease, border-color .35s ease; }
+    .lp-giro:hover { transform: translateY(-4px); color: var(--ink); border-color: color-mix(in srgb, var(--brand) 35%, transparent);
+                     box-shadow: 0 4px 12px rgba(0,0,0,.04), 0 20px 44px rgba(15,30,60,.10); }
+    .lp-giro-ic { width: 52px; height: 52px; flex: none; border-radius: 16px; display: flex; align-items: center; justify-content: center;
+                  font-size: 1.4rem; color: var(--brand); background: color-mix(in srgb, var(--brand) 9%, #fff);
+                  transition: transform .45s cubic-bezier(.34,1.56,.64,1); }
+    .lp-giro:hover .lp-giro-ic { transform: scale(1.1) rotate(-6deg); }
+    .lp-giro-t { display: block; font-family: var(--font-display); font-weight: 650; letter-spacing: -.02em; }
+    .lp-giro-d { display: block; font-size: .86rem; color: var(--muted); line-height: 1.4; margin-top: .15rem; }
+    .lp-giro-go { color: var(--brand); opacity: .5; transition: transform .3s ease, opacity .3s ease; }
+    .lp-giro:hover .lp-giro-go { opacity: 1; transform: translateX(3px); }
+    .lp-giro.vet { border-color: color-mix(in srgb, var(--brand) 30%, transparent); }
+    .lp-giro-new { font-size: .66rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; vertical-align: middle;
+                   color: #fff; background: var(--brand); border-radius: 999px; padding: .18rem .5rem; margin-left: .3rem; }
+</style>
 
 <!-- Destacado 1: Agenda -->
 <section class="py-6 bg-white">
@@ -669,7 +719,8 @@ track_pageview('publico');
                 ['¿Se necesita la instalación de algún software adicional?','No. Es 100% en la nube: entras desde el navegador en computadora, tablet o celular.'],
                 ['¿Mis datos están seguros?','Tus datos viajan cifrados, con respaldos y acceso por roles para tu equipo. Cada consultorio tiene su información aislada.'],
                 ['¿Qué pasa con mi información si cancelo?','Tus pacientes y expedientes son tuyos, no nuestros. Cancelas desde el panel, conservas el acceso hasta el final del periodo pagado y te ayudamos a llevarte tu información.'],
-                ['¿Sirve para mi especialidad?','Sí. Lo usan médicos generales, dentistas, oftalmólogos y ópticas, nutriólogos, psicólogos y clínicas u hospitales con varias sucursales. Las plantillas de consulta se adaptan a tu especialidad.'],
+                ['¿Sirve para mi especialidad?','Sí. Al registrarte eliges tu interfaz: medicina general, odontología, psicología, nutrición, pediatría, oftalmología, dermatología y estética, veterinaria o clínica multiespecialidad. El panel adapta su lenguaje, las herramientas que van al frente y los datos del expediente; la puedes cambiar cuando quieras.'],
+                ['¿Sirve para veterinarias?','Sí. Con la interfaz veterinaria registras mascotas con especie, raza, sexo, microchip y propietario, y los recordatorios de cita le llegan al dueño por WhatsApp o correo.'],
             ] as $i => [$q,$a]): ?>
             <div class="accordion-item">
                 <h2 class="accordion-header">

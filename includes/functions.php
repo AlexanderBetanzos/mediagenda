@@ -368,7 +368,9 @@ function idioma_actual(): string
 function t(string $texto): string
 {
     $idi = idioma_actual();
-    if ($idi === 'es') return $texto;
+    // En español se aplica el vocabulario del giro (veterinaria: paciente →
+    // mascota; psicología: consulta → sesión…). Ver includes/giros.php.
+    if ($idi === 'es') return giro_vocab($texto);
     static $cache = [];
     if (!isset($cache[$idi])) {
         $f = __DIR__ . '/../lang/' . $idi . '.php';
@@ -379,6 +381,8 @@ function t(string $texto): string
 
 /** Escapa y traduce en un solo paso (para imprimir en HTML). */
 function et(string $texto): string { return e(t($texto)); }
+
+require_once __DIR__ . '/giros.php';   // interfaz por giro (vocabulario y accesos)
 
 // Aplica la zona horaria configurada (si la tabla ya existe).
 date_default_timezone_set(cfg('zona_horaria', 'America/Mexico_City'));
@@ -1365,7 +1369,22 @@ function paciente_post_campos(array $post): array
     $t = fn(string $k) => (($v = trim((string) ($post[$k] ?? ''))) !== '' ? $v : null);
     $up = fn(string $k) => (($v = strtoupper(trim((string) ($post[$k] ?? '')))) !== '' ? $v : null);
     $sangres = ['O+','O-','A+','A-','B+','B-','AB+','AB-'];
-    return [
+    // Veterinaria: la ficha es de una mascota; "apellidos" son los del propietario.
+    $vet = [];
+    if (es_veterinaria()) {
+        asegurar_campos_veterinaria();
+        $vet = [
+            'especie'      => in_array($post['especie'] ?? '', especies_vet(), true) ? $post['especie'] : null,
+            'raza'         => $t('raza'),
+            'color'        => $t('color'),
+            'propietario'  => $t('propietario'),
+            'microchip'    => $t('microchip'),
+            'esterilizado' => in_array($post['esterilizado'] ?? '', ['0', '1'], true) ? (int) $post['esterilizado'] : null,
+        ];
+    }
+    // Tipo de paciente: el que se eligió, o el del giro (dental → dental).
+    $tipoDef = giro()['tipo'] ?? 'medico';
+    return $vet + [
         'nombre'                  => trim((string) ($post['nombre'] ?? '')),
         'apellidos'               => trim((string) ($post['apellidos'] ?? '')),
         'fecha_nacimiento'        => ($post['fecha_nacimiento'] ?? '') ?: null,
@@ -1373,7 +1392,7 @@ function paciente_post_campos(array $post): array
         'telefono'                => $t('telefono'),
         'email'                   => $t('email'),
         'direccion'               => $t('direccion'),
-        'tipo'                    => in_array($post['tipo'] ?? '', ['medico','dental'], true) ? $post['tipo'] : 'medico',
+        'tipo'                    => in_array($post['tipo'] ?? '', ['medico','dental'], true) ? $post['tipo'] : $tipoDef,
         'curp'                    => $up('curp'),
         'rfc'                     => $up('rfc'),
         'ine'                     => $up('ine'),
@@ -1418,6 +1437,11 @@ function mensaje_recordatorio(string $paciente, string $fecha, string $hora, ?st
           . 'Confirme o cancele aquí: {enlace}'
         : 'Hola {paciente}, le recordamos su cita en {consultorio} el {fecha} a las {hora}. '
           . 'Por favor confirme su asistencia. ¡Gracias!';
+    // Veterinaria: el mensaje lo lee el dueño; se habla DE la mascota.
+    if (es_veterinaria()) {
+        $porOmision = 'Hola, le recordamos la cita de {paciente} en {consultorio} el {fecha} a las {hora}. '
+            . ($enlace ? 'Confirme o cancele aquí: {enlace}' : 'Por favor confirme su asistencia. ¡Gracias!');
+    }
 
     $plantilla = cfg('recordatorio_plantilla', $porOmision);
 

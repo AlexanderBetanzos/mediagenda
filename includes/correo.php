@@ -226,8 +226,11 @@ function correo_recordatorio_cita(string $email, string $nombre, string $fecha, 
           . 'así podemos ofrecer tu horario a otro paciente.</div>'
         : '<br>Si no puedes asistir, por favor avísanos para reagendar. ¡Te esperamos!';
 
-    $cuerpo = 'Hola <strong>' . e($nombre) . '</strong>,<br><br>'
-        . 'Te recordamos tu próxima cita en <strong>' . e(marca_nombre()) . '</strong>:'
+    // Veterinaria: el correo lo lee el dueño; la cita es DE la mascota.
+    $cuerpo = (es_veterinaria()
+            ? 'Hola,<br><br>Te recordamos la próxima cita de <strong>' . e($nombre) . '</strong> en <strong>' . e(marca_nombre()) . '</strong>:'
+            : 'Hola <strong>' . e($nombre) . '</strong>,<br><br>'
+              . 'Te recordamos tu próxima cita en <strong>' . e(marca_nombre()) . '</strong>:')
         . '<br><br><div style="background:#f4f7fb;border-radius:10px;padding:16px;font-size:15px">'
         . ($folio !== '' ? '<span style="color:#8a97a8;font-size:13px">Folio ' . e($folio) . '</span><br>' : '')
         . '📅 <strong>' . e($fecha) . '</strong><br>🕐 <strong>' . e($hora) . '</strong>'
@@ -323,8 +326,10 @@ function correo_cita_agendada(string $email, string $nombre, string $fecha, stri
         . '<div style="font-size:13px;color:#8a97a8;text-align:center;margin-top:10px">'
         . 'Guarda este correo: si te surge algo, puedes cancelar desde ese botón.</div>';
 
-    $cuerpo = 'Hola <strong>' . e($nom1) . '</strong>, tu cita en <strong>' . e(marca_nombre())
-        . '</strong> quedó agendada. Aquí están los detalles:'
+    $cuerpo = (es_veterinaria()
+            ? 'Hola, la cita de <strong>' . e($nom1) . '</strong> en <strong>' . e(marca_nombre()) . '</strong> quedó agendada. Aquí están los detalles:'
+            : 'Hola <strong>' . e($nom1) . '</strong>, tu cita en <strong>' . e(marca_nombre())
+              . '</strong> quedó agendada. Aquí están los detalles:')
         . $ticket
         . $portalBloque
         . $verCancelar;

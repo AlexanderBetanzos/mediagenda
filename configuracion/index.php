@@ -41,7 +41,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($r['ok'])            { $webFoto = $r['url']; }
     elseif ($r['error'])     { flash($r['error'], 'warning'); }
 
+    $giroNuevo = (string) ($_POST['giro'] ?? giro_actual());
+    if (!isset(giros_lista()[$giroNuevo])) $giroNuevo = giro_actual();
+
     guardar_cfg([
+        // Interfaz (giro): vocabulario, accesos y campos del expediente
+        'giro'          => $giroNuevo,
         // Marca
         'marca_nombre'  => trim($_POST['marca_nombre'] ?? '') ?: 'MediOS',
         'marca_lema'    => trim($_POST['marca_lema'] ?? ''),
@@ -117,6 +122,25 @@ include __DIR__ . '/../includes/header.php';
 
 <form method="post" enctype="multipart/form-data">
     <?= csrf_field() ?>
+
+    <!-- Interfaz por especialidad (giro) -->
+    <div class="card mb-4">
+        <div class="card-header fw-semibold"><i class="bi bi-grid-1x2 text-brand"></i> <?= et('Interfaz de tu especialidad') ?></div>
+        <div class="card-body">
+            <p class="text-muted small mb-3"><?= et('Adapta el lenguaje del panel, las herramientas que van al frente y los datos del expediente. Tus registros no se pierden al cambiar.') ?></p>
+            <div class="row g-2">
+                <?php foreach (giros_lista() as $gk => $gd): ?>
+                <div class="col-sm-6 col-lg-4">
+                    <label class="d-flex gap-2 p-2 border rounded-3 h-100" style="cursor:pointer">
+                        <input type="radio" class="form-check-input mt-1" name="giro" value="<?= e($gk) ?>" <?= giro_actual() === $gk ? 'checked' : '' ?>>
+                        <span><span class="fw-semibold"><i class="bi <?= e($gd['icono']) ?> text-brand"></i> <?= e($gd['nombre']) ?></span>
+                            <span class="d-block small text-muted"><?= e($gd['desc']) ?></span></span>
+                    </label>
+                </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </div>
 
     <!-- Apariencia -->
     <div class="card mb-4">

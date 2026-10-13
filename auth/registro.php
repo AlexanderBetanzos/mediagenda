@@ -22,6 +22,9 @@ $pagar     = !$conPrueba;                              // Básico/Clínica = pag
 
 $error = '';
 $f = ['consultorio' => '', 'nombre' => '', 'email' => '', 'telefono' => ''];
+// Interfaz (giro): ?giro=veterinaria preselecciona desde un anuncio o la landing.
+$giro = (string) ($_POST['giro'] ?? $_GET['giro'] ?? 'medico');
+if (!isset(giros_lista()[$giro])) $giro = 'medico';
 
 /** Genera un slug único para el consultorio. */
 function slug_unico(PDO $pdo, string $texto): string
@@ -108,6 +111,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'zona_horaria'   => 'America/Mexico_City',
                     'formato_fecha'  => 'd/m/Y',
                     'plan_preferido' => $plan,   // plan elegido (Profesional por defecto)
+                    'giro'           => $giro,   // interfaz: médica, dental, veterinaria…
                 ]);
 
                 // Aviso al dueño de la plataforma: llegó un consultorio nuevo.
@@ -122,6 +126,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         'Correo'      => $f['email'],
                         'Teléfono'    => $f['telefono'],
                         'Plan'        => $planNom . ($pagar ? ' · va a pagar' : ' · prueba de ' . trial_dias_oferta() . ' días'),
+                        'Interfaz'    => giros_lista()[$giro]['nombre'],
                         'Página'      => url_absoluta('/c/' . $slug),
                         'Fecha'       => date('d/m/Y H:i'),
                     ],
@@ -189,6 +194,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <form method="post" novalidate>
                 <?= csrf_field() ?>
                 <input type="hidden" name="plan" value="<?= e($plan) ?>">
+                <?php /* Interfaz: cada quien elige la que se adapta a su práctica; se
+                         puede cambiar después en Configuración. */ ?>
+                <div class="mb-3">
+                    <label class="form-label"><?= et('¿Qué tipo de práctica tienes?') ?></label>
+                    <div class="giro-grid">
+                        <?php foreach (giros_lista() as $gk => $gd): ?>
+                        <label class="giro-opt">
+                            <input type="radio" name="giro" value="<?= e($gk) ?>" <?= $giro === $gk ? 'checked' : '' ?>>
+                            <span><i class="bi <?= e($gd['icono']) ?>"></i> <?= e($gd['nombre']) ?></span>
+                        </label>
+                        <?php endforeach; ?>
+                    </div>
+                    <div class="form-text"><?= et('Adaptamos el panel a tu especialidad. Puedes cambiarlo cuando quieras.') ?></div>
+                </div>
+                <style>
+                    .giro-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: .45rem; }
+                    .giro-opt { margin: 0; cursor: pointer; }
+                    .giro-opt input { position: absolute; opacity: 0; pointer-events: none; }
+                    .giro-opt span { display: flex; align-items: center; gap: .45rem; height: 100%; padding: .55rem .7rem; border-radius: 12px;
+                                     border: 1px solid rgba(127,127,127,.28); font-size: .86rem; font-weight: 550; transition: all .15s ease; }
+                    .giro-opt span .bi { color: var(--brand); }
+                    .giro-opt input:checked + span { border-color: var(--brand); background: color-mix(in srgb, var(--brand) 9%, transparent);
+                                                     box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand) 25%, transparent); }
+                    .giro-opt input:focus-visible + span { outline: 2px solid var(--brand); outline-offset: 2px; }
+                </style>
                 <div class="mb-3">
                     <label class="form-label"><?= et('Nombre del consultorio') ?></label>
                     <div class="input-group">

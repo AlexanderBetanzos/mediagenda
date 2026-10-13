@@ -38,6 +38,80 @@ $v = fn(string $k) => e($p[$k] ?? '');
         </div>
     </div>
 
+    <?php if (es_veterinaria()): asegurar_campos_veterinaria(); $sx = $p['sexo'] ?? ''; ?>
+    <?php /* Veterinaria: la ficha es de la MASCOTA. "apellidos" guarda los del
+             propietario (así se archiva en una veterinaria: "Pérez, Firulais"),
+             y teléfono/correo son del dueño: los recordatorios le llegan a él. */ ?>
+    <div class="col-md-5">
+        <label class="form-label"><?= et('Nombre de la mascota') ?> *</label>
+        <input type="text" name="nombre" class="form-control" required value="<?= $v('nombre') ?>">
+    </div>
+    <div class="col-md-4">
+        <label class="form-label"><?= et('Especie') ?> *</label>
+        <select name="especie" class="form-select" required>
+            <option value="">—</option>
+            <?php foreach (especies_vet() as $es): ?>
+                <option value="<?= e($es) ?>" <?= ($p['especie'] ?? '') === $es ? 'selected' : '' ?>><?= et($es) ?></option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+    <div class="col-md-3">
+        <label class="form-label"><?= et('Sexo') ?></label>
+        <select name="sexo" class="form-select">
+            <option value="">—</option>
+            <option value="M" <?= $sx === 'M' ? 'selected' : '' ?>><?= et('Macho') ?></option>
+            <option value="F" <?= $sx === 'F' ? 'selected' : '' ?>><?= et('Hembra') ?></option>
+        </select>
+    </div>
+    <div class="col-md-4">
+        <label class="form-label"><?= et('Raza') ?></label>
+        <input type="text" name="raza" class="form-control" maxlength="80" value="<?= $v('raza') ?>" placeholder="<?= e(t('Ej. Labrador, mestizo…')) ?>">
+    </div>
+    <div class="col-md-4">
+        <label class="form-label"><?= et('Color / señas') ?></label>
+        <input type="text" name="color" class="form-control" maxlength="60" value="<?= $v('color') ?>">
+    </div>
+    <div class="col-md-4">
+        <label class="form-label"><?= et('Fecha de nacimiento') ?></label>
+        <input type="date" name="fecha_nacimiento" class="form-control" value="<?= $v('fecha_nacimiento') ?>">
+    </div>
+    <div class="col-md-4">
+        <label class="form-label"><?= et('Esterilizado') ?></label>
+        <?php $est = $p['esterilizado'] ?? ''; $est = $est === null ? '' : (string) $est; ?>
+        <select name="esterilizado" class="form-select">
+            <option value="">—</option>
+            <option value="1" <?= $est === '1' ? 'selected' : '' ?>><?= et('Sí') ?></option>
+            <option value="0" <?= $est === '0' ? 'selected' : '' ?>><?= et('No') ?></option>
+        </select>
+    </div>
+    <div class="col-md-8">
+        <label class="form-label"><?= et('Microchip') ?></label>
+        <input type="text" name="microchip" class="form-control" maxlength="40" value="<?= $v('microchip') ?>">
+    </div>
+
+    <div class="col-12"><hr class="my-1"><span class="fw-semibold small text-muted text-uppercase"><i class="bi bi-person-heart"></i> <?= et('Propietario') ?></span></div>
+    <div class="col-md-6">
+        <label class="form-label"><?= et('Nombre del propietario') ?></label>
+        <input type="text" name="propietario" class="form-control" maxlength="120" value="<?= $v('propietario') ?>">
+    </div>
+    <div class="col-md-6">
+        <label class="form-label"><?= et('Apellidos del propietario') ?> *</label>
+        <input type="text" name="apellidos" class="form-control" required value="<?= $v('apellidos') ?>">
+    </div>
+    <div class="col-md-4">
+        <label class="form-label"><?= et('Teléfono del propietario') ?></label>
+        <input type="text" name="telefono" class="form-control" value="<?= $v('telefono') ?>">
+        <div class="form-text"><?= et('Aquí le llegan los recordatorios por WhatsApp.') ?></div>
+    </div>
+    <div class="col-md-8">
+        <label class="form-label"><?= et('Correo del propietario') ?></label>
+        <input type="email" name="email" class="form-control" value="<?= $v('email') ?>">
+    </div>
+    <div class="col-12">
+        <label class="form-label"><?= et('Dirección') ?></label>
+        <input type="text" name="direccion" class="form-control" value="<?= $v('direccion') ?>">
+    </div>
+    <?php else: ?>
     <div class="col-md-6">
         <label class="form-label"><?= et('Nombre(s)') ?> *</label>
         <input type="text" name="nombre" class="form-control" required value="<?= $v('nombre') ?>">
@@ -63,7 +137,7 @@ $v = fn(string $k) => e($p[$k] ?? '');
     <div class="col-md-4">
         <label class="form-label"><?= et('Tipo de paciente') ?> *</label>
         <select name="tipo" class="form-select" required>
-            <?php $tp = $p['tipo'] ?? 'medico'; ?>
+            <?php $tp = $p['tipo'] ?? (giro()['tipo'] ?? 'medico'); ?>
             <option value="medico" <?= $tp === 'medico' ? 'selected' : '' ?>><?= e(tipo_paciente_label('medico')) ?></option>
             <option value="dental" <?= $tp === 'dental' ? 'selected' : '' ?>><?= e(tipo_paciente_label('dental')) ?></option>
         </select>
@@ -119,6 +193,8 @@ $v = fn(string $k) => e($p[$k] ?? '');
         <input type="text" name="contacto_parentesco" class="form-control" maxlength="40" value="<?= $v('contacto_parentesco') ?>">
     </div>
 
+    <?php endif; ?>
+
     <!-- Antecedentes clínicos -->
     <div class="col-12"><hr class="my-1"><span class="fw-semibold small text-muted text-uppercase"><i class="bi bi-clipboard2-pulse"></i> <?= et('Antecedentes clínicos') ?></span></div>
     <div class="col-md-6">
@@ -133,10 +209,12 @@ $v = fn(string $k) => e($p[$k] ?? '');
         <label class="form-label"><?= et('Antecedentes personales') ?></label>
         <textarea name="antecedentes" class="form-control" rows="2"><?= $v('antecedentes') ?></textarea>
     </div>
+    <?php if (!es_veterinaria()): ?>
     <div class="col-md-6">
         <label class="form-label"><?= et('Antecedentes familiares') ?></label>
         <textarea name="antecedentes_familiares" class="form-control" rows="2"><?= $v('antecedentes_familiares') ?></textarea>
     </div>
+    <?php endif; ?>
     <div class="col-md-6">
         <label class="form-label"><?= et('Cirugías') ?></label>
         <textarea name="cirugias" class="form-control" rows="2"><?= $v('cirugias') ?></textarea>
@@ -146,8 +224,13 @@ $v = fn(string $k) => e($p[$k] ?? '');
         <textarea name="vacunas" class="form-control" rows="2"><?= $v('vacunas') ?></textarea>
     </div>
     <div class="col-md-6">
+        <?php if (es_veterinaria()): ?>
+        <label class="form-label"><?= et('Alimentación y desparasitación') ?></label>
+        <textarea name="habitos" class="form-control" rows="2" placeholder="<?= et('Croquetas, dieta, última desparasitación…') ?>"><?= $v('habitos') ?></textarea>
+        <?php else: ?>
         <label class="form-label"><?= et('Hábitos') ?></label>
         <textarea name="habitos" class="form-control" rows="2" placeholder="<?= et('Tabaquismo, alcohol, ejercicio…') ?>"><?= $v('habitos') ?></textarea>
+        <?php endif; ?>
     </div>
     <div class="col-md-6">
         <label class="form-label"><?= et('Notas') ?></label>

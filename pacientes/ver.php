@@ -339,6 +339,21 @@ include __DIR__ . '/../includes/header.php';
     <div class="d-flex align-items-center gap-3">
         <?= avatar_paciente((int) $p['id'], $p['nombre'], $p['apellidos'], ($p['foto_mime'] ?? null) ?: ($p['foto'] ?? null), 72) ?>
         <div>
+        <?php if (es_veterinaria()): /* Ficha de mascota: especie, raza y su dueño. */ ?>
+        <h1 class="h3 mb-1">
+            <?= e($p['nombre']) ?>
+            <?php if (!empty($p['especie'])): ?><span class="badge bg-primary align-middle"><?= e(t($p['especie'])) ?></span><?php endif; ?>
+        </h1>
+        <div class="text-muted">
+            <?= e(implode(' · ', array_filter([edad($p['fecha_nacimiento']), mascota_resumen($p), $p['color'] ?? '',
+                isset($p['esterilizado']) && $p['esterilizado'] !== null ? ((int) $p['esterilizado'] ? t('Esterilizado') : t('Sin esterilizar')) : '']))) ?>
+        </div>
+        <div class="small mt-1">
+            <i class="bi bi-person-heart text-brand"></i> <?= et('Propietario') ?>: <strong><?= e(mascota_propietario($p) ?: '—') ?></strong>
+            <?php if (!empty($p['telefono'])): ?> · <a href="tel:<?= e(preg_replace('/\s+/', '', $p['telefono'])) ?>" class="text-decoration-none"><?= e($p['telefono']) ?></a><?php endif; ?>
+            <?php if (!empty($p['microchip'])): ?> · <?= et('Microchip') ?> <?= e($p['microchip']) ?><?php endif; ?>
+        </div>
+        <?php else: ?>
         <h1 class="h3 mb-1">
             <?= e($p['nombre'].' '.$p['apellidos']) ?>
             <span class="badge bg-<?= $p['tipo'] === 'dental' ? 'info' : 'primary' ?> align-middle">
@@ -351,6 +366,7 @@ include __DIR__ . '/../includes/header.php';
             <?php if (!empty($p['tipo_sangre'])): ?> · <span class="badge bg-danger-subtle text-danger border"><i class="bi bi-droplet-half"></i> <?= e($p['tipo_sangre']) ?></span><?php endif; ?>
             <?php if ($bmi): ?> · <span class="badge bg-<?= $bmi['color'] ?>-subtle text-<?= $bmi['color'] ?> border" title="<?= et('Índice de masa corporal (última consulta)') ?>">IMC <?= $bmi['valor'] ?> · <?= e(t($bmi['categoria'])) ?></span><?php endif; ?>
         </span>
+        <?php endif; ?>
         </div>
     </div>
     <div class="text-nowrap">
@@ -372,10 +388,19 @@ include __DIR__ . '/../includes/header.php';
         <?php endif; ?>
         <a href="<?= BASE_URL ?>/facturacion/create?paciente_id=<?= $id ?>" class="btn btn-outline-primary"><i class="bi bi-receipt"></i> <?= et('Factura') ?></a>
         <?php if (modulo_activo('especialidades') && has_role('medico', 'admin')): ?>
+        <?php /* Accesos de la especialidad del consultorio (su giro), al frente. */
+        foreach (giro_accesos() as [$ruta, $lbl, $ic]):
+            if ($ruta === '/odontograma/index' && $p['tipo'] === 'dental') continue;   // ya sale abajo
+            if ($ruta === '/crecimiento/index') continue;                              // ya sale abajo
+            if ($ruta === '/optica/graduacion' && modulo_activo('optica')) continue;   // ya sale arriba ?>
+        <a href="<?= BASE_URL . $ruta ?>?paciente_id=<?= $id ?>" class="btn btn-primary"><i class="bi <?= $ic ?>"></i> <?= et($lbl) ?></a>
+        <?php endforeach; ?>
         <?php if ($p['tipo'] === 'dental'): ?>
         <a href="<?= BASE_URL ?>/odontograma/index?paciente_id=<?= $id ?>" class="btn btn-outline-primary"><i class="bi bi-emoji-smile"></i> <?= et('Odontograma') ?></a>
         <?php endif; ?>
+        <?php if (!es_veterinaria()): ?>
         <a href="<?= BASE_URL ?>/crecimiento/index?paciente_id=<?= $id ?>" class="btn btn-outline-primary"><i class="bi bi-graph-up-arrow"></i> <?= et('Crecimiento') ?></a>
+        <?php endif; ?>
         <?php endif; ?>
         <a href="<?= BASE_URL ?>/pacientes/edit?id=<?= $id ?>" class="btn btn-outline-secondary"><i class="bi bi-pencil"></i> <?= et('Editar') ?></a>
     </div>
@@ -618,37 +643,37 @@ include __DIR__ . '/../includes/header.php';
                                 <i class="bi bi-clipboard2-pulse"></i> <?= et('Especialidad') ?>
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="<?= BASE_URL ?>/mapacorporal/index?paciente_id=<?= $id ?>"><i class="bi bi-person-bounding-box me-2"></i><?= et('Mapa corporal') ?></a></li>
+                                <?php if (giro_muestra_especialidad('mapacorporal')): ?><li><a class="dropdown-item" href="<?= BASE_URL ?>/mapacorporal/index?paciente_id=<?= $id ?>"><i class="bi bi-person-bounding-box me-2"></i><?= et('Mapa corporal') ?></a></li><?php endif; ?>
                                 <li><hr class="dropdown-divider"></li>
                                 <?php /* Los módulos de especialidad son del plan Profesional en adelante.
                                          Sin este gate un consultorio Básico los veía y los usaba completos. */ ?>
                                 <?php if (modulo_activo('especialidades')): ?>
                                 <?php if (strncasecmp((string) ($p['sexo'] ?? ''), 'F', 1) === 0): ?>
-                                <li><a class="dropdown-item" href="<?= BASE_URL ?>/prenatal/index?paciente_id=<?= $id ?>"><i class="bi bi-gender-female me-2"></i><?= et('Control prenatal') ?></a></li>
+                                <?php if (giro_muestra_especialidad('prenatal')): ?><li><a class="dropdown-item" href="<?= BASE_URL ?>/prenatal/index?paciente_id=<?= $id ?>"><i class="bi bi-gender-female me-2"></i><?= et('Control prenatal') ?></a></li><?php endif; ?>
                                 <?php endif; ?>
-                                <li><a class="dropdown-item" href="<?= BASE_URL ?>/nutricion/index?paciente_id=<?= $id ?>"><i class="bi bi-egg-fried me-2"></i><?= et('Nutrición') ?></a></li>
-                                <li><a class="dropdown-item" href="<?= BASE_URL ?>/cardiologia/index?paciente_id=<?= $id ?>"><i class="bi bi-heart-pulse me-2"></i><?= et('Cardiología') ?></a></li>
-                                <li><a class="dropdown-item" href="<?= BASE_URL ?>/dermatologia/index?paciente_id=<?= $id ?>"><i class="bi bi-bandaid me-2"></i><?= et('Dermatología') ?></a></li>
-                                <li><a class="dropdown-item" href="<?= BASE_URL ?>/psicologia/index?paciente_id=<?= $id ?>"><i class="bi bi-chat-heart me-2"></i><?= et('Psicología') ?></a></li>
-                                <li><a class="dropdown-item" href="<?= BASE_URL ?>/oftalmologia/index?paciente_id=<?= $id ?>"><i class="bi bi-eye me-2"></i><?= et('Oftalmología') ?></a></li>
-                                <li><a class="dropdown-item" href="<?= BASE_URL ?>/traumatologia/index?paciente_id=<?= $id ?>"><i class="bi bi-bandaid-fill me-2"></i><?= et('Traumatología') ?></a></li>
-                                <li><a class="dropdown-item" href="<?= BASE_URL ?>/cirugia/index?paciente_id=<?= $id ?>"><i class="bi bi-scissors me-2"></i><?= et('Cirugía general') ?></a></li>
-                                <li><a class="dropdown-item" href="<?= BASE_URL ?>/urologia/index?paciente_id=<?= $id ?>"><i class="bi bi-droplet-half me-2"></i><?= et('Urología') ?></a></li>
-                                <li><a class="dropdown-item" href="<?= BASE_URL ?>/otorrino/index?paciente_id=<?= $id ?>"><i class="bi bi-ear me-2"></i><?= et('Otorrinolaringología') ?></a></li>
-                                <li><a class="dropdown-item" href="<?= BASE_URL ?>/gastroenterologia/index?paciente_id=<?= $id ?>"><i class="bi bi-clipboard2-pulse me-2"></i><?= et('Gastroenterología') ?></a></li>
-                                <li><a class="dropdown-item" href="<?= BASE_URL ?>/neumologia/index?paciente_id=<?= $id ?>"><i class="bi bi-lungs me-2"></i><?= et('Neumología') ?></a></li>
-                                <li><a class="dropdown-item" href="<?= BASE_URL ?>/endocrinologia/index?paciente_id=<?= $id ?>"><i class="bi bi-activity me-2"></i><?= et('Endocrinología') ?></a></li>
-                                <li><a class="dropdown-item" href="<?= BASE_URL ?>/estetica/index?paciente_id=<?= $id ?>"><i class="bi bi-magic me-2"></i><?= et('Medicina estética') ?></a></li>
+                                <?php if (giro_muestra_especialidad('nutricion')): ?><li><a class="dropdown-item" href="<?= BASE_URL ?>/nutricion/index?paciente_id=<?= $id ?>"><i class="bi bi-egg-fried me-2"></i><?= et('Nutrición') ?></a></li><?php endif; ?>
+                                <?php if (giro_muestra_especialidad('cardiologia')): ?><li><a class="dropdown-item" href="<?= BASE_URL ?>/cardiologia/index?paciente_id=<?= $id ?>"><i class="bi bi-heart-pulse me-2"></i><?= et('Cardiología') ?></a></li><?php endif; ?>
+                                <?php if (giro_muestra_especialidad('dermatologia')): ?><li><a class="dropdown-item" href="<?= BASE_URL ?>/dermatologia/index?paciente_id=<?= $id ?>"><i class="bi bi-bandaid me-2"></i><?= et('Dermatología') ?></a></li><?php endif; ?>
+                                <?php if (giro_muestra_especialidad('psicologia')): ?><li><a class="dropdown-item" href="<?= BASE_URL ?>/psicologia/index?paciente_id=<?= $id ?>"><i class="bi bi-chat-heart me-2"></i><?= et('Psicología') ?></a></li><?php endif; ?>
+                                <?php if (giro_muestra_especialidad('oftalmologia')): ?><li><a class="dropdown-item" href="<?= BASE_URL ?>/oftalmologia/index?paciente_id=<?= $id ?>"><i class="bi bi-eye me-2"></i><?= et('Oftalmología') ?></a></li><?php endif; ?>
+                                <?php if (giro_muestra_especialidad('traumatologia')): ?><li><a class="dropdown-item" href="<?= BASE_URL ?>/traumatologia/index?paciente_id=<?= $id ?>"><i class="bi bi-bandaid-fill me-2"></i><?= et('Traumatología') ?></a></li><?php endif; ?>
+                                <?php if (giro_muestra_especialidad('cirugia')): ?><li><a class="dropdown-item" href="<?= BASE_URL ?>/cirugia/index?paciente_id=<?= $id ?>"><i class="bi bi-scissors me-2"></i><?= et('Cirugía general') ?></a></li><?php endif; ?>
+                                <?php if (giro_muestra_especialidad('urologia')): ?><li><a class="dropdown-item" href="<?= BASE_URL ?>/urologia/index?paciente_id=<?= $id ?>"><i class="bi bi-droplet-half me-2"></i><?= et('Urología') ?></a></li><?php endif; ?>
+                                <?php if (giro_muestra_especialidad('otorrino')): ?><li><a class="dropdown-item" href="<?= BASE_URL ?>/otorrino/index?paciente_id=<?= $id ?>"><i class="bi bi-ear me-2"></i><?= et('Otorrinolaringología') ?></a></li><?php endif; ?>
+                                <?php if (giro_muestra_especialidad('gastroenterologia')): ?><li><a class="dropdown-item" href="<?= BASE_URL ?>/gastroenterologia/index?paciente_id=<?= $id ?>"><i class="bi bi-clipboard2-pulse me-2"></i><?= et('Gastroenterología') ?></a></li><?php endif; ?>
+                                <?php if (giro_muestra_especialidad('neumologia')): ?><li><a class="dropdown-item" href="<?= BASE_URL ?>/neumologia/index?paciente_id=<?= $id ?>"><i class="bi bi-lungs me-2"></i><?= et('Neumología') ?></a></li><?php endif; ?>
+                                <?php if (giro_muestra_especialidad('endocrinologia')): ?><li><a class="dropdown-item" href="<?= BASE_URL ?>/endocrinologia/index?paciente_id=<?= $id ?>"><i class="bi bi-activity me-2"></i><?= et('Endocrinología') ?></a></li><?php endif; ?>
+                                <?php if (giro_muestra_especialidad('estetica')): ?><li><a class="dropdown-item" href="<?= BASE_URL ?>/estetica/index?paciente_id=<?= $id ?>"><i class="bi bi-magic me-2"></i><?= et('Medicina estética') ?></a></li><?php endif; ?>
                                 <?php endif; ?>
                                 <li><hr class="dropdown-divider"></li>
                                 <?php if (modulo_activo('optica')): ?>
-                                <li><a class="dropdown-item" href="<?= BASE_URL ?>/optica/graduacion?paciente_id=<?= $id ?>"><i class="bi bi-eyeglasses me-2"></i><?= et('Óptica (graduación)') ?></a></li>
+                                <?php if (giro_muestra_especialidad('optica')): ?><li><a class="dropdown-item" href="<?= BASE_URL ?>/optica/graduacion?paciente_id=<?= $id ?>"><i class="bi bi-eyeglasses me-2"></i><?= et('Óptica (graduación)') ?></a></li><?php endif; ?>
                                 <?php endif; ?>
                                 <?php if (modulo_activo('laboratorio')): ?>
-                                <li><a class="dropdown-item" href="<?= BASE_URL ?>/laboratorio/orden?paciente_id=<?= $id ?>"><i class="bi bi-eyedropper me-2"></i><?= et('Laboratorio (orden)') ?></a></li>
+                                <?php if (giro_muestra_especialidad('laboratorio')): ?><li><a class="dropdown-item" href="<?= BASE_URL ?>/laboratorio/orden?paciente_id=<?= $id ?>"><i class="bi bi-eyedropper me-2"></i><?= et('Laboratorio (orden)') ?></a></li><?php endif; ?>
                                 <?php endif; ?>
                                 <?php if (modulo_activo('imagenologia')): ?>
-                                <li><a class="dropdown-item" href="<?= BASE_URL ?>/imagenologia/estudio?paciente_id=<?= $id ?>"><i class="bi bi-soundwave me-2"></i><?= et('Ultrasonido (estudio)') ?></a></li>
+                                <?php if (giro_muestra_especialidad('imagenologia')): ?><li><a class="dropdown-item" href="<?= BASE_URL ?>/imagenologia/estudio?paciente_id=<?= $id ?>"><i class="bi bi-soundwave me-2"></i><?= et('Ultrasonido (estudio)') ?></a></li><?php endif; ?>
                                 <?php endif; ?>
                             </ul>
                         </div>
