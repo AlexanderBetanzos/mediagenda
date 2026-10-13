@@ -348,15 +348,22 @@ function mp_sincronizar(array $pre): ?int
     $estadoPrevio = $prev->fetchColumn();
 
     if ($estado === 'authorized') {
-        $prox = !empty($pre['next_payment_date']) ? date('Y-m-d', strtotime($pre['next_payment_date'])) : null;
+        $prox = !empty($pre['next_payment_date']) ? date('Y-m-d', strtotime($pre['next_payment_date'])) : mp_pagado_hasta($pre);
         $pdo->prepare("UPDATE consultorios SET estado='activa', plan=?, mp_suscripcion_id=?, mp_estado=?, proximo_cobro=? WHERE id=?")
             ->execute([$plan, $pre['id'] ?? null, $estado, $prox, $cid]);
         if ($estadoPrevio !== 'activa') {
             mp_notificar_activacion($cid, $plan, $prox);
         }
     } elseif (in_array($estado, ['paused', 'cancelled'], true)) {
-        // No bloquea de inmediato: el acceso sigue hasta proximo_cobro (fin del periodo pagado).
-        $pdo->prepare("UPDATE consultorios SET mp_estado=? WHERE id=?")->execute([$estado, $cid]);
+        // No bloquea de inmediato: el acceso sigue hasta proximo_cobro (fin del
+        // periodo pagado). Esa fecha se recalcula con el último cobro REAL que
+        // reporta Mercado Pago: si solo se confiara en la guardada, que pudo
+        // quedarse en el primer mes, un cliente con meses pagados que cancela
+        // quedaba bloqueado de inmediato. Nunca se acorta lo ya guardado.
+        $pagadoHasta = mp_pagado_hasta($pre);
+        $pdo->prepare("UPDATE consultorios SET mp_estado=?,
+                          proximo_cobro = CASE WHEN ? IS NOT NULL AND (proximo_cobro IS NULL OR proximo_cobro < ?) THEN ? ELSE proximo_cobro END
+                       WHERE id=?")->execute([$estado, $pagadoHasta, $pagadoHasta, $pagadoHasta, $cid]);
     } else {
         $pdo->prepare("UPDATE consultorios SET mp_suscripcion_id=?, mp_estado=? WHERE id=?")
             ->execute([$pre['id'] ?? null, $estado, $cid]);
@@ -369,6 +376,45 @@ function mp_sincronizar(array $pre): ?int
                        $pre['auto_recurring']['transaction_amount'] ?? null, json_encode($pre)]);
     } catch (Throwable $e) { /* tabla pagos_log aún no creada */ }
 
+    return $cid;
+}
+
+/**
+ * Hasta qué fecha está pagada una suscripción, según su último cobro real
+ * (summarized.last_charged_date + 1 periodo). null si nunca se cobró.
+ */
+function mp_pagado_hasta(array $pre): ?string
+{
+    $ultimo = $pre['summarized']['last_charged_date'] ?? null;
+    if (!$ultimo) return null;
+    $frec = max(1, (int) ($pre['auto_recurring']['frequency'] ?? 1));
+    $tipo = ($pre['auto_recurring']['frequency_type'] ?? 'months') === 'days' ? 'days' : 'months';
+    $base = strtotime(date('Y-m-d', strtotime($ultimo)));
+    if ($tipo === 'days') return date('Y-m-d', strtotime("+$frec days", $base));
+    // Meses sin desbordar: un cobro del 31/ene paga hasta el 28/feb, no hasta el 3/mar.
+    $dia = (int) date('j', $base);
+    $mes = strtotime(date('Y-m-01', $base) . " +$frec months");
+    return date('Y-m-', $mes) . str_pad((string) min($dia, (int) date('t', $mes)), 2, '0', STR_PAD_LEFT);
+}
+
+/**
+ * Aviso de un cobro mensual (subscription_authorized_payment): se consulta el
+ * cobro para saber de qué suscripción es y se re-sincroniza la suscripción,
+ * que trae la nueva fecha de próximo cobro. Antes estos avisos se ignoraban.
+ */
+function mp_sincronizar_desde_cobro(string $authorizedPaymentId): ?int
+{
+    $ap = mp_request('GET', '/authorized_payments/' . urlencode($authorizedPaymentId));
+    $preId = (string) ($ap['preapproval_id'] ?? '');
+    if ($preId === '') return null;
+    $cid = mp_sincronizar(mp_obtener_suscripcion($preId));
+    if ($cid) {
+        try {
+            db()->prepare("INSERT INTO pagos_log (consultorio_id, tipo, referencia, estado, monto, payload) VALUES (?,?,?,?,?,?)")
+                ->execute([$cid, 'cobro_mensual', $authorizedPaymentId, $ap['status'] ?? null,
+                           $ap['transaction_amount'] ?? null, json_encode($ap)]);
+        } catch (Throwable $e) {}
+    }
     return $cid;
 }
 

@@ -18,11 +18,13 @@ $tipo = $_GET['type'] ?? $_GET['topic'] ?? ($body['type'] ?? '');
 $id   = $_GET['data.id'] ?? $_GET['id'] ?? ($body['data']['id'] ?? ($body['id'] ?? ''));
 
 try {
-    if ($id !== '' && strpos((string) $tipo, 'preapproval') !== false) {
+    if ($id !== '' && strpos((string) $tipo, 'authorized_payment') !== false) {
+        // Cobro mensual de una suscripción: refresca la fecha de próximo cobro.
+        mp_sincronizar_desde_cobro((string) $id);
+    } elseif ($id !== '' && strpos((string) $tipo, 'preapproval') !== false) {
         $pre = mp_obtener_suscripcion((string) $id);
         mp_sincronizar($pre);
     }
-    // (Los avisos 'payment' de cada cobro recurrente podrían registrarse aquí.)
 } catch (Throwable $e) {
     // No exponer detalles; Mercado Pago reintenta si no recibe 200… ya lo dimos.
 }
