@@ -209,6 +209,20 @@ $ag = $pdo->prepare(
 $ag->execute([$tid]);
 $agendaHoy = $ag->fetchAll();
 
+/* ── Próxima cita: la tarjeta protagonista del banner ───────────────── */
+$proxima = null;
+if ($verCitas) {
+    $pq = $pdo->prepare(
+        "SELECT c.*, p.id AS pac_id, p.nombre, p.apellidos, p.telefono, COALESCE(p.foto_mime, p.foto) AS foto, u.nombre AS medico
+         FROM citas c JOIN pacientes p ON p.id = c.paciente_id LEFT JOIN usuarios u ON u.id = c.medico_id
+         WHERE c.consultorio_id = ? AND c.estado IN ('programada','confirmada')
+           AND TIMESTAMP(c.fecha, c.hora) >= DATE_SUB(NOW(), INTERVAL 30 MINUTE) " . str_replace('medico_id', 'c.medico_id', $medFiltro) . "
+         ORDER BY c.fecha, c.hora LIMIT 1"
+    );
+    $pq->execute([$tid]);
+    $proxima = $pq->fetch() ?: null;
+}
+
 /* ── Próximas citas (próximos 7 días) ────────────────────────────────── */
 $px = $pdo->prepare(
     "SELECT c.fecha, c.hora, c.estado, p.id AS pac_id, p.nombre, p.apellidos, COALESCE(p.foto_mime, p.foto) AS foto FROM citas c
@@ -444,10 +458,16 @@ include __DIR__ . '/includes/header.php';
 
 <!-- ── Banner de bienvenida ─────────────────────────────────────────── -->
 <div class="welcome-banner mb-4">
-    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
-        <div>
-            <h1 class="h4 mb-1 fw-bold"><?= e($saludo) ?>, <?= e($firstName) ?> 👋</h1>
+    <div class="row g-3 align-items-center">
+    <div class="col-lg-7">
+        <div class="mb-3">
+            <h1 class="h3 mb-1 fw-bold"><?= e($saludo) ?>, <?= e($firstName) ?> 👋</h1>
             <p class="text-muted mb-0 small text-capitalize"><?= e(fecha_hoy_larga()) ?> · <?= e(marca_nombre()) ?></p>
+            <?php if ($verCitas): ?>
+            <p class="mb-0 mt-2"><?= $citasHoy
+                ? sprintf(et('Hoy tienes %s, %s ya confirmadas.'), '<strong>' . $citasHoy . ' ' . ($citasHoy === 1 ? et('cita') : et('citas')) . '</strong>', '<strong>' . $citasConfHoy . '</strong>')
+                : et('Hoy no tienes citas agendadas.') ?></p>
+            <?php endif; ?>
         </div>
         <div class="d-flex flex-wrap gap-2">
             <?php if ($verCitas): ?><a href="<?= BASE_URL ?>/citas/create" class="btn btn-primary btn-sm"><i class="bi bi-calendar-plus"></i> <?= et('Nueva cita') ?></a><?php endif; ?>
@@ -469,6 +489,46 @@ include __DIR__ . '/includes/header.php';
                 </ul>
             </div>
         </div>
+    </div>
+    <?php if ($verCitas): ?>
+    <?php /* Tarjeta protagonista: la próxima cita, con lo que se hace con ella. */ ?>
+    <div class="col-lg-5">
+        <div class="spot">
+            <?php if ($proxima):
+                $esHoyP = $proxima['fecha'] === date('Y-m-d');
+                $waP = modulo_activo('whatsapp') && $proxima['estado'] === 'programada'
+                    ? wa_link($proxima['telefono'], mensaje_recordatorio($proxima['nombre'] . ' ' . $proxima['apellidos'],
+                        fmt_fecha($proxima['fecha']), fmt_hora($proxima['hora']), cita_enlace((int) $proxima['id']))) : ''; ?>
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="spot-lbl"><i class="bi bi-calendar-heart"></i> <?= et('Próxima cita') ?></span>
+                <span class="badge rounded-pill" style="background:rgba(255,255,255,.22)"><?= e(estado_label($proxima['estado'])) ?></span>
+            </div>
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <?= avatar_paciente((int) $proxima['pac_id'], $proxima['nombre'], $proxima['apellidos'], $proxima['foto'] ?? null, 54) ?>
+                <div class="min-w-0">
+                    <div class="fw-bold text-truncate"><?= e($proxima['nombre'] . ' ' . $proxima['apellidos']) ?></div>
+                    <div class="small" style="opacity:.85"><?= $proxima['medico'] ? e($proxima['medico']) . ' · ' : '' ?><?= $esHoyP ? et('Hoy') : e(fmt_fecha($proxima['fecha'])) ?></div>
+                </div>
+                <div class="ms-auto text-end"><div class="spot-hora"><?= fmt_hora($proxima['hora']) ?></div></div>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                <?php if (cita_es_en_linea($proxima)): ?>
+                    <a href="<?= BASE_URL ?>/telemedicina/sala?id=<?= (int) $proxima['id'] ?>" target="_blank" class="btn btn-sm spot-btn"><i class="bi bi-camera-video"></i> <?= et('Entrar a la videoconsulta') ?></a>
+                <?php else: ?>
+                    <a href="<?= BASE_URL ?>/pacientes/ver?id=<?= (int) $proxima['pac_id'] ?>" class="btn btn-sm spot-btn"><i class="bi bi-folder2-open"></i> <?= et('Abrir expediente') ?></a>
+                <?php endif; ?>
+                <?php if ($waP): ?><a href="<?= e($waP) ?>" target="_blank" rel="noopener" class="btn btn-sm spot-btn-2"><i class="bi bi-whatsapp"></i> <?= et('Recordar') ?></a><?php endif; ?>
+                <a href="<?= BASE_URL ?>/citas/edit?id=<?= (int) $proxima['id'] ?>" class="btn btn-sm spot-btn-2"><?= et('Ver cita') ?></a>
+            </div>
+            <?php else: ?>
+            <span class="spot-lbl"><i class="bi bi-calendar-heart"></i> <?= et('Próxima cita') ?></span>
+            <div class="fw-bold fs-5 mt-2 mb-1"><?= et('Tu agenda está libre') ?></div>
+            <div class="small mb-3" style="opacity:.85"><?= et('No hay citas por venir. Agenda una o comparte tu página para que te encuentren.') ?></div>
+            <a href="<?= BASE_URL ?>/citas/create" class="btn btn-sm spot-btn"><i class="bi bi-calendar-plus"></i> <?= et('Agendar cita') ?></a>
+            <?php endif; ?>
+        </div>
+    </div>
+    <?php endif; ?>
     </div>
 </div>
 
@@ -646,7 +706,7 @@ document.getElementById('copiarWeb').addEventListener('click', function (ev) {
     <div class="col-6 col-xl-3">
         <a href="<?= $link ?>" class="text-decoration-none">
         <div class="card stat-card kpi-card h-100"><div class="card-body d-flex align-items-center gap-3">
-            <div class="stat-icon" style="background:color-mix(in srgb,<?= $color ?> 16%,transparent);color:<?= $color ?>"><i class="bi <?= $icon ?>"></i></div>
+            <div class="stat-icon" style="--kpi:<?= $color ?>;background:color-mix(in srgb,<?= $color ?> 16%,transparent);color:<?= $color ?>"><i class="bi <?= $icon ?>"></i></div>
             <div class="min-w-0">
                 <div class="stat-num"><?= e($value) ?></div>
                 <div class="stat-label"><?= e($label) ?></div>
@@ -675,7 +735,7 @@ document.getElementById('copiarWeb').addEventListener('click', function (ev) {
     <div class="col-6 col-xl-3">
         <a href="<?= $link ?>" class="text-decoration-none">
         <div class="card stat-card kpi-card h-100"><div class="card-body d-flex align-items-center gap-3">
-            <div class="stat-icon" style="background:color-mix(in srgb,<?= $color ?> 16%,transparent);color:<?= $color ?>"><i class="bi <?= $icon ?>"></i></div>
+            <div class="stat-icon" style="--kpi:<?= $color ?>;background:color-mix(in srgb,<?= $color ?> 16%,transparent);color:<?= $color ?>"><i class="bi <?= $icon ?>"></i></div>
             <div class="min-w-0">
                 <div class="stat-num<?= $alerta ? ' text-danger' : '' ?>"><?= e($value) ?></div>
                 <div class="stat-label"><?= e($label) ?></div>
@@ -1003,7 +1063,7 @@ html.app-light .welcome-banner {
     var elRev = document.getElementById('chartRevenue');
     if (elRev) {
         var ds = [];
-        if (hasFact) ds.push({ type: 'bar', label: 'Ingresos', data: <?= json_encode($revData) ?>, backgroundColor: brand, borderRadius: 6, yAxisID: 'y', order: 2 });
+        if (hasFact) ds.push({ type: 'bar', label: 'Ingresos', data: <?= json_encode($revData) ?>, backgroundColor: brand, borderRadius: 999, borderSkipped: false, barPercentage: .5, categoryPercentage: .7, yAxisID: 'y', order: 2 });
         ds.push({ type: 'line', label: 'Pacientes nuevos', data: <?= json_encode($newData) ?>, borderColor: '#38bdf8', backgroundColor: '#38bdf8', tension: .35, yAxisID: hasFact ? 'y1' : 'y', order: 1, pointRadius: 3 });
         new Chart(elRev, {
             data: { labels: <?= json_encode($revLabels) ?>, datasets: ds },
@@ -1046,7 +1106,7 @@ html.app-light .welcome-banner {
     var elH = document.getElementById('chartHoras');
     if (elH) new Chart(elH, {
         type: 'bar',
-        data: { labels: <?= json_encode($horasLabels) ?>, datasets: [{ label: 'Citas', data: <?= json_encode(array_values($horas)) ?>, backgroundColor: '#6366f1', borderRadius: 5 }] },
+        data: { labels: <?= json_encode($horasLabels) ?>, datasets: [{ label: 'Citas', data: <?= json_encode(array_values($horas)) ?>, backgroundColor: fade(brand, .85), borderRadius: 999, borderSkipped: false, barPercentage: .5, categoryPercentage: .7 }] },
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { backgroundColor: tipBg, cornerRadius: 8 } },
             scales: { x: { grid: { color: grid }, border: { display: false } }, y: { grid: { color: grid }, border: { display: false }, beginAtZero: true, ticks: { precision: 0 } } } }
     });

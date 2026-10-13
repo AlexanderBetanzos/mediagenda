@@ -1,0 +1,264 @@
+/* =====================================================================
+   Panel — estilo "Liquid Glass" (réplica del admin-mac.css de Khronos)
+   Se carga DESPUÉS de style.css y material.css y los sobreescribe.
+   Todo va scoped a body.ui-glass para poder apagarlo sin tocar nada más.
+
+   Lenguaje: fondo con color suave (el vidrio necesita algo detrás), barra
+   superior y sidebar FLOTANTES de vidrio separados del borde, tarjetas de
+   vidrio con un filo luminoso arriba, controles en cápsula y el ítem activo
+   del menú relleno con el color de la marca. A diferencia de Khronos, el
+   color no es un azul fijo: es el del consultorio (--brand), white-label.
+   ===================================================================== */
+
+/* ---------- Tokens ---------- */
+body.ui-glass {
+    --g-brand: var(--brand, #2563eb);
+    --g-brand-2: color-mix(in srgb, var(--g-brand) 72%, #fff);
+    --g-glass: rgba(255,255,255,.58);
+    --g-glass-2: rgba(255,255,255,.66);
+    --g-glass-3: rgba(255,255,255,.6);
+    --g-hi: rgba(255,255,255,.92);
+    --g-bd: rgba(255,255,255,.7);
+    --g-sep: rgba(0,0,0,.07);
+    --g-txt: #1d1d1f; --g-txt-2: rgba(60,60,67,.66); --g-txt-3: rgba(60,60,67,.36);
+    --g-shadow: 0 1px 0 var(--g-hi) inset, 0 0 0 1px rgba(0,0,0,.05), 0 18px 50px rgba(30,40,80,.13);
+    --g-shadow-sm: 0 1px 0 var(--g-hi) inset, 0 0 0 1px rgba(0,0,0,.045), 0 8px 24px rgba(30,40,80,.09);
+    --g-r: 22px; --g-r-card: 18px; --g-r-ctl: 12px;
+    --g-blur: blur(30px) saturate(185%);
+    --g-blur-sm: blur(16px) saturate(165%);
+}
+html.app-dark body.ui-glass {
+    --g-glass: rgba(30,30,36,.58);
+    --g-glass-2: rgba(44,44,52,.48);
+    --g-glass-3: rgba(255,255,255,.07);
+    --g-hi: rgba(255,255,255,.16);
+    --g-bd: rgba(255,255,255,.11);
+    --g-sep: rgba(255,255,255,.08);
+    --g-txt: #f5f5f7; --g-txt-2: rgba(235,235,245,.62); --g-txt-3: rgba(235,235,245,.32);
+    --g-shadow: 0 1px 0 var(--g-hi) inset, 0 0 0 1px var(--g-bd), 0 18px 50px rgba(0,0,0,.4);
+    --g-shadow-sm: 0 1px 0 var(--g-hi) inset, 0 0 0 1px var(--g-bd), 0 8px 24px rgba(0,0,0,.28);
+}
+
+/* ---------- Fondo "wallpaper" con el color de la marca ---------- */
+html.app-light body.ui-glass {
+    --g-glass: rgba(255,255,255,.78); --g-glass-2: rgba(255,255,255,.86);
+    background:
+        radial-gradient(1100px 700px at 6% -12%, color-mix(in srgb, var(--g-brand) 16%, transparent), transparent 60%),
+        radial-gradient(900px 620px at 102% -4%, color-mix(in srgb, var(--g-brand) 8%, rgba(255,55,95,.06)), transparent 60%),
+        radial-gradient(900px 720px at 62% 112%, rgba(52,199,89,.08), transparent 60%),
+        linear-gradient(180deg, #eef1f6, #e9edf4 60%, #edf0f6) !important;
+    background-attachment: fixed !important;
+}
+html.app-dark body.ui-glass {
+    background:
+        radial-gradient(1100px 700px at 6% -12%, color-mix(in srgb, var(--g-brand) 30%, transparent), transparent 60%),
+        radial-gradient(900px 620px at 102% -4%, rgba(191,90,242,.2), transparent 60%),
+        radial-gradient(900px 720px at 62% 112%, rgba(48,209,88,.13), transparent 60%),
+        linear-gradient(180deg, #0b0d14, #101320 60%, #0c0f18) !important;
+    background-attachment: fixed !important;
+}
+body.ui-glass { color: var(--g-txt); -webkit-font-smoothing: antialiased; }
+body.ui-glass .text-muted { color: var(--g-txt-2) !important; }
+
+/* ---------- Barra superior flotante ---------- */
+body.ui-glass .app-navbar {
+    margin: 12px 12px 0; border-radius: var(--g-r);
+    background: var(--g-glass) !important; border: 0 !important;
+    backdrop-filter: var(--g-blur); -webkit-backdrop-filter: var(--g-blur);
+    box-shadow: var(--g-shadow) !important;
+    top: 12px; min-height: 58px; z-index: 1030;
+}
+body.ui-glass .app-page-title { color: var(--g-txt) !important; font-weight: 650; letter-spacing: -.02em; }
+body.ui-glass .app-navbar .icon-btn {
+    width: 36px; height: 36px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center;
+    background: var(--g-glass-3); border: 1px solid var(--g-bd); box-shadow: 0 1px 0 var(--g-hi) inset;
+}
+body.ui-glass .topbar-clock #clkTime { font-variant-numeric: tabular-nums; }
+
+/* ---------- Sidebar flotante ---------- */
+body.ui-glass #sidebarMenu.sidebar { background: transparent !important; border: 0 !important; box-shadow: none !important; }
+@media (min-width: 768px) {
+    body.ui-glass .sidebar .position-sticky {
+        top: 82px; height: calc(100vh - 94px); margin: 12px 0 12px 12px; padding-top: .4rem !important;
+        border-radius: var(--g-r); background: var(--g-glass);
+        backdrop-filter: var(--g-blur); -webkit-backdrop-filter: var(--g-blur);
+        box-shadow: var(--g-shadow);
+    }
+}
+@media (max-width: 767.98px) {
+    body.ui-glass .sidebar .position-sticky { margin: 10px 12px; border-radius: var(--g-r); background: var(--g-glass); box-shadow: var(--g-shadow); padding-bottom: .6rem; }
+}
+body.ui-glass .sidebar .nav-sec { color: var(--g-txt-3) !important; }
+body.ui-glass .sidebar .nav-link {
+    color: var(--g-txt) !important; font-weight: 500; font-size: .9rem;
+    margin: 1px 10px !important; padding: .5rem .7rem !important; border-radius: 11px !important;
+    border: 0 !important; display: flex; align-items: center; gap: .65rem; transition: background .15s ease, transform .15s ease;
+}
+body.ui-glass .sidebar .nav-link .bi { color: var(--g-brand) !important; font-size: 1.02rem; width: 20px; text-align: center; }
+body.ui-glass .sidebar .nav-link:hover { background: rgba(120,120,128,.12) !important; transform: translateX(2px); }
+body.ui-glass .sidebar .nav-link.active {
+    background: linear-gradient(180deg, var(--g-brand-2), var(--g-brand)) !important; color: #fff !important; font-weight: 600;
+    box-shadow: 0 1px 0 rgba(255,255,255,.35) inset, 0 6px 16px color-mix(in srgb, var(--g-brand) 35%, transparent);
+}
+body.ui-glass .sidebar .nav-link.active .bi { color: #fff !important; }
+body.ui-glass .sidebar .brand-name { color: var(--g-txt) !important; }
+body.ui-glass .sidebar .brand-logo { background: var(--g-glass-3) !important; border: 1px solid var(--g-bd) !important; box-shadow: var(--g-shadow-sm) !important; }
+
+/* El contenido arranca debajo de la barra flotante */
+body.ui-glass main { padding-top: 1.4rem !important; }
+
+/* ---------- Tarjetas de vidrio ---------- */
+body.ui-glass .card, body.ui-glass .welcome-banner {
+    background: var(--g-glass-2) !important; border: 0 !important; border-radius: var(--g-r-card) !important;
+    box-shadow: var(--g-shadow-sm) !important; color: var(--g-txt);
+    backdrop-filter: var(--g-blur-sm); -webkit-backdrop-filter: var(--g-blur-sm);
+}
+body.ui-glass .card { overflow: hidden; }
+body.ui-glass .card-header {
+    background: rgba(255,255,255,.32) !important; border-bottom: 1px solid var(--g-sep) !important;
+    font-weight: 600; letter-spacing: -.01em; color: var(--g-txt);
+}
+html.app-dark body.ui-glass .card-header { background: rgba(255,255,255,.04) !important; }
+body.ui-glass .card-footer { background: transparent !important; border-top: 1px solid var(--g-sep) !important; }
+body.ui-glass .stat-card, body.ui-glass .kpi-card { transition: transform .25s cubic-bezier(.22,1,.36,1), box-shadow .25s ease !important; }
+body.ui-glass .stat-card:hover, body.ui-glass .kpi-card:hover { transform: translateY(-3px); box-shadow: var(--g-shadow) !important; }
+
+/* KPI: icono en cuadro de color sólido con degradado (como Khronos) */
+body.ui-glass .kpi-card .stat-icon {
+    width: 48px; height: 48px; border-radius: 14px; flex: none; display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; color: #fff !important;
+    background: linear-gradient(160deg, color-mix(in srgb, var(--kpi, var(--g-brand)) 82%, #fff), color-mix(in srgb, var(--kpi, var(--g-brand)) 80%, #000)) !important;
+    box-shadow: 0 1px 0 rgba(255,255,255,.3) inset, 0 8px 18px color-mix(in srgb, var(--kpi, var(--g-brand)) 35%, transparent);
+}
+body.ui-glass .kpi-card .stat-num { font-weight: 700; letter-spacing: -.03em; font-variant-numeric: tabular-nums; color: var(--g-txt); }
+body.ui-glass .kpi-card .stat-label { color: var(--g-txt-2); font-size: .8rem; }
+
+/* Banner de bienvenida: vidrio teñido con la marca */
+body.ui-glass .welcome-banner {
+    background:
+        radial-gradient(600px 200px at 0% 0%, color-mix(in srgb, var(--g-brand) 22%, transparent), transparent 70%),
+        radial-gradient(500px 200px at 100% 100%, rgba(255,159,10,.12), transparent 70%),
+        var(--g-glass-2) !important;
+    padding: 1.4rem 1.6rem !important;
+}
+body.ui-glass .welcome-banner h1 { font-weight: 750 !important; letter-spacing: -.03em; }
+
+/* ---------- Tablas ---------- */
+body.ui-glass .table { --bs-table-bg: transparent; --bs-table-color: var(--g-txt); --bs-table-hover-bg: rgba(120,120,128,.1); --bs-table-hover-color: var(--g-txt); color: var(--g-txt); }
+body.ui-glass .table thead th, body.ui-glass .table-light th {
+    background: transparent !important; color: var(--g-txt-2) !important; font-size: .7rem; font-weight: 600;
+    letter-spacing: .4px; text-transform: uppercase; border-bottom: 1px solid var(--g-sep) !important;
+}
+body.ui-glass .table td, body.ui-glass .table th { border-color: var(--g-sep); }
+body.ui-glass .list-group-item { background: transparent; color: var(--g-txt); border-color: var(--g-sep); }
+
+/* ---------- Campos ---------- */
+body.ui-glass .form-control, body.ui-glass .form-select {
+    background-color: var(--g-glass-3); border: 1px solid var(--g-bd); color: var(--g-txt);
+    border-radius: var(--g-r-ctl); box-shadow: 0 1px 2px rgba(0,0,0,.06) inset;
+}
+html.app-light body.ui-glass .form-control, html.app-light body.ui-glass .form-select { background-color: rgba(255,255,255,.75); border-color: rgba(0,0,0,.09); }
+body.ui-glass .form-control:focus, body.ui-glass .form-select:focus {
+    border-color: var(--g-brand); box-shadow: 0 0 0 4px color-mix(in srgb, var(--g-brand) 28%, transparent);
+}
+body.ui-glass .form-label { font-weight: 600; font-size: .8rem; color: var(--g-txt-2); }
+body.ui-glass .input-group-text { background: var(--g-glass-3); border: 1px solid var(--g-bd); border-radius: var(--g-r-ctl); }
+
+/* ---------- Botones en cápsula ---------- */
+body.ui-glass .btn { border-radius: 999px; font-weight: 600; letter-spacing: -.005em; transition: filter .15s, transform .08s, background .15s, box-shadow .15s; }
+body.ui-glass .btn:active { transform: scale(.97); }
+body.ui-glass .btn-primary {
+    background: linear-gradient(180deg, var(--g-brand-2), var(--g-brand)) !important; border: 0 !important; color: #fff !important;
+    box-shadow: 0 1px 0 rgba(255,255,255,.35) inset, 0 6px 16px color-mix(in srgb, var(--g-brand) 32%, transparent);
+}
+body.ui-glass .btn-primary:hover { filter: brightness(1.07); }
+body.ui-glass .btn-success { background: linear-gradient(180deg, #45d96a, #30c252) !important; border: 0 !important; color: #fff !important; box-shadow: 0 1px 0 rgba(255,255,255,.35) inset, 0 6px 16px rgba(48,209,88,.28); }
+body.ui-glass .btn-danger { background: linear-gradient(180deg, #ff6259, #ff3b30) !important; border: 0 !important; color: #fff !important; }
+body.ui-glass .btn-light, body.ui-glass .btn-outline-secondary, body.ui-glass .btn-secondary {
+    background: var(--g-glass-3) !important; border: 1px solid var(--g-bd) !important; color: var(--g-txt) !important;
+    box-shadow: 0 1px 0 var(--g-hi) inset;
+}
+body.ui-glass .btn-light:hover, body.ui-glass .btn-outline-secondary:hover, body.ui-glass .btn-secondary:hover { background: rgba(120,120,128,.2) !important; }
+body.ui-glass .btn-outline-primary { color: var(--g-brand) !important; border: 1px solid color-mix(in srgb, var(--g-brand) 45%, transparent) !important; background: color-mix(in srgb, var(--g-brand) 8%, transparent) !important; }
+body.ui-glass .btn-outline-primary:hover { background: var(--g-brand) !important; color: #fff !important; }
+body.ui-glass .btn-outline-success { border-radius: 999px; }
+body.ui-glass .btn-link { box-shadow: none; }
+
+/* ---------- Badges, alertas, menús, modales ---------- */
+body.ui-glass .badge { border-radius: 999px; font-weight: 600; padding: .34em .7em; }
+body.ui-glass .alert { border-radius: 16px; border: 1px solid var(--g-bd); backdrop-filter: var(--g-blur-sm); -webkit-backdrop-filter: var(--g-blur-sm); box-shadow: 0 1px 0 var(--g-hi) inset; }
+body.ui-glass .alert-warning { background: rgba(255,159,10,.16); border-color: rgba(255,159,10,.32); color: var(--g-txt); }
+body.ui-glass .alert-success { background: rgba(48,209,88,.16); border-color: rgba(48,209,88,.32); color: var(--g-txt); }
+body.ui-glass .alert-danger  { background: rgba(255,69,58,.15); border-color: rgba(255,69,58,.32); color: var(--g-txt); }
+body.ui-glass .alert-info    { background: color-mix(in srgb, var(--g-brand) 14%, transparent); border-color: color-mix(in srgb, var(--g-brand) 30%, transparent); color: var(--g-txt); }
+body.ui-glass .dropdown-menu {
+    background: var(--g-glass) !important; border: 0 !important; border-radius: 16px; box-shadow: var(--g-shadow); padding: 6px;
+    backdrop-filter: var(--g-blur); -webkit-backdrop-filter: var(--g-blur);
+}
+body.ui-glass .dropdown-item { border-radius: 10px; color: var(--g-txt); }
+body.ui-glass .dropdown-item:hover { background: var(--g-brand); color: #fff; }
+body.ui-glass .modal-content {
+    background: var(--g-glass) !important; border: 0 !important; border-radius: 24px !important;
+    box-shadow: var(--g-shadow), 0 40px 100px rgba(0,0,0,.3);
+    backdrop-filter: var(--g-blur); -webkit-backdrop-filter: var(--g-blur); color: var(--g-txt);
+}
+body.ui-glass .modal-backdrop.show { opacity: .3; }
+body.ui-glass .progress { background: var(--g-glass-3); border-radius: 999px; }
+body.ui-glass .progress-bar { background: linear-gradient(180deg, var(--g-brand-2), var(--g-brand)) !important; border-radius: 999px; }
+body.ui-glass footer.border-top { border-color: var(--g-sep) !important; }
+
+/* ---------- Tarjeta de soporte al pie del menú (como "Free consultation") ---------- */
+body.ui-glass .sidebar-soporte {
+    margin: 14px 12px 12px !important; padding: 14px !important; border-radius: 18px !important; border: 0 !important;
+    background: linear-gradient(160deg, color-mix(in srgb, var(--g-brand) 14%, #fff), color-mix(in srgb, var(--g-brand) 5%, #fff)) !important;
+    box-shadow: 0 1px 0 var(--g-hi) inset, 0 0 0 1px color-mix(in srgb, var(--g-brand) 14%, transparent) !important;
+}
+html.app-dark body.ui-glass .sidebar-soporte { background: color-mix(in srgb, var(--g-brand) 16%, rgba(255,255,255,.04)) !important; }
+body.ui-glass .sidebar-soporte .ss-titulo { color: var(--g-txt) !important; font-weight: 650; }
+body.ui-glass .sidebar-soporte .ss-titulo .bi { color: var(--g-brand) !important; }
+body.ui-glass .sidebar-soporte .ss-link { color: var(--g-txt) !important; opacity: .85; }
+body.ui-glass .ss-ayuda {
+    margin-top: .7rem; width: 100%; border: 0; border-radius: 999px; padding: .5rem .8rem; font-weight: 600; font-size: .82rem; color: #fff;
+    background: linear-gradient(180deg, var(--g-brand-2), var(--g-brand));
+    box-shadow: 0 1px 0 rgba(255,255,255,.35) inset, 0 6px 14px color-mix(in srgb, var(--g-brand) 30%, transparent);
+}
+
+/* ---------- Dashboard: tarjeta protagonista "Próxima cita" ---------- */
+body.ui-glass .spot {
+    border-radius: 18px; padding: 1rem 1.1rem; color: #fff;
+    background: radial-gradient(260px 160px at 100% 0%, rgba(255,255,255,.22), transparent 70%),
+                linear-gradient(150deg, var(--g-brand-2), var(--g-brand) 55%, color-mix(in srgb, var(--g-brand) 70%, #000));
+    box-shadow: 0 1px 0 rgba(255,255,255,.3) inset, 0 14px 34px color-mix(in srgb, var(--g-brand) 35%, transparent);
+}
+body.ui-glass .spot * { color: #fff; }
+body.ui-glass .spot .spot-lbl { font-size: .7rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; opacity: .8; }
+body.ui-glass .spot .spot-hora { font-size: 1.9rem; font-weight: 750; letter-spacing: -.03em; line-height: 1; }
+body.ui-glass .spot .spot-btn { background: rgba(255,255,255,.95) !important; color: var(--g-brand) !important; border: 0 !important; box-shadow: 0 4px 12px rgba(0,0,0,.12); }
+body.ui-glass .spot .spot-btn * { color: var(--g-brand) !important; }
+body.ui-glass .spot .spot-btn-2 { background: rgba(255,255,255,.18) !important; border: 1px solid rgba(255,255,255,.35) !important; }
+body.ui-glass .spot .avatar-circle, body.ui-glass .spot img { box-shadow: 0 0 0 3px rgba(255,255,255,.5); }
+
+/* ---------- Movimiento: entrada escalonada del contenido ---------- */
+@keyframes gUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: no-preference) {
+    body.ui-glass main > * { animation: gUp .55s cubic-bezier(.22,1,.36,1) both; }
+    body.ui-glass main > :nth-child(2) { animation-delay: .05s; }
+    body.ui-glass main > :nth-child(3) { animation-delay: .1s; }
+    body.ui-glass main > :nth-child(4) { animation-delay: .15s; }
+    body.ui-glass main > :nth-child(5) { animation-delay: .2s; }
+    body.ui-glass main > :nth-child(6) { animation-delay: .25s; }
+    body.ui-glass main > :nth-child(n+7) { animation-delay: .3s; }
+    body.ui-glass main .row > [class*="col"] > .kpi-card,
+    body.ui-glass main .row > [class*="col"] > a > .kpi-card { animation: gUp .6s cubic-bezier(.22,1,.36,1) both; }
+}
+
+/* Menos transparencia si el sistema lo pide, o en celular (el blur es caro para el GPU) */
+@media (prefers-reduced-transparency: reduce), (max-width: 767.98px) {
+    body.ui-glass { --g-glass: rgba(255,255,255,.97); --g-glass-2: rgba(255,255,255,.96); --g-blur: none; --g-blur-sm: none; }
+    html.app-dark body.ui-glass { --g-glass: rgba(30,30,36,.97); --g-glass-2: rgba(40,40,48,.96); }
+}
+@media print {
+    body.ui-glass { background: #fff !important; }
+    body.ui-glass .card { background: #fff !important; box-shadow: none !important; border: 1px solid #ddd !important; backdrop-filter: none; }
+    body.ui-glass .app-navbar, body.ui-glass .sidebar { display: none !important; }
+}

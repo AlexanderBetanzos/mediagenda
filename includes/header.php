@@ -58,6 +58,7 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="<?= asset('assets/css/style.css') ?>" rel="stylesheet">
     <link href="<?= asset('assets/css/material.css') ?>" rel="stylesheet">
+    <link href="<?= asset('assets/css/panel-glass.css') ?>" rel="stylesheet">
     <style>
         /* Color de acento del consultorio (white-label).
 
@@ -99,7 +100,7 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
     </style>
     <?= meta_pixel_head(false) /* solo eventos encolados, sin PageView */ ?>
 </head>
-<body>
+<body class="ui-glass">
 <nav class="navbar navbar-dark app-navbar sticky-top flex-md-nowrap p-0">
     <!-- Marca en la barra superior: solo en móvil (junto al menú). En desktop
          la marca vive en el sidebar como "ficha" (estilo GymOS). -->
@@ -245,6 +246,7 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
                         <i class="bi bi-envelope-fill"></i> <span class="ss-mail"><?= e(SOPORTE_EMAIL) ?></span>
                     </a>
                     <div class="ss-horario"><i class="bi bi-clock"></i> <?= e(SOPORTE_HORARIO) ?></div>
+                    <button type="button" class="ss-ayuda" data-ayuda-centro><i class="bi bi-question-circle"></i> <?= et('Centro de ayuda') ?></button>
                 </div>
             </div>
         </nav>
