@@ -77,74 +77,138 @@ include __DIR__ . '/../includes/header.php';
     <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/facturacion/index"><?= et('Facturación') ?></a></li>
     <li class="breadcrumb-item active"><?= et('Nueva') ?></li>
 </ol></nav>
-<h1 class="h3 mb-3"><?= et('Nueva factura') ?></h1>
+<h1 class="h3 mb-3"><i class="bi bi-receipt"></i> <?= et('Nueva factura') ?></h1>
 
 <?php if ($errores): ?>
 <div class="alert alert-danger"><ul class="mb-0"><?php foreach ($errores as $e) echo '<li>'.e($e).'</li>'; ?></ul></div>
 <?php endif; ?>
 
-<form method="post" class="card">
-    <div class="card-body">
-        <?= csrf_field() ?>
-        <div class="row g-3 mb-3">
-            <div class="col-md-5">
-                <label class="form-label"><?= et('Paciente') ?> *</label>
-                <select name="paciente_id" class="form-select" required>
-                    <option value=""><?= et('— Selecciona —') ?></option>
-                    <?php foreach ($pacientes as $p): ?>
-                        <option value="<?= $p['id'] ?>" <?= $presel===$p['id']?'selected':'' ?>><?= e($p['apellidos'].', '.$p['nombre']) ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div class="col-md-3"><label class="form-label"><?= et('Fecha') ?></label><input type="date" name="fecha" class="form-control" value="<?= date('Y-m-d') ?>"></div>
-            <div class="col-md-4">
-                <label class="form-label"><?= et('Estado') ?></label>
-                <select name="estado" class="form-select">
-                    <option value="pendiente"><?= et('Pendiente') ?></option>
-                    <option value="pagada"><?= et('Pagada') ?></option>
-                </select>
-            </div>
-        </div>
-
-        <label class="form-label"><?= et('Conceptos') ?> *</label>
-        <div class="table-responsive">
-            <table class="table table-sm align-middle" id="tablaItems">
-                <thead><tr><th style="width:45%"><?= et('Descripción') ?></th><th><?= et('Cant.') ?></th><th><?= et('Precio') ?></th><th class="text-end"><?= et('Importe') ?></th><th></th></tr></thead>
-                <tbody>
-                    <tr>
-                        <td><input type="text" name="item[0][descripcion]" class="form-control" placeholder="<?= et('Consulta médica') ?>"></td>
-                        <td><input type="number" name="item[0][cantidad]" class="form-control cant" value="1" min="1"></td>
-                        <td><input type="number" step="0.01" name="item[0][precio]" class="form-control precio" value="0"></td>
-                        <td class="text-end importe">$0.00</td>
-                        <td><button type="button" class="btn btn-sm btn-outline-danger quitar"><i class="bi bi-x"></i></button></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        <button type="button" class="btn btn-sm btn-outline-primary mb-3" id="agregarItem"><i class="bi bi-plus"></i> <?= et('Agregar concepto') ?></button>
-
-        <div class="row g-3 justify-content-end">
-            <div class="col-md-4">
-                <div class="d-flex justify-content-between"><span><?= et('Subtotal') ?></span><strong id="subtotalTxt">$0.00</strong></div>
-                <div class="d-flex justify-content-between align-items-center mt-2">
-                    <span><?= et('Descuento') ?></span>
-                    <input type="number" step="0.01" name="descuento" id="descuento" class="form-control form-control-sm w-50 text-end" value="0">
+<?php
+/* Atajos del catálogo: un clic agrega el servicio con su precio. */
+$catalogo = [];
+try {
+    $cq = db()->prepare("SELECT nombre, precio FROM servicios WHERE consultorio_id = ? AND activo = 1 ORDER BY categoria, nombre LIMIT 40");
+    $cq->execute([tenant_id()]);
+    $catalogo = $cq->fetchAll();
+} catch (Throwable $e) {}
+$metodosPago = [['Efectivo', 'bi-cash'], ['Tarjeta', 'bi-credit-card'], ['Transferencia', 'bi-bank'], ['Otro', 'bi-three-dots']];
+?>
+<form method="post" class="cobro">
+    <?= csrf_field() ?>
+    <div class="cobro-grid">
+        <div class="cobro-main">
+            <section class="pf-sec">
+                <div class="pf-sec-h"><i class="bi bi-person"></i> <?= et('Paciente y fecha') ?></div>
+                <div class="row g-3">
+                    <div class="col-md-8">
+                        <label class="form-label"><?= et('Paciente') ?> *</label>
+                        <select name="paciente_id" class="form-select" required>
+                            <option value=""><?= et('— Selecciona —') ?></option>
+                            <?php foreach ($pacientes as $p): ?>
+                                <option value="<?= $p['id'] ?>" <?= $presel===$p['id']?'selected':'' ?>><?= e($p['apellidos'].', '.$p['nombre']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-md-4"><label class="form-label"><?= et('Fecha') ?></label><input type="date" name="fecha" class="form-control" value="<?= date('Y-m-d') ?>"></div>
                 </div>
-                <hr>
-                <div class="d-flex justify-content-between fs-5"><span><?= et('Total') ?></span><strong id="totalTxt" class="text-info">$0.00</strong></div>
-            </div>
+            </section>
+
+            <section class="pf-sec">
+                <div class="pf-sec-h"><i class="bi bi-list-check"></i> <?= et('Conceptos') ?> *</div>
+                <?php if ($catalogo): ?>
+                <div class="cobro-cat">
+                    <span class="small text-muted me-1"><?= et('Agregar del catálogo') ?>:</span>
+                    <?php foreach ($catalogo as $sv): ?>
+                    <button type="button" class="cobro-chip" data-desc="<?= e($sv['nombre']) ?>" data-precio="<?= e((string) (float) $sv['precio']) ?>">
+                        <i class="bi bi-plus"></i> <?= e($sv['nombre']) ?><?= (float) $sv['precio'] > 0 ? ' <b>' . fmt_money($sv['precio']) . '</b>' : '' ?>
+                    </button>
+                    <?php endforeach; ?>
+                </div>
+                <?php endif; ?>
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-2" id="tablaItems">
+                        <thead><tr><th style="width:48%"><?= et('Descripción') ?></th><th style="width:14%"><?= et('Cant.') ?></th><th style="width:18%"><?= et('Precio') ?></th><th class="text-end"><?= et('Importe') ?></th><th></th></tr></thead>
+                        <tbody>
+                            <tr>
+                                <td><input type="text" name="item[0][descripcion]" class="form-control" placeholder="<?= et('Consulta médica') ?>"></td>
+                                <td><input type="number" name="item[0][cantidad]" class="form-control cant" value="1" min="1"></td>
+                                <td><input type="number" step="0.01" name="item[0][precio]" class="form-control precio" value="0"></td>
+                                <td class="text-end importe fw-semibold">$0.00</td>
+                                <td class="text-end"><button type="button" class="btn btn-sm btn-outline-danger quitar" aria-label="<?= e(t('Quitar')) ?>"><i class="bi bi-x"></i></button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-primary" id="agregarItem"><i class="bi bi-plus"></i> <?= et('Agregar concepto') ?></button>
+            </section>
+
+            <section class="pf-sec">
+                <div class="pf-sec-h"><i class="bi bi-chat-left-text"></i> <?= et('Notas') ?> <span class="pf-opc"><?= et('Opcional') ?></span></div>
+                <input type="text" name="notas" class="form-control" placeholder="<?= e(t('Ej. pago en dos exhibiciones')) ?>">
+            </section>
         </div>
 
-        <div class="row g-3 mt-1">
-            <div class="col-md-4"><label class="form-label"><?= et('Método de pago') ?></label><input type="text" name="metodo_pago" class="form-control" placeholder="<?= et('Efectivo, tarjeta…') ?>"></div>
-            <div class="col-md-8"><label class="form-label"><?= et('Notas') ?></label><input type="text" name="notas" class="form-control"></div>
-        </div>
-    </div>
-    <div class="card-footer text-end">
-        <a href="<?= BASE_URL ?>/facturacion/index" class="btn btn-light"><?= et('Cancelar') ?></a>
-        <button class="btn btn-primary"><i class="bi bi-check-lg"></i> <?= et('Guardar factura') ?></button>
+        <aside class="cobro-side">
+            <div class="pf-card cobro-total">
+                <div class="d-flex justify-content-between small"><span><?= et('Subtotal') ?></span><strong id="subtotalTxt">$0.00</strong></div>
+                <div class="d-flex justify-content-between align-items-center mt-2 small">
+                    <span><?= et('Descuento') ?></span>
+                    <input type="number" step="0.01" name="descuento" id="descuento" class="form-control form-control-sm text-end" style="max-width:120px" value="0">
+                </div>
+                <div class="cobro-tot-lbl mt-3"><?= et('Total') ?></div>
+                <div class="cobro-tot" id="totalTxt">$0.00</div>
+
+                <div class="form-label mt-3"><?= et('Estado') ?></div>
+                <div class="seg">
+                    <input type="radio" class="btn-check" name="estado" id="estPag" value="pagada" checked>
+                    <label for="estPag"><i class="bi bi-check-circle"></i> <?= et('Pagada') ?></label>
+                    <input type="radio" class="btn-check" name="estado" id="estPen" value="pendiente">
+                    <label for="estPen"><i class="bi bi-hourglass-split"></i> <?= et('Pendiente') ?></label>
+                </div>
+
+                <div id="metodoBox">
+                    <div class="form-label mt-3"><?= et('Método de pago') ?></div>
+                    <?php /* Opciones fijas: el texto libre ("efe", "Tarj."…) desordenaba el corte de caja. */ ?>
+                    <div class="metodos">
+                        <?php foreach ($metodosPago as $mi => [$mv, $mic]): ?>
+                        <input type="radio" class="btn-check" name="metodo_pago" id="mp<?= $mi ?>" value="<?= e($mv) ?>" <?= $mi === 0 ? 'checked' : '' ?>>
+                        <label for="mp<?= $mi ?>"><i class="bi <?= $mic ?>"></i><span><?= et($mv) ?></span></label>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary btn-lg w-100 mt-4"><i class="bi bi-check-lg"></i> <?= et('Guardar factura') ?></button>
+                <a href="<?= BASE_URL ?>/facturacion/index" class="btn btn-link w-100 mt-1 text-muted"><?= et('Cancelar') ?></a>
+            </div>
+        </aside>
     </div>
 </form>
+
+<style>
+.cobro-grid { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 1.25rem; align-items: start; }
+@media (max-width: 991.98px) { .cobro-grid { grid-template-columns: 1fr; } }
+.cobro-side { position: sticky; top: 90px; }
+.pf-card, .pf-sec { background: var(--bs-body-bg); border-radius: 18px; padding: 1.2rem; box-shadow: 0 1px 4px rgba(0,0,0,.04), 0 10px 28px rgba(15,30,60,.06); }
+body.ui-glass .pf-card, body.ui-glass .pf-sec { background: var(--g-glass-2, #fff); box-shadow: var(--g-shadow-sm); }
+.pf-sec + .pf-sec { margin-top: 1rem; }
+.pf-sec-h { display: flex; align-items: center; gap: .55rem; font-weight: 650; margin-bottom: 1rem; }
+.pf-sec-h .bi { width: 34px; height: 34px; border-radius: 11px; display: inline-flex; align-items: center; justify-content: center; color: var(--brand); background: color-mix(in srgb, var(--brand) 11%, transparent); }
+.pf-opc { margin-left: auto; font-size: .68rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; opacity: .55; border: 1px solid rgba(127,127,127,.3); border-radius: 999px; padding: .15rem .55rem; }
+.cobro-cat { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; margin-bottom: 1rem; }
+.cobro-chip { border: 1px solid rgba(127,127,127,.25); background: transparent; border-radius: 999px; padding: .32rem .75rem; font-size: .82rem; color: inherit; transition: all .15s ease; }
+.cobro-chip:hover { border-color: var(--brand); background: color-mix(in srgb, var(--brand) 8%, transparent); }
+.cobro-chip b { color: var(--brand); font-weight: 700; }
+.cobro-tot-lbl { font-size: .72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; opacity: .6; }
+.cobro-tot { font-size: 2.3rem; font-weight: 800; letter-spacing: -.04em; line-height: 1.05; color: var(--brand); font-variant-numeric: tabular-nums; }
+.seg { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border-radius: 999px; background: rgba(127,127,127,.12); }
+.seg label { text-align: center; padding: .45rem .5rem; border-radius: 999px; font-weight: 600; font-size: .86rem; cursor: pointer; margin: 0; }
+.seg .btn-check:checked + label { background: var(--bs-body-bg); box-shadow: 0 2px 8px rgba(0,0,0,.12); color: var(--brand); }
+.metodos { display: grid; grid-template-columns: 1fr 1fr; gap: .45rem; }
+.metodos label { display: flex; flex-direction: column; align-items: center; gap: .2rem; padding: .6rem .3rem; border-radius: 14px; cursor: pointer; margin: 0;
+                 border: 1px solid rgba(127,127,127,.22); font-size: .8rem; font-weight: 600; transition: all .15s ease; }
+.metodos label .bi { font-size: 1.25rem; color: var(--brand); }
+.metodos .btn-check:checked + label { border-color: var(--brand); background: color-mix(in srgb, var(--brand) 10%, transparent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand) 25%, transparent); }
+</style>
 
 <script>
 let idx = 1;
@@ -172,7 +236,7 @@ document.getElementById('agregarItem').addEventListener('click', () => {
         <td><input type="number" name="item[${idx}][cantidad]" class="form-control cant" value="1" min="1"></td>
         <td><input type="number" step="0.01" name="item[${idx}][precio]" class="form-control precio" value="0"></td>
         <td class="text-end importe">$0.00</td>
-        <td><button type="button" class="btn btn-sm btn-outline-danger quitar"><i class="bi bi-x"></i></button></td>`;
+        <td class="text-end"><button type="button" class="btn btn-sm btn-outline-danger quitar"><i class="bi bi-x"></i></button></td>`;
     tb.appendChild(tr);
     idx++;
 });
@@ -185,6 +249,22 @@ document.addEventListener('click', e => {
         if (rows.length > 1) { e.target.closest('tr').remove(); recalc(); }
     }
 });
+/* Atajo del catálogo: usa el primer renglón vacío o agrega uno nuevo. */
+document.querySelectorAll('.cobro-chip').forEach(ch => ch.addEventListener('click', () => {
+    let tr = [...document.querySelectorAll('#tablaItems tbody tr')].find(r => !r.querySelector('input[name$="[descripcion]"]').value.trim());
+    if (!tr) { document.getElementById('agregarItem').click(); tr = document.querySelector('#tablaItems tbody tr:last-child'); }
+    tr.querySelector('input[name$="[descripcion]"]').value = ch.dataset.desc;
+    tr.querySelector('.precio').value = ch.dataset.precio;
+    recalc();
+}));
+/* El método de pago solo aplica a lo que ya se pagó. */
+function metodoVis() {
+    const pag = document.getElementById('estPag').checked;
+    document.getElementById('metodoBox').style.display = pag ? '' : 'none';
+    document.querySelectorAll('input[name="metodo_pago"]').forEach(r => r.disabled = !pag);   // pendiente: sin método
+}
+document.querySelectorAll('input[name="estado"]').forEach(r => r.addEventListener('change', metodoVis));
+metodoVis();
 recalc();
 </script>
 <?php include __DIR__ . '/../includes/footer.php'; ?>
