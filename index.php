@@ -36,6 +36,16 @@ track_pageview('publico');
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="<?= asset('assets/css/style.css') ?>" rel="stylesheet">
     <link href="<?= asset('assets/css/material.css') ?>" rel="stylesheet">
+    <link href="<?= asset('assets/css/landing-motion.css') ?>" rel="stylesheet">
+    <script>
+    /* Movimiento solo si el usuario no pidió reducirlo. Si landing-motion.js no
+       llega en 4 s, se quita la clase y la página queda visible y estática. */
+    (function (d) {
+        if (!('IntersectionObserver' in window) || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
+        d.classList.add('motion');
+        window.__lpMotionSafe = setTimeout(function () { d.classList.remove('motion'); }, 4000);
+    })(document.documentElement);
+    </script>
     <?= meta_pixel_head() ?>
 </head>
 <body class="lp">
@@ -100,7 +110,7 @@ track_pageview('publico');
                 <div class="lp-stat">
                     <span class="lp-stat-ic"><i class="bi <?= $ic ?>"></i></span>
                     <span>
-                        <span class="lp-stat-n"><?= e($n) ?></span>
+                        <span class="lp-stat-n" data-count><?= e($n) ?></span>
                         <span class="lp-stat-l"><?= e($l) ?></span>
                     </span>
                 </div>
@@ -109,6 +119,7 @@ track_pageview('publico');
 
             <div class="col-lg-6">
                 <div class="lp-mock">
+                    <div class="lp-mock-in">
                     <div class="lp-mock-bar"><span></span><span></span><span></span></div>
                     <div class="lp-dash card border-0">
                         <div class="card-body p-3 p-sm-4">
@@ -119,7 +130,7 @@ track_pageview('publico');
                             <div class="row g-2 mb-3">
                                 <?php foreach ([['Citas hoy','14','#2563eb'],['Pacientes','231','#14b8a6'],['Ingresos','$48k','#16a34a']] as [$l,$n,$c]): ?>
                                 <div class="col-4"><div class="lp-tile">
-                                    <div class="lp-tile-n" style="color:<?= $c ?>"><?= $n ?></div>
+                                    <div class="lp-tile-n" style="color:<?= $c ?>" data-count><?= $n ?></div>
                                     <div class="lp-tile-l"><?= $l ?></div>
                                 </div></div>
                                 <?php endforeach; ?>
@@ -128,10 +139,16 @@ track_pageview('publico');
                             <?php foreach ([['09:00','Martínez García','Confirmada','info'],['10:30','López Pérez','Programada','secondary'],['11:15','Rodríguez Cruz','Atendida','success']] as [$h,$p,$e,$col]): ?>
                             <div class="lp-ag d-flex justify-content-between align-items-center">
                                 <span><span class="lp-ag-h"><?= $h ?></span> <?= $p ?></span>
-                                <span class="badge bg-<?= $col ?>"><?= $e ?></span>
+                                <span class="badge bg-<?= $col ?><?= $p === 'López Pérez' ? ' lp-flip' : '' ?>"><?= $e ?></span>
                             </div>
                             <?php endforeach; ?>
                         </div>
+                    </div>
+                    </div>
+                    <!-- Aviso que aparece cuando la cita de López Pérez se confirma sola (landing-motion.js) -->
+                    <div class="lp-toast" aria-hidden="true">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <div><b>Cita confirmada</b><span>López Pérez · 10:30</span></div>
                     </div>
                     <!-- Tarjeta flotante: el equivalente honesto al "24/7" de las clínicas -->
                     <div class="lp-float">
@@ -150,7 +167,7 @@ track_pageview('publico');
 <!-- Franja de confianza -->
 <section class="lp-trust">
     <div class="container">
-        <div class="row g-4 text-center">
+        <div class="row g-4 text-center" data-stagger>
             <?php foreach ([
                 ['bi-cloud-check','100% en la nube','Sin instalar nada'],
                 ['bi-shield-lock','Datos protegidos','Cifrado y respaldos'],
@@ -170,17 +187,24 @@ track_pageview('publico');
 <!-- Funciones -->
 <section id="funciones" class="py-6">
     <div class="container">
-        <div class="text-center mb-5">
+        <div class="text-center mb-5" data-reveal>
             <span class="lp-eyebrow">Funciones</span>
             <h2 class="section-title">Todo lo que tu consultorio necesita</h2>
             <p class="text-muted">Una plataforma simple para tu especialidad, tu equipo y tu recepción.</p>
-            <div class="d-flex flex-wrap justify-content-center gap-2 mt-3">
-                <?php foreach (['Medicina general','Odontología','Oftalmología y ópticas','Nutrición','Pediatría','Dermatología','Psicología','Clínicas y hospitales'] as $esp): ?>
-                <span class="badge rounded-pill bg-light text-dark border fw-normal px-3 py-2"><?= e($esp) ?></span>
-                <?php endforeach; ?>
+            <?php /* Cinta infinita: la lista va dos veces para que el bucle no tenga
+                     salto; la copia se oculta a lectores de pantalla y, sin
+                     movimiento, también a la vista (landing-motion.css). */ ?>
+            <div class="lp-marquee">
+                <div class="lp-marquee-track">
+                    <?php foreach ([false, true] as $copia): ?>
+                    <?php foreach (['Medicina general','Odontología','Oftalmología y ópticas','Nutrición','Pediatría','Dermatología','Psicología','Clínicas y hospitales'] as $esp): ?>
+                    <span class="badge rounded-pill bg-light text-dark border fw-normal px-3 py-2"<?= $copia ? ' aria-hidden="true"' : '' ?>><?= e($esp) ?></span>
+                    <?php endforeach; ?>
+                    <?php endforeach; ?>
+                </div>
             </div>
         </div>
-        <div class="row g-4">
+        <div class="row g-4" data-stagger>
             <?php
             $funcs = [
                 ['bi-calendar-check','Agenda que confirma por ti','Se acabaron los huecos por citas olvidadas: programa, confirma y da seguimiento sin perseguir a nadie.','#2563eb'],
@@ -209,7 +233,7 @@ track_pageview('publico');
 <section class="py-6 bg-white">
     <div class="container">
         <div class="row align-items-center g-5">
-            <div class="col-lg-6">
+            <div class="col-lg-6" data-reveal="left">
                 <span class="lp-eyebrow">Agenda inteligente</span>
                 <h2 class="section-title mb-3">Tu día, organizado y bajo control</h2>
                 <p class="text-muted mb-4">Visualiza tus citas, cambia su estado con un clic y reduce las inasistencias con recordatorios. Cada médico ve su propia agenda.</p>
@@ -220,7 +244,7 @@ track_pageview('publico');
                 </ul>
                 <a href="<?= BASE_URL ?>/auth/registro" class="btn btn-primary mt-2">Probar gratis <i class="bi bi-arrow-right"></i></a>
             </div>
-            <div class="col-lg-6">
+            <div class="col-lg-6" data-reveal="right">
                 <div class="lp-photo-wrap">
                     <div class="lp-photo" style="background-image:url('https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=1200&q=70&auto=format&fit=crop')"></div>
                     <div class="card shadow border-0 lp-shot lp-shot-over">
@@ -248,7 +272,7 @@ track_pageview('publico');
 <section class="py-6">
     <div class="container">
         <div class="row align-items-center g-5 flex-lg-row-reverse">
-            <div class="col-lg-6">
+            <div class="col-lg-6" data-reveal="right">
                 <span class="lp-eyebrow">Expediente y cobros</span>
                 <h2 class="section-title mb-3">Historial clínico y facturación, sin papeles</h2>
                 <p class="text-muted mb-4">Toda la información del paciente al instante: alergias, antecedentes, consultas, recetas y sus pagos. Imprime recetas y comprobantes con tu marca.</p>
@@ -259,7 +283,7 @@ track_pageview('publico');
                 </ul>
                 <a href="<?= BASE_URL ?>/auth/registro" class="btn btn-primary mt-2">Probar gratis <i class="bi bi-arrow-right"></i></a>
             </div>
-            <div class="col-lg-6">
+            <div class="col-lg-6" data-reveal="left">
                 <div class="row g-3 lp-shot">
                     <div class="col-7">
                         <div class="card shadow-sm border-0 h-100"><div class="card-body p-3">
@@ -289,13 +313,13 @@ track_pageview('publico');
 <!-- Beneficios (sin/con) -->
 <section id="beneficios" class="py-6 bg-white">
     <div class="container">
-        <div class="text-center mb-5">
+        <div class="text-center mb-5" data-reveal>
             <span class="lp-eyebrow">El cambio</span>
             <h2 class="section-title">De los papeles a la nube</h2>
         </div>
-        <div class="row g-4 justify-content-center">
+        <div class="row g-4 justify-content-center" data-stagger>
             <div class="col-md-6 col-lg-5">
-                <div class="card lp-compare lp-compare-bad h-100"><div class="card-body p-4">
+                <div class="card lp-compare lp-compare-bad h-100"><div class="card-body p-4" data-stagger>
                     <h5 class="text-danger mb-3"><i class="bi bi-emoji-frown"></i> Sin <?= e($marca) ?></h5>
                     <?php foreach (['Citas olvidadas que nadie confirmó','Expedientes en papel que se traspapelan','Cobros anotados en libretas sueltas','Todo depende de tu memoria y tu presencia'] as $x): ?>
                     <div class="lp-compare-item"><i class="bi bi-x-circle text-danger"></i> <?= e($x) ?></div>
@@ -303,7 +327,7 @@ track_pageview('publico');
                 </div></div>
             </div>
             <div class="col-md-6 col-lg-5">
-                <div class="card lp-compare lp-compare-good h-100"><div class="card-body p-4">
+                <div class="card lp-compare lp-compare-good h-100"><div class="card-body p-4" data-stagger>
                     <h5 class="text-success mb-3"><i class="bi bi-emoji-smile"></i> Con <?= e($marca) ?></h5>
                     <?php foreach (['Recordatorios que llenan tu agenda','Expediente electrónico en segundos','Ingresos claros, al día y desde el celular','Tu consultorio funciona aunque tú no estés'] as $x): ?>
                     <div class="lp-compare-item"><i class="bi bi-check-circle text-success"></i> <?= e($x) ?></div>
@@ -466,14 +490,14 @@ track_pageview('publico');
 
 <section id="planes" class="lp-planes py-6">
     <div class="container">
-        <div class="text-center mb-4">
+        <div class="text-center mb-4" data-reveal>
             <span class="lp-eyebrow">Planes</span>
             <h2 class="section-title">Elige cómo quieres crecer</h2>
             <p class="text-muted">Tres planes, precios claros. El <strong>Profesional</strong> lo pruebas
                <strong><?= trial_dias_oferta() ?> días gratis, con acceso completo y sin tarjeta</strong>.
                Todos los precios <strong>ya incluyen IVA</strong>.</p>
         </div>
-        <div class="row g-4 justify-content-center align-items-stretch">
+        <div class="row g-4 justify-content-center align-items-stretch" data-stagger>
             <?php
             // Solo los 3 planes de la tabla `planes`: al cerebro le cuesta decidir
             // con más (o menos) de tres opciones; la prueba gratis va en el texto.
@@ -514,7 +538,7 @@ track_pageview('publico');
             <?php endforeach; ?>
         </div>
         <!-- Quita-miedos: lo que frena la decisión, respondido antes de que pregunten -->
-        <div class="row g-3 text-center mt-4">
+        <div class="row g-3 text-center mt-4" data-stagger>
             <?php foreach ([
                 ['bi-shield-check','Sin contratos forzosos'],
                 ['bi-x-circle','Cancelas cuando quieras'],
@@ -532,10 +556,10 @@ track_pageview('publico');
 <!-- FAQ -->
 <section id="faq" class="py-6">
     <div class="container" style="max-width:760px">
-        <div class="text-center mb-5">
+        <div class="text-center mb-5" data-reveal>
             <h2 class="section-title">Preguntas frecuentes</h2>
         </div>
-        <div class="accordion lp-faq" id="faqAcc">
+        <div class="accordion lp-faq" id="faqAcc" data-reveal>
             <?php foreach ([
                 ['¿La prueba de 15 días tiene acceso completo?','Sí. Durante los 15 días usas todas las funciones sin límites y sin tarjeta. Al terminar, eliges un plan para continuar.'],
                 ['¿Y si no soy bueno con la tecnología?','Si sabes usar WhatsApp, sabes usar ' . $marca . '. Está hecho para médicos y recepcionistas, no para ingenieros: pantallas simples, en español y sin manuales. Si tienes problemas o dudas de cómo usarlo, nosotros te acompañamos.'],
@@ -559,7 +583,7 @@ track_pageview('publico');
 
 <!-- CTA final -->
 <section class="lp-cta" style="background-image:url('https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=1600&q=75&auto=format&fit=crop')">
-    <div class="container text-center position-relative">
+    <div class="container text-center position-relative" data-reveal="zoom">
         <h2 class="display-6 fw-bold mb-3">Lleva tu consultorio al siguiente nivel</h2>
         <p class="lead mb-4">Cada semana que pasa son citas olvidadas y expedientes en papel. 15 días gratis con acceso completo: sin tarjeta, sin compromiso.</p>
         <a href="<?= BASE_URL ?>/auth/registro" class="btn btn-light btn-lg px-5 text-brand fw-semibold"><i class="bi bi-rocket-takeoff"></i> Prueba <?= e($marca) ?> hoy</a>
@@ -613,5 +637,6 @@ track_pageview('publico');
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="<?= asset('assets/js/app.js') ?>"></script>
+<script src="<?= asset('assets/js/landing-motion.js') ?>"></script>
 </body>
 </html>
