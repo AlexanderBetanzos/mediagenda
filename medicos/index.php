@@ -34,6 +34,14 @@ include __DIR__ . '/../includes/header.php';
     <?= et('Cada médico tiene su propia agenda y consultas. Puedes darle acceso al sistema o dejarlo solo en la agenda (sin usuario ni contraseña).') ?>
 </p>
 
+<?php $__t = (int) tenant_id();
+echo ui_stats([
+    [t('Médicos activos'), ui_cuenta("SELECT COUNT(*) FROM usuarios WHERE consultorio_id = ? AND rol = 'medico' AND activo = 1", [$__t]), 'bi-person-vcard', 'var(--brand)'],
+    [t('Con acceso al sistema'), ui_cuenta("SELECT COUNT(*) FROM usuarios WHERE consultorio_id = ? AND rol = 'medico' AND activo = 1 AND email IS NOT NULL AND email <> '' AND password_hash IS NOT NULL AND password_hash <> ''", [$__t]), 'bi-key', '#0d9488'],
+    [t('Citas hoy'), ui_cuenta("SELECT COUNT(*) FROM citas WHERE consultorio_id = ? AND fecha = CURDATE() AND estado <> 'cancelada'", [$__t]), 'bi-calendar-day', '#6366f1', BASE_URL . '/citas/index'],
+    [t('Citas este mes'), number_format(ui_cuenta("SELECT COUNT(*) FROM citas WHERE consultorio_id = ? AND fecha >= DATE_FORMAT(CURDATE(), '%Y-%m-01') AND estado <> 'cancelada'", [$__t])), 'bi-calendar-month', '#f59e0b'],
+]); ?>
+
 <div class="card">
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">

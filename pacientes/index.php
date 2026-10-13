@@ -43,6 +43,13 @@ include __DIR__ . '/../includes/header.php';
     </a>
 </div>
 
+<?php /* Indicadores de la sección */ $__t = (int) tenant_id();
+echo ui_stats([
+    [t('Pacientes'), number_format(ui_cuenta("SELECT COUNT(*) FROM pacientes WHERE consultorio_id = ?", [$__t])), 'bi-people', 'var(--brand)'],
+    [t('Nuevos este mes'), number_format(ui_cuenta("SELECT COUNT(*) FROM pacientes WHERE consultorio_id = ? AND creado_en >= DATE_FORMAT(CURDATE(), '%Y-%m-01')", [$__t])), 'bi-person-plus', '#0d9488'],
+    [t('Con cita próxima'), number_format(ui_cuenta("SELECT COUNT(DISTINCT paciente_id) FROM citas WHERE consultorio_id = ? AND fecha >= CURDATE() AND estado IN ('programada','confirmada')", [$__t])), 'bi-calendar-check', '#6366f1', BASE_URL . '/citas/index'],
+    [t('Atendidos este mes'), number_format(ui_cuenta("SELECT COUNT(DISTINCT paciente_id) FROM consultas WHERE consultorio_id = ? AND fecha >= DATE_FORMAT(CURDATE(), '%Y-%m-01')", [$__t])), 'bi-clipboard2-pulse', '#f59e0b', BASE_URL . '/expediente/index'],
+]); ?>
 <form class="row g-2 mb-3" method="get">
     <div class="col-sm-6 col-md-5">
         <input type="search" name="q" class="form-control" placeholder="<?= $vet ? et('Buscar por mascota, propietario, especie, raza o teléfono…') : et('Buscar por nombre, teléfono o correo…') ?>" value="<?= e($q) ?>">

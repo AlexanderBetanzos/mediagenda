@@ -269,3 +269,61 @@ body.ui-glass .sidebar .nav-mas .nav-mas-ic { transition: transform .25s ease; c
 body.ui-glass .sidebar .nav-mas:not(.collapsed) .nav-mas-ic { transform: rotate(180deg); }
 /* La ficha de marca nunca se recorta bajo el borde redondeado del panel */
 body.ui-glass .sidebar .brand { padding-top: 1.3rem !important; }
+
+/* =====================================================================
+   Secciones del panel: el mismo nivel de detalle en todas las pantallas.
+   Casi todas arrancan con <h1 class="h3"><i class="bi …"></i> Título</h1>,
+   una fila de filtros (form.row.g-2) y una tabla en tarjeta: se estilizan
+   aquí una sola vez.
+   ===================================================================== */
+
+/* Título de sección: icono en cuadro de color, título grande y subtítulo */
+body.ui-glass main h1.h3 { font-weight: 750; letter-spacing: -.03em; font-size: 1.65rem; display: flex; align-items: center; gap: .75rem; }
+body.ui-glass main h1.h3 > .bi:first-child {
+    width: 46px; height: 46px; flex: none; border-radius: 14px; display: inline-flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; color: #fff !important;
+    background: linear-gradient(160deg, var(--g-brand-2), var(--g-brand));
+    box-shadow: 0 1px 0 rgba(255,255,255,.3) inset, 0 8px 18px color-mix(in srgb, var(--g-brand) 30%, transparent);
+}
+body.ui-glass .page-sub { color: var(--g-txt-2); margin: .3rem 0 0 calc(46px + .75rem); font-size: .92rem; max-width: 70ch; }
+@media (max-width: 575.98px) { body.ui-glass .page-sub { margin-left: 0; } }
+
+/* Breadcrumb en pastillas */
+body.ui-glass main .breadcrumb { background: var(--g-glass-3); border: 1px solid var(--g-bd); border-radius: 999px; padding: .35rem .9rem; display: inline-flex; font-size: .82rem; margin-bottom: 1rem; }
+body.ui-glass main .breadcrumb a { text-decoration: none; }
+
+/* Barra de filtros: los formularios GET de arriba van en una barra de vidrio */
+body.ui-glass main > form.row.g-2, body.ui-glass main > form.d-flex[method="get"], body.ui-glass main > form[method="get"].row {
+    background: var(--g-glass-2); border-radius: 18px; padding: .75rem .6rem; margin-left: 0; margin-right: 0;
+    box-shadow: var(--g-shadow-sm); backdrop-filter: var(--g-blur-sm); -webkit-backdrop-filter: var(--g-blur-sm);
+}
+body.ui-glass main > form.d-flex[method="get"] { padding: .75rem 1rem; }
+
+/* Tablas: renglones con aire, botones de acción en círculo */
+body.ui-glass main .card > .table-responsive > .table td, body.ui-glass main .card > .table-responsive > .table th { padding: .8rem 1rem; }
+body.ui-glass main .card .table tbody tr { transition: background .15s ease; }
+body.ui-glass main .card .table td .btn-sm:not(.dropdown-toggle) { border-radius: 999px; min-width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; gap: .25rem; }
+body.ui-glass main .card .table td a.fw-semibold { color: var(--g-txt); }
+body.ui-glass main .card .table td a.fw-semibold:hover { color: var(--g-brand); }
+
+/* Estados vacíos: con icono y aire, no una línea gris */
+body.ui-glass main .table td[colspan].text-center.text-muted { padding: 3rem 1rem !important; font-size: .95rem; }
+body.ui-glass main .table td[colspan].text-center.text-muted::before {
+    content: "\f42d"; font-family: "bootstrap-icons"; display: block; font-size: 2.2rem; margin-bottom: .5rem; color: var(--g-brand); opacity: .55;
+}
+
+/* Tarjetas de indicador que ya existían en algunas secciones (facturación, reseñas…) */
+body.ui-glass main .stat-card .card-body { padding: 1.1rem 1.2rem; }
+body.ui-glass main .stat-card .stat-num, body.ui-glass main .stat-card .h4, body.ui-glass main .stat-card .h3 { font-weight: 750; letter-spacing: -.03em; }
+
+/* Franja de indicadores por sección (ui_stats) */
+.ui-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: .85rem; margin: 1rem 0 1.1rem; }
+.ui-stat { display: flex; align-items: center; gap: .8rem; padding: .9rem 1rem; border-radius: 16px; text-decoration: none; color: inherit;
+           background: var(--g-glass-2, #fff); box-shadow: var(--g-shadow-sm, 0 8px 24px rgba(30,40,80,.08));
+           backdrop-filter: var(--g-blur-sm); -webkit-backdrop-filter: var(--g-blur-sm); transition: transform .2s ease; }
+a.ui-stat:hover { transform: translateY(-2px); color: inherit; }
+.ui-stat-ic { width: 42px; height: 42px; flex: none; border-radius: 13px; display: flex; align-items: center; justify-content: center; font-size: 1.15rem;
+              color: var(--c); background: color-mix(in srgb, var(--c) 13%, transparent); }
+.ui-stat-n { font-size: 1.35rem; font-weight: 750; letter-spacing: -.03em; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.ui-stat-l { font-size: .78rem; opacity: .65; }
+.ui-stat.alerta .ui-stat-n { color: #dc2626; }

@@ -113,6 +113,32 @@ function setTema(pref) {
         });
         setTimeout(function () { q.focus(); }, 300);
     }
+    /* Subtítulo de cada sección: la primera línea de su guía de ayuda, bajo
+       el título. Así cada pantalla dice para qué sirve sin repetir textos. */
+    (function () {
+        var h = AYUDA[PAGINA], h1 = document.querySelector('main h1.h3');
+        if (!h || !h.intro || !h1 || h1.nextElementSibling && h1.nextElementSibling.classList.contains('page-sub')) return;
+        // La sección ya trae su propia descripción justo debajo: no se duplica.
+        var bloque = h1.parentElement && h1.parentElement.tagName !== 'MAIN' ? h1.parentElement : h1;
+        var sig = bloque.nextElementSibling;
+        if (sig && sig.tagName === 'P' || h1.nextElementSibling && h1.nextElementSibling.tagName === 'P') return;
+        var p = document.createElement('p');
+        p.className = 'page-sub mb-0';
+        p.innerHTML = h.intro;
+        // Si el título va en una fila con botones, título y subtítulo se
+        // envuelven juntos para que la fila siga teniendo dos lados.
+        var padre = h1.parentElement;
+        if (padre && padre.tagName !== 'MAIN' && getComputedStyle(padre).display === 'flex') {
+            var w = document.createElement('div');
+            w.className = 'min-w-0';
+            padre.insertBefore(w, h1);
+            w.appendChild(h1);
+            w.appendChild(p);
+        } else {
+            h1.insertAdjacentElement('afterend', p);
+        }
+    })();
+
     document.addEventListener('click', function (e) {
         var c = e.target.closest('[data-ayuda-centro]');
         if (c) { e.preventDefault(); return centro(); }

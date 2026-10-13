@@ -43,6 +43,13 @@ include __DIR__ . '/../includes/header.php';
 </div>
 <p class="text-muted">Pacientes ordenados por su consulta más reciente. Abre un expediente para ver el historial completo o registrar una nueva consulta.</p>
 
+<?php $__u = current_user(); $__med = ($__u['rol'] ?? '') === 'medico' ? ' AND medico_id = ' . (int) $__u['id'] : ''; $__t = (int) tenant_id();
+echo ui_stats([
+    [t('Consultas hoy'), ui_cuenta("SELECT COUNT(*) FROM consultas WHERE consultorio_id = ? AND DATE(fecha) = CURDATE()$__med", [$__t]), 'bi-clipboard2-pulse', 'var(--brand)'],
+    [t('Consultas este mes'), number_format(ui_cuenta("SELECT COUNT(*) FROM consultas WHERE consultorio_id = ? AND fecha >= DATE_FORMAT(CURDATE(), '%Y-%m-01')$__med", [$__t])), 'bi-journal-medical', '#6366f1'],
+    [t('Pacientes atendidos (mes)'), number_format(ui_cuenta("SELECT COUNT(DISTINCT paciente_id) FROM consultas WHERE consultorio_id = ? AND fecha >= DATE_FORMAT(CURDATE(), '%Y-%m-01')$__med", [$__t])), 'bi-people', '#0d9488'],
+    [t('Con seguimiento agendado'), number_format(ui_cuenta("SELECT COUNT(DISTINCT paciente_id) FROM citas WHERE consultorio_id = ? AND fecha >= CURDATE() AND estado IN ('programada','confirmada')$__med", [$__t])), 'bi-calendar2-check', '#f59e0b', BASE_URL . '/citas/index'],
+]); ?>
 <form class="row g-2 mb-3" method="get">
     <div class="col-sm-6 col-md-5">
         <input type="search" name="q" class="form-control" placeholder="Buscar paciente por nombre…" value="<?= e($q) ?>">

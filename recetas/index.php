@@ -34,6 +34,13 @@ include __DIR__ . '/../includes/header.php';
     <?php endif; ?>
 </div>
 
+<?php $__u = current_user(); $__med = ($__u['rol'] ?? '') === 'medico' ? ' AND medico_id = ' . (int) $__u['id'] : ''; $__t = (int) tenant_id();
+echo ui_stats([
+    [t('Recetas hoy'), ui_cuenta("SELECT COUNT(*) FROM recetas WHERE consultorio_id = ? AND DATE(fecha) = CURDATE()$__med", [$__t]), 'bi-capsule', 'var(--brand)'],
+    [t('Este mes'), number_format(ui_cuenta("SELECT COUNT(*) FROM recetas WHERE consultorio_id = ? AND fecha >= DATE_FORMAT(CURDATE(), '%Y-%m-01')$__med", [$__t])), 'bi-calendar-month', '#8b5cf6'],
+    [t('Pacientes con receta (mes)'), number_format(ui_cuenta("SELECT COUNT(DISTINCT paciente_id) FROM recetas WHERE consultorio_id = ? AND fecha >= DATE_FORMAT(CURDATE(), '%Y-%m-01')$__med", [$__t])), 'bi-people', '#0d9488'],
+    [t('Total emitidas'), number_format(ui_cuenta("SELECT COUNT(*) FROM recetas WHERE consultorio_id = ?$__med", [$__t])), 'bi-archive', '#64748b'],
+]); ?>
 <form class="row g-2 mb-3" method="get">
     <div class="col-sm-6 col-md-5">
         <input type="search" name="q" class="form-control" placeholder="<?= et('Buscar por paciente o diagnóstico…') ?>" value="<?= e($q) ?>">

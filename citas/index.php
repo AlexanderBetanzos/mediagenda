@@ -54,6 +54,14 @@ include __DIR__ . '/../includes/header.php';
     </div>
 </div>
 
+<?php $__u = current_user(); $__med = ($__u['rol'] ?? '') === 'medico' ? ' AND medico_id = ' . (int) $__u['id'] : ''; $__t = (int) tenant_id();
+$__ns = ui_cuenta("SELECT ROUND(100 * SUM(estado='no_asistio') / NULLIF(COUNT(*),0)) FROM citas WHERE consultorio_id = ? AND fecha BETWEEN DATE_SUB(CURDATE(), INTERVAL 30 DAY) AND DATE_SUB(CURDATE(), INTERVAL 1 DAY)$__med", [$__t]);
+echo ui_stats([
+    [t('Citas hoy'), ui_cuenta("SELECT COUNT(*) FROM citas WHERE consultorio_id = ? AND fecha = CURDATE() AND estado <> 'cancelada'$__med", [$__t]), 'bi-calendar-day', 'var(--brand)'],
+    [t('Confirmadas hoy'), ui_cuenta("SELECT COUNT(*) FROM citas WHERE consultorio_id = ? AND fecha = CURDATE() AND estado IN ('confirmada','atendida')$__med", [$__t]), 'bi-check2-circle', '#16a34a'],
+    [t('Por confirmar'), ui_cuenta("SELECT COUNT(*) FROM citas WHERE consultorio_id = ? AND fecha >= CURDATE() AND estado = 'programada'$__med", [$__t]), 'bi-hourglass-split', '#3b82f6'],
+    [t('Inasistencia (30 días)'), $__ns . '%', 'bi-person-x', '#ef4444', null, $__ns > 15],
+]); ?>
 <form class="row g-2 mb-3 align-items-end" method="get">
     <div class="col-6 col-md-2">
         <label class="form-label small mb-1"><?= et('Desde') ?></label>
