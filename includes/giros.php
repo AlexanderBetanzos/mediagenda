@@ -196,3 +196,19 @@ function mascota_propietario(array $p): string
 {
     return trim(($p['propietario'] ?? '') . ' ' . ($p['apellidos'] ?? ''));
 }
+
+/**
+ * ¿Este módulo va al frente del menú para el giro del consultorio? Los que no
+ * (Óptica para una psicóloga, Laboratorio para un dentista…) no se quitan —
+ * el plan los incluye—, se agrupan en "Más herramientas" para no estorbar.
+ */
+function giro_modulo_al_frente(string $modulo): bool
+{
+    $rel = [
+        'laboratorio'  => ['medico', 'clinica', 'veterinaria', 'nutricion', 'pediatria', 'estetica'],
+        'imagenologia' => ['medico', 'clinica', 'veterinaria'],
+        'optica'       => ['oftalmologia', 'clinica'],
+        'farmacia'     => ['medico', 'clinica', 'veterinaria', 'dental', 'estetica', 'nutricion', 'oftalmologia', 'pediatria'],
+    ];
+    return !isset($rel[$modulo]) || in_array(giro_actual(), $rel[$modulo], true);
+}

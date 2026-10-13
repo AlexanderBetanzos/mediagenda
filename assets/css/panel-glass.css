@@ -262,3 +262,10 @@ body.ui-glass .spot .avatar-circle, body.ui-glass .spot img { box-shadow: 0 0 0 
     body.ui-glass .card { background: #fff !important; box-shadow: none !important; border: 1px solid #ddd !important; backdrop-filter: none; }
     body.ui-glass .app-navbar, body.ui-glass .sidebar { display: none !important; }
 }
+
+/* ---------- Menú: "Más herramientas" plegable ---------- */
+body.ui-glass .sidebar #navMas { padding-left: .6rem; }
+body.ui-glass .sidebar .nav-mas .nav-mas-ic { transition: transform .25s ease; color: var(--g-txt-3) !important; font-size: .75rem; }
+body.ui-glass .sidebar .nav-mas:not(.collapsed) .nav-mas-ic { transform: rotate(180deg); }
+/* La ficha de marca nunca se recorta bajo el borde redondeado del panel */
+body.ui-glass .sidebar .brand { padding-top: 1.3rem !important; }

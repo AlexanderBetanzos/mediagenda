@@ -174,61 +174,87 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
                     <div class="brand-name"><?= e($marca) ?></div>
                     <small class="brand-sub"><i class="bi bi-lightning-charge-fill"></i> <?= strtoupper(et('Panel')) ?></small>
                 </a>
-                <?php $secOper = modulo_activo('presupuestos') || modulo_activo('facturacion') || modulo_activo('farmacia') || modulo_activo('crm') || modulo_activo('laboratorio') || modulo_activo('imagenologia') || modulo_activo('optica'); ?>
+                <?php
+                /* Menú por grupos que no se mezclan: lo clínico, la caja, la
+                   administración, tu página y reseñas, y la ayuda hasta abajo.
+                   Los módulos que el plan incluye pero no son de la especialidad
+                   del consultorio (giro) van plegados en "Más herramientas". */
+                $esAdm = has_role('admin');
+                $esClin = has_role('medico', 'admin');
+                $li = fn (string $key, string $url, string $ic, string $lbl, string $extra = '') =>
+                    '<li class="nav-item"><a class="nav-link' . nav_active($key, $activo) . '" href="' . $url . '"' . $extra . '><i class="bi ' . $ic . '"></i> ' . e($lbl) . '</a></li>';
+                $sec = fn (string $t) => '<li class="nav-sec">' . et($t) . '</li>';
+
+                $clinico = $caja = $admin = $crece = $mas = [];
+                // Clínico
+                if ($esClin && modulo_activo('plantillas')) $clinico[] = $li('plantillas', BASE_URL . '/plantillas/index', 'bi-file-earmark-text', t('Plantillas de consulta'));
+                if ($esClin && modulo_activo('documentos')) $clinico[] = $li('documentos', BASE_URL . '/documentos/index', 'bi-file-earmark-medical', t('Documentos'));
+                foreach ([['laboratorio', 'laboratorio', '/laboratorio/index', 'bi-eyedropper', 'Laboratorio'],
+                          ['imagenologia', 'imagenologia', '/imagenologia/index', 'bi-soundwave', 'Ultrasonidos'],
+                          ['optica', 'optica', '/optica/index', 'bi-eyeglasses', 'Óptica']] as [$mod, $key, $url, $ic, $lbl]) {
+                    if (!modulo_activo($mod)) continue;
+                    $it = $li($key, BASE_URL . $url, $ic, t($lbl));
+                    if (giro_modulo_al_frente($mod)) $clinico[] = $it; else $mas[] = $it;
+                }
+                // Caja y cobros
+                if (modulo_activo('facturacion'))  $caja[] = $li('facturacion', BASE_URL . '/facturacion/index', 'bi-receipt', t('Facturación'));
+                if (modulo_activo('presupuestos')) $caja[] = $li('presupuestos', BASE_URL . '/presupuestos/index', 'bi-clipboard2-check', t('Presupuestos'));
+                if (modulo_activo('facturacion'))  $caja[] = $li('corte', BASE_URL . '/corte/index', 'bi-cash-stack', t('Corte de caja'));
+                if (modulo_activo('facturacion') && $esAdm) $caja[] = $li('egresos', BASE_URL . '/egresos/index', 'bi-arrow-left-right', t('Egresos e ingresos'));
+                if (modulo_activo('farmacia')) {
+                    $pos = [$li('pos', BASE_URL . '/pos/index', 'bi-shop', t('Punto de venta')),
+                            $li('inventario', BASE_URL . '/inventario/index', 'bi-box-seam', t('Inventario'))];
+                    if (giro_modulo_al_frente('farmacia')) array_push($caja, ...$pos); else array_push($mas, ...$pos);
+                }
+                // Administración (solo admin)
+                if ($esAdm) {
+                    $admin[] = $li('medicos', BASE_URL . '/medicos/index', 'bi-person-vcard', t('Médicos'));
+                    $admin[] = $li('usuarios', BASE_URL . '/usuarios/index', 'bi-person-badge', t('Personal'));
+                    if (modulo_activo('presupuestos')) $admin[] = $li('servicios', BASE_URL . '/servicios/index', 'bi-tags', t('Catálogo de servicios'));
+                    $admin[] = $li('configuracion', BASE_URL . '/configuracion/index', 'bi-gear', t('Configuración'));
+                    $admin[] = $li('suscripcion', BASE_URL . '/pagos/index', 'bi-stars', t('Mi suscripción'));
+                }
+                // Tu página y reseñas
+                if (micrositio_visible()) $crece[] = '<li class="nav-item"><a class="nav-link" href="' . e(micrositio_url()) . '" target="_blank" rel="noopener"><i class="bi bi-globe2"></i> '
+                    . et('Mi página pública') . ' <i class="bi bi-box-arrow-up-right ms-auto small opacity-50"></i></a></li>';
+                if ($esAdm) $crece[] = $li('resenas', BASE_URL . '/resenas/index', 'bi-star', t('Reseñas'));
+                if (modulo_activo('crm')) $crece[] = $li('crm', BASE_URL . '/crm/index', 'bi-people-fill', t('CRM'));
+                ?>
                 <ul class="nav flex-column">
-                    <li class="nav-sec"><?= et('Principal') ?></li>
-                    <li class="nav-item"><a class="nav-link<?= nav_active('dashboard', $activo) ?>" href="<?= BASE_URL ?>/dashboard"><i class="bi bi-grid-1x2-fill"></i> <?= et('Dashboard') ?></a></li>
-                    <?php if (micrositio_visible()): ?>
+                    <?= $sec('Principal') ?>
+                    <?= $li('dashboard', BASE_URL . '/dashboard', 'bi-grid-1x2-fill', t('Dashboard')) ?>
+                    <?php if (modulo_activo('citas')) echo $li('citas', BASE_URL . '/citas/index', 'bi-calendar-check', t('Agenda')); ?>
+                    <?php if (modulo_activo('citas') && $esClin) echo $li('horarios', BASE_URL . '/citas/horarios', 'bi-clock-history', $esAdm ? t('Horarios') : t('Mi horario')); ?>
+                    <?php if (modulo_activo('pacientes')) echo $li('pacientes', BASE_URL . '/pacientes/index', 'bi-people', t('Pacientes')); ?>
+                    <?php if (modulo_activo('expediente')) echo $li('expediente', BASE_URL . '/expediente/index', 'bi-folder2-open', t('Expediente')); ?>
+                    <?php if (modulo_activo('recetas')) echo $li('recetas', BASE_URL . '/recetas/index', 'bi-capsule', t('Recetas')); ?>
+
+                    <?php if ($clinico): ?><?= $sec('Clínico') ?><?= implode('', $clinico) ?><?php endif; ?>
+                    <?php if ($caja): ?><?= $sec('Caja y cobros') ?><?= implode('', $caja) ?><?php endif; ?>
+                    <?php if ($admin): ?><?= $sec('Administración') ?><?= implode('', $admin) ?><?php endif; ?>
+                    <?php if ($crece): ?><?= $sec('Tu página y reseñas') ?><?= implode('', $crece) ?><?php endif; ?>
+
+                    <?php if ($mas):
+                        // Abierto si estás dentro de uno de esos módulos.
+                        $masAbierto = (bool) array_filter($mas, fn ($h) => str_contains($h, 'nav-link active')); ?>
                     <li class="nav-item">
-                        <a class="nav-link" href="<?= e(micrositio_url()) ?>" target="_blank" rel="noopener">
-                            <i class="bi bi-globe2"></i> <?= et('Mi página pública') ?>
-                            <i class="bi bi-box-arrow-up-right ms-auto small opacity-50"></i>
+                        <a class="nav-link nav-mas<?= $masAbierto ? '' : ' collapsed' ?>" data-bs-toggle="collapse" href="#navMas" role="button" aria-expanded="<?= $masAbierto ? 'true' : 'false' ?>">
+                            <i class="bi bi-grid-3x3-gap"></i> <?= et('Más herramientas') ?> <i class="bi bi-chevron-down ms-auto small nav-mas-ic"></i>
                         </a>
+                        <ul class="nav flex-column collapse<?= $masAbierto ? ' show' : '' ?>" id="navMas"><?= implode('', $mas) ?></ul>
                     </li>
                     <?php endif; ?>
-                    <?php if (modulo_activo('citas')): ?><li class="nav-item"><a class="nav-link<?= nav_active('citas', $activo) ?>" href="<?= BASE_URL ?>/citas/index"><i class="bi bi-calendar-check"></i> <?= et('Agenda') ?></a></li><?php endif; ?>
-                    <?php if (modulo_activo('citas') && has_role('medico', 'admin')): ?><li class="nav-item"><a class="nav-link<?= nav_active('horarios', $activo) ?>" href="<?= BASE_URL ?>/citas/horarios"><i class="bi bi-clock-history"></i> <?= has_role('admin') ? et('Horarios') : et('Mi horario') ?></a></li><?php endif; ?>
-                    <?php if (modulo_activo('pacientes')): ?><li class="nav-item"><a class="nav-link<?= nav_active('pacientes', $activo) ?>" href="<?= BASE_URL ?>/pacientes/index"><i class="bi bi-people"></i> <?= et('Pacientes') ?></a></li><?php endif; ?>
-                    <?php if (modulo_activo('expediente')): ?><li class="nav-item"><a class="nav-link<?= nav_active('expediente', $activo) ?>" href="<?= BASE_URL ?>/expediente/index"><i class="bi bi-folder2-open"></i> <?= et('Expediente') ?></a></li><?php endif; ?>
-                    <?php if (modulo_activo('recetas')): ?><li class="nav-item"><a class="nav-link<?= nav_active('recetas', $activo) ?>" href="<?= BASE_URL ?>/recetas/index"><i class="bi bi-capsule"></i> <?= et('Recetas') ?></a></li><?php endif; ?>
-                    <?php if ($secOper): ?><li class="nav-sec"><?= et('Operación y ventas') ?></li><?php endif; ?>
-                    <?php if (modulo_activo('presupuestos')): ?><li class="nav-item"><a class="nav-link<?= nav_active('presupuestos', $activo) ?>" href="<?= BASE_URL ?>/presupuestos/index"><i class="bi bi-clipboard2-check"></i> <?= et('Presupuestos') ?></a></li><?php endif; ?>
-                    <?php if (modulo_activo('facturacion')): ?><li class="nav-item"><a class="nav-link<?= nav_active('facturacion', $activo) ?>" href="<?= BASE_URL ?>/facturacion/index"><i class="bi bi-receipt"></i> <?= et('Facturación') ?></a></li><?php endif; ?>
-                    <?php if (modulo_activo('farmacia')): ?><li class="nav-item"><a class="nav-link<?= nav_active('pos', $activo) ?>" href="<?= BASE_URL ?>/pos/index"><i class="bi bi-shop"></i> <?= et('Punto de venta') ?></a></li><?php endif; ?>
-                    <?php if (modulo_activo('facturacion')): ?><li class="nav-item"><a class="nav-link<?= nav_active('corte', $activo) ?>" href="<?= BASE_URL ?>/corte/index"><i class="bi bi-cash-stack"></i> <?= et('Corte de caja') ?></a></li><?php endif; ?>
-                    <?php if (modulo_activo('facturacion') && has_role('admin')): ?><li class="nav-item"><a class="nav-link<?= nav_active('egresos', $activo) ?>" href="<?= BASE_URL ?>/egresos/index"><i class="bi bi-arrow-left-right"></i> <?= et('Egresos e ingresos') ?></a></li><?php endif; ?>
-                    <?php if (modulo_activo('crm')): ?><li class="nav-item"><a class="nav-link<?= nav_active('crm', $activo) ?>" href="<?= BASE_URL ?>/crm/index"><i class="bi bi-people-fill"></i> <?= et('CRM') ?></a></li><?php endif; ?>
-                    <?php if (has_role('admin')): ?><li class="nav-item"><a class="nav-link<?= nav_active('resenas', $activo) ?>" href="<?= BASE_URL ?>/resenas/index"><i class="bi bi-star"></i> <?= et('Reseñas') ?></a></li><?php endif; ?>
-                    <?php /* Reactivación: oculta del menú. La pantalla existe (reactivacion/index.php)
-                             pero hoy sale vacía hasta que la base tenga pacientes sin visita en meses,
-                             y se solapa con las campañas por segmento del CRM. */ ?>
-                    <?php if (modulo_activo('farmacia')): ?><li class="nav-item"><a class="nav-link<?= nav_active('inventario', $activo) ?>" href="<?= BASE_URL ?>/inventario/index"><i class="bi bi-box-seam"></i> <?= et('Inventario') ?></a></li><?php endif; ?>
-                    <?php if (modulo_activo('laboratorio')): ?><li class="nav-item"><a class="nav-link<?= nav_active('laboratorio', $activo) ?>" href="<?= BASE_URL ?>/laboratorio/index"><i class="bi bi-eyedropper"></i> <?= et('Laboratorio') ?></a></li><?php endif; ?>
-                    <?php if (modulo_activo('imagenologia')): ?><li class="nav-item"><a class="nav-link<?= nav_active('imagenologia', $activo) ?>" href="<?= BASE_URL ?>/imagenologia/index"><i class="bi bi-soundwave"></i> <?= et('Ultrasonidos') ?></a></li><?php endif; ?>
-                    <?php if (modulo_activo('optica')): ?><li class="nav-item"><a class="nav-link<?= nav_active('optica', $activo) ?>" href="<?= BASE_URL ?>/optica/index"><i class="bi bi-eyeglasses"></i> <?= et('Óptica') ?></a></li><?php endif; ?>
-                    <?php if (has_role('admin')): ?>
-                    <li class="nav-sec"><?= et('Administración') ?></li>
-                    <?php if (modulo_activo('presupuestos')): ?><li class="nav-item"><a class="nav-link<?= nav_active('servicios', $activo) ?>" href="<?= BASE_URL ?>/servicios/index"><i class="bi bi-tags"></i> <?= et('Catálogo de servicios') ?></a></li><?php endif; ?>
-                    <li class="nav-item<?= modulo_activo('presupuestos') ? '' : ' mt-2' ?>"><a class="nav-link<?= nav_active('medicos', $activo) ?>" href="<?= BASE_URL ?>/medicos/index"><i class="bi bi-person-vcard"></i> <?= et('Médicos') ?></a></li>
-                    <li class="nav-item"><a class="nav-link<?= nav_active('usuarios', $activo) ?>" href="<?= BASE_URL ?>/usuarios/index"><i class="bi bi-person-badge"></i> <?= et('Personal') ?></a></li>
-                    <li class="nav-item"><a class="nav-link<?= nav_active('suscripcion', $activo) ?>" href="<?= BASE_URL ?>/pagos/index"><i class="bi bi-stars"></i> <?= et('Mi suscripción') ?></a></li>
-                    <li class="nav-item"><a class="nav-link<?= nav_active('configuracion', $activo) ?>" href="<?= BASE_URL ?>/configuracion/index"><i class="bi bi-gear"></i> <?= et('Configuración') ?></a></li>
-                    <?php endif; ?>
-                    <?php if (has_role('medico', 'admin') && (modulo_activo('plantillas') || modulo_activo('documentos'))): ?>
-                    <li class="nav-sec"><?= et('Herramientas') ?></li>
-                    <?php endif; ?>
-                    <?php if (has_role('medico', 'admin')): ?>
-                    <?php if (modulo_activo('plantillas')): ?><li class="nav-item"><a class="nav-link<?= nav_active('plantillas', $activo) ?>" href="<?= BASE_URL ?>/plantillas/index"><i class="bi bi-file-earmark-text"></i> <?= et('Plantillas de consulta') ?></a></li><?php endif; ?>
-                    <?php if (modulo_activo('documentos')): ?><li class="nav-item"><a class="nav-link<?= nav_active('documentos', $activo) ?>" href="<?= BASE_URL ?>/documentos/index"><i class="bi bi-file-earmark-medical"></i> <?= et('Documentos') ?></a></li><?php endif; ?>
-                    <?php endif; ?>
+
                     <?php if (es_superadmin()): ?>
-                    <li class="nav-sec"><?= et('Plataforma') ?></li>
-                    <li class="nav-item"><a class="nav-link<?= nav_active('admin', $activo) ?>" href="<?= BASE_URL ?>/platform/index"><i class="bi bi-diagram-3"></i> <?= et('Consola de plataforma') ?></a></li>
-                    <li class="nav-item"><a class="nav-link<?= nav_active('feedback_admin', $activo) ?>" href="<?= BASE_URL ?>/admin/feedback"><i class="bi bi-chat-left-dots"></i> <?= et('Comentarios') ?></a></li>
+                    <?= $sec('Plataforma') ?>
+                    <?= $li('admin', BASE_URL . '/platform/index', 'bi-diagram-3', t('Consola de plataforma')) ?>
+                    <?= $li('feedback_admin', BASE_URL . '/admin/feedback', 'bi-chat-left-dots', t('Comentarios')) ?>
                     <?php endif; ?>
-                    <li class="nav-sec"><?= et('Soporte') ?></li>
-                    <li class="nav-item"><a class="nav-link<?= nav_active('feedback', $activo) ?>" href="<?= BASE_URL ?>/feedback/index"><i class="bi bi-chat-left-dots"></i> <?= et('Enviar comentario') ?></a></li>
-                    <li class="nav-item"><a class="nav-link<?= nav_active('soporte', $activo) ?>" href="<?= BASE_URL ?>/soporte/index"><i class="bi bi-life-preserver"></i> <?= et('Ayuda y soporte') ?></a></li>
+
+                    <?= $sec('Ayuda') ?>
+                    <li class="nav-item"><a class="nav-link" href="#" data-ayuda-centro><i class="bi bi-question-circle"></i> <?= et('Centro de ayuda') ?></a></li>
+                    <?= $li('soporte', BASE_URL . '/soporte/index', 'bi-life-preserver', t('Ayuda y soporte')) ?>
+                    <?= $li('feedback', BASE_URL . '/feedback/index', 'bi-chat-left-dots', t('Enviar comentario')) ?>
                 </ul>
 
                 <?php /* Datos del proveedor del sistema (no del consultorio): siempre visibles
