@@ -35,6 +35,7 @@ track_pageview('publico');
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="<?= asset('assets/css/style.css') ?>" rel="stylesheet">
     <link href="<?= asset('assets/css/material.css') ?>" rel="stylesheet">
+    <?= meta_pixel_head() ?>
 </head>
 <body class="lp">
 

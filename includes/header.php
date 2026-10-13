@@ -97,6 +97,7 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
         .ss-mail { word-break: break-all; }
         .ss-horario { display: flex; gap: .4rem; margin-top: .6rem; font-size: .7rem; opacity: .5; }
     </style>
+    <?= meta_pixel_head(false) /* solo eventos encolados, sin PageView */ ?>
 </head>
 <body>
 <nav class="navbar navbar-dark app-navbar sticky-top flex-md-nowrap p-0">

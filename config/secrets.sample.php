@@ -29,6 +29,10 @@ define('APP_DEBUG_TOKEN', '');                   // p. ej. 'k7Fq2xR9vT4mZ8pL'
 define('MP_ACCESS_TOKEN', '');                   // TEST-xxxx (sandbox) o APP_USR-xxxx (prod)
 define('MP_PUBLIC_KEY',   '');                   // TEST-xxxx o APP_USR-xxxx
 
+// --- Meta Pixel (opcional; vacío = sin Pixel) ---
+// Mejor ponerlo en la consola: Plataforma → Ajustes → Meta Pixel (manda sobre este).
+// define('META_PIXEL_ID', '');
+
 // --- Correo (remitente de los correos transaccionales) ---
 // Debe ser una dirección DEL DOMINIO del sitio para que SPF/DKIM validen y no
 // caigan en spam. Si lo dejas sin definir, usa no-reply@mediagenda.com.mx.

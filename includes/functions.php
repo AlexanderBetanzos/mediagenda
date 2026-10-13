@@ -707,6 +707,57 @@ function secreto_enmascarado(string $valor): string
 }
 
 /* --------------------------------------------------------------------
+ *  Meta Pixel (anuncios de Facebook/Instagram).
+ *  Solo va en páginas de marketing (landing y registro) y en el evento de
+ *  alta de cuenta. NUNCA en micrositios, portal del paciente ni pantallas
+ *  clínicas: ahí hay datos de salud y Meta no debe verlos.
+ *  Sin ID configurado no se imprime nada.
+ * ------------------------------------------------------------------ */
+
+/** ID del Pixel: el de la consola de plataforma manda sobre el de secretos. */
+function meta_pixel_id(): string
+{
+    $id = plataforma_cfg('meta_pixel_id', defined('META_PIXEL_ID') ? (string) META_PIXEL_ID : '');
+    return preg_match('/^\d{10,20}$/', $id) ? $id : '';
+}
+
+/** Encola un evento estándar para dispararlo en la siguiente página que pinte el Pixel. */
+function meta_pixel_evento(string $evento): void
+{
+    $_SESSION['meta_pixel_eventos'][] = $evento;
+}
+
+/**
+ * Código del Pixel para el <head>. $pageview = false en páginas del panel:
+ * ahí solo se mandan los eventos encolados (y si no hay, no se imprime nada).
+ */
+function meta_pixel_head(bool $pageview = true): string
+{
+    $id = meta_pixel_id();
+    $eventos = array_values(array_intersect(
+        $_SESSION['meta_pixel_eventos'] ?? [],
+        ['CompleteRegistration', 'StartTrial', 'InitiateCheckout', 'Lead', 'Subscribe']
+    ));
+    unset($_SESSION['meta_pixel_eventos']);
+    if ($id === '' || (!$pageview && !$eventos)) return '';
+
+    $js = "!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?"
+        . "n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;"
+        . "n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;"
+        . "t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,"
+        . "document,'script','https://connect.facebook.net/en_US/fbevents.js');\n"
+        . "fbq('init','" . $id . "');\n";
+    if ($pageview) $js .= "fbq('track','PageView');\n";
+    foreach ($eventos as $ev) $js .= "fbq('track','" . $ev . "');\n";
+
+    $noscript = $pageview
+        ? '<noscript><img height="1" width="1" style="display:none" alt="" src="https://www.facebook.com/tr?id='
+          . $id . '&ev=PageView&noscript=1"></noscript>'
+        : '';
+    return "<!-- Meta Pixel -->\n<script>\n" . $js . "</script>\n" . $noscript . "\n";
+}
+
+/* --------------------------------------------------------------------
  *  Analítica de tráfico (pageviews) — para las métricas de plataforma.
  * ------------------------------------------------------------------ */
 

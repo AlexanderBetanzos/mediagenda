@@ -57,6 +57,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect('/platform/ajustes');
     }
 
+    if ($accion === 'pixel') {
+        // Vacío = apagar el Pixel. Solo dígitos: es lo que da Meta en el Administrador de eventos.
+        $pixel = preg_replace('/\s+/', '', (string) ($_POST['meta_pixel_id'] ?? ''));
+        if ($pixel !== '' && !preg_match('/^\d{10,20}$/', $pixel)) {
+            flash('El ID del Pixel son solo números (15 o 16 dígitos normalmente).', 'danger');
+            redirect('/platform/ajustes');
+        }
+        guardar_plataforma_cfg(['meta_pixel_id' => $pixel]);
+        auditar('plataforma_pixel_guardar', 'plataforma', null, $pixel === '' ? 'apagado' : $pixel, null, $actor);
+        flash($pixel === '' ? 'Meta Pixel apagado.' : 'Meta Pixel guardado. Ya mide la landing y los registros.');
+        redirect('/platform/ajustes');
+    }
+
     if ($accion === 'guardar') {
         ['nuevos' => $nuevos, 'errores' => $errores] =
             mp_credenciales_desde_post($_POST, mp_access_token(), mp_public_key());
@@ -293,6 +306,39 @@ include __DIR__ . '/_head.php';
         </div>
     </div>
 </div>
+
+<!-- Meta Pixel: mide los anuncios de Facebook/Instagram -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-meta"></i> Meta Pixel (anuncios)</span>
+                <?php if (meta_pixel_id() !== ''): ?>
+                    <span class="badge bg-success">Activo</span>
+                <?php else: ?>
+                    <span class="badge bg-secondary">Apagado</span>
+                <?php endif; ?>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small">
+                    Mide qué anuncios traen registros. Solo se carga en la landing y en el registro, y
+                    avisa a Meta cuando alguien crea su cuenta (<code>CompleteRegistration</code>,
+                    <code>StartTrial</code> o <code>InitiateCheckout</code>). <strong>Nunca</strong> se carga en
+                    micrositios, portal del paciente ni pantallas clínicas.
+                </p>
+                <form method="post" class="row g-3 align-items-end">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="accion" value="pixel">
+                    <div class="col-md-8">
+                        <label class="form-label">ID del Pixel / conjunto de datos</label>
+                        <input name="meta_pixel_id" class="form-control" inputmode="numeric" autocomplete="off"
+                               value="<?= e(plataforma_cfg('meta_pixel_id')) ?>" placeholder="Ej. 1234567890123456">
+                        <div class="form-text">Déjalo vacío y guarda para apagarlo.</div>
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-primary w-100"><i class="bi bi-check-lg"></i> Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
 
 <!-- IA clínica: la llave es NUESTRA y el consumo lo pagamos nosotros -->
         <div class="card mb-4">

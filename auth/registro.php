@@ -110,6 +110,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'plan_preferido' => $plan,   // plan elegido (Profesional por defecto)
                 ]);
 
+                // Meta Pixel: se disparan en la siguiente página (panel o checkout).
+                meta_pixel_evento('CompleteRegistration');
+                meta_pixel_evento($pagar ? 'InitiateCheckout' : 'StartTrial');
+
                 if ($pagar) {
                     // Básico/Clínica: a pagar para activar (checkout embebido;
                     // cae a redirect si no hay Public Key de Mercado Pago).
@@ -138,6 +142,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="<?= asset('assets/css/style.css') ?>" rel="stylesheet">
+    <?= meta_pixel_head() ?>
 </head>
 <body>
 <div class="login-wrap">
