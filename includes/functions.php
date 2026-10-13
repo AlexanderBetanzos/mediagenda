@@ -717,6 +717,8 @@ function secreto_enmascarado(string $valor): string
 /** ID del Pixel: el de la consola de plataforma manda sobre el de secretos. */
 function meta_pixel_id(): string
 {
+    // En local no se mide: ensuciaría las estadísticas de los anuncios.
+    if (preg_match('/^(localhost|127\.0\.0\.1)(:\d+)?$/', (string) ($_SERVER['HTTP_HOST'] ?? ''))) return '';
     $id = plataforma_cfg('meta_pixel_id', defined('META_PIXEL_ID') ? (string) META_PIXEL_ID : '');
     return preg_match('/^\d{10,20}$/', $id) ? $id : '';
 }

@@ -60,6 +60,9 @@ defined('SOPORTE_TEL')      || define('SOPORTE_TEL',      getenv('SOPORTE_TEL') 
 defined('SOPORTE_EMAIL')    || define('SOPORTE_EMAIL',    getenv('SOPORTE_EMAIL')    ?: 'contacto@betasyd.com.mx');
 defined('SOPORTE_HORARIO')  || define('SOPORTE_HORARIO',  getenv('SOPORTE_HORARIO')  ?: 'Lunes a Viernes de 9:00 a 18:00 hrs.');
 
+// Meta Pixel de los anuncios de MediOS (no es secreto: va en el HTML). La consola de plataforma lo puede cambiar.
+defined('META_PIXEL_ID')    || define('META_PIXEL_ID',    getenv('META_PIXEL_ID')    ?: '2236026036959591');
+
 // 3) Configuración de la aplicación (no secreta).
 define('APP_NAME', 'MediOS');
 define('MONEDA', 'MXN');
