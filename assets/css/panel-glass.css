@@ -373,3 +373,17 @@ body.ui-glass main .nav-tabs .nav-link.active {
 .ficha-mas .dropdown-header { font-size: .68rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
 /* El resumen clínico bajo la alerta de alergias: una línea con aire, no apretada */
 body.ui-glass main .card.border-danger { border: 0 !important; }
+
+/* ---------- Menús desplegables siempre al frente ----------
+   El vidrio (backdrop-filter) crea una capa propia en cada tarjeta, y las que
+   vienen después se pintaban ENCIMA de un menú abierto (el "Más acciones" de la
+   ficha quedaba detrás del resumen y las pestañas). El bloque que contiene un
+   menú abierto sube al frente, y el encabezado de la ficha va por encima de lo
+   que le sigue. */
+body.ui-glass .ficha-hero { position: relative; z-index: 30; }
+body.ui-glass main :is(.card, .ficha-hero, .welcome-banner, .ui-stats, .row, .d-flex):has(> * .dropdown-menu.show, > .dropdown-menu.show) { position: relative; z-index: 1040; }
+body.ui-glass main .dropdown-menu { z-index: 1060; }
+body.ui-glass .dropdown-menu .dropdown-item { color: var(--g-txt) !important; }
+body.ui-glass .dropdown-menu .dropdown-item .bi { color: var(--g-brand); }
+body.ui-glass .dropdown-menu .dropdown-item:hover, body.ui-glass .dropdown-menu .dropdown-item:focus { background: var(--g-brand); color: #fff !important; }
+body.ui-glass .dropdown-menu .dropdown-item:hover .bi, body.ui-glass .dropdown-menu .dropdown-item:focus .bi { color: #fff; }
