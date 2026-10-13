@@ -110,6 +110,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'plan_preferido' => $plan,   // plan elegido (Profesional por defecto)
                 ]);
 
+                // Aviso al dueño de la plataforma: llegó un consultorio nuevo.
+                require_once __DIR__ . '/../includes/correo.php';
+                $planNom = planes_mp()[$plan]['nombre'] ?? $plan;
+                @correo_aviso_plataforma(
+                    'Nuevo registro: ' . $f['consultorio'] . ' (' . $planNom . ')',
+                    '¡Se registró un consultorio!',
+                    [
+                        'Consultorio' => $f['consultorio'],
+                        'Responsable' => $f['nombre'],
+                        'Correo'      => $f['email'],
+                        'Teléfono'    => $f['telefono'],
+                        'Plan'        => $planNom . ($pagar ? ' · va a pagar' : ' · prueba de ' . trial_dias_oferta() . ' días'),
+                        'Página'      => url_absoluta('/c/' . $slug),
+                        'Fecha'       => date('d/m/Y H:i'),
+                    ],
+                    'Nuevo registro'
+                );
+
                 // Meta Pixel: se disparan en la siguiente página (panel o checkout).
                 meta_pixel_evento('CompleteRegistration');
                 meta_pixel_evento($pagar ? 'InitiateCheckout' : 'StartTrial');

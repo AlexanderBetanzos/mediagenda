@@ -344,3 +344,39 @@ function correo_suscripcion_activa(string $email, string $nombre, string $plan, 
     $html = correo_layout('Suscripción activada', $cuerpo, 'Ir a mi panel', correo_url('/dashboard.php'));
     return enviar_correo($email, 'Tu suscripción a ' . marca_nombre() . ' está activa', $html);
 }
+
+/**
+ * Aviso al DUEÑO de la plataforma (plataforma_admins con rol súper): se
+ * registró un consultorio o se activó una suscripción de pago. Antes nadie se
+ * enteraba salvo abriendo /platform.
+ *
+ * El correo sale con la marca pública (consultorio 1, "MediOS"): en el registro
+ * la sesión ya es del consultorio nuevo y saldría con SU nombre y color.
+ */
+function correo_aviso_plataforma(string $asunto, string $titulo, array $filas, string $eyebrow): void
+{
+    try {
+        $st = db()->query("SELECT email FROM plataforma_admins WHERE activo = 1 AND COALESCE(rol,'super') = 'super'");
+        $para = $st->fetchAll(PDO::FETCH_COLUMN);
+    } catch (Throwable $e) { $para = []; }
+    if (!$para) return;
+
+    // Nunca debe lanzar: se llama dentro del registro, y un fallo de correo no
+    // puede convertirse en "No se pudo crear la cuenta".
+    tenant_override(1);
+    try {
+        $tabla = '<table width="100%" style="font-size:14px;border-collapse:collapse">';
+        foreach ($filas as $k => $v) {
+            if ($v === null || $v === '') continue;
+            $tabla .= '<tr><td style="padding:7px 0;color:#64748b;width:38%">' . e($k) . '</td>'
+                    . '<td style="padding:7px 0;font-weight:600">' . e((string) $v) . '</td></tr>';
+        }
+        $tabla .= '</table>';
+        $html = correo_layout($titulo, $tabla, 'Abrir la consola', correo_url('/platform/index'), $eyebrow);
+        foreach ($para as $email) enviar_correo($email, $asunto, $html);
+    } catch (Throwable $e) {
+        correo_log(implode(',', $para), $asunto, false, 'aviso plataforma: ' . $e->getMessage());
+    } finally {
+        tenant_override(null, true);
+    }
+}

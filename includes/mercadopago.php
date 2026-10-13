@@ -422,6 +422,21 @@ function mp_sincronizar_desde_cobro(string $authorizedPaymentId): ?int
 function mp_notificar_activacion(int $cid, string $plan, ?string $proximo): void
 {
     require_once __DIR__ . '/correo.php';
+    // Al dueño de la plataforma: un consultorio empezó a pagar.
+    try {
+        $c = db()->prepare('SELECT nombre, email FROM consultorios WHERE id = ?');
+        $c->execute([$cid]);
+        $con = $c->fetch() ?: [];
+        $p = planes_mp()[$plan] ?? [];
+        @correo_aviso_plataforma(
+            'Nuevo pago: ' . ($con['nombre'] ?? '#' . $cid) . ' activó el plan ' . ($p['nombre'] ?? $plan),
+            '¡Un consultorio activó su suscripción!',
+            ['Consultorio' => $con['nombre'] ?? '#' . $cid, 'Correo' => $con['email'] ?? '',
+             'Plan' => ($p['nombre'] ?? $plan) . (isset($p['precio']) ? ' · ' . fmt_money($p['precio']) . '/mes' : ''),
+             'Próximo cobro' => $proximo ? fmt_fecha($proximo) : ''],
+            'Nuevo pago'
+        );
+    } catch (Throwable $e) {}
     $st = db()->prepare("SELECT nombre, email FROM usuarios WHERE consultorio_id=? AND rol='admin' ORDER BY id LIMIT 1");
     $st->execute([$cid]);
     if ($a = $st->fetch()) {
