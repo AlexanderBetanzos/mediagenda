@@ -14,7 +14,12 @@ if ($slugPublico !== '' && ($con = consultorio_publico($slugPublico))) {
 }
 
 $logged = is_logged_in();
-$marca  = marca_nombre();
+/* La landing vende el PRODUCTO: su nombre es el de la configuración pública
+   (consultorio 1), no el del consultorio con sesión abierta. Antes, entrar
+   logueado como "Prueba Pixel" rebautizaba la landing con ese nombre. */
+tenant_override(1);
+$marca = marca_nombre();
+tenant_override(null, true);
 track_pageview('publico');
 
 /* La landing va SIEMPRE en claro: es una página de marketing y el modo oscuro
