@@ -117,7 +117,10 @@ function setTema(pref) {
        el título. Así cada pantalla dice para qué sirve sin repetir textos. */
     (function () {
         var h = AYUDA[PAGINA], h1 = document.querySelector('main h1.h3');
-        if (!h || !h.intro || !h1 || h1.nextElementSibling && h1.nextElementSibling.classList.contains('page-sub')) return;
+        // Solo en pantallas de sección (título con icono). La ficha de un
+        // paciente o un formulario no llevan la descripción de la lista.
+        if (!h || !h.intro || !h1 || !h1.querySelector(':scope > .bi:first-child')) return;
+        if (h1.nextElementSibling && h1.nextElementSibling.classList.contains('page-sub')) return;
         // La sección ya trae su propia descripción justo debajo: no se duplica.
         var bloque = h1.parentElement && h1.parentElement.tagName !== 'MAIN' ? h1.parentElement : h1;
         var sig = bloque.nextElementSibling;

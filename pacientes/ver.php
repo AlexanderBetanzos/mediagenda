@@ -335,9 +335,9 @@ include __DIR__ . '/../includes/header.php';
     </ol>
 </nav>
 
-<div class="d-flex flex-wrap justify-content-between align-items-start mb-3 gap-2">
-    <div class="d-flex align-items-center gap-3">
-        <?= avatar_paciente((int) $p['id'], $p['nombre'], $p['apellidos'], ($p['foto_mime'] ?? null) ?: ($p['foto'] ?? null), 72) ?>
+<div class="ficha-hero d-flex flex-wrap justify-content-between align-items-start mb-3 gap-3">
+    <div class="d-flex align-items-center gap-3 min-w-0">
+        <span class="ficha-av"><?= avatar_paciente((int) $p['id'], $p['nombre'], $p['apellidos'], ($p['foto_mime'] ?? null) ?: ($p['foto'] ?? null), 84) ?></span>
         <div>
         <?php if (es_veterinaria()): /* Ficha de mascota: especie, raza y su dueño. */ ?>
         <h1 class="h3 mb-1">
@@ -369,7 +369,7 @@ include __DIR__ . '/../includes/header.php';
         <?php endif; ?>
         </div>
     </div>
-    <div class="text-nowrap">
+    <div class="ficha-acc">
         <a href="<?= BASE_URL ?>/citas/create?paciente_id=<?= $id ?>" class="btn btn-outline-primary"><i class="bi bi-calendar-plus"></i> <?= et('Cita') ?></a>
         <?php if (has_role('medico', 'admin')): ?>
         <a href="<?= BASE_URL ?>/recetas/create?paciente_id=<?= $id ?>" class="btn btn-outline-primary"><i class="bi bi-capsule"></i> <?= et('Receta') ?></a>
@@ -405,6 +405,24 @@ include __DIR__ . '/../includes/header.php';
         <a href="<?= BASE_URL ?>/pacientes/edit?id=<?= $id ?>" class="btn btn-outline-secondary"><i class="bi bi-pencil"></i> <?= et('Editar') ?></a>
     </div>
 </div>
+
+<?php /* Resumen rápido de la ficha: lo que se pregunta al abrir un expediente. */
+$__t = (int) tenant_id();
+$__ult = null; $__prox = null; $__saldo = 0.0;
+try {
+    $q = db()->prepare("SELECT MAX(DATE(fecha)) FROM consultas WHERE consultorio_id = ? AND paciente_id = ?"); $q->execute([$__t, $id]); $__ult = $q->fetchColumn() ?: null;
+    $q = db()->prepare("SELECT fecha, hora FROM citas WHERE consultorio_id = ? AND paciente_id = ? AND estado IN ('programada','confirmada') AND fecha >= CURDATE() ORDER BY fecha, hora LIMIT 1");
+    $q->execute([$__t, $id]); $__prox = $q->fetch() ?: null;
+    if (modulo_activo('facturacion')) { $q = db()->prepare("SELECT COALESCE(SUM(total),0) FROM facturas WHERE consultorio_id = ? AND paciente_id = ? AND estado = 'pendiente'"); $q->execute([$__t, $id]); $__saldo = (float) $q->fetchColumn(); }
+} catch (Throwable $e) {}
+$__est = [
+    [t('Consultas'), number_format(ui_cuenta("SELECT COUNT(*) FROM consultas WHERE consultorio_id = ? AND paciente_id = ?", [$__t, $id])), 'bi-clipboard2-pulse', 'var(--brand)'],
+    [t('Última visita'), $__ult ? fmt_fecha($__ult) : '—', 'bi-clock-history', '#6366f1'],
+    [t('Próxima cita'), $__prox ? fmt_fecha($__prox['fecha']) . ' · ' . fmt_hora($__prox['hora']) : t('Sin agendar'), 'bi-calendar-check', '#0d9488',
+        $__prox ? null : BASE_URL . '/citas/create?paciente_id=' . $id],
+];
+if (modulo_activo('facturacion')) $__est[] = [t('Por cobrar'), fmt_money($__saldo), 'bi-wallet2', $__saldo > 0 ? '#f59e0b' : '#16a34a', null, $__saldo > 0];
+echo ui_stats($__est); ?>
 
 <?php /* Resumen clínico: lo primero son las ALERGIAS, a propósito. Es el dato
          que, si se pasa por alto, hace daño de verdad. */ ?>
