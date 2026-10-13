@@ -352,6 +352,67 @@ include __DIR__ . '/publico_header.php';
     .clx .book .eyebrow { background: rgba(255,255,255,.16); color: inherit; }
     .clx .book .btn-cta { background: #fff; color: var(--cl-d); box-shadow: 0 16px 40px rgba(0,0,0,.22); font-size: 1.05rem; padding: 1rem 2rem; }
     .clx .book .btn-cta:hover { background: #fff; color: var(--cl); }
+    /* ── Más flow ──────────────────────────────────────────────────────── */
+    /* Titular palabra por palabra (solo con movimiento activado). */
+    @keyframes clWord { from { opacity: 0; transform: translateY(.45em) rotate(2deg); filter: blur(4px); } to { opacity: 1; transform: none; filter: none; } }
+    html.motion .clx .h1-words .w { display: inline-block; animation: clWord .7s cubic-bezier(.22,1,.36,1) both; animation-delay: calc(.08s * var(--i) + .1s); }
+
+    /* Cinta infinita de servicios */
+    .clx .cinta { width: 100vw; margin-left: calc(50% - 50vw); overflow: hidden; padding: 1.1rem 0; margin-top: -1rem;
+                  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+                          mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
+    .clx .cinta-track { display: flex; gap: .7rem; width: max-content; }
+    .clx .cinta-item { flex: none; display: inline-flex; align-items: center; gap: .45rem; padding: .55rem 1.1rem; border-radius: 999px;
+                       background: #fff; border: 1px solid var(--line); font-weight: 600; font-size: .92rem; color: var(--ink);
+                       box-shadow: 0 4px 14px rgba(15,30,60,.05); }
+    .clx .cinta-item .bi { color: var(--cl); }
+    @keyframes clCinta { to { transform: translateX(calc(-50% - .35rem)); } }
+    html.motion .clx .cinta-track { animation: clCinta 40s linear infinite; }
+    html.motion .clx .cinta:hover .cinta-track { animation-play-state: paused; }
+    html:not(.motion) .clx .cinta-track { flex-wrap: wrap; width: auto; justify-content: center; padding: 0 1rem; }
+    html:not(.motion) .clx .cinta-item[aria-hidden] { display: none; }
+
+    /* Agenda en 3 pasos con línea que se llena */
+    .clx .pasos3 { background: #fff; }
+    .clx .p3 { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+    .clx .p3-linea { position: absolute; top: 38px; left: 16%; right: 16%; height: 3px; border-radius: 3px; background: var(--tint); overflow: hidden; }
+    .clx .p3-linea span { display: block; height: 100%; width: 100%; background: linear-gradient(90deg, var(--cl), color-mix(in srgb, var(--cl) 55%, #fff));
+                          transform-origin: 0 50%; transform: scaleX(0); transition: transform 1.6s cubic-bezier(.22,1,.36,1) .3s; }
+    .clx .p3.is-in .p3-linea span, html:not(.motion) .clx .p3-linea span { transform: none; }
+    .clx .p3-paso { position: relative; text-align: center; }
+    .clx .p3-ic { position: relative; width: 78px; height: 78px; margin: 0 auto 1rem; border-radius: 24px; display: flex; align-items: center; justify-content: center;
+                  font-size: 1.9rem; color: var(--on-cl); background: linear-gradient(150deg, color-mix(in srgb, var(--cl) 80%, #fff), var(--cl-d));
+                  box-shadow: 0 14px 30px color-mix(in srgb, var(--cl) 35%, transparent); }
+    html.motion .clx .p3 .p3-ic { transform: scale(.6); opacity: 0; transition: transform .6s cubic-bezier(.34,1.56,.64,1), opacity .4s ease;
+                                  transition-delay: calc(.25s * var(--i) + .2s); }
+    html.motion .clx .p3.is-in .p3-ic { transform: none; opacity: 1; }
+    .clx .p3-n { position: absolute; top: -8px; right: -8px; width: 28px; height: 28px; border-radius: 50%; background: #fff; color: var(--cl);
+                 font-size: .85rem; font-weight: 800; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(15,30,60,.15); }
+    .clx .p3-t { font-family: var(--font-display); font-weight: 650; font-size: 1.12rem; letter-spacing: -.02em; }
+    .clx .p3-d { color: var(--mut); font-size: .93rem; margin-top: .2rem; }
+    @media (max-width: 767.98px) { .clx .p3 { grid-template-columns: 1fr; } .clx .p3-linea { display: none; } }
+
+    /* Tarjetas del equipo: leve inclinación al pasar el mouse */
+    @media (hover: hover) { .clx .medcard:hover { transform: translateY(-6px) rotate(-.4deg); } }
+
+    /* WhatsApp flotante con pulso y barra fija de agendar en celular */
+    .cl-wa { position: fixed; right: 18px; bottom: 18px; z-index: 1030; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center;
+             justify-content: center; background: #25d366; color: #fff; font-size: 1.7rem; box-shadow: 0 8px 22px rgba(37,211,102,.45); text-decoration: none; }
+    .cl-wa:hover { color: #fff; transform: scale(1.06); }
+    @keyframes clPing { 0% { box-shadow: 0 0 0 0 rgba(37,211,102,.5); } 80%, 100% { box-shadow: 0 0 0 18px rgba(37,211,102,0); } }
+    html.motion .cl-wa { animation: clPing 2.6s 2s ease-out infinite; }
+    .cl-barra { display: none; }
+    @media (max-width: 767.98px) {
+        .cl-barra { position: fixed; left: 10px; right: 10px; bottom: 10px; z-index: 1029; display: flex; align-items: center; justify-content: space-between;
+                    gap: .6rem; padding: .55rem .6rem .55rem 1rem; border-radius: 999px; background: rgba(255,255,255,.94);
+                    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 10px 30px rgba(15,30,60,.18);
+                    transform: translateY(140%); transition: transform .45s cubic-bezier(.22,1,.36,1); }
+        .cl-barra.on { transform: none; }
+        .cl-barra-btn { background: var(--cl); color: var(--on-cl); border-radius: 999px; padding: .55rem 1rem; font-weight: 600; font-size: .9rem; text-decoration: none; white-space: nowrap; }
+        .cl-barra-btn:hover { color: var(--on-cl); }
+        .cl-wa { bottom: 82px; }
+        body.lp { padding-bottom: 70px; }
+    }
 </style>
 
 <div class="clx">
@@ -370,7 +431,7 @@ include __DIR__ . '/publico_header.php';
                         <span class="eyebrow"><i class="bi bi-heart-pulse-fill"></i> <?= e($marca) ?></span>
                     <?php endif; ?>
                 </div>
-                <h1><?= e($titular) ?></h1>
+                <h1 class="h1-words"><?php foreach (preg_split('/\s+/u', trim($titular)) as $wi => $w): ?><span class="w" style="--i:<?= $wi ?>"><?= e($w) ?></span> <?php endforeach; ?></h1>
                 <p class="lead"><?= e($lema ?: t('Cuidamos de tu salud con atención cercana y profesional.')) ?></p>
                 <div class="d-flex flex-wrap gap-2 mt-4">
                     <?php if ($reservar): ?>
@@ -442,6 +503,50 @@ include __DIR__ . '/publico_header.php';
     </div>
 </section>
 
+<?php
+/* Cinta infinita con los nombres reales de los servicios (dos copias para que
+   el bucle no salte; la copia se oculta a lectores de pantalla). */
+$nombresServ = [];
+foreach ($servicios as $items) foreach ($items as $sv) $nombresServ[] = $sv['nombre'];
+$nombresServ = array_slice(array_values(array_unique($nombresServ)), 0, 16);
+?>
+<?php if (count($nombresServ) >= 3): ?>
+<div class="cinta" aria-label="<?= e(t('Servicios')) ?>">
+    <div class="cinta-track">
+        <?php foreach ([false, true] as $copia): foreach ($nombresServ as $ns): ?>
+            <span class="cinta-item"<?= $copia ? ' aria-hidden="true"' : '' ?>><i class="bi bi-plus-circle-fill"></i> <?= e($ns) ?></span>
+        <?php endforeach; endforeach; ?>
+    </div>
+</div>
+<?php endif; ?>
+
+<?php if ($reservar): ?>
+<!-- ===== CÓMO AGENDAR (3 pasos) ===== -->
+<section class="pasos3">
+    <div class="wrap">
+        <div class="head" data-reveal>
+            <span class="eyebrow"><?= et('Así de fácil') ?></span>
+            <h2 class="t"><?= et('Agenda tu cita en 3 pasos') ?></h2>
+        </div>
+        <div class="p3" data-reveal>
+            <div class="p3-linea" aria-hidden="true"><span></span></div>
+            <?php foreach ([['bi-clipboard2-pulse', 'Elige el servicio', 'Y al especialista que prefieras.'],
+                            ['bi-calendar2-week', 'Escoge día y hora', 'Solo ves los horarios libres.'],
+                            ['bi-check2-circle', 'Confirma', 'Te llega tu comprobante y un recordatorio.']] as $pi => [$ic, $pt, $pd]): ?>
+            <div class="p3-paso" style="--i:<?= $pi ?>">
+                <span class="p3-ic"><i class="bi <?= $ic ?>"></i><span class="p3-n"><?= $pi + 1 ?></span></span>
+                <div class="p3-t"><?= et($pt) ?></div>
+                <div class="p3-d"><?= et($pd) ?></div>
+            </div>
+            <?php endforeach; ?>
+        </div>
+        <div class="text-center mt-4" data-reveal>
+            <a href="<?= e($urlAgendar) ?>" class="btn-cta"><i class="bi bi-calendar-plus"></i> <?= et('Agendar cita') ?></a>
+        </div>
+    </div>
+</section>
+<?php endif; ?>
+
 <!-- ===== SOBRE NOSOTROS ===== -->
 <?php if ($acerca): ?>
 <section class="about">
@@ -471,7 +576,7 @@ include __DIR__ . '/publico_header.php';
             <?php endforeach; ?>
         </div>
         <?php endif; ?>
-        <div class="sv-grid">
+        <div class="sv-grid" data-stagger>
             <?php foreach ($servicios as $categoria => $items): foreach ($items as $s):
                 $tag = $reservar ? 'a' : 'div'; ?>
             <<?= $tag ?> class="sv" data-cat="<?= e($categoria) ?>"<?= $reservar ? ' href="' . e($urlAgendar) . '"' : '' ?>>
@@ -661,6 +766,16 @@ $hayDatos = $correo || $tel || $dir || $wa;
 
 </div><!-- /.clx -->
 
+<?php if ($wa): ?>
+<a href="<?= e($wa) ?>" class="cl-wa" target="_blank" rel="noopener" aria-label="WhatsApp" title="<?= e(t('Escríbenos por WhatsApp')) ?>"><i class="bi bi-whatsapp"></i></a>
+<?php endif; ?>
+<?php if ($reservar): ?>
+<div class="cl-barra" aria-hidden="false">
+    <span class="small fw-semibold"><?= e($marca) ?></span>
+    <a href="<?= e($urlAgendar) ?>" class="cl-barra-btn"><i class="bi bi-calendar-plus"></i> <?= et('Agendar cita') ?></a>
+</div>
+<?php endif; ?>
+
 <script>
 /* Filtro de servicios por categoría. Sin JS las pastillas no aparecen y se
    ven todos los servicios. */
@@ -676,6 +791,15 @@ $hayDatos = $correo || $tel || $dir || $wa;
         var cat = b.getAttribute('data-cat');
         cards.forEach(function (c) { c.hidden = !!cat && c.getAttribute('data-cat') !== cat; });
     });
+})();
+</script>
+
+<script>
+/* Barra fija de "Agendar cita" (celular): aparece cuando el hero sale de vista. */
+(function () {
+    var barra = document.querySelector('.cl-barra'), hero = document.querySelector('.clx .hero');
+    if (!barra || !hero || !('IntersectionObserver' in window)) return;
+    new IntersectionObserver(function (en) { barra.classList.toggle('on', !en[0].isIntersecting); }).observe(hero);
 })();
 </script>
 
