@@ -52,6 +52,14 @@ include __DIR__ . '/../includes/header.php';
 </div></div>
 <?php else: ?>
 
+<?php $__t = (int) tenant_id();
+$__prom = 0.0; try { $q = db()->prepare("SELECT COALESCE(AVG(precio),0) FROM servicios WHERE consultorio_id = ? AND activo = 1 AND precio > 0"); $q->execute([$__t]); $__prom = (float) $q->fetchColumn(); } catch (Throwable $e) {}
+echo ui_stats([
+    [t('Servicios activos'), ui_cuenta("SELECT COUNT(*) FROM servicios WHERE consultorio_id = ? AND activo = 1", [$__t]), 'bi-tags', 'var(--brand)'],
+    [t('Categorías'), ui_cuenta("SELECT COUNT(DISTINCT categoria) FROM servicios WHERE consultorio_id = ? AND activo = 1", [$__t]), 'bi-collection', '#6366f1'],
+    [t('Precio promedio'), fmt_money($__prom), 'bi-cash-coin', '#16a34a'],
+    [t('Desactivados'), ui_cuenta("SELECT COUNT(*) FROM servicios WHERE consultorio_id = ? AND activo = 0", [$__t]), 'bi-eye-slash', '#64748b'],
+]); ?>
 <form class="row g-2 mb-3" method="get">
     <div class="col-sm-4">
         <select name="categoria" class="form-select form-select-sm" onchange="this.form.submit()">

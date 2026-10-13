@@ -32,16 +32,16 @@ include __DIR__ . '/../includes/header.php';
     <a href="<?= BASE_URL ?>/facturacion/create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> <?= et('Nueva factura') ?></a>
 </div>
 
-<div class="row g-3 mb-3">
-    <div class="col-sm-6"><div class="card stat-card"><div class="card-body">
-        <div class="stat-label"><?= et('Cobrado (pagadas)') ?></div>
-        <div class="stat-num mt-2" style="color:#22c55e"><?= fmt_money($totPagado) ?></div>
-    </div></div></div>
-    <div class="col-sm-6"><div class="card stat-card"><div class="card-body">
-        <div class="stat-label"><?= et('Por cobrar (pendientes)') ?></div>
-        <div class="stat-num mt-2" style="color:#f59e0b"><?= fmt_money($totPend) ?></div>
-    </div></div></div>
-</div>
+<?php $__u = current_user(); $__med = ($__u['rol'] ?? '') === 'medico' ? ' AND medico_id = ' . (int) $__u['id'] : ''; $__t = (int) tenant_id();
+$__mes = " AND estado = 'pagada' AND fecha >= DATE_FORMAT(CURDATE(), '%Y-%m-01')";
+$__cobMes = 0.0; try { $q = db()->prepare("SELECT COALESCE(SUM(total),0) FROM facturas WHERE consultorio_id = ?$__mes$__med"); $q->execute([$__t]); $__cobMes = (float) $q->fetchColumn(); } catch (Throwable $e) {}
+$__nMes = ui_cuenta("SELECT COUNT(*) FROM facturas WHERE consultorio_id = ?$__mes$__med", [$__t]);
+echo ui_stats([
+    [t('Cobrado este mes'), fmt_money($__cobMes), 'bi-cash-coin', '#16a34a'],
+    [t('Por cobrar (pendientes)'), fmt_money($totPend), 'bi-hourglass-split', '#f59e0b', BASE_URL . '/facturacion/index?estado=pendiente', $totPend > 0],
+    [t('Cobros este mes'), number_format($__nMes), 'bi-receipt', 'var(--brand)'],
+    [t('Ticket promedio (mes)'), fmt_money($__nMes ? $__cobMes / $__nMes : 0), 'bi-graph-up-arrow', '#6366f1'],
+]); ?>
 
 <form class="mb-3" method="get">
     <div class="btn-group">

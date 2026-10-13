@@ -15,6 +15,14 @@ include __DIR__ . '/../includes/header.php';
     <a href="<?= BASE_URL ?>/usuarios/create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> <?= et('Nuevo usuario') ?></a>
 </div>
 
+<?php $__t = (int) tenant_id();
+$__rol = fn ($r) => ui_cuenta("SELECT COUNT(*) FROM usuarios WHERE consultorio_id = ? AND activo = 1 AND rol = ?", [$__t, $r]);
+echo ui_stats([
+    [t('Administradores'), $__rol('admin'), 'bi-shield-lock', 'var(--brand)'],
+    [t('Médicos'), $__rol('medico'), 'bi-person-vcard', '#0d9488', BASE_URL . '/medicos/index'],
+    [t('Recepción'), $__rol('recepcion'), 'bi-headset', '#6366f1'],
+    [t('Inactivos'), ui_cuenta("SELECT COUNT(*) FROM usuarios WHERE consultorio_id = ? AND activo = 0", [$__t]), 'bi-person-dash', '#64748b'],
+]); ?>
 <div class="card">
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">

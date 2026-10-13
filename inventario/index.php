@@ -49,12 +49,14 @@ include __DIR__ . '/../includes/header.php';
     </div>
 </div>
 
-<?php if ($nBajo || $nCad): ?>
-<div class="d-flex flex-wrap gap-2 mb-3">
-    <?php if ($nBajo): ?><span class="badge bg-danger"><i class="bi bi-exclamation-triangle"></i> <?= $nBajo ?> <?= et('con stock bajo') ?></span><?php endif; ?>
-    <?php if ($nCad): ?><span class="badge bg-warning text-dark"><i class="bi bi-calendar-x"></i> <?= $nCad ?> <?= et('por caducar (30 días)') ?></span><?php endif; ?>
-</div>
-<?php endif; ?>
+<?php $__t = (int) tenant_id();
+$__venta = 0.0; try { $q = db()->prepare("SELECT COALESCE(SUM(total),0) FROM facturas WHERE consultorio_id = ? AND estado = 'pagada' AND fecha = CURDATE() AND notas = 'Venta en punto de venta'"); $q->execute([$__t]); $__venta = (float) $q->fetchColumn(); } catch (Throwable $e) {}
+echo ui_stats([
+    [t('Productos activos'), ui_cuenta("SELECT COUNT(*) FROM productos WHERE consultorio_id = ? AND activo = 1", [$__t]), 'bi-box-seam', 'var(--brand)'],
+    [t('Con stock bajo'), (int) $nBajo, 'bi-exclamation-triangle', '#ef4444', null, $nBajo > 0],
+    [t('Por caducar (30 días)'), (int) $nCad, 'bi-calendar-x', '#f59e0b', null, $nCad > 0],
+    [t('Vendido hoy'), fmt_money($__venta), 'bi-shop', '#16a34a', BASE_URL . '/pos/index'],
+]); ?>
 
 <form class="row g-2 mb-3" method="get">
     <div class="col-sm-6 col-md-4">

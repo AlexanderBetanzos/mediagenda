@@ -327,3 +327,14 @@ a.ui-stat:hover { transform: translateY(-2px); color: inherit; }
 .ui-stat-n { font-size: 1.35rem; font-weight: 750; letter-spacing: -.03em; line-height: 1.1; font-variant-numeric: tabular-nums; }
 .ui-stat-l { font-size: .78rem; opacity: .65; }
 .ui-stat.alerta .ui-stat-n { color: #dc2626; }
+
+/* Tarjetas de cifras antiguas (presupuestos, laboratorio, reseñas…): mismo
+   lenguaje que la franja de indicadores, con un filo de color a la izquierda. */
+body.ui-glass main .stat-card:not(.kpi-card) { position: relative; }
+body.ui-glass main .stat-card:not(.kpi-card) .card-body { padding-left: 1.35rem; }
+body.ui-glass main .stat-card:not(.kpi-card)::before {
+    content: ''; position: absolute; left: 0; top: 14px; bottom: 14px; width: 4px; border-radius: 0 4px 4px 0;
+    background: linear-gradient(180deg, var(--g-brand-2), var(--g-brand));
+}
+body.ui-glass main .stat-card .stat-label { font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--g-txt-2); }
+body.ui-glass main .stat-card .stat-num { font-size: 1.6rem; font-weight: 750; letter-spacing: -.03em; }
