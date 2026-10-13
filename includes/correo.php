@@ -355,10 +355,16 @@ function correo_suscripcion_activa(string $email, string $nombre, string $plan, 
  */
 function correo_aviso_plataforma(string $asunto, string $titulo, array $filas, string $eyebrow): void
 {
-    try {
-        $st = db()->query("SELECT email FROM plataforma_admins WHERE activo = 1 AND COALESCE(rol,'super') = 'super'");
-        $para = $st->fetchAll(PDO::FETCH_COLUMN);
-    } catch (Throwable $e) { $para = []; }
+    // A dónde: lo que el dueño puso en /platform/ajustes ("avisos_email",
+    // uno o varios separados por coma); si no puso nada, a los admins súper.
+    $para = array_values(array_filter(array_map('trim', explode(',', plataforma_cfg('avisos_email'))),
+        fn ($x) => filter_var($x, FILTER_VALIDATE_EMAIL)));
+    if (!$para) {
+        try {
+            $st = db()->query("SELECT email FROM plataforma_admins WHERE activo = 1 AND COALESCE(rol,'super') = 'super'");
+            $para = $st->fetchAll(PDO::FETCH_COLUMN);
+        } catch (Throwable $e) { $para = []; }
+    }
     if (!$para) return;
 
     // Nunca debe lanzar: se llama dentro del registro, y un fallo de correo no

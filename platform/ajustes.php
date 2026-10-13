@@ -50,6 +50,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect('/platform/ajustes');
     }
 
+    if ($accion === 'avisos') {
+        $lista = array_values(array_unique(array_filter(array_map('trim', preg_split('/[,;\s]+/', (string) ($_POST['avisos_email'] ?? ''))))));
+        $malos = array_filter($lista, fn ($x) => !filter_var($x, FILTER_VALIDATE_EMAIL));
+        if ($malos) {
+            flash('Este correo no es válido: ' . implode(', ', $malos), 'danger');
+            redirect('/platform/ajustes');
+        }
+        guardar_plataforma_cfg(['avisos_email' => implode(', ', $lista)]);
+        auditar('plataforma_avisos_guardar', 'plataforma', null, implode(', ', $lista), null, $actor);
+        flash($lista ? 'Los avisos de registros y pagos llegarán a: ' . implode(', ', $lista) . '.'
+                     : 'Sin correo de avisos: llegarán al correo con el que entras a la consola.');
+        redirect('/platform/ajustes');
+    }
+
     if ($accion === 'ia_limpiar') {
         guardar_plataforma_cfg(['anthropic_api_key' => '']);
         auditar('plataforma_ia_limpiar', 'plataforma', null, null, null, $actor);
@@ -458,6 +472,24 @@ include __DIR__ . '/_head.php';
                     </div>
                     <div class="col-sm-4">
                         <button class="btn btn-primary w-100"><i class="bi bi-send"></i> Enviar prueba</button>
+                    </div>
+                </form>
+
+                <hr>
+                <?php /* A dónde llegan los avisos de "Nuevo registro" y "Nuevo pago". */ ?>
+                <form method="post" class="row g-2 align-items-end">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="accion" value="avisos">
+                    <div class="col-sm-8">
+                        <label class="form-label small fw-semibold"><i class="bi bi-bell"></i> Mandar avisos de registros y pagos a</label>
+                        <input type="text" name="avisos_email" class="form-control"
+                               placeholder="<?= e(platform_admin()['email'] ?? 'tucorreo@gmail.com') ?>"
+                               value="<?= e(plataforma_cfg('avisos_email')) ?>">
+                        <div class="form-text">Puede ser tu Gmail personal; varios separados por coma. Vacío = el correo con el que entras aquí
+                            (<?= e(platform_admin()['email'] ?? '') ?>).</div>
+                    </div>
+                    <div class="col-sm-4">
+                        <button class="btn btn-outline-primary w-100"><i class="bi bi-check-lg"></i> Guardar</button>
                     </div>
                 </form>
 
