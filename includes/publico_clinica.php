@@ -159,6 +159,8 @@ include __DIR__ . '/publico_header.php';
        Sin foto: fondo claro con dos manchas del acento que se mueven lento.
        Con foto: la foto es el banner y un degradado blanco (izquierda→derecha
        en escritorio, de arriba abajo en móvil) garantiza que el texto se lea. */
+    /* color explícito: una regla heredada pintaba de blanco el texto del hero. */
+    .clx .hero, .clx .hero-info { color: var(--ink); }
     .clx .hero { position: relative; overflow: hidden;
                  background: radial-gradient(1200px 600px at 85% -10%, color-mix(in srgb, var(--cl) 16%, transparent), transparent 60%),
                              linear-gradient(170deg, var(--tint) 0%, #fff 70%); }
