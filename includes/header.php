@@ -164,7 +164,7 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
     <div class="row">
         <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block sidebar collapse">
             <div class="position-sticky pt-3">
-                <a href="<?= BASE_URL ?>/dashboard" class="brand text-decoration-none d-block">
+                <a href="<?= BASE_URL ?>/dashboard" class="brand text-decoration-none">
                     <?php if (cfg('marca_logo')): ?>
                         <span class="brand-logo"><img src="<?= e(cfg('marca_logo')) ?>" alt="<?= e($marca) ?>"></span>
                     <?php else: ?>
