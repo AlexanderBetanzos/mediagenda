@@ -59,7 +59,7 @@ include __DIR__ . '/../includes/header.php';
         <li class="breadcrumb-item active"><?= et('Nueva') ?></li>
     </ol>
 </nav>
-<h1 class="h3 mb-3"><?= et('Agendar cita') ?></h1>
+<h1 class="h3 mb-3 d-flex align-items-center gap-2"><?= et('Agendar cita') ?> <?= ayuda_btn('citas.nueva') ?></h1>
 
 <?php if ($errores): ?>
     <div class="alert alert-danger"><ul class="mb-0"><?php foreach ($errores as $e) echo '<li>'.e($e).'</li>'; ?></ul></div>

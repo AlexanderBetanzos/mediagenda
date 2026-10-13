@@ -12,9 +12,9 @@ $tid       = (int) tenant_id();
 $medFiltro = $esMedico ? ' AND medico_id = ' . (int) $u['id'] : '';
 
 /* Ocultar "Primeros pasos" (antes de imprimir nada). */
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'ocultar_pasos' && $esAdmin) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($_POST['action'] ?? '', ['ocultar_pasos', 'ocultar_migrar'], true) && $esAdmin) {
     verify_csrf();
-    guardar_cfg(['onboarding_oculto' => '1']);
+    guardar_cfg([$_POST['action'] === 'ocultar_pasos' ? 'onboarding_oculto' : 'migrar_oculto' => '1']);
     redirect('/dashboard');
 }
 
@@ -522,6 +522,26 @@ include __DIR__ . '/includes/header.php';
 </div>
 <?php endif; ?>
 
+<?php if ($esAdmin && $totPacientes < 50 && cfg('migrar_oculto') !== '1'): ?>
+<!-- ── Migración: el dueño casi siempre trae sus pacientes en Excel u otro sistema ── -->
+<div class="card mb-4 migrar-card">
+    <div class="card-body d-flex flex-wrap align-items-center gap-3">
+        <span class="migrar-ic"><i class="bi bi-file-earmark-arrow-up"></i></span>
+        <div class="flex-grow-1 min-w-0">
+            <div class="fw-semibold"><?= et('¿Tienes tus pacientes en Excel o en otro sistema?') ?></div>
+            <div class="small text-muted"><?= et('No los captures uno por uno: nosotros te ayudamos a pasar tu información a tu panel. Escríbenos y te ayudamos de forma personalizada.') ?></div>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="https://wa.me/<?= e(SOPORTE_WHATSAPP) ?>?text=<?= rawurlencode(t('Hola, quiero migrar mis pacientes a') . ' ' . marca_nombre() . '. ' . t('Los tengo en:') . ' ') ?>"
+               target="_blank" rel="noopener" class="btn btn-sm btn-success"><i class="bi bi-whatsapp"></i> <?= et('Migrar mis datos') ?></a>
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-ayuda="migrar"><i class="bi bi-question-circle"></i> <?= et('¿Cómo funciona?') ?></button>
+            <form method="post" class="m-0"><?= csrf_field() ?><input type="hidden" name="action" value="ocultar_migrar">
+                <button class="btn btn-sm btn-link text-muted text-decoration-none" title="<?= e(t('Ocultar')) ?>"><i class="bi bi-x-lg"></i></button></form>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+
 <?php if (micrositio_visible()):
     $urlPub  = micrositio_url();
     $pendWeb = $esAdmin ? micrositio_pendientes() : [];   // solo el admin puede arreglarlo
@@ -947,6 +967,9 @@ html.app-light .welcome-banner {
 .min-w-0 { min-width: 0; }
 .fin-row .fin-n { font-weight: 700; font-size: 1.45rem; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
 .pasos-card { border-left: 4px solid var(--brand) !important; }
+.migrar-card { border: 1px dashed color-mix(in srgb, var(--brand) 40%, transparent) !important; background: color-mix(in srgb, var(--brand) 4%, transparent); }
+.migrar-ic { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;
+             color: var(--brand); background: color-mix(in srgb, var(--brand) 12%, transparent); flex: none; }
 .pasos-card .paso { padding: .55rem .75rem; border-radius: 12px; border: 1px solid rgba(127,127,127,.18); }
 .pasos-card .paso.ok { opacity: .7; }
 </style>

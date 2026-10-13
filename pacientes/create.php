@@ -42,7 +42,7 @@ include __DIR__ . '/../includes/header.php';
         <li class="breadcrumb-item active"><?= et('Nuevo') ?></li>
     </ol>
 </nav>
-<h1 class="h3 mb-3"><?= et('Nuevo paciente') ?></h1>
+<h1 class="h3 mb-3 d-flex align-items-center gap-2"><?= et('Nuevo paciente') ?> <?= ayuda_btn('pacientes.nuevo') ?></h1>
 
 <?php if ($errores): ?>
     <div class="alert alert-danger"><ul class="mb-0"><?php foreach ($errores as $e) echo '<li>' . e($e) . '</li>'; ?></ul></div>

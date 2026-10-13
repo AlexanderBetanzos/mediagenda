@@ -158,8 +158,17 @@ html.app-light .sidebar {
     border-right: 1px solid rgba(15,23,42,.07);
     min-height: calc(100vh - 48px);
 }
-html.app-light .sidebar .brand { text-align: left; padding: .9rem 1.1rem .6rem; display: flex; align-items: center; gap: .6rem; }
-html.app-light .sidebar .brand-logo { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: color-mix(in srgb, var(--brand, #2563eb) 12%, #fff); flex: 0 0 auto; margin: 0; }
+/* Ficha de marca centrada: logo, nombre y "PANEL" en columna. Antes iban en
+   una fila flexible y con un logo cuadrado quedaban chuecos a la izquierda. */
+html.app-light .sidebar .brand { text-align: center; padding: 1.1rem 1rem .8rem; display: flex; flex-direction: column;
+                                 align-items: center; gap: .35rem; }
+html.app-light .sidebar .brand-logo { width: auto; min-width: 64px; height: 64px; max-width: 170px; padding: 6px; border-radius: 18px;
+                                      display: flex; align-items: center; justify-content: center; overflow: hidden;
+                                      background: color-mix(in srgb, var(--brand, #2563eb) 10%, #fff); border: 1px solid rgba(0,0,0,.05);
+                                      box-shadow: 0 4px 14px rgba(16,24,40,.07); flex: 0 0 auto; margin: 0 0 .2rem; }
+html.app-light .sidebar .brand-logo img { max-height: 52px; max-width: 156px; width: auto; height: auto; object-fit: contain; border-radius: 12px; }
+html.app-light .sidebar .brand-name { text-align: center; width: 100%; overflow: hidden; text-overflow: ellipsis; }
+html.app-light .sidebar .brand-sub { margin-top: 0; }
 html.app-light .sidebar .brand-name { color: #111827; font-size: 1.02rem; letter-spacing: -.01em; }
 html.app-light .sidebar .brand-sub { color: #9aa1ac; }
 
