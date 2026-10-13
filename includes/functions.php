@@ -953,7 +953,9 @@ function edad(?string $fnac): string
  */
 function imc($peso, $estatura_cm): ?array
 {
-    $peso = (float) $peso; $h = (float) $estatura_cm / 100;
+    // El campo pide cm, pero es muy común capturar 1.72 (metros): menos de 3
+    // se toma como metros. Antes 1.72 "cm" daba un IMC de 299,148.
+    $peso = (float) $peso; $e = (float) $estatura_cm; $h = $e > 0 && $e < 3 ? $e : $e / 100;
     if ($peso <= 0 || $h <= 0) return null;
     $v = round($peso / ($h * $h), 1);
     if ($v < 18.5)      [$cat, $col] = ['Bajo peso', 'info'];
@@ -961,6 +963,14 @@ function imc($peso, $estatura_cm): ?array
     elseif ($v < 30)    [$cat, $col] = ['Sobrepeso', 'warning'];
     else                [$cat, $col] = ['Obesidad', 'danger'];
     return ['valor' => $v, 'categoria' => $cat, 'color' => $col];
+}
+
+/** Estatura legible: 1.72 → "1.72 m", 172 → "172 cm" (se capturan de las dos formas). */
+function fmt_estatura($v): string
+{
+    $v = (float) $v;
+    if ($v <= 0) return '';
+    return $v < 3 ? rtrim(rtrim(number_format($v, 2, '.', ''), '0'), '.') . ' m' : rtrim(rtrim(number_format($v, 1, '.', ''), '0'), '.') . ' cm';
 }
 
 /** Formatea un número como dinero, ej: $1,250.00. */

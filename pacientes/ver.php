@@ -225,7 +225,7 @@ foreach ($vsRows as $r) {
     $vsLabels[] = date('d/m/y', strtotime($r['fecha']));
     $vsSeries['peso'][] = ($r['peso'] ?? null) !== null ? (float) $r['peso'] : null;
     $imcV = imc($r['peso'] ?? 0, $r['estatura'] ?? 0);
-    $vsSeries['imc'][] = $imcV ? round((float) $imcV, 1) : null;
+    $vsSeries['imc'][] = $imcV ? round((float) $imcV['valor'], 1) : null;
     $sis = $dia = null;
     if (!empty($r['presion']) && preg_match('#(\d{2,3})\s*/\s*(\d{2,3})#', $r['presion'], $m)) { $sis = (int) $m[1]; $dia = (int) $m[2]; }
     $vsSeries['sistolica'][]  = $sis;
@@ -369,51 +369,68 @@ include __DIR__ . '/../includes/header.php';
         <?php endif; ?>
         </div>
     </div>
+    <?php
+    /* Acciones ordenadas: lo de todos los días a la vista (WhatsApp, cita,
+       receta y la herramienta principal de la especialidad) y el resto en
+       "Más acciones", agrupado por tipo. Antes eran 13 botones sueltos. */
+    require_once __DIR__ . '/../includes/paciente_wa.php';
+    $waMsg = paciente_wa_mensaje($p);
+    $waUrl = wa_link($p['telefono'] ?? '', $waMsg);
+    $pid   = '?paciente_id=' . $id;
+    $esp   = [];   // [url, icono, etiqueta]
+    if (modulo_activo('especialidades') && has_role('medico', 'admin')) {
+        foreach (giro_accesos() as [$ruta, $lbl, $ic]) {
+            if ($ruta === '/optica/graduacion' && modulo_activo('optica')) continue;
+            if ($ruta === '/crecimiento/index' && es_veterinaria()) continue;
+            $esp[$ruta] = [BASE_URL . $ruta . $pid, $ic, t($lbl)];
+        }
+        if ($p['tipo'] === 'dental') $esp['/odontograma/index'] = [BASE_URL . '/odontograma/index' . $pid, 'bi-emoji-smile', t('Odontograma')];
+        if (!es_veterinaria())      $esp['/crecimiento/index'] = [BASE_URL . '/crecimiento/index' . $pid, 'bi-graph-up-arrow', t('Crecimiento')];
+    }
+    $esp = array_values($esp);
+    $principal = array_shift($esp);   // la herramienta de la especialidad va al frente
+    $cobros = $estudios = [];
+    if (modulo_activo('facturacion'))  $cobros[]   = [BASE_URL . '/facturacion/create' . $pid, 'bi-receipt', t('Nuevo cobro')];
+    if (modulo_activo('presupuestos')) $cobros[]   = [BASE_URL . '/presupuestos/index' . $pid, 'bi-clipboard2-check', t('Presupuestos')];
+    if (modulo_activo('laboratorio'))  $estudios[] = [BASE_URL . '/laboratorio/index' . $pid, 'bi-eyedropper', t('Laboratorio')];
+    if (modulo_activo('imagenologia')) $estudios[] = [BASE_URL . '/imagenologia/index' . $pid, 'bi-soundwave', t('Ultrasonidos')];
+    if (modulo_activo('optica'))       $estudios[] = [BASE_URL . '/optica/graduacion' . $pid, 'bi-eyeglasses', t('Graduación')];
+    $grupos = array_filter([t('Cobros') => $cobros, t('Estudios') => $estudios, t('Especialidad') => $esp]);
+    ?>
     <div class="ficha-acc">
-        <?php /* WhatsApp al paciente con su próxima cita, su portal y la página
-                 del consultorio (como la ficha del socio en Khronos). */
-        require_once __DIR__ . '/../includes/paciente_wa.php';
-        $waMsg = paciente_wa_mensaje($p);
-        $waUrl = wa_link($p['telefono'] ?? '', $waMsg); ?>
-        <?php if ($waUrl): ?>
-        <a href="<?= e($waUrl) ?>" target="_blank" rel="noopener" class="btn btn-success"><i class="bi bi-whatsapp"></i> WhatsApp</a>
-        <?php else: ?>
-        <span class="btn btn-outline-secondary disabled" title="<?= e(t('Agrega su teléfono para mandarle WhatsApp')) ?>"><i class="bi bi-whatsapp"></i> <?= et('Sin teléfono') ?></span>
+        <div class="btn-group">
+            <?php if ($waUrl): ?>
+            <a href="<?= e($waUrl) ?>" target="_blank" rel="noopener" class="btn btn-success"><i class="bi bi-whatsapp"></i> WhatsApp</a>
+            <?php else: ?>
+            <span class="btn btn-outline-secondary disabled" title="<?= e(t('Agrega su teléfono para mandarle WhatsApp')) ?>"><i class="bi bi-whatsapp"></i> <?= et('Sin teléfono') ?></span>
+            <?php endif; ?>
+            <button type="button" class="btn <?= $waUrl ? 'btn-success' : 'btn-outline-secondary' ?> dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false" aria-label="<?= e(t('Más opciones de WhatsApp')) ?>"></button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li><button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#waPreviewModal"><i class="bi bi-eye me-2"></i><?= et('Vista previa del mensaje') ?></button></li>
+            </ul>
+        </div>
+        <a href="<?= BASE_URL ?>/citas/create<?= $pid ?>" class="btn btn-primary"><i class="bi bi-calendar-plus"></i> <?= et('Cita') ?></a>
+        <?php if (has_role('medico', 'admin') && modulo_activo('recetas')): ?>
+        <a href="<?= BASE_URL ?>/recetas/create<?= $pid ?>" class="btn btn-outline-primary"><i class="bi bi-capsule"></i> <?= et('Receta') ?></a>
         <?php endif; ?>
-        <button type="button" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#waPreviewModal"><i class="bi bi-eye"></i> <?= et('Vista previa del WhatsApp') ?></button>
-        <a href="<?= BASE_URL ?>/citas/create?paciente_id=<?= $id ?>" class="btn btn-outline-primary"><i class="bi bi-calendar-plus"></i> <?= et('Cita') ?></a>
-        <?php if (has_role('medico', 'admin')): ?>
-        <a href="<?= BASE_URL ?>/recetas/create?paciente_id=<?= $id ?>" class="btn btn-outline-primary"><i class="bi bi-capsule"></i> <?= et('Receta') ?></a>
+        <?php if ($principal): ?>
+        <a href="<?= e($principal[0]) ?>" class="btn btn-outline-primary"><i class="bi <?= $principal[1] ?>"></i> <?= e($principal[2]) ?></a>
         <?php endif; ?>
-        <?php if (modulo_activo('presupuestos')): ?>
-        <a href="<?= BASE_URL ?>/presupuestos/index?paciente_id=<?= $id ?>" class="btn btn-outline-primary"><i class="bi bi-clipboard2-check"></i> <?= et('Presupuestos') ?></a>
+        <?php if ($grupos): ?>
+        <div class="dropdown">
+            <button type="button" class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-grid"></i> <?= et('Más acciones') ?></button>
+            <ul class="dropdown-menu dropdown-menu-end ficha-mas">
+                <?php $primero = true; foreach ($grupos as $tit => $items): ?>
+                    <?php if (!$primero): ?><li><hr class="dropdown-divider"></li><?php endif; $primero = false; ?>
+                    <li><h6 class="dropdown-header"><?= e($tit) ?></h6></li>
+                    <?php foreach ($items as [$u, $ic, $lbl]): ?>
+                    <li><a class="dropdown-item" href="<?= e($u) ?>"><i class="bi <?= $ic ?> me-2"></i><?= e($lbl) ?></a></li>
+                    <?php endforeach; ?>
+                <?php endforeach; ?>
+            </ul>
+        </div>
         <?php endif; ?>
-        <?php if (modulo_activo('laboratorio')): ?>
-        <a href="<?= BASE_URL ?>/laboratorio/index?paciente_id=<?= $id ?>" class="btn btn-outline-primary"><i class="bi bi-eyedropper"></i> <?= et('Laboratorio') ?></a>
-        <?php endif; ?>
-        <?php if (modulo_activo('imagenologia')): ?>
-        <a href="<?= BASE_URL ?>/imagenologia/index?paciente_id=<?= $id ?>" class="btn btn-outline-primary"><i class="bi bi-soundwave"></i> <?= et('Ultrasonidos') ?></a>
-        <?php endif; ?>
-        <?php if (modulo_activo('optica')): ?>
-        <a href="<?= BASE_URL ?>/optica/graduacion?paciente_id=<?= $id ?>" class="btn btn-outline-primary"><i class="bi bi-eyeglasses"></i> <?= et('Graduación') ?></a>
-        <?php endif; ?>
-        <a href="<?= BASE_URL ?>/facturacion/create?paciente_id=<?= $id ?>" class="btn btn-outline-primary"><i class="bi bi-receipt"></i> <?= et('Factura') ?></a>
-        <?php if (modulo_activo('especialidades') && has_role('medico', 'admin')): ?>
-        <?php /* Accesos de la especialidad del consultorio (su giro), al frente. */
-        foreach (giro_accesos() as [$ruta, $lbl, $ic]):
-            if ($ruta === '/odontograma/index' && $p['tipo'] === 'dental') continue;   // ya sale abajo
-            if ($ruta === '/crecimiento/index') continue;                              // ya sale abajo
-            if ($ruta === '/optica/graduacion' && modulo_activo('optica')) continue;   // ya sale arriba ?>
-        <a href="<?= BASE_URL . $ruta ?>?paciente_id=<?= $id ?>" class="btn btn-primary"><i class="bi <?= $ic ?>"></i> <?= et($lbl) ?></a>
-        <?php endforeach; ?>
-        <?php if ($p['tipo'] === 'dental'): ?>
-        <a href="<?= BASE_URL ?>/odontograma/index?paciente_id=<?= $id ?>" class="btn btn-outline-primary"><i class="bi bi-emoji-smile"></i> <?= et('Odontograma') ?></a>
-        <?php endif; ?>
-        <?php if (!es_veterinaria()): ?>
-        <a href="<?= BASE_URL ?>/crecimiento/index?paciente_id=<?= $id ?>" class="btn btn-outline-primary"><i class="bi bi-graph-up-arrow"></i> <?= et('Crecimiento') ?></a>
-        <?php endif; ?>
-        <?php endif; ?>
-        <a href="<?= BASE_URL ?>/pacientes/edit?id=<?= $id ?>" class="btn btn-outline-secondary"><i class="bi bi-pencil"></i> <?= et('Editar') ?></a>
+        <a href="<?= BASE_URL ?>/pacientes/edit?id=<?= $id ?>" class="btn btn-light btn-icon" title="<?= e(t('Editar datos')) ?>" aria-label="<?= e(t('Editar datos')) ?>"><i class="bi bi-pencil"></i></a>
     </div>
 </div>
 
@@ -463,7 +480,7 @@ echo ui_stats($__est); ?>
                     <i class="bi bi-heart-pulse"></i>
                     <?php if ($v['presion']): ?><?= e($v['presion']) ?> · <?php endif; ?>
                     <?php if ($v['peso']): ?><?= e($v['peso']) ?> kg<?php endif; ?>
-                    <?php if ($resumen['imc']): ?> · IMC <?= e((string) $resumen['imc']) ?><?php endif; ?>
+                    <?php if ($resumen['imc']): ?> · IMC <?= e((string) ($resumen['imc']['valor'] ?? '')) ?><?php endif; ?>
                     <span class="opacity-75">(<?= fmt_fecha($v['fecha']) ?>)</span>
                 </span>
             <?php endif; ?>
@@ -800,7 +817,7 @@ echo ui_stats($__est); ?>
                                     <input type="text" name="motivo" class="form-control">
                                 </div>
                                 <div class="col-6 col-md-3"><label class="form-label"><?= et('Peso (kg)') ?></label><input type="number" step="0.01" min="0" name="peso" class="form-control"></div>
-                                <div class="col-6 col-md-3"><label class="form-label"><?= et('Estatura (cm)') ?></label><input type="number" step="0.01" min="0" name="estatura" class="form-control"></div>
+                                <div class="col-6 col-md-3"><label class="form-label"><?= et('Estatura (cm)') ?></label><input type="number" step="0.01" min="0" name="estatura" class="form-control" placeholder="<?= e(t('Ej. 172')) ?>"></div>
                                 <div class="col-6 col-md-3"><label class="form-label"><?= et('Presión') ?></label><input type="text" name="presion" class="form-control" placeholder="120/80"></div>
                                 <div class="col-6 col-md-3"><label class="form-label"><?= et('Temp. (°C)') ?></label><input type="number" step="0.1" min="0" name="temperatura" class="form-control"></div>
                                 <div class="col-6 col-md-3"><label class="form-label"><?= et('Glucosa (mg/dL)') ?></label><input type="number" step="0.1" min="0" name="glucosa" class="form-control"></div>
@@ -964,7 +981,7 @@ echo ui_stats($__est); ?>
                             <?php
                             $vitales = array_filter([
                                 $c['peso'] ? t('Peso') . ": {$c['peso']} kg" : null,
-                                $c['estatura'] ? t('Estatura') . ": {$c['estatura']} cm" : null,
+                                $c['estatura'] ? t('Estatura') . ': ' . fmt_estatura($c['estatura']) : null,
                                 $c['presion'] ? t('PA') . ": {$c['presion']}" : null,
                                 $c['temperatura'] ? t('Temp') . ": {$c['temperatura']} °C" : null,
                                 !empty($c['glucosa']) ? t('Glucosa') . ": {$c['glucosa']} mg/dL" : null,
