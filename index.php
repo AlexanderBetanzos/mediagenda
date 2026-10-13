@@ -92,7 +92,7 @@ track_pageview('publico');
 <header class="lp-hero">
     <span class="lp-blob" aria-hidden="true"></span>
     <div class="container">
-        <div class="row align-items-center g-5 lp-hero-row">
+        <div class="row align-items-center g-4 g-lg-5 lp-hero-row">
             <div class="col-lg-6 lp-hero-text">
                 <span class="lp-pill mb-3"><i class="bi bi-patch-check-fill"></i> Hecho para consultorios de México</span>
                 <h1 class="lp-h1 mb-3">Toma el control<br><span class="lp-h1-ac">de tu consultorio</span></h1>
@@ -111,7 +111,9 @@ track_pageview('publico');
                     ['bi-gift',             trial_dias_oferta() . ' días', 'De prueba, sin tarjeta'],
                     ['bi-cash-coin',        '0%',  'Comisión sobre tus cobros'],
                 ];
-                foreach ($datos as [$ic, $n, $l]): ?>
+                ?>
+                <div class="lp-stats">
+                <?php foreach ($datos as [$ic, $n, $l]): ?>
                 <div class="lp-stat">
                     <span class="lp-stat-ic"><i class="bi <?= $ic ?>"></i></span>
                     <span>
@@ -120,6 +122,7 @@ track_pageview('publico');
                     </span>
                 </div>
                 <?php endforeach; ?>
+                </div>
             </div>
 
             <div class="col-lg-6">
@@ -237,7 +240,7 @@ track_pageview('publico');
 <!-- Destacado 1: Agenda -->
 <section class="py-6 bg-white">
     <div class="container">
-        <div class="row align-items-center g-5">
+        <div class="row align-items-center g-4 g-lg-5">
             <div class="col-lg-6" data-reveal="left">
                 <span class="lp-eyebrow">Agenda inteligente</span>
                 <h2 class="section-title mb-3">Tu día, organizado y bajo control</h2>
@@ -276,7 +279,7 @@ track_pageview('publico');
 <!-- Destacado 2: Expediente + Cobros -->
 <section class="py-6">
     <div class="container">
-        <div class="row align-items-center g-5 flex-lg-row-reverse">
+        <div class="row align-items-center g-4 g-lg-5 flex-lg-row-reverse">
             <div class="col-lg-6" data-reveal="right">
                 <span class="lp-eyebrow">Expediente y cobros</span>
                 <h2 class="section-title mb-3">Historial clínico y facturación, sin papeles</h2>
@@ -289,25 +292,35 @@ track_pageview('publico');
                 <a href="<?= BASE_URL ?>/auth/registro" class="btn btn-primary mt-2">Probar gratis <i class="bi bi-arrow-right"></i></a>
             </div>
             <div class="col-lg-6" data-reveal="left">
-                <div class="row g-3 lp-shot">
-                    <div class="col-7">
-                        <div class="card shadow-sm border-0 h-100"><div class="card-body p-3">
-                            <div class="small text-muted">Paciente</div>
-                            <div class="fw-semibold mb-2">María García</div>
-                            <span class="badge bg-danger-subtle text-danger">Alergia: Penicilina</span>
-                            <hr>
-                            <div class="small"><i class="bi bi-file-medical text-brand"></i> Cefalea tensional</div>
-                            <div class="small text-muted">12/06 · Dra. Laura</div>
-                        </div></div>
-                    </div>
-                    <div class="col-5">
-                        <div class="card shadow-sm border-0 h-100"><div class="card-body p-3 text-center">
-                            <div class="small text-muted">Cobrado (mes)</div>
-                            <div class="h4 text-success mb-0">$48,200</div>
-                            <hr>
-                            <span class="badge bg-success">Pagada</span>
-                            <div class="small text-muted mt-1">F-2026-0042</div>
-                        </div></div>
+                <?php /* Ventana de expediente con los mismos datos de ejemplo de siempre
+                         (María García, Penicilina, $48,200): antes eran dos tarjetitas
+                         sueltas perdidas en la columna. */ ?>
+                <div class="lp-mock lp-exp">
+                    <div class="lp-mock-bar"><span></span><span></span><span></span></div>
+                    <div class="lp-exp-body">
+                        <div class="lp-exp-head">
+                            <span class="lp-exp-av">MG</span>
+                            <div class="flex-grow-1">
+                                <div class="lp-exp-nm">María García</div>
+                                <div class="lp-exp-sub">Expediente clínico</div>
+                            </div>
+                            <span class="lp-exp-alg"><i class="bi bi-exclamation-triangle-fill"></i> Alergia: Penicilina</span>
+                        </div>
+                        <div class="lp-exp-tabs"><span class="on">Consultas</span><span>Recetas</span><span>Pagos</span></div>
+                        <div class="lp-exp-item">
+                            <span class="lp-exp-ic"><i class="bi bi-file-medical"></i></span>
+                            <div class="flex-grow-1"><div class="fw-semibold">Cefalea tensional</div><div class="lp-exp-sub">12/06 · Dra. Laura</div></div>
+                            <i class="bi bi-chevron-right text-muted"></i>
+                        </div>
+                        <div class="lp-exp-item">
+                            <span class="lp-exp-ic"><i class="bi bi-capsule"></i></span>
+                            <div class="flex-grow-1"><div class="fw-semibold">Receta con tu marca</div><div class="lp-exp-sub">Lista para imprimir</div></div>
+                            <i class="bi bi-printer text-muted"></i>
+                        </div>
+                        <div class="lp-exp-pay">
+                            <div><div class="lp-exp-sub">Cobrado (mes)</div><div class="lp-exp-money">$48,200</div></div>
+                            <div class="text-end"><span class="badge bg-success">Pagada</span><div class="lp-exp-sub mt-1">F-2026-0042</div></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -491,6 +504,87 @@ track_pageview('publico');
     html.lp-dark .lp-plan.feat .btn-plan { background: var(--brand); color: #fff; border-color: var(--brand); }
     html.lp-dark .lp-feature h5 { color: var(--d-ink); }
     html.lp-dark body.lp .section-title { color: var(--d-ink); }
+
+    /* ── Pulido ────────────────────────────────────────────────────────── */
+    /* Eyebrow en pastilla: marca el inicio de cada sección sin gritar. */
+    body.lp .lp-eyebrow { display: inline-flex; align-items: center; gap: .35rem; color: var(--brand);
+                          background: color-mix(in srgb, var(--brand) 8%, #fff); padding: .36rem .85rem;
+                          border-radius: 999px; font-size: .74rem; letter-spacing: .12em; margin-bottom: .9rem; }
+    body.lp .section-title { font-size: clamp(1.9rem, 3.6vw, 2.75rem); }
+
+    /* Mancha del hero: difuminada, sin el borde duro del círculo. */
+    .lp-blob { filter: blur(50px); opacity: .85; }
+
+    /* Cifras del hero: una franja pareja de tres, con divisores finos. Antes
+       el 0% caía solo en una segunda fila. */
+    .lp-stats { display: grid; grid-template-columns: repeat(3, auto); justify-content: start; gap: 0;
+                margin-top: .4rem; }
+    .lp-stats .lp-stat { margin: 0; padding: 0 1.6rem; border-left: 1px solid rgba(0,0,0,.08); }
+    .lp-stats .lp-stat:first-child { padding-left: 0; border-left: 0; }
+    @media (max-width: 991.98px) {
+        .lp-stats { justify-content: center; }
+    }
+    @media (max-width: 575.98px) {
+        .lp-stats { grid-template-columns: repeat(3, 1fr); width: 100%; }
+        .lp-stats .lp-stat { flex-direction: column; text-align: center; gap: .4rem; padding: 0 .4rem; }
+        .lp-stats .lp-stat-l { font-size: .74rem; line-height: 1.25; }
+    }
+
+    /* Foto de la sección de agenda: encuadre a la cara, no a la frente. */
+    .lp-photo { background-position: center 22% !important; }
+    .lp-checklist li i { color: var(--brand); }
+
+    /* Ventana del expediente */
+    .lp-exp { max-width: 500px; margin: 0 auto 0 0; }
+    @media (max-width: 991.98px) { .lp-exp { margin: 0 auto; } }
+    .lp-exp-body { background: #fff; border-radius: 0 0 18px 18px; padding: 1.4rem;
+                   box-shadow: 0 2px 10px rgba(15,30,60,.05), 0 30px 70px rgba(15,30,60,.13); }
+    .lp-exp-head { display: flex; align-items: center; gap: .85rem; flex-wrap: wrap; }
+    .lp-exp-av { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+                 font-weight: 700; color: var(--brand); background: color-mix(in srgb, var(--brand) 10%, #fff); }
+    .lp-exp-nm { font-family: var(--font-display); font-weight: 650; font-size: 1.12rem; letter-spacing: -.02em; color: var(--ink); }
+    .lp-exp-sub { font-size: .8rem; color: var(--muted); }
+    .lp-exp-alg { font-size: .78rem; font-weight: 600; color: #b91c1c; background: #fee2e2; border-radius: 999px; padding: .32rem .75rem; }
+    .lp-exp-tabs { display: flex; gap: .4rem; margin: 1.1rem 0 .9rem; }
+    .lp-exp-tabs span { font-size: .8rem; font-weight: 600; color: var(--muted); padding: .38rem .8rem; border-radius: 999px; background: var(--surface); }
+    .lp-exp-tabs span.on { background: var(--brand); color: #fff; }
+    .lp-exp-item { display: flex; align-items: center; gap: .8rem; padding: .8rem .9rem; border: 1px solid rgba(0,0,0,.06);
+                   border-radius: 14px; margin-bottom: .55rem; font-size: .92rem; color: var(--ink); }
+    .lp-exp-ic { width: 38px; height: 38px; flex: none; border-radius: 11px; display: flex; align-items: center; justify-content: center;
+                 color: var(--brand); background: color-mix(in srgb, var(--brand) 9%, #fff); }
+    .lp-exp-pay { display: flex; justify-content: space-between; align-items: center; margin-top: .9rem; padding: .95rem 1rem;
+                  border-radius: 14px; background: linear-gradient(135deg, #f0fdf4, #ecfdf5); }
+    .lp-exp-money { font-family: var(--font-display); font-weight: 700; font-size: 1.5rem; letter-spacing: -.03em; color: #15803d; }
+
+    /* Comparación: tarjetas con más aire y sin el borde de color pesado. */
+    .lp-compare { border-radius: 22px !important; border-width: 1px !important; }
+    .lp-compare .card-body { padding: 2rem !important; }
+    .lp-compare h5 { font-family: var(--font-display); font-weight: 650; letter-spacing: -.02em; }
+
+    /* Preguntas: tarjetas limpias; la abierta se marca con borde, no con un bloque azul. */
+    .lp-faq .accordion-item { border: 1px solid rgba(0,0,0,.06) !important; border-radius: 18px !important; margin-bottom: .75rem;
+                              box-shadow: 0 1px 4px rgba(0,0,0,.02), 0 8px 24px rgba(15,30,60,.04);
+                              transition: border-color .25s ease, box-shadow .25s ease; }
+    .lp-faq .accordion-item:has(.accordion-button:not(.collapsed)) { border-color: color-mix(in srgb, var(--brand) 35%, transparent) !important;
+                              box-shadow: 0 2px 8px rgba(0,0,0,.03), 0 16px 40px rgba(37,99,235,.08); }
+    .lp-faq .accordion-button { padding: 1.15rem 1.35rem; font-weight: 600; letter-spacing: -.012em; color: var(--ink); background: #fff; }
+    .lp-faq .accordion-button:not(.collapsed) { background: #fff; color: var(--brand); box-shadow: none; }
+    .lp-faq .accordion-body { padding: 0 1.35rem 1.25rem; line-height: 1.6; }
+
+    /* CTA final: panel redondeado con degradado y círculos de luz. */
+    .lp-cta-sec { padding: 1rem 0 5rem; }
+    .lp-cta2 { position: relative; overflow: hidden; border-radius: 32px; color: #fff; padding: 4.5rem 1.5rem;
+               background: linear-gradient(125deg, var(--brand-dark) 0%, var(--brand) 55%, #38bdf8 135%);
+               box-shadow: 0 30px 80px rgba(37,99,235,.28); }
+    .lp-cta2::before, .lp-cta2::after { content: ''; position: absolute; border-radius: 50%; background: rgba(255,255,255,.10); pointer-events: none; }
+    .lp-cta2::before { width: 440px; height: 440px; right: -140px; top: -200px; }
+    .lp-cta2::after  { width: 320px; height: 320px; left: -120px; bottom: -170px; }
+    .lp-cta2 > * { position: relative; z-index: 1; }
+    .lp-cta2-t { font-family: var(--font-display); font-weight: 700; letter-spacing: -.04em; line-height: 1.05;
+                 font-size: clamp(2rem, 4.6vw, 3.2rem); }
+    .lp-cta2-p { font-size: 1.12rem; color: rgba(255,255,255,.9); max-width: 46ch; margin-inline: auto; line-height: 1.55; }
+    .lp-cta2 .btn-light { border-radius: 980px; padding: .95rem 2.2rem; box-shadow: 0 14px 34px rgba(0,0,0,.18); }
+    @media (max-width: 575.98px) { .lp-cta2 { border-radius: 24px; padding: 3.2rem 1.2rem; } }
 </style>
 
 <section id="planes" class="lp-planes py-6">
@@ -562,6 +656,7 @@ track_pageview('publico');
 <section id="faq" class="py-6">
     <div class="container" style="max-width:760px">
         <div class="text-center mb-5" data-reveal>
+            <span class="lp-eyebrow">Preguntas</span>
             <h2 class="section-title">Preguntas frecuentes</h2>
         </div>
         <div class="accordion lp-faq" id="faqAcc" data-reveal>
@@ -587,16 +682,20 @@ track_pageview('publico');
 </section>
 
 <!-- CTA final -->
-<section class="lp-cta" style="background-image:url('https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=1600&q=75&auto=format&fit=crop')">
-    <div class="container text-center position-relative" data-reveal="zoom">
-        <h2 class="display-6 fw-bold mb-3">Lleva tu consultorio al siguiente nivel</h2>
-        <p class="lead mb-4">Cada semana que pasa son citas olvidadas y expedientes en papel. 15 días gratis con acceso completo: sin tarjeta, sin compromiso.</p>
+<?php /* Panel redondeado en vez de la foto con velo azul: la foto se veía
+         borrosa detrás del degradado y no aportaba nada. */ ?>
+<section class="lp-cta-sec">
+    <div class="container">
+    <div class="lp-cta2 text-center" data-reveal="zoom">
+        <h2 class="lp-cta2-t mb-3">Lleva tu consultorio al siguiente nivel</h2>
+        <p class="lp-cta2-p mb-4">Cada semana que pasa son citas olvidadas y expedientes en papel. 15 días gratis con acceso completo: sin tarjeta, sin compromiso.</p>
         <a href="<?= BASE_URL ?>/auth/registro" class="btn btn-light btn-lg px-5 text-brand fw-semibold"><i class="bi bi-rocket-takeoff"></i> Prueba <?= e($marca) ?> hoy</a>
         <div class="d-flex justify-content-center flex-wrap gap-4 mt-4 small opacity-75">
             <span><i class="bi bi-check-circle-fill"></i> Configúralo en minutos</span>
             <span><i class="bi bi-check-circle-fill"></i> Soporte en español</span>
             <span><i class="bi bi-check-circle-fill"></i> Cancela cuando quieras</span>
         </div>
+    </div>
     </div>
 </section>
 
