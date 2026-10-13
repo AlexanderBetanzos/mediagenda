@@ -133,6 +133,12 @@ $rango = $sameDay ? fmt_fecha($from) : (fmt_fecha($from) . ' → ' . fmt_fecha($
 
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2 d-print-none">
     <h1 class="h3 mb-0"><i class="bi bi-cash-stack text-brand"></i> <?= et('Corte de caja') ?></h1>
+    <?php /* Este es el REPORTE por fechas; el cierre real (arqueo, diferencia,
+             relevo) vive en cerrar/cierres. */ ?>
+    <div class="d-flex flex-wrap gap-2">
+        <a href="<?= BASE_URL ?>/corte/cierres" class="btn btn-sm btn-outline-secondary"><i class="bi bi-clock-history"></i> <?= et('Historial de cierres') ?></a>
+        <a href="<?= BASE_URL ?>/corte/cerrar" class="btn btn-sm btn-primary"><i class="bi bi-lock-fill"></i> <?= et('Cerrar mi corte') ?></a>
+    </div>
 </div>
 
 <!-- Filtros + exportar -->

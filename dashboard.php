@@ -297,6 +297,17 @@ if ($esAdmin && cfg('onboarding_oculto') !== '1') {
     if (count(array_filter($pasos, fn ($p) => $p[0])) === count($pasos)) $pasos = [];   // todo listo: no estorba
 }
 
+/* Tus cortes de hoy (de Khronos): cada quien cierra lo que cobró; el admin
+   además ve el corte general. */
+$cortesHoy = [];
+if ($verFacturacion) {
+    require_once __DIR__ . '/includes/cortes.php';
+    try {
+        $cortesHoy['propio'] = [t('Mi corte'), cierre_estado_hoy('propio', (int) $u['id'])];
+        if ($esAdmin) $cortesHoy['general'] = [t('General'), cierre_estado_hoy('general')];
+    } catch (Throwable $e) { $cortesHoy = []; }
+}
+
 /* ── Exportar a CSV por módulo (antes de imprimir el layout) ─────────── */
 /* Cada módulo se descarga en su propio archivo, con metadatos al inicio.
  * La lista respeta plan y rol: solo se ofrece lo que el usuario puede ver. */
@@ -449,6 +460,29 @@ include __DIR__ . '/includes/header.php';
         </div>
     </div>
 </div>
+
+<?php if ($cortesHoy): ?>
+<!-- ── Tus cortes de hoy (de Khronos) ───────────────────────────────── -->
+<div class="card mb-3">
+    <div class="card-body d-flex flex-wrap align-items-center gap-2 py-2">
+        <span class="fw-semibold small"><i class="bi bi-safe2 text-brand"></i> <?= et('Tus cortes de hoy') ?>:</span>
+        <?php foreach ($cortesHoy as $alc => [$lbl, $est]):
+            $cer = $est['cerrado_hoy'];
+            $cls = ($est['num'] > 0) ? 'text-bg-warning' : ($cer ? 'text-bg-success' : 'bg-light text-secondary border');
+            $url = ($est['num'] > 0 || !$cer) ? BASE_URL . '/corte/cerrar?alcance=' . $alc : BASE_URL . '/corte/cierre?id=' . (int) $cer['id']; ?>
+            <a href="<?= e($url) ?>" class="badge rounded-pill text-decoration-none <?= $cls ?>" style="font-size:.85rem;padding:.5em .95em">
+                <i class="bi <?= $est['num'] > 0 ? 'bi-exclamation-circle-fill' : ($cer ? 'bi-check-circle-fill' : 'bi-circle') ?>"></i>
+                <?= e($lbl) ?>:
+                <?php if ($cer): ?><?= et('cerrado') ?> <?= e(date('H:i', strtotime($cer['cerrado_en']))) ?><?php endif; ?>
+                <?php if ($est['num'] > 0): ?><?= $cer ? '· ' : '' ?><?= et('pendiente') ?> · <?= (int) $est['num'] ?> <?= et('cobros') ?> · <?= fmt_money($est['total']) ?>
+                <?php elseif (!$cer): ?><?= et('sin cobros') ?><?php endif; ?>
+            </a>
+        <?php endforeach; ?>
+        <span class="small text-muted"><?= et('Al terminar tu turno, cierra tu corte.') ?></span>
+        <a href="<?= BASE_URL ?>/corte/cierres" class="small ms-auto"><?= et('Historial →') ?></a>
+    </div>
+</div>
+<?php endif; ?>
 
 <?php if ($pasos):
     $hechos = count(array_filter($pasos, fn ($x) => $x[0]));

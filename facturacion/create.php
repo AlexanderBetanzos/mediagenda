@@ -55,6 +55,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $it->execute([$fid, $row[0], $row[1], $row[2], $row[3]]);
         }
         $pdo->commit();
+        // Quién cobró y cuándo, para su cierre de caja (fuera de la transacción:
+        // asegurar_cortes() puede hacer un ALTER, que en MySQL confirma solo).
+        require_once __DIR__ . '/../includes/cortes.php';
+        registrar_cobro((int) $fid);
         auditar('crear', 'factura', (int) $fid, $folio);
         flash('Factura ' . $folio . ' creada.');
         redirect('/facturacion/ver?id=' . $fid);

@@ -74,6 +74,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
     $pdo->commit();
+    require_once __DIR__ . '/../includes/cortes.php';
+    registrar_cobro($fid);   // entra en el cierre de caja de quien vendió
     auditar('crear', 'venta_pos', $fid, $folio . ' · ' . fmt_money($subtotal));
     flash('Venta cobrada · ' . $folio . ' · ' . fmt_money($subtotal));
     redirect('/facturacion/ver?id=' . $fid);
