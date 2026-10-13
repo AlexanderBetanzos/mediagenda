@@ -59,6 +59,7 @@ function ayuda_textos(): array
                 $vet ? 'Puedes buscar por nombre de la mascota, propietario, especie, raza, teléfono o microchip.'
                      : 'Para encontrar a alguien escribe su nombre, teléfono o correo en el buscador.',
                 'Las <b>alergias</b> salen en rojo en el expediente para que nadie las pase por alto.',
+                'En la ficha, el botón <b>WhatsApp</b> le manda su próxima cita, el acceso a su portal (citas, recetas y estudios) y tu página para agendar. Revisa el texto antes con <b>Vista previa del WhatsApp</b>.',
             ],
         ],
         'pacientes.nuevo' => [

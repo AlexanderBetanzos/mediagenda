@@ -370,6 +370,17 @@ include __DIR__ . '/../includes/header.php';
         </div>
     </div>
     <div class="ficha-acc">
+        <?php /* WhatsApp al paciente con su próxima cita, su portal y la página
+                 del consultorio (como la ficha del socio en Khronos). */
+        require_once __DIR__ . '/../includes/paciente_wa.php';
+        $waMsg = paciente_wa_mensaje($p);
+        $waUrl = wa_link($p['telefono'] ?? '', $waMsg); ?>
+        <?php if ($waUrl): ?>
+        <a href="<?= e($waUrl) ?>" target="_blank" rel="noopener" class="btn btn-success"><i class="bi bi-whatsapp"></i> WhatsApp</a>
+        <?php else: ?>
+        <span class="btn btn-outline-secondary disabled" title="<?= e(t('Agrega su teléfono para mandarle WhatsApp')) ?>"><i class="bi bi-whatsapp"></i> <?= et('Sin teléfono') ?></span>
+        <?php endif; ?>
+        <button type="button" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#waPreviewModal"><i class="bi bi-eye"></i> <?= et('Vista previa del WhatsApp') ?></button>
         <a href="<?= BASE_URL ?>/citas/create?paciente_id=<?= $id ?>" class="btn btn-outline-primary"><i class="bi bi-calendar-plus"></i> <?= et('Cita') ?></a>
         <?php if (has_role('medico', 'admin')): ?>
         <a href="<?= BASE_URL ?>/recetas/create?paciente_id=<?= $id ?>" class="btn btn-outline-primary"><i class="bi bi-capsule"></i> <?= et('Receta') ?></a>
@@ -1262,5 +1273,42 @@ echo ui_stats($__est); ?>
 })();
 </script>
 <?php endif; ?>
+
+<!-- Vista previa del WhatsApp: el texto exacto que recibe el paciente, con
+     las ligas activas para probar el portal y la confirmación de su cita. -->
+<?php $waDig = preg_replace('/\D+/', '', (string) ($p['telefono'] ?? '')); ?>
+<div class="modal fade" id="waPreviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0" style="overflow:hidden">
+            <div class="modal-header text-white" style="background:#075e54;border:0">
+                <div>
+                    <div class="fw-bold"><i class="bi bi-whatsapp"></i> <?= e($p['nombre'] . ' ' . $p['apellidos']) ?></div>
+                    <div class="small" style="opacity:.8"><?= $waDig !== '' ? '+' . e((strlen($waDig) === 10 ? '52 ' : '') . $waDig) : e(t('Sin teléfono: no se puede enviar')) ?> · <?= et('vista previa') ?></div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="<?= e(t('Cerrar')) ?>"></button>
+            </div>
+            <div class="modal-body" style="background:#e5ddd5">
+                <div class="ms-auto p-2 px-3 rounded-3 shadow-sm" style="background:#dcf8c6;max-width:92%;color:#111;font-size:.92rem;line-height:1.45;word-break:break-word">
+                    <?= wa_vista_previa_html($waMsg) ?>
+                    <div class="text-end" style="font-size:.7rem;color:#667781"><?= date('H:i') ?> ✓✓</div>
+                </div>
+                <div class="small mt-3" style="color:#54656f"><i class="bi bi-info-circle"></i> <?= et('Así lo recibe el paciente. Da clic en las ligas para probarlas: la de la cita abre su confirmación y la del portal, su acceso.') ?></div>
+            </div>
+            <div class="modal-footer justify-content-between">
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="waCopyBtn"><i class="bi bi-clipboard"></i> <?= et('Copiar texto') ?></button>
+                <?php if ($waUrl): ?><a class="btn btn-sm btn-success" target="_blank" rel="noopener" href="<?= e($waUrl) ?>"><i class="bi bi-whatsapp"></i> <?= et('Enviar') ?></a><?php endif; ?>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+document.getElementById('waCopyBtn').addEventListener('click', function () {
+    var b = this, txt = <?= json_encode($waMsg, JSON_UNESCAPED_UNICODE) ?>;
+    navigator.clipboard.writeText(txt).then(function () {
+        b.innerHTML = '<i class="bi bi-check-lg"></i> <?= e(t('Copiado')) ?>';
+        setTimeout(function () { b.innerHTML = '<i class="bi bi-clipboard"></i> <?= e(t('Copiar texto')) ?>'; }, 2000);
+    });
+});
+</script>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>
