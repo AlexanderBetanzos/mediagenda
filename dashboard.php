@@ -209,6 +209,118 @@ $ag = $pdo->prepare(
 $ag->execute([$tid]);
 $agendaHoy = $ag->fetchAll();
 
+/* ── Mini gráficas (sparklines) de los KPI: últimos 14 días ──────────────
+   Decoran el número con su tendencia y la variación contra la semana
+   anterior. Una consulta agrupada por serie; los días sin datos van en 0. */
+$dias14 = [];
+for ($i = 13; $i >= 0; $i--) $dias14[] = date('Y-m-d', strtotime("-$i day"));
+$serie = function (string $sql) use ($pdo, $tid, $dias14): array {
+    try {
+        $st = $pdo->prepare($sql);
+        $st->execute([$tid]);
+        $m = $st->fetchAll(PDO::FETCH_KEY_PAIR);
+    } catch (Throwable $e) { $m = []; }
+    return array_map(fn ($d) => (float) ($m[$d] ?? 0), $dias14);
+};
+$medC = str_replace('medico_id', 'c.medico_id', $medFiltro);
+$spark = [
+    'citas'     => $serie("SELECT c.fecha d, COUNT(*) FROM citas c WHERE c.consultorio_id = ? AND c.estado <> 'cancelada'
+                           AND c.fecha >= DATE_SUB(CURDATE(), INTERVAL 13 DAY) AND c.fecha <= CURDATE() $medC GROUP BY d"),
+    'pacientes' => $serie("SELECT DATE(creado_en) d, COUNT(*) FROM pacientes WHERE consultorio_id = ?
+                           AND creado_en >= DATE_SUB(CURDATE(), INTERVAL 13 DAY) GROUP BY d"),
+    'consultas' => $serie("SELECT DATE(fecha) d, COUNT(*) FROM consultas WHERE consultorio_id = ?
+                           AND fecha >= DATE_SUB(CURDATE(), INTERVAL 13 DAY) $medFiltro GROUP BY d"),
+    'ingresos'  => $verFacturacion ? $serie("SELECT fecha d, SUM(total) FROM facturas WHERE consultorio_id = ? AND estado = 'pagada'
+                           AND fecha >= DATE_SUB(CURDATE(), INTERVAL 13 DAY) $medFiltro GROUP BY d") : array_fill(0, 14, 0),
+    'recetas'   => $verRecetas ? $serie("SELECT DATE(fecha) d, COUNT(*) FROM recetas WHERE consultorio_id = ?
+                           AND fecha >= DATE_SUB(CURDATE(), INTERVAL 13 DAY) $medFiltro GROUP BY d") : array_fill(0, 14, 0),
+];
+/* Variación: últimos 7 días contra los 7 anteriores. null si no hay base. */
+$delta = function (array $s): ?int {
+    $prev = array_sum(array_slice($s, 0, 7)); $act = array_sum(array_slice($s, 7));
+    if ($prev <= 0) return $act > 0 ? null : 0;
+    return (int) round(($act - $prev) / $prev * 100);
+};
+
+/** Sparkline SVG suave (curva + área degradada), sin librerías. */
+function spark_svg(array $v, string $color, string $id): string
+{
+    $w = 120; $h = 38; $n = count($v);
+    if ($n < 2) return '';
+    $max = max($v) ?: 1;
+    $pts = [];
+    foreach ($v as $i => $y) $pts[] = [$i * $w / ($n - 1), $h - 4 - ($y / $max) * ($h - 10)];
+    $d = 'M' . round($pts[0][0], 1) . ',' . round($pts[0][1], 1);
+    for ($i = 1; $i < $n; $i++) {                 // curva cardinal → bézier
+        $p0 = $pts[max(0, $i - 2)]; $p1 = $pts[$i - 1]; $p2 = $pts[$i]; $p3 = $pts[min($n - 1, $i + 1)];
+        $c1 = [$p1[0] + ($p2[0] - $p0[0]) / 6, $p1[1] + ($p2[1] - $p0[1]) / 6];
+        $c2 = [$p2[0] - ($p3[0] - $p1[0]) / 6, $p2[1] - ($p3[1] - $p1[1]) / 6];
+        $d .= ' C' . round($c1[0], 1) . ',' . round($c1[1], 1) . ' ' . round($c2[0], 1) . ',' . round($c2[1], 1) . ' ' . round($p2[0], 1) . ',' . round($p2[1], 1);
+    }
+    $last = end($pts);
+    return '<svg class="spark" viewBox="0 0 ' . $w . ' ' . $h . '" preserveAspectRatio="none" aria-hidden="true">'
+        . '<defs><linearGradient id="' . $id . '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' . $color . '" stop-opacity=".28"/>'
+        . '<stop offset="1" stop-color="' . $color . '" stop-opacity="0"/></linearGradient></defs>'
+        . '<path d="' . $d . ' L' . $w . ',' . $h . ' L0,' . $h . ' Z" fill="url(#' . $id . ')"/>'
+        . '<path d="' . $d . '" fill="none" stroke="' . $color . '" stroke-width="2" stroke-linecap="round" vector-effect="non-scaling-stroke"/>'
+        . '<circle cx="' . round($last[0], 1) . '" cy="' . round($last[1], 1) . '" r="2.6" fill="' . $color . '"/></svg>';
+}
+
+/* ── Agenda de la semana: hoy y los 6 días siguientes (línea de tiempo) ── */
+$semana = [];
+for ($i = 0; $i < 7; $i++) $semana[date('Y-m-d', strtotime("+$i day"))] = [];
+if ($verCitas) {
+    $sq = $pdo->prepare(
+        "SELECT c.*, p.id pac_id, p.nombre, p.apellidos,
+                COALESCE(p.foto_mime, p.foto) AS foto, u.nombre medico
+         FROM citas c JOIN pacientes p ON p.id = c.paciente_id LEFT JOIN usuarios u ON u.id = c.medico_id
+         WHERE c.consultorio_id = ? AND c.estado <> 'cancelada' AND c.fecha BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 6 DAY) $medC
+         ORDER BY c.fecha, c.hora LIMIT 300"
+    );
+    try { $sq->execute([$tid]); foreach ($sq->fetchAll() as $r) $semana[$r['fecha']][] = $r; } catch (Throwable $e) {}
+}
+
+/* ── Actividad de la semana: atendidas / canceladas / no asistió por día ── */
+$actLabels = $actAt = $actCa = $actNo = [];
+if ($verReportes && $verCitas) {
+    $aq = $pdo->prepare("SELECT c.fecha d, SUM(c.estado='atendida') a, SUM(c.estado='cancelada') ca, SUM(c.estado='no_asistio') no
+                         FROM citas c WHERE c.consultorio_id = ? AND c.fecha BETWEEN DATE_SUB(CURDATE(), INTERVAL 6 DAY) AND CURDATE() $medC
+                         GROUP BY c.fecha");
+    $aq->execute([$tid]);
+    $act = [];
+    foreach ($aq->fetchAll() as $r) $act[$r['d']] = $r;
+    $diasCortos = [t('Dom'), t('Lun'), t('Mar'), t('Mié'), t('Jue'), t('Vie'), t('Sáb')];
+    for ($i = 6; $i >= 0; $i--) {
+        $d = date('Y-m-d', strtotime("-$i day"));
+        $actLabels[] = $diasCortos[(int) date('w', strtotime($d))] . ' ' . (int) date('j', strtotime($d));
+        $actAt[] = (int) ($act[$d]['a'] ?? 0); $actCa[] = (int) ($act[$d]['ca'] ?? 0); $actNo[] = (int) ($act[$d]['no'] ?? 0);
+    }
+}
+
+/* ── Recetas recientes ───────────────────────────────────────────────── */
+$recetasRec = [];
+if ($verRecetas) {
+    $rq = $pdo->prepare("SELECT r.id, r.fecha, r.diagnostico, p.id pac_id, p.nombre, p.apellidos, COALESCE(p.foto_mime, p.foto) AS foto
+                         FROM recetas r JOIN pacientes p ON p.id = r.paciente_id
+                         WHERE r.consultorio_id = ? " . str_replace('medico_id', 'r.medico_id', $medFiltro) . "
+                         ORDER BY r.fecha DESC, r.id DESC LIMIT 5");
+    try { $rq->execute([$tid]); $recetasRec = $rq->fetchAll(); } catch (Throwable $e) {}
+}
+
+/* ── Tu equipo hoy (admin): cada médico con sus citas de hoy ─────────── */
+$equipoHoy = [];
+if ($esAdmin && $verCitas) {
+    $eq = $pdo->prepare("SELECT u.id, u.nombre, u.especialidad,
+                                SUM(c.id IS NOT NULL) n,
+                                MIN(CASE WHEN c.hora >= CURTIME() THEN c.hora END) prox
+                         FROM usuarios u
+                         LEFT JOIN citas c ON c.medico_id = u.id AND c.consultorio_id = u.consultorio_id
+                              AND c.fecha = CURDATE() AND c.estado IN ('programada','confirmada','atendida')
+                         WHERE u.consultorio_id = ? AND u.rol = 'medico' AND u.activo = 1
+                         GROUP BY u.id ORDER BY n DESC, u.nombre LIMIT 6");
+    try { $eq->execute([$tid]); $equipoHoy = $eq->fetchAll(); } catch (Throwable $e) {}
+}
+
 /* ── Próxima cita: la tarjeta protagonista del banner ───────────────── */
 $proxima = null;
 if ($verCitas) {
@@ -582,93 +694,203 @@ include __DIR__ . '/includes/header.php';
 </div>
 <?php endif; ?>
 
-<?php if ($esAdmin && $totPacientes < 50 && cfg('migrar_oculto') !== '1'): ?>
-<!-- ── Migración: el dueño casi siempre trae sus pacientes en Excel u otro sistema ── -->
-<div class="card mb-4 migrar-card">
-    <div class="card-body d-flex flex-wrap align-items-center gap-3">
-        <span class="migrar-ic"><i class="bi bi-file-earmark-arrow-up"></i></span>
-        <div class="flex-grow-1 min-w-0">
-            <div class="fw-semibold"><?= et('¿Tienes tus pacientes en Excel o en otro sistema?') ?></div>
-            <div class="small text-muted"><?= et('No los captures uno por uno: nosotros te ayudamos a pasar tu información a tu panel. Escríbenos y te ayudamos de forma personalizada.') ?></div>
-        </div>
-        <div class="d-flex flex-wrap gap-2">
-            <a href="https://wa.me/<?= e(SOPORTE_WHATSAPP) ?>?text=<?= rawurlencode(t('Hola, quiero migrar mis pacientes a') . ' ' . marca_nombre() . '. ' . t('Los tengo en:') . ' ') ?>"
-               target="_blank" rel="noopener" class="btn btn-sm btn-success"><i class="bi bi-whatsapp"></i> <?= et('Migrar mis datos') ?></a>
-            <button type="button" class="btn btn-sm btn-outline-secondary" data-ayuda="migrar"><i class="bi bi-question-circle"></i> <?= et('¿Cómo funciona?') ?></button>
-            <form method="post" class="m-0"><?= csrf_field() ?><input type="hidden" name="action" value="ocultar_migrar">
-                <button class="btn btn-sm btn-link text-muted text-decoration-none" title="<?= e(t('Ocultar')) ?>"><i class="bi bi-x-lg"></i></button></form>
+<!-- ── KPIs con mini gráfica y variación (como las referencias) ──────── -->
+<?php
+$acentoHex = color_acento();
+$kpis = [];
+if ($verCitas) $kpis[] = [t('Citas hoy'), number_format($citasHoy), 'bi-calendar-check', $acentoHex, BASE_URL . '/citas/index', $citasConfHoy . ' ' . t('confirmadas'), 'citas'];
+$kpis[] = [t('Pacientes'), number_format($totPacientes), 'bi-people', '#0d9488', BASE_URL . '/pacientes/index', '+' . $pacientesMes . ' ' . t('este mes'), 'pacientes'];
+if ($verFacturacion) $kpis[] = [t('Ingresos del mes'), fmt_money($ingresosMes), 'bi-cash-coin', '#16a34a', BASE_URL . '/facturacion/index', t('Hoy') . ': ' . fmt_money($ingresosHoy), 'ingresos'];
+elseif ($verRecetas) $kpis[] = [t('Recetas (mes)'), number_format($recetasMes), 'bi-capsule', '#8b5cf6', BASE_URL . '/recetas/index', null, 'recetas'];
+$kpis[] = [t('Consultas (mes)'), number_format($consultasMes), 'bi-clipboard2-pulse', '#6366f1', BASE_URL . '/expediente/index', null, 'consultas'];
+?>
+<div class="row g-3 mb-4">
+    <?php foreach ($kpis as $ki => [$label, $value, $icon, $color, $link, $sub, $serieK]):
+        $dl = $delta($spark[$serieK]); ?>
+    <div class="col-6 col-xl-3">
+        <a href="<?= $link ?>" class="text-decoration-none">
+        <div class="card kpi2 h-100"><div class="card-body">
+            <div class="d-flex justify-content-between align-items-start gap-2">
+                <span class="kpi2-lbl"><?= e($label) ?></span>
+                <span class="kpi2-ic" style="--kpi:<?= e($color) ?>"><i class="bi <?= $icon ?>"></i></span>
+            </div>
+            <div class="kpi2-n mt-1" data-count><?= e($value) ?></div>
+            <div class="d-flex align-items-end justify-content-between gap-2">
+                <div class="min-w-0">
+                    <?php if ($dl === null): ?><span class="kpi2-d up"><?= et('Nuevo') ?></span>
+                    <?php elseif ($dl === 0): ?><span class="kpi2-d"><?= et('= semana pasada') ?></span>
+                    <?php else: ?><span class="kpi2-d <?= $dl > 0 ? 'up' : 'down' ?>"><i class="bi bi-arrow-<?= $dl > 0 ? 'up' : 'down' ?>-short"></i><?= abs($dl) ?>%</span><?php endif; ?>
+                    <?php if ($sub): ?><div class="kpi2-sub text-truncate"><?= e($sub) ?></div><?php endif; ?>
+                </div>
+                <?= spark_svg($spark[$serieK], $color, 'sp' . $ki) ?>
+            </div>
+        </div></div>
+        </a>
+    </div>
+    <?php endforeach; ?>
+</div>
+
+<?php if ($verCitas):
+    $diasSem = [t('Dom'), t('Lun'), t('Mar'), t('Mié'), t('Jue'), t('Vie'), t('Sáb')];
+    $hoyF = date('Y-m-d');
+    $lateral = $equipoHoy ? 'equipo' : ($recetasRec ? 'recetas' : ''); ?>
+<!-- ── Agenda de la semana: tira de días + línea de tiempo ──────────────── -->
+<div class="row g-3 mb-3">
+    <div class="col-xl-<?= $lateral ? '8' : '12' ?>">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="fw-semibold"><i class="bi bi-calendar-week text-brand"></i> <?= et('Agenda de la semana') ?></span>
+                <a href="<?= BASE_URL ?>/citas/calendario" class="small"><?= et('Ver calendario →') ?></a>
+            </div>
+            <div class="card-body">
+                <div class="tl-dias" role="tablist">
+                    <?php foreach ($semana as $f => $cs): $ts = strtotime($f); ?>
+                    <button type="button" class="tl-dia<?= $f === $hoyF ? ' on' : '' ?>" data-dia="<?= $f ?>">
+                        <span class="tl-dia-n"><?= (int) date('j', $ts) ?></span>
+                        <span class="tl-dia-s"><?= $f === $hoyF ? et('Hoy') : e($diasSem[(int) date('w', $ts)]) ?></span>
+                        <?php if ($cs): ?><span class="tl-dia-c"><?= count($cs) ?></span><?php endif; ?>
+                    </button>
+                    <?php endforeach; ?>
+                </div>
+                <?php foreach ($semana as $f => $cs): ?>
+                <div class="tl-dia-body" data-dia="<?= $f ?>"<?= $f === $hoyF ? '' : ' hidden' ?>>
+                    <?php if (!$cs): ?>
+                        <div class="tl-vacio"><i class="bi bi-cup-hot"></i>
+                            <div class="fw-semibold"><?= et('Día libre') ?></div>
+                            <a href="<?= BASE_URL ?>/citas/create" class="small"><?= et('Agendar una cita') ?></a></div>
+                    <?php else: foreach ($cs as $c): ?>
+                        <a href="<?= BASE_URL ?>/citas/edit?id=<?= (int) $c['id'] ?>" class="tl-row text-decoration-none">
+                            <span class="tl-hora"><?= fmt_hora($c['hora']) ?></span>
+                            <span class="tl-item est-<?= e($c['estado']) ?>">
+                                <?= avatar_paciente((int) $c['pac_id'], $c['nombre'], $c['apellidos'], $c['foto'] ?? null, 34) ?>
+                                <span class="min-w-0 flex-grow-1">
+                                    <span class="d-block fw-semibold text-truncate"><?= e($c['nombre'] . ' ' . $c['apellidos']) ?></span>
+                                    <span class="d-block small text-muted text-truncate">
+                                        <?= e(implode(' · ', array_filter([$c['motivo'] ?? '', $c['medico'] ?? '', (int) ($c['duracion'] ?? 0) ? (int) $c['duracion'] . ' min' : '']))) ?>
+                                    </span>
+                                </span>
+                                <?php if (($c['modalidad'] ?? '') === 'en_linea'): ?><i class="bi bi-camera-video text-brand" title="<?= e(t('Videoconsulta')) ?>"></i><?php endif; ?>
+                                <span class="tl-est"><?= e(estado_label($c['estado'])) ?></span>
+                            </span>
+                        </a>
+                    <?php endforeach; endif; ?>
+                </div>
+                <?php endforeach; ?>
+            </div>
         </div>
     </div>
+    <?php if ($lateral === 'equipo'): ?>
+    <div class="col-xl-4">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="fw-semibold"><i class="bi bi-people text-brand"></i> <?= et('Tu equipo hoy') ?></span>
+                <a href="<?= BASE_URL ?>/medicos/index" class="small"><?= et('Ver todos') ?></a>
+            </div>
+            <div class="card-body py-2">
+                <?php foreach ($equipoHoy as $m): $ini = mb_strtoupper(mb_substr(preg_replace('/^(dra?|lic|mtr[oa]|psic)\.?\s+/iu', '', $m['nombre']), 0, 1)); ?>
+                <div class="eq-row">
+                    <span class="eq-av"><?= e($ini) ?></span>
+                    <span class="min-w-0 flex-grow-1">
+                        <span class="d-block fw-semibold text-truncate"><?= e($m['nombre']) ?></span>
+                        <span class="d-block small text-muted text-truncate"><?= e($m['especialidad'] ?: t('Médico')) ?></span>
+                    </span>
+                    <span class="text-end flex-shrink-0">
+                        <span class="d-block fw-bold"><?= (int) $m['n'] ?></span>
+                        <span class="d-block small text-muted"><?= $m['prox'] ? et('próx.') . ' ' . fmt_hora($m['prox']) : ((int) $m['n'] ? et('terminó') : et('sin citas')) ?></span>
+                    </span>
+                </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </div>
+    <?php elseif ($lateral === 'recetas'): ?>
+    <div class="col-xl-4"><?php $recetasMostradas = true; include __DIR__ . '/includes/dashboard_recetas.php'; ?></div>
+    <?php endif; ?>
 </div>
 <?php endif; ?>
 
-<?php if (micrositio_visible()):
-    $urlPub  = micrositio_url();
-    $pendWeb = $esAdmin ? micrositio_pendientes() : [];   // solo el admin puede arreglarlo
-    $avance  = $esAdmin ? micrositio_avance() : 100;
-?>
-<?php /* La página pública sirve sobre todo para MANDARLA: al paciente que
-         pregunta por WhatsApp, en la firma del correo, en el perfil de redes.
-         Por eso la tarjeta no es solo un enlace: copia y comparte en un clic.
-         Y si está a medio llenar lo dice, porque una página vacía no vende y
-         el dueño no tiene cómo enterarse salvo abriéndola. */ ?>
-<div class="card mb-4">
-    <div class="card-body d-flex flex-wrap align-items-center gap-3">
-        <div class="flex-grow-1 min-w-0">
-            <div class="fw-semibold mb-1"><i class="bi bi-globe2 text-brand"></i> <?= et('Tu página pública') ?></div>
-            <a href="<?= e($urlPub) ?>" target="_blank" rel="noopener"
-               class="small text-decoration-none d-inline-block text-truncate mw-100 font-monospace"><?= e($urlPub) ?></a>
-            <div class="form-text mb-0"><?= et('Compártela con tus pacientes: ahí ven tus servicios, tu equipo y pueden agendar.') ?></div>
-        </div>
-        <div class="d-flex flex-wrap gap-2">
-            <button type="button" class="btn btn-sm btn-outline-secondary" id="copiarWeb" data-url="<?= e($urlPub) ?>">
-                <i class="bi bi-clipboard"></i> <?= et('Copiar') ?>
-            </button>
-            <a href="<?= e(wa_compartir(t('Conoce nuestros servicios y agenda tu cita aquí') . ': ' . $urlPub)) ?>"
-               target="_blank" rel="noopener" class="btn btn-sm btn-outline-success">
-                <i class="bi bi-whatsapp"></i> <?= et('Compartir') ?>
-            </a>
-            <a href="<?= e($urlPub) ?>" target="_blank" rel="noopener" class="btn btn-sm btn-primary">
-                <i class="bi bi-box-arrow-up-right"></i> <?= et('Abrir') ?>
-            </a>
+<?php if ($porConfirmar || $porCobrar): ?>
+<!-- ── Para atender hoy (de Khronos: vencidas / por vencer) ─────────── -->
+<div class="row g-3 mb-3">
+    <?php if ($verCitas): ?>
+    <div class="col-lg-<?= ($verFacturacion && !$esMedico) ? '6' : '12' ?>">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="fw-semibold"><i class="bi bi-hourglass-split text-warning"></i> <?= et('Por confirmar · próximas 48 h') ?></span>
+                <a href="<?= BASE_URL ?>/citas/index" class="small"><?= et('Ver citas →') ?></a>
+            </div>
+            <div class="card-body py-2">
+                <?php if (!$porConfirmar): ?>
+                    <p class="text-muted text-center small py-3 mb-0"><i class="bi bi-check-circle text-success fs-5 d-block mb-1"></i><?= et('Todas las citas próximas están confirmadas.') ?></p>
+                <?php else: foreach ($porConfirmar as $c):
+                    $wa = $verWhatsapp ? wa_link($c['telefono'], mensaje_recordatorio(
+                        $c['nombre'] . ' ' . $c['apellidos'], fmt_fecha($c['fecha']), fmt_hora($c['hora']), cita_enlace((int) $c['id']))) : '';
+                    $esHoy = $c['fecha'] === date('Y-m-d'); ?>
+                    <div class="d-flex justify-content-between align-items-center gap-2 py-2 border-bottom border-opacity-10">
+                        <span class="small d-flex align-items-center gap-2 min-w-0">
+                            <?= avatar_paciente((int) $c['pac_id'], $c['nombre'], $c['apellidos'], $c['foto'] ?? null, 28) ?>
+                            <span class="text-truncate"><?= e($c['apellidos'] . ', ' . $c['nombre']) ?></span>
+                        </span>
+                        <span class="d-flex align-items-center gap-2 flex-shrink-0">
+                            <span class="small <?= $esHoy ? 'text-danger fw-semibold' : 'text-muted' ?>"><?= $esHoy ? et('Hoy') : ($c['fecha'] === date('Y-m-d', strtotime('+1 day')) ? et('Mañana') : e(fmt_fecha($c['fecha']))) ?> · <?= fmt_hora($c['hora']) ?></span>
+                            <?php if ($wa): ?>
+                            <a href="<?= e($wa) ?>" target="_blank" rel="noopener" class="btn btn-sm btn-outline-success py-0" title="<?= e(t('Recordatorio por WhatsApp')) ?>"><i class="bi bi-whatsapp"></i></a>
+                            <?php endif; ?>
+                            <a href="<?= BASE_URL ?>/citas/edit?id=<?= (int) $c['id'] ?>" class="btn btn-sm btn-outline-secondary py-0"><?= et('Ver') ?></a>
+                        </span>
+                    </div>
+                <?php endforeach; endif; ?>
+            </div>
         </div>
     </div>
-
-    <?php if ($pendWeb): ?>
-    <div class="card-body border-top pt-3">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-            <span class="small fw-semibold">
-                <i class="bi bi-clipboard-check text-brand"></i>
-                <?= et('Completa tu página') ?>
-            </span>
-            <span class="small text-muted"><?= $avance ?>%</span>
-        </div>
-        <div class="progress mb-3" style="height:6px">
-            <div class="progress-bar bg-success" style="width:<?= $avance ?>%"></div>
-        </div>
-        <div class="d-flex flex-wrap gap-2">
-            <?php foreach ($pendWeb as [$clave, $etiqueta, $url]): ?>
-                <a href="<?= e($url) ?>" class="btn btn-sm btn-outline-secondary">
-                    <i class="bi bi-plus-lg"></i> <?= et($etiqueta) ?>
-                </a>
-            <?php endforeach; ?>
-        </div>
-        <div class="form-text mt-2">
-            <?= et('Cada punto que llenes aparece solo en tu página. Nadie contrata a un consultorio cuya página está vacía.') ?>
+    <?php endif; ?>
+    <?php if ($verFacturacion && !$esMedico): ?>
+    <div class="col-lg-<?= $verCitas ? '6' : '12' ?>">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="fw-semibold"><i class="bi bi-exclamation-triangle-fill text-danger"></i> <?= et('Por cobrar') ?></span>
+                <?php if ($porCobrarTotal > count($porCobrar)): ?><span class="badge rounded-pill text-bg-danger"><?= number_format($porCobrarTotal) ?> <?= et('en total') ?></span><?php endif; ?>
+            </div>
+            <div class="card-body py-2">
+                <?php if (!$porCobrar): ?>
+                    <p class="text-muted text-center small py-3 mb-0"><i class="bi bi-check-circle text-success fs-5 d-block mb-1"></i><?= et('Nada pendiente por cobrar.') ?></p>
+                <?php else: foreach ($porCobrar as $f): $d = (int) $f['dias']; ?>
+                    <div class="d-flex justify-content-between align-items-center gap-2 py-2 border-bottom border-opacity-10">
+                        <span class="small d-flex align-items-center gap-2 min-w-0">
+                            <?= avatar_paciente((int) $f['pac_id'], $f['nombre'], $f['apellidos'], $f['foto'] ?? null, 28) ?>
+                            <span class="text-truncate"><?= e($f['nombre'] . ' ' . $f['apellidos']) ?> <span class="text-muted">· <?= e($f['folio']) ?></span></span>
+                        </span>
+                        <span class="d-flex align-items-center gap-2 flex-shrink-0">
+                            <span class="badge rounded-pill <?= $d > 30 ? 'text-bg-danger' : ($d > 7 ? 'text-bg-warning' : 'text-bg-light border') ?>"><?= $d <= 0 ? et('hoy') : sprintf(t('hace %dd'), $d) ?></span>
+                            <span class="fw-semibold small"><?= fmt_money($f['total']) ?></span>
+                            <a href="<?= BASE_URL ?>/facturacion/ver?id=<?= (int) $f['id'] ?>" class="btn btn-sm btn-outline-secondary py-0"><?= et('Ver') ?></a>
+                        </span>
+                    </div>
+                <?php endforeach; endif; ?>
+            </div>
         </div>
     </div>
     <?php endif; ?>
 </div>
-<script>
-document.getElementById('copiarWeb').addEventListener('click', function (ev) {
-    var b = ev.currentTarget;
-    navigator.clipboard.writeText(b.dataset.url).then(function () {
-        b.innerHTML = '<i class="bi bi-check-lg"></i> <?= e(t('Copiado')) ?>';
-        setTimeout(function () { b.innerHTML = '<i class="bi bi-clipboard"></i> <?= e(t('Copiar')) ?>'; }, 2000);
-    });
-});
-</script>
 <?php endif; ?>
+
+<?php if ($actLabels || ($recetasRec && empty($recetasMostradas))): ?>
+<!-- ── Actividad de la semana + recetas recientes ───────────────────────── -->
+<div class="row g-3 mb-4">
+    <?php if ($actLabels): ?>
+    <div class="col-lg-<?= ($recetasRec && empty($recetasMostradas)) ? '8' : '12' ?>">
+        <div class="card h-100">
+            <div class="card-header fw-semibold"><i class="bi bi-activity text-brand"></i> <?= et('Actividad de la semana') ?></div>
+            <div class="card-body"><div style="height:250px"><canvas id="chartActividad"></canvas></div></div>
+        </div>
+    </div>
+    <?php endif; ?>
+    <?php if ($recetasRec && empty($recetasMostradas)): ?>
+    <div class="col-lg-<?= $actLabels ? '4' : '12' ?>"><?php $recetasMostradas = true; include __DIR__ . '/includes/dashboard_recetas.php'; ?></div>
+    <?php endif; ?>
+</div>
+<?php endif; ?>
+
 <?php if ($verFacturacion && $esAdmin): ?>
 <!-- ── Finanzas del mes ─────────────────────────────────────────────── -->
 <div class="card mb-4">
@@ -692,59 +914,6 @@ document.getElementById('copiarWeb').addEventListener('click', function (ev) {
     </div>
 </div>
 <?php endif; ?>
-
-<!-- ── KPIs (fila 1) ────────────────────────────────────────────────── -->
-<div class="row g-3 mb-3">
-    <?php
-    $row1 = [];
-    if ($verCitas) $row1[] = [et('Citas hoy'), $citasHoy, 'bi-calendar-check', 'var(--brand)', BASE_URL.'/citas/index', $citasConfHoy.' '.et('confirmadas')];
-    $row1[] = [et('Pacientes'), number_format($totPacientes), 'bi-people', '#0d9488', BASE_URL.'/pacientes/index', '+'.$pacientesMes.' '.et('este mes')];
-    $row1[] = [et('Consultas (mes)'), number_format($consultasMes), 'bi-clipboard2-pulse', '#6366f1', BASE_URL.'/expediente/index', null];
-    if ($verFacturacion) $row1[] = [et('Ingresos del mes'), fmt_money($ingresosMes), 'bi-cash-coin', '#22c55e', BASE_URL.'/facturacion/index', et('Hoy').': '.fmt_money($ingresosHoy)];
-    elseif ($verRecetas) $row1[] = [et('Recetas (mes)'), number_format($recetasMes), 'bi-capsule', '#a78bfa', BASE_URL.'/recetas/index', null];
-    foreach ($row1 as [$label, $value, $icon, $color, $link, $sub]): ?>
-    <div class="col-6 col-xl-3">
-        <a href="<?= $link ?>" class="text-decoration-none">
-        <div class="card stat-card kpi-card h-100"><div class="card-body d-flex align-items-center gap-3">
-            <div class="stat-icon" style="--kpi:<?= $color ?>;background:color-mix(in srgb,<?= $color ?> 16%,transparent);color:<?= $color ?>"><i class="bi <?= $icon ?>"></i></div>
-            <div class="min-w-0">
-                <div class="stat-num"><?= e($value) ?></div>
-                <div class="stat-label"><?= e($label) ?></div>
-                <?php if ($sub): ?><div class="kpi-sub"><?= e($sub) ?></div><?php endif; ?>
-            </div>
-        </div></div>
-        </a>
-    </div>
-    <?php endforeach; ?>
-</div>
-
-<!-- ── KPIs (fila 2) ────────────────────────────────────────────────── -->
-<div class="row g-3 mb-4">
-    <?php
-    $row2 = [];
-    if ($verCitas) {
-        $row2[] = [et('Atendidas hoy'), number_format($citasAtendHoy), 'bi-check2-circle', '#22c55e', BASE_URL.'/citas/index', false];
-        $row2[] = [et('Por confirmar'), number_format($citasPorConfirmar), 'bi-hourglass-split', '#3b82f6', BASE_URL.'/citas/index', false];
-        $row2[] = [et('Inasistencia (90 días)'), $noShow . '%', 'bi-person-x', '#ef4444', BASE_URL.'/citas/index', $noShow > 15];
-    }
-    if ($verRecetas) $row2[] = [et('Recetas (mes)'), number_format($recetasMes), 'bi-capsule', '#a78bfa', BASE_URL.'/recetas/index', false];
-    $row2[] = [et('Nuevos este mes'), number_format($pacientesMes), 'bi-person-plus', '#38bdf8', BASE_URL.'/pacientes/index', false];
-    if ($verCitas) $row2[] = [et('Próximas citas'), number_format($citasPend), 'bi-calendar-week', '#6366f1', BASE_URL.'/citas/index', false];
-    $row2 = array_slice($row2, 0, 4);
-    foreach ($row2 as [$label, $value, $icon, $color, $link, $alerta]): ?>
-    <div class="col-6 col-xl-3">
-        <a href="<?= $link ?>" class="text-decoration-none">
-        <div class="card stat-card kpi-card h-100"><div class="card-body d-flex align-items-center gap-3">
-            <div class="stat-icon" style="--kpi:<?= $color ?>;background:color-mix(in srgb,<?= $color ?> 16%,transparent);color:<?= $color ?>"><i class="bi <?= $icon ?>"></i></div>
-            <div class="min-w-0">
-                <div class="stat-num<?= $alerta ? ' text-danger' : '' ?>"><?= e($value) ?></div>
-                <div class="stat-label"><?= e($label) ?></div>
-            </div>
-        </div></div>
-        </a>
-    </div>
-    <?php endforeach; ?>
-</div>
 
 <?php if ($verReportes): ?>
 <!-- ── Gráficas (fila 1): ingresos+altas + citas por estado ─────────── -->
@@ -835,116 +1004,32 @@ document.getElementById('copiarWeb').addEventListener('click', function (ev) {
 </div>
 <?php endif; ?>
 
-<?php if ($porConfirmar || $porCobrar): ?>
-<!-- ── Para atender hoy (de Khronos: vencidas / por vencer) ─────────── -->
-<div class="row g-3 mb-3">
-    <?php if ($verCitas): ?>
-    <div class="col-lg-<?= ($verFacturacion && !$esMedico) ? '6' : '12' ?>">
-        <div class="card h-100">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span class="fw-semibold"><i class="bi bi-hourglass-split text-warning"></i> <?= et('Por confirmar · próximas 48 h') ?></span>
-                <a href="<?= BASE_URL ?>/citas/index" class="small"><?= et('Ver citas →') ?></a>
+<!-- ── KPIs (fila 2) ────────────────────────────────────────────────── -->
+<div class="row g-3 mb-4">
+    <?php
+    $row2 = [];
+    if ($verCitas) {
+        $row2[] = [et('Atendidas hoy'), number_format($citasAtendHoy), 'bi-check2-circle', '#22c55e', BASE_URL.'/citas/index', false];
+        $row2[] = [et('Por confirmar'), number_format($citasPorConfirmar), 'bi-hourglass-split', '#3b82f6', BASE_URL.'/citas/index', false];
+        $row2[] = [et('Inasistencia (90 días)'), $noShow . '%', 'bi-person-x', '#ef4444', BASE_URL.'/citas/index', $noShow > 15];
+    }
+    if ($verRecetas) $row2[] = [et('Recetas (mes)'), number_format($recetasMes), 'bi-capsule', '#a78bfa', BASE_URL.'/recetas/index', false];
+    $row2[] = [et('Nuevos este mes'), number_format($pacientesMes), 'bi-person-plus', '#38bdf8', BASE_URL.'/pacientes/index', false];
+    if ($verCitas) $row2[] = [et('Próximas citas'), number_format($citasPend), 'bi-calendar-week', '#6366f1', BASE_URL.'/citas/index', false];
+    $row2 = array_slice($row2, 0, 4);
+    foreach ($row2 as [$label, $value, $icon, $color, $link, $alerta]): ?>
+    <div class="col-6 col-xl-3">
+        <a href="<?= $link ?>" class="text-decoration-none">
+        <div class="card stat-card kpi-card h-100"><div class="card-body d-flex align-items-center gap-3">
+            <div class="stat-icon" style="--kpi:<?= $color ?>;background:color-mix(in srgb,<?= $color ?> 16%,transparent);color:<?= $color ?>"><i class="bi <?= $icon ?>"></i></div>
+            <div class="min-w-0">
+                <div class="stat-num<?= $alerta ? ' text-danger' : '' ?>"><?= e($value) ?></div>
+                <div class="stat-label"><?= e($label) ?></div>
             </div>
-            <div class="card-body py-2">
-                <?php if (!$porConfirmar): ?>
-                    <p class="text-muted text-center small py-3 mb-0"><i class="bi bi-check-circle text-success fs-5 d-block mb-1"></i><?= et('Todas las citas próximas están confirmadas.') ?></p>
-                <?php else: foreach ($porConfirmar as $c):
-                    $wa = $verWhatsapp ? wa_link($c['telefono'], mensaje_recordatorio(
-                        $c['nombre'] . ' ' . $c['apellidos'], fmt_fecha($c['fecha']), fmt_hora($c['hora']), cita_enlace((int) $c['id']))) : '';
-                    $esHoy = $c['fecha'] === date('Y-m-d'); ?>
-                    <div class="d-flex justify-content-between align-items-center gap-2 py-2 border-bottom border-opacity-10">
-                        <span class="small d-flex align-items-center gap-2 min-w-0">
-                            <?= avatar_paciente((int) $c['pac_id'], $c['nombre'], $c['apellidos'], $c['foto'] ?? null, 28) ?>
-                            <span class="text-truncate"><?= e($c['apellidos'] . ', ' . $c['nombre']) ?></span>
-                        </span>
-                        <span class="d-flex align-items-center gap-2 flex-shrink-0">
-                            <span class="small <?= $esHoy ? 'text-danger fw-semibold' : 'text-muted' ?>"><?= $esHoy ? et('Hoy') : ($c['fecha'] === date('Y-m-d', strtotime('+1 day')) ? et('Mañana') : e(fmt_fecha($c['fecha']))) ?> · <?= fmt_hora($c['hora']) ?></span>
-                            <?php if ($wa): ?>
-                            <a href="<?= e($wa) ?>" target="_blank" rel="noopener" class="btn btn-sm btn-outline-success py-0" title="<?= e(t('Recordatorio por WhatsApp')) ?>"><i class="bi bi-whatsapp"></i></a>
-                            <?php endif; ?>
-                            <a href="<?= BASE_URL ?>/citas/edit?id=<?= (int) $c['id'] ?>" class="btn btn-sm btn-outline-secondary py-0"><?= et('Ver') ?></a>
-                        </span>
-                    </div>
-                <?php endforeach; endif; ?>
-            </div>
-        </div>
+        </div></div>
+        </a>
     </div>
-    <?php endif; ?>
-    <?php if ($verFacturacion && !$esMedico): ?>
-    <div class="col-lg-<?= $verCitas ? '6' : '12' ?>">
-        <div class="card h-100">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span class="fw-semibold"><i class="bi bi-exclamation-triangle-fill text-danger"></i> <?= et('Por cobrar') ?></span>
-                <?php if ($porCobrarTotal > count($porCobrar)): ?><span class="badge rounded-pill text-bg-danger"><?= number_format($porCobrarTotal) ?> <?= et('en total') ?></span><?php endif; ?>
-            </div>
-            <div class="card-body py-2">
-                <?php if (!$porCobrar): ?>
-                    <p class="text-muted text-center small py-3 mb-0"><i class="bi bi-check-circle text-success fs-5 d-block mb-1"></i><?= et('Nada pendiente por cobrar.') ?></p>
-                <?php else: foreach ($porCobrar as $f): $d = (int) $f['dias']; ?>
-                    <div class="d-flex justify-content-between align-items-center gap-2 py-2 border-bottom border-opacity-10">
-                        <span class="small d-flex align-items-center gap-2 min-w-0">
-                            <?= avatar_paciente((int) $f['pac_id'], $f['nombre'], $f['apellidos'], $f['foto'] ?? null, 28) ?>
-                            <span class="text-truncate"><?= e($f['nombre'] . ' ' . $f['apellidos']) ?> <span class="text-muted">· <?= e($f['folio']) ?></span></span>
-                        </span>
-                        <span class="d-flex align-items-center gap-2 flex-shrink-0">
-                            <span class="badge rounded-pill <?= $d > 30 ? 'text-bg-danger' : ($d > 7 ? 'text-bg-warning' : 'text-bg-light border') ?>"><?= $d <= 0 ? et('hoy') : sprintf(t('hace %dd'), $d) ?></span>
-                            <span class="fw-semibold small"><?= fmt_money($f['total']) ?></span>
-                            <a href="<?= BASE_URL ?>/facturacion/ver?id=<?= (int) $f['id'] ?>" class="btn btn-sm btn-outline-secondary py-0"><?= et('Ver') ?></a>
-                        </span>
-                    </div>
-                <?php endforeach; endif; ?>
-            </div>
-        </div>
-    </div>
-    <?php endif; ?>
-</div>
-<?php endif; ?>
-
-<!-- ── Agenda de hoy + Próximas citas ───────────────────────────────── -->
-<div class="row g-3 mb-3">
-    <div class="col-lg-6">
-        <div class="card h-100">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span class="fw-semibold"><i class="bi bi-calendar-day text-brand"></i> <?= et('Agenda de Hoy') ?></span>
-                <a href="<?= BASE_URL ?>/citas/index" class="small"><?= et('Ver completa →') ?></a>
-            </div>
-            <div class="card-body p-0">
-                <?php if (!$agendaHoy): ?>
-                    <p class="text-muted text-center py-4 mb-0"><?= et('Sin citas para hoy.') ?></p>
-                <?php else: ?>
-                    <ul class="list-group list-group-flush">
-                    <?php foreach ($agendaHoy as $c): ?>
-                        <li class="list-group-item d-flex align-items-center justify-content-between px-3">
-                            <span class="d-flex align-items-center gap-2">
-                                <?= avatar_paciente((int) $c['pac_id'], $c['nombre'], $c['apellidos'], $c['foto'] ?? null, 30) ?>
-                                <span><span class="text-brand fw-semibold me-2"><?= fmt_hora($c['hora']) ?></span><?= e($c['apellidos'] . ', ' . $c['nombre']) ?></span>
-                            </span>
-                            <span class="dot-estado dot-<?= e($c['estado']) ?>" title="<?= estado_label($c['estado']) ?>"></span>
-                        </li>
-                    <?php endforeach; ?>
-                    </ul>
-                <?php endif; ?>
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-6">
-        <div class="card h-100">
-            <div class="card-header fw-semibold"><i class="bi bi-clock-history text-brand"></i> <?= et('Próximas citas (7 días)') ?></div>
-            <div class="card-body py-2">
-                <?php if (!$proximas): ?>
-                    <p class="text-muted small mb-0 py-2"><?= et('Nada agendado esta semana.') ?></p>
-                <?php else: foreach ($proximas as $c): ?>
-                    <div class="d-flex justify-content-between align-items-center py-1 border-bottom border-opacity-10">
-                        <span class="small d-flex align-items-center gap-2">
-                            <?= avatar_paciente((int) $c['pac_id'], $c['nombre'], $c['apellidos'], $c['foto'] ?? null, 26) ?>
-                            <?= e($c['apellidos'] . ', ' . $c['nombre']) ?>
-                        </span>
-                        <span class="small text-muted text-capitalize"><?= e(fmt_fecha($c['fecha'])) ?> · <?= fmt_hora($c['hora']) ?></span>
-                    </div>
-                <?php endforeach; endif; ?>
-            </div>
-        </div>
-    </div>
+    <?php endforeach; ?>
 </div>
 
 <!-- ── Últimos expedientes ──────────────────────────────────────────── -->
@@ -1007,6 +1092,94 @@ document.getElementById('copiarWeb').addEventListener('click', function (ev) {
 </div>
 <?php endif; ?>
 
+<?php if (micrositio_visible()):
+    $urlPub  = micrositio_url();
+    $pendWeb = $esAdmin ? micrositio_pendientes() : [];   // solo el admin puede arreglarlo
+    $avance  = $esAdmin ? micrositio_avance() : 100;
+?>
+<?php /* La página pública sirve sobre todo para MANDARLA: al paciente que
+         pregunta por WhatsApp, en la firma del correo, en el perfil de redes.
+         Por eso la tarjeta no es solo un enlace: copia y comparte en un clic.
+         Y si está a medio llenar lo dice, porque una página vacía no vende y
+         el dueño no tiene cómo enterarse salvo abriéndola. */ ?>
+<div class="card mb-4">
+    <div class="card-body d-flex flex-wrap align-items-center gap-3">
+        <div class="flex-grow-1 min-w-0">
+            <div class="fw-semibold mb-1"><i class="bi bi-globe2 text-brand"></i> <?= et('Tu página pública') ?></div>
+            <a href="<?= e($urlPub) ?>" target="_blank" rel="noopener"
+               class="small text-decoration-none d-inline-block text-truncate mw-100 font-monospace"><?= e($urlPub) ?></a>
+            <div class="form-text mb-0"><?= et('Compártela con tus pacientes: ahí ven tus servicios, tu equipo y pueden agendar.') ?></div>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="copiarWeb" data-url="<?= e($urlPub) ?>">
+                <i class="bi bi-clipboard"></i> <?= et('Copiar') ?>
+            </button>
+            <a href="<?= e(wa_compartir(t('Conoce nuestros servicios y agenda tu cita aquí') . ': ' . $urlPub)) ?>"
+               target="_blank" rel="noopener" class="btn btn-sm btn-outline-success">
+                <i class="bi bi-whatsapp"></i> <?= et('Compartir') ?>
+            </a>
+            <a href="<?= e($urlPub) ?>" target="_blank" rel="noopener" class="btn btn-sm btn-primary">
+                <i class="bi bi-box-arrow-up-right"></i> <?= et('Abrir') ?>
+            </a>
+        </div>
+    </div>
+
+    <?php if ($pendWeb): ?>
+    <div class="card-body border-top pt-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="small fw-semibold">
+                <i class="bi bi-clipboard-check text-brand"></i>
+                <?= et('Completa tu página') ?>
+            </span>
+            <span class="small text-muted"><?= $avance ?>%</span>
+        </div>
+        <div class="progress mb-3" style="height:6px">
+            <div class="progress-bar bg-success" style="width:<?= $avance ?>%"></div>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <?php foreach ($pendWeb as [$clave, $etiqueta, $url]): ?>
+                <a href="<?= e($url) ?>" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-plus-lg"></i> <?= et($etiqueta) ?>
+                </a>
+            <?php endforeach; ?>
+        </div>
+        <div class="form-text mt-2">
+            <?= et('Cada punto que llenes aparece solo en tu página. Nadie contrata a un consultorio cuya página está vacía.') ?>
+        </div>
+    </div>
+    <?php endif; ?>
+</div>
+<script>
+document.getElementById('copiarWeb').addEventListener('click', function (ev) {
+    var b = ev.currentTarget;
+    navigator.clipboard.writeText(b.dataset.url).then(function () {
+        b.innerHTML = '<i class="bi bi-check-lg"></i> <?= e(t('Copiado')) ?>';
+        setTimeout(function () { b.innerHTML = '<i class="bi bi-clipboard"></i> <?= e(t('Copiar')) ?>'; }, 2000);
+    });
+});
+</script>
+<?php endif; ?>
+
+<?php if ($esAdmin && $totPacientes < 50 && cfg('migrar_oculto') !== '1'): ?>
+<!-- ── Migración: el dueño casi siempre trae sus pacientes en Excel u otro sistema ── -->
+<div class="card mb-4 migrar-card">
+    <div class="card-body d-flex flex-wrap align-items-center gap-3">
+        <span class="migrar-ic"><i class="bi bi-file-earmark-arrow-up"></i></span>
+        <div class="flex-grow-1 min-w-0">
+            <div class="fw-semibold"><?= et('¿Tienes tus pacientes en Excel o en otro sistema?') ?></div>
+            <div class="small text-muted"><?= et('No los captures uno por uno: nosotros te ayudamos a pasar tu información a tu panel. Escríbenos y te ayudamos de forma personalizada.') ?></div>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="https://wa.me/<?= e(SOPORTE_WHATSAPP) ?>?text=<?= rawurlencode(t('Hola, quiero migrar mis pacientes a') . ' ' . marca_nombre() . '. ' . t('Los tengo en:') . ' ') ?>"
+               target="_blank" rel="noopener" class="btn btn-sm btn-success"><i class="bi bi-whatsapp"></i> <?= et('Migrar mis datos') ?></a>
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-ayuda="migrar"><i class="bi bi-question-circle"></i> <?= et('¿Cómo funciona?') ?></button>
+            <form method="post" class="m-0"><?= csrf_field() ?><input type="hidden" name="action" value="ocultar_migrar">
+                <button class="btn btn-sm btn-link text-muted text-decoration-none" title="<?= e(t('Ocultar')) ?>"><i class="bi bi-x-lg"></i></button></form>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+
 <style>
 /* Banner de bienvenida (glass azul, estilo GymOS) */
 .welcome-banner { border-radius: 16px; padding: 1.25rem 1.5rem; }
@@ -1025,6 +1198,55 @@ html.app-light .welcome-banner {
 .kpi-card .stat-num { font-size: 1.5rem; }
 .kpi-card .kpi-sub { font-size: .7rem; opacity: .8; }
 .min-w-0 { min-width: 0; }
+
+/* KPIs con mini gráfica */
+.kpi2 { transition: transform .25s cubic-bezier(.22,1,.36,1), box-shadow .25s ease; }
+.kpi2:hover { transform: translateY(-3px); }
+.kpi2-lbl { font-size: .8rem; font-weight: 600; opacity: .7; }
+.kpi2-ic { width: 38px; height: 38px; border-radius: 12px; flex: none; display: flex; align-items: center; justify-content: center; color: #fff;
+           background: linear-gradient(160deg, color-mix(in srgb, var(--kpi) 80%, #fff), color-mix(in srgb, var(--kpi) 82%, #000));
+           box-shadow: 0 6px 14px color-mix(in srgb, var(--kpi) 30%, transparent); }
+.kpi2-n { font-size: 1.75rem; font-weight: 750; letter-spacing: -.035em; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.kpi2-d { display: inline-flex; align-items: center; font-size: .72rem; font-weight: 700; padding: .12rem .45rem; border-radius: 999px; background: rgba(127,127,127,.14); }
+.kpi2-d.up { background: rgba(34,197,94,.15); color: #15803d; }
+.kpi2-d.down { background: rgba(239,68,68,.14); color: #b91c1c; }
+.kpi2-sub { font-size: .72rem; opacity: .7; margin-top: .25rem; }
+.kpi2 .spark { width: 46%; max-width: 130px; height: 40px; flex: none; overflow: visible; }
+
+/* Agenda de la semana */
+.tl-dias { display: flex; gap: .45rem; overflow-x: auto; padding-bottom: .4rem; margin-bottom: .9rem; scrollbar-width: none; }
+.tl-dia { position: relative; flex: 1 0 58px; border: 1px solid rgba(127,127,127,.2); background: transparent; border-radius: 14px; padding: .45rem .3rem;
+          display: flex; flex-direction: column; align-items: center; color: inherit; transition: all .2s ease; }
+.tl-dia:hover { border-color: var(--brand); }
+.tl-dia-n { font-size: 1.15rem; font-weight: 750; line-height: 1.1; }
+.tl-dia-s { font-size: .7rem; opacity: .65; text-transform: capitalize; }
+.tl-dia-c { position: absolute; top: -6px; right: -4px; min-width: 18px; height: 18px; border-radius: 999px; font-size: .65rem; font-weight: 700;
+            display: flex; align-items: center; justify-content: center; background: var(--brand); color: #fff; padding: 0 .3rem; }
+.tl-dia.on { background: linear-gradient(180deg, color-mix(in srgb, var(--brand) 78%, #fff), var(--brand)); color: #fff; border-color: transparent;
+             box-shadow: 0 8px 18px color-mix(in srgb, var(--brand) 32%, transparent); }
+.tl-dia.on .tl-dia-s { opacity: .9; }
+.tl-dia.on .tl-dia-c { background: #fff; color: var(--brand); }
+.tl-row { display: flex; gap: .8rem; align-items: stretch; color: inherit; padding: .25rem 0; }
+.tl-hora { width: 54px; flex: none; font-size: .8rem; font-weight: 700; opacity: .6; padding-top: .7rem; text-align: right; font-variant-numeric: tabular-nums; }
+.tl-item { flex: 1; min-width: 0; display: flex; align-items: center; gap: .7rem; padding: .55rem .8rem; border-radius: 14px;
+           border-left: 4px solid var(--est, var(--brand)); background: color-mix(in srgb, var(--est, var(--brand)) 8%, transparent);
+           transition: transform .2s ease, background .2s ease; }
+.tl-row:hover .tl-item { transform: translateX(3px); background: color-mix(in srgb, var(--est, var(--brand)) 13%, transparent); }
+.tl-est { font-size: .68rem; font-weight: 700; padding: .15rem .5rem; border-radius: 999px; flex: none;
+          background: color-mix(in srgb, var(--est, var(--brand)) 18%, transparent); color: var(--est, var(--brand)); }
+.est-programada { --est: #3b82f6; } .est-confirmada { --est: #16a34a; } .est-atendida { --est: #8b5cf6; } .est-no_asistio { --est: #ef4444; }
+.tl-vacio { text-align: center; padding: 2rem 1rem; opacity: .8; } .tl-vacio .bi { font-size: 1.8rem; color: var(--brand); }
+
+/* Tu equipo hoy / recetas recientes */
+.eq-row, .rx-row { display: flex; align-items: center; gap: .75rem; padding: .6rem 0; border-bottom: 1px solid rgba(127,127,127,.12); }
+.eq-row:last-child, .rx-row:last-child { border-bottom: 0; }
+.eq-av { width: 40px; height: 40px; border-radius: 50%; flex: none; display: flex; align-items: center; justify-content: center; font-weight: 700;
+         color: #fff; background: linear-gradient(160deg, color-mix(in srgb, var(--brand) 75%, #fff), var(--brand)); }
+.rx-ic { width: 38px; height: 38px; border-radius: 12px; flex: none; display: flex; align-items: center; justify-content: center;
+         color: var(--brand); background: color-mix(in srgb, var(--brand) 11%, transparent); }
+.rx-go { width: 34px; height: 34px; border-radius: 50%; flex: none; display: flex; align-items: center; justify-content: center;
+         color: var(--brand); background: color-mix(in srgb, var(--brand) 9%, transparent); text-decoration: none; }
+.rx-go:hover { background: var(--brand); color: #fff; }
 .fin-row .fin-n { font-weight: 700; font-size: 1.45rem; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
 .pasos-card { border-left: 4px solid var(--brand) !important; }
 .migrar-card { border: 1px dashed color-mix(in srgb, var(--brand) 40%, transparent) !important; background: color-mix(in srgb, var(--brand) 4%, transparent); }
@@ -1081,6 +1303,20 @@ html.app-light .welcome-banner {
         });
     }
 
+    // Actividad de la semana: barras agrupadas delgadas (como la referencia)
+    var elA = document.getElementById('chartActividad');
+    if (elA) new Chart(elA, {
+        type: 'bar',
+        data: { labels: <?= json_encode($actLabels, JSON_UNESCAPED_UNICODE) ?>, datasets: [
+            { label: <?= json_encode(t('Atendidas'), JSON_UNESCAPED_UNICODE) ?>, data: <?= json_encode($actAt) ?>, backgroundColor: brand },
+            { label: <?= json_encode(t('Canceladas'), JSON_UNESCAPED_UNICODE) ?>, data: <?= json_encode($actCa) ?>, backgroundColor: '#f59e0b' },
+            { label: <?= json_encode(t('No asistió'), JSON_UNESCAPED_UNICODE) ?>, data: <?= json_encode($actNo) ?>, backgroundColor: '#ef4444' }
+        ].map(function (d) { d.borderRadius = 999; d.borderSkipped = false; d.barPercentage = .55; d.categoryPercentage = .6; return d; }) },
+        options: { responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { position: 'top', align: 'end', labels: { usePointStyle: true, boxWidth: 8 } }, tooltip: { backgroundColor: tipBg, cornerRadius: 8 } },
+            scales: { x: { grid: { display: false }, border: { display: false } }, y: { grid: { color: grid }, border: { display: false }, beginAtZero: true, ticks: { precision: 0 } } } }
+    });
+
     // Citas por estado (doughnut)
     var elEst = document.getElementById('chartEstados');
     if (elEst) new Chart(elEst, {
@@ -1132,5 +1368,18 @@ html.app-light .welcome-banner {
 })();
 </script>
 <?php endif; ?>
+
+<script>
+/* Agenda de la semana: al tocar un día se muestra su línea de tiempo. */
+(function () {
+    var dias = document.querySelectorAll('.tl-dia');
+    dias.forEach(function (b) {
+        b.addEventListener('click', function () {
+            dias.forEach(function (x) { x.classList.toggle('on', x === b); });
+            document.querySelectorAll('.tl-dia-body').forEach(function (d) { d.hidden = d.getAttribute('data-dia') !== b.getAttribute('data-dia'); });
+        });
+    });
+})();
+</script>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>
