@@ -253,9 +253,11 @@ include __DIR__ . '/publico_header.php';
     .clx .sv-chip:hover { border-color: var(--cl); color: var(--cl); }
     .clx .sv-chip.on { background: var(--cl); border-color: var(--cl); color: var(--on-cl); }
     .clx .sv-chip small { opacity: .6; margin-left: .25rem; }
-    .clx .sv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1rem; }
-    @media (max-width: 575.98px) { .clx .sv-grid { grid-template-columns: 1fr; gap: .7rem; } }
-    .clx .sv { display: flex; align-items: center; gap: 1rem; background: #fff; border: 1px solid var(--line);
+    .clx .sv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr)); gap: 1rem; }
+    /* minmax(0,…) y min-width:0: sin esto el precio empujaba la tarjeta fuera de la pantalla en celular. */
+    @media (max-width: 575.98px) { .clx .sv-grid { grid-template-columns: minmax(0, 1fr); gap: .7rem; }
+                                   .clx .sv { gap: .75rem; padding: 1rem; } .clx .sv .si { width: 44px; height: 44px; } }
+    .clx .sv { min-width: 0; display: flex; align-items: center; gap: 1rem; background: #fff; border: 1px solid var(--line);
                border-radius: 20px; padding: 1.1rem 1.2rem; color: var(--ink); text-decoration: none;
                box-shadow: 0 1px 4px rgba(0,0,0,.03), 0 10px 26px rgba(15,30,60,.05);
                transition: transform .35s cubic-bezier(.22,1,.36,1), box-shadow .35s ease, border-color .35s ease; }
