@@ -3,8 +3,8 @@
  * Micrositio público de un consultorio: su propia página por slug.
  *   /?c=<slug>   (o el bonito /c/<slug> vía .htaccess)
  *
- * Diseño clínico "pro": verde petróleo como identidad, coral en los botones de
- * acción y tarjetas pastel tipo widget — la misma línea que el resto del sistema.
+ * Diseño: la marca del consultorio manda. Todo el color sale de su acento
+ * (botones, iconos, bandas), con movimiento al hacer scroll como la landing.
  * Pensado para verse bien AUNQUE el consultorio no haya llenado todo: el hero es
  * un degradado sólido con o sin foto, y siempre hay tarjetas y datos que mostrar.
  *
@@ -82,262 +82,290 @@ if ($servicios)       $navLinks[] = [t('Servicios'), '#servicios'];
 if ($medicos)         $navLinks[] = [t('Equipo'), '#equipo'];
 $navLinks[] = [t('Contacto'), '#contacto'];
 
+
+// Reseñas: se leen aquí arriba porque el hero también presume el promedio.
+/* Solo se pinta la sección si hay reseñas publicadas. Una sección de opiniones
+   vacía —"Sé el primero en opinar"— resta en vez de sumar: le dice al paciente
+   que nadie ha venido. Mejor que no exista hasta que tenga algo que enseñar. */
+$resResumen = resenas_resumen((int) $con['id']);
+$resLista   = $resResumen['total'] ? resenas_publicas((int) $con['id'], 9) : [];
+
+/* Iniciales del médico SIN el título: "Dr Jorge Perez" → "JP". Antes salía
+   "D" para todos, porque se tomaba la primera letra del nombre completo. */
+$iniciales = function (string $nombre): string {
+    $p = preg_split('/\s+/u', trim(preg_replace('/^(dra?|lic|mtr[oa]|psic|nut|odont|ing)\.?\s+/iu', '', trim($nombre))));
+    $ini = mb_substr($p[0] ?? '', 0, 1) . (count($p) > 1 ? mb_substr($p[1], 0, 1) : '');
+    return mb_strtoupper($ini ?: mb_substr($nombre, 0, 1));
+};
+
+// Ícono según la categoría del servicio (heurística por palabras); genérico si no cuadra.
+$catIcon = function (string $c): string {
+    $c = mb_strtolower($c);
+    foreach ([
+        'cirug' => 'bi-scissors', 'consult' => 'bi-clipboard2-pulse', 'dental' => 'bi-emoji-smile',
+        'odont' => 'bi-emoji-smile', 'endodon' => 'bi-emoji-smile', 'limpiez' => 'bi-stars',
+        'estud' => 'bi-clipboard2-data', 'labor' => 'bi-eyedropper', 'imagen' => 'bi-camera',
+        'rayos' => 'bi-camera', 'estét' => 'bi-gem', 'prevent' => 'bi-shield-check',
+        'urgen' => 'bi-heart-pulse', 'pediatr' => 'bi-emoji-laughing', 'ginec' => 'bi-gender-female',
+        'ópt' => 'bi-eyeglasses', 'prótes' => 'bi-tools', 'restaur' => 'bi-bandaid', 'procedim' => 'bi-bandaid',
+    ] as $k => $ic) { if (str_contains($c, $k)) return $ic; }
+    return 'bi-plus-circle';
+};
+
 $titulo = $marca;
 $indexable = true;
+$motion = true;   // aparición al hacer scroll (landing-motion.css/js)
 include __DIR__ . '/publico_header.php';
 ?>
 
 <style>
+    /* ── Micrositio: la marca del consultorio manda ──────────────────────
+       Todo sale de --cl (el acento que eligió el consultorio): botones,
+       iconos, bandas y tintes. Nada de azul MediOS ni pasteles ajenos.
+       --on-cl es el texto legible encima (blanco u oscuro según el color). */
+    body.lp { overflow-x: clip; }
     .pub-wrap { max-width: none; padding: 0; }
-    .clx { --cl: <?= $acento ?>; --cl-d: color-mix(in srgb, <?= $acento ?> 78%, #000);
-           --cta: #2563eb; --cta-d: #1d4ed8;
-           --ink: #21384e; --mut: #6b7c93; --soft: color-mix(in srgb, <?= $acento ?> 6%, #fff);
-           font-family: var(--font-ui); }
-    html.lp-dark .clx { --ink: #e6e8ec; --mut: #9aa0aa; --soft: rgba(255,255,255,.035); }
-
-    .clx section { padding: 4.5rem 1.5rem; }
+    .clx { --cl: <?= $acento ?>; --cl-d: color-mix(in srgb, <?= $acento ?> 72%, #000);
+           --on-cl: <?= color_texto_sobre($acento) ?>;
+           --tint: color-mix(in srgb, <?= $acento ?> 7%, #fff);
+           --ink: #1d1d1f; --mut: #6e6e73; --line: rgba(0,0,0,.06);
+           font-family: var(--font-ui); color: var(--ink); }
+    /* Cada banda ocupa todo el ancho, aunque el contenido vaya a 1200px. */
+    .clx > header, .clx > section { width: 100vw; margin-left: calc(50% - 50vw); }
+    .clx section { padding: 5.5rem 1.25rem; }
     .clx .wrap { max-width: 1200px; margin: 0 auto; }
-    .clx h2.t { font-family: var(--font-display); color: var(--ink); font-weight: 600; letter-spacing: -.03em;
-                font-size: clamp(1.6rem, 3.4vw, 2.25rem); margin: 0; }
-    .clx .sub { color: var(--mut); max-width: 56ch; margin: .8rem auto 0; }
-    .clx .eyebrow { display: inline-block; color: var(--cl); font-weight: 590; font-size: .78rem;
-                    letter-spacing: .12em; text-transform: uppercase; }
-    .clx .btn-cta { background: var(--cta); color: #fff; border: 0; border-radius: 980px;
-                    padding: .82rem 1.6rem; font-weight: 590; letter-spacing: -.01em;
-                    text-decoration: none; display: inline-flex; align-items: center; gap: .45rem;
-                    transition: background .25s ease, transform .12s ease; }
-    .clx .btn-cta:hover { background: var(--cta-d); color: #fff; }
-    .clx .btn-gho { background: #fff; color: var(--cl); border: 1px solid color-mix(in srgb, var(--cl) 30%, transparent);
-                    border-radius: 980px; padding: .82rem 1.6rem; font-weight: 590; letter-spacing: -.01em;
-                    text-decoration: none; display: inline-flex; align-items: center; gap: .45rem;
-                    transition: background .25s ease, color .25s ease, transform .12s ease; }
-    .clx .btn-gho:hover { background: var(--cl); color: #fff; border-color: var(--cl); }
-    .clx .btn-gho:active, .clx .btn-cta:active { transform: scale(.975); }
-    html.lp-dark .clx .btn-gho { background: transparent; color: #e6e8ec; border-color: rgba(255,255,255,.18); }
+    .clx .head { text-align: center; margin-bottom: 3rem; }
+    .clx h2.t { font-family: var(--font-display); font-weight: 650; letter-spacing: -.035em; line-height: 1.08;
+                font-size: clamp(1.9rem, 4vw, 2.8rem); margin: .5rem 0 0; color: var(--ink); }
+    .clx .sub { color: var(--mut); max-width: 56ch; margin: .9rem auto 0; font-size: 1.05rem; line-height: 1.55; }
+    .clx .eyebrow { display: inline-flex; align-items: center; gap: .4rem; color: var(--cl); font-weight: 650;
+                    font-size: .76rem; letter-spacing: .14em; text-transform: uppercase;
+                    background: color-mix(in srgb, var(--cl) 9%, #fff); padding: .38rem .85rem; border-radius: 999px; }
 
-    /* ===== HERO claro (homologado con la landing) =====
-       Antes era foto oscurecida con un degradado y texto blanco encima. Ese
-       patrón siempre pierde contraste en algún punto de la imagen, y en un
-       micrositio la foto la sube el consultorio: no hay forma de garantizar
-       que el texto se lea sobre ella. Ahora el fondo es claro, el color lo
-       pone una mancha orgánica con el acento de ESE consultorio, y la foto
-       pasa al lado, enmarcada, donde se luce en vez de estorbar. */
-    .clx .hero { position: relative; color: var(--ink); overflow: hidden;
-                 width: 100vw; margin-left: calc(50% - 50vw);
-                 background: linear-gradient(160deg,
-                             color-mix(in srgb, var(--cl) 9%, #fff) 0%,
-                             color-mix(in srgb, var(--cl) 4%, #fff) 46%, #fff 100%); }
-    .clx .hero::before { content: ''; position: absolute; top: -20%; right: -10%; width: 58%;
-        aspect-ratio: 1; z-index: 0; pointer-events: none;
-        background: radial-gradient(circle at 34% 34%,
-                    color-mix(in srgb, var(--cl) 30%, transparent),
-                    color-mix(in srgb, var(--cl) 8%, transparent) 60%, transparent 74%);
-        border-radius: 46% 54% 58% 42% / 52% 44% 56% 48%; }
-    html.lp-dark .clx .hero { background: linear-gradient(160deg, #14171d 0%, #0f1116 55%, #0c0d10 100%); }
-    html.lp-dark .clx .hero::before { opacity: .5; }
-    .clx .hero .wrap { position: relative; z-index: 1; min-height: 560px; display: flex; align-items: center;
-                       padding: 3.5rem 1.5rem 4rem; }
-    .clx .hero .pill { display: inline-flex; align-items: center; gap: .45rem; background: #fff;
-                       border: 1px solid color-mix(in srgb, var(--cl) 20%, transparent); color: var(--cl);
-                       box-shadow: 0 2px 10px rgba(30,45,80,.06);
-                       padding: .4rem .9rem; border-radius: 999px; font-weight: 590;
-                       font-size: .78rem; letter-spacing: -.005em; }
-    html.lp-dark .clx .hero .pill { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.12); }
-    .clx .hero h1 { font-family: var(--font-display); font-weight: 600; letter-spacing: -.038em;
-                    font-size: clamp(2.3rem, 4.8vw, 3.6rem); line-height: 1.05;
-                    margin: 1.2rem 0 1rem; color: var(--ink); }
-    /* Sobre una foto clara el texto pierde borde: un halo blanco lo separa
-       sin oscurecer la imagen, que es lo que haría una sombra negra. */
-    .clx .hero.con-foto h1,
-    .clx .hero.con-foto .lead { text-shadow: 0 1px 14px rgba(255,255,255,.85); }
-    .clx .hero .lead { font-size: 1.12rem; color: var(--mut); max-width: 40ch; text-shadow: none;
-                       line-height: 1.5; letter-spacing: -.011em; opacity: 1; }
-    .clx .hero .logo { max-height: 48px; max-width: 220px; object-fit: contain;
-                       background: #fff; border-radius: 12px; padding: .4rem .7rem;
-                       margin-bottom: .3rem; box-shadow: 0 2px 12px rgba(30,45,80,.08); }
+    .clx .btn-cta, .clx .btn-gho { border-radius: 980px; padding: .9rem 1.7rem; font-weight: 600; letter-spacing: -.01em;
+        text-decoration: none; display: inline-flex; align-items: center; gap: .5rem; font-size: 1rem;
+        transition: background .25s ease, color .25s ease, transform .2s ease, box-shadow .25s ease; }
+    .clx .btn-cta { background: var(--cl); color: var(--on-cl); border: 0;
+                    box-shadow: 0 10px 26px color-mix(in srgb, var(--cl) 35%, transparent); }
+    .clx .btn-cta:hover { background: var(--cl-d); color: #fff; transform: translateY(-2px);
+                          box-shadow: 0 14px 32px color-mix(in srgb, var(--cl) 42%, transparent); }
+    .clx .btn-gho { background: rgba(255,255,255,.85); color: var(--ink); border: 1px solid var(--line);
+                    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+    .clx .btn-gho:hover { background: #fff; color: var(--cl); transform: translateY(-2px); }
+    .clx .btn-gho .bi-whatsapp { color: #25d366; }
+    .clx .btn-cta:active, .clx .btn-gho:active { transform: scale(.97); }
 
-    /* ── Banner con foto ──────────────────────────────────────────────
-       Con foto, el hero ES la foto. La mancha de color se apaga (sobra) y
-       un degradado la cubre: blanco sólido a la izquierda, donde va el
-       texto, abriéndose hacia la derecha para que la imagen se vea. Un
-       velo uniforme apagaría la foto entera, que es lo que hacía el hero
-       oscuro de antes. */
-    .clx .hero.con-foto { background-image: var(--foto); background-size: cover;
-                          background-position: center center; background-repeat: no-repeat; }
-    .clx .hero.con-foto::before { opacity: 0; }   /* la mancha estorba sobre la foto */
-    .clx .hero.con-foto::after {
-        content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none;
-        background: linear-gradient(100deg,
-            color-mix(in srgb, #fff 95%, transparent) 0%,
-            color-mix(in srgb, #fff 90%, transparent) 38%,
-            color-mix(in srgb, #fff 72%, transparent) 52%,
-            color-mix(in srgb, #fff 38%, transparent) 64%,
-            color-mix(in srgb, #fff 12%, transparent) 76%,
-            transparent 88%);
-    }
-    html.lp-dark .clx .hero.con-foto::after {
-        background: linear-gradient(100deg,
-            #0f1116 0%, #0f1116 30%,
-            color-mix(in srgb, #0f1116 90%, transparent) 44%,
-            color-mix(in srgb, #0f1116 45%, transparent) 62%,
-            transparent 84%);
-    }
-    /* En móvil el texto queda ENCIMA de la foto: el degradado se vuelve
-       vertical o el titular se pierde sobre la imagen. */
+    /* ── Hero ───────────────────────────────────────────────────────────
+       Sin foto: fondo claro con dos manchas del acento que se mueven lento.
+       Con foto: la foto es el banner y un degradado blanco (izquierda→derecha
+       en escritorio, de arriba abajo en móvil) garantiza que el texto se lea. */
+    .clx .hero { position: relative; overflow: hidden;
+                 background: radial-gradient(1200px 600px at 85% -10%, color-mix(in srgb, var(--cl) 16%, transparent), transparent 60%),
+                             linear-gradient(170deg, var(--tint) 0%, #fff 70%); }
+    .clx .hero .orb { position: absolute; border-radius: 50%; filter: blur(60px); pointer-events: none; z-index: 0;
+                      background: color-mix(in srgb, var(--cl) 26%, transparent); }
+    .clx .hero .orb.a { width: 460px; height: 460px; right: -120px; top: -140px; }
+    .clx .hero .orb.b { width: 320px; height: 320px; left: -140px; bottom: -160px; opacity: .6; }
+    @keyframes clOrb { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-40px,30px) scale(1.08); } }
+    html.motion .clx .hero .orb.a { animation: clOrb 16s ease-in-out infinite; }
+    html.motion .clx .hero .orb.b { animation: clOrb 20s ease-in-out infinite reverse; }
+
+    .clx .hero.con-foto { background: var(--foto) center / cover no-repeat; }
+    .clx .hero.con-foto .orb { display: none; }
+    .clx .hero.con-foto::after { content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+        background: linear-gradient(100deg, rgba(255,255,255,.97) 0%, rgba(255,255,255,.93) 36%,
+                    rgba(255,255,255,.70) 52%, rgba(255,255,255,.28) 68%, rgba(255,255,255,0) 86%); }
     @media (max-width: 991.98px) {
-        .clx .hero.con-foto { background-position: center; }
-        .clx .hero.con-foto::after {
-            background: linear-gradient(180deg,
-                color-mix(in srgb, #fff 94%, transparent) 0%,
-                color-mix(in srgb, #fff 88%, transparent) 55%,
-                color-mix(in srgb, #fff 70%, transparent) 100%);
-        }
+        .clx .hero.con-foto::after { background: linear-gradient(180deg, rgba(255,255,255,.95) 0%,
+                                     rgba(255,255,255,.88) 60%, rgba(255,255,255,.72) 100%); }
     }
+    .clx .hero .wrap { position: relative; z-index: 1; min-height: 640px; display: flex; align-items: center;
+                       padding: 4.5rem 0 5rem; }
+    .clx .hero .logo { max-height: 64px; max-width: 240px; object-fit: contain; background: #fff;
+                       border-radius: 16px; padding: .5rem .8rem; box-shadow: 0 6px 20px rgba(15,30,60,.10); }
+    .clx .hero h1 { font-family: var(--font-display); font-weight: 700; letter-spacing: -.045em; line-height: 1.02;
+                    font-size: clamp(2.6rem, 6vw, 4.6rem); margin: 1.3rem 0 1rem; color: var(--ink); }
+    .clx .hero h1 .ac { color: var(--cl); }
+    .clx .hero .lead { font-size: 1.18rem; color: #4a4a4f; max-width: 38ch; line-height: 1.5; letter-spacing: -.012em; }
+    .clx .hero .tags { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1.6rem; }
+    .clx .hero .tag { display: inline-flex; align-items: center; gap: .4rem; background: rgba(255,255,255,.9);
+                      border: 1px solid var(--line); border-radius: 999px; padding: .42rem .9rem;
+                      font-size: .85rem; font-weight: 550; color: var(--ink); box-shadow: 0 2px 8px rgba(15,30,60,.05); }
+    .clx .hero .tag .bi { color: var(--cl); }
+    .clx .hero .tag .star { color: #f5a524; }
 
-    /* Tarjeta de datos: sobre fondo claro el vidrio ya no funciona, así que
-       pasa a tarjeta sólida con la misma sombra en dos capas de la landing. */
-    .clx .hero.con-foto .hero-info { box-shadow: 0 4px 14px rgba(15,30,60,.10), 0 26px 60px rgba(15,30,60,.20); }
-    .clx .hero-info { background: #fff; color: var(--ink); border: 1px solid rgba(0,0,0,.05);
-                      backdrop-filter: none; -webkit-backdrop-filter: none;
-                      border-radius: 22px; padding: 1.7rem 1.8rem;
-                      box-shadow: 0 2px 8px rgba(15,30,60,.04), 0 18px 44px rgba(15,30,60,.10); }
-    html.lp-dark .clx .hero-info { background: rgba(255,255,255,.05); border-color: rgba(255,255,255,.08); color: #e6e8ec; }
-    .clx .hero-info .hi-t { font-weight: 590; font-size: .78rem; letter-spacing: .02em; text-transform: uppercase;
-                            color: var(--cl); opacity: 1; margin-bottom: 1rem; }
-    .clx .hero-info .hi-row { display: flex; align-items: center; gap: .9rem; padding: .8rem 0;
-                              border-top: 1px solid rgba(0,0,0,.06); }
-    html.lp-dark .clx .hero-info .hi-row { border-top-color: rgba(255,255,255,.08); }
+    /* Tarjeta de datos del hero: vidrio blanco que flota. */
+    .clx .hero-info { background: rgba(255,255,255,.92); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+                      border: 1px solid rgba(255,255,255,.7); border-radius: 26px; padding: 1.8rem;
+                      box-shadow: 0 4px 14px rgba(15,30,60,.06), 0 30px 70px rgba(15,30,60,.16); }
+    html.motion .clx .hero-info { animation: lpUp .9s .35s cubic-bezier(.22,1,.36,1) both, lpBob 7s 1.6s ease-in-out infinite; }
+    .clx .hero-info .hi-t { font-weight: 650; font-size: .76rem; letter-spacing: .12em; text-transform: uppercase;
+                            color: var(--cl); margin-bottom: .6rem; }
+    .clx .hero-info .hi-row { display: flex; align-items: center; gap: 1rem; padding: .85rem 0; border-top: 1px solid var(--line); }
     .clx .hero-info .hi-row:first-of-type { border-top: 0; }
-    .clx .hero-info .hi-ic { width: 46px; height: 46px; flex-shrink: 0; border-radius: 14px; display: flex;
-                             align-items: center; justify-content: center; font-size: 1.2rem;
-                             background: color-mix(in srgb, var(--cl) 11%, #fff); color: var(--cl); }
-    html.lp-dark .clx .hero-info .hi-ic { background: color-mix(in srgb, var(--cl) 24%, transparent); }
-    .clx .hero-info .hi-n { font-family: var(--font-display); font-weight: 600; font-size: 1.32rem;
-                            line-height: 1.1; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
-    .clx .hero-info .hi-l { font-size: .84rem; color: var(--mut); opacity: 1; }
-    .clx .hero-info .hi-cta { display: block; text-align: center; margin-top: 1.2rem; background: var(--cta);
-                              color: #fff; border-radius: 980px; padding: .82rem; font-weight: 590;
-                              letter-spacing: -.01em; text-decoration: none;
-                              transition: background .25s ease, transform .12s ease; }
-    .clx .hero-info .hi-cta:hover { background: var(--cta-d); }
-    .clx .hero-info .hi-cta:active { transform: scale(.975); }
+    .clx .hero-info .hi-ic { width: 48px; height: 48px; flex-shrink: 0; border-radius: 15px; display: flex;
+                             align-items: center; justify-content: center; font-size: 1.25rem;
+                             background: linear-gradient(135deg, var(--cl), var(--cl-d)); color: var(--on-cl);
+                             box-shadow: 0 8px 18px color-mix(in srgb, var(--cl) 30%, transparent); }
+    .clx .hero-info .hi-n { font-family: var(--font-display); font-weight: 700; font-size: 1.45rem; line-height: 1.1;
+                            letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+    .clx .hero-info .hi-l { font-size: .86rem; color: var(--mut); }
+    .clx .hero-info .btn-cta { width: 100%; justify-content: center; margin-top: 1.1rem; }
+    html.motion .clx .hero-text > * { animation: lpUp .9s cubic-bezier(.22,1,.36,1) both; }
+    html.motion .clx .hero-text > :nth-child(2) { animation-delay: .1s; }
+    html.motion .clx .hero-text > :nth-child(3) { animation-delay: .2s; }
+    html.motion .clx .hero-text > :nth-child(4) { animation-delay: .3s; }
+    html.motion .clx .hero-text > :nth-child(5) { animation-delay: .4s; }
 
-    /* Imagen / tarjeta al lado */
+    /* ── Beneficios: tarjetas con el tinte de la marca ───────────────── */
+    .clx .benes { padding-top: 0; margin-top: -3rem; position: relative; z-index: 2; background: transparent; }
+    .clx .bene { background: #fff; border: 1px solid var(--line); border-radius: 24px; padding: 1.9rem; height: 100%;
+                 box-shadow: 0 2px 8px rgba(0,0,0,.03), 0 18px 44px rgba(15,30,60,.08);
+                 transition: transform .4s cubic-bezier(.22,1,.36,1), box-shadow .4s ease; }
+    .clx .bene:hover { transform: translateY(-6px); box-shadow: 0 4px 12px rgba(0,0,0,.04), 0 28px 60px rgba(15,30,60,.13); }
+    .clx .bene .ic { width: 56px; height: 56px; border-radius: 17px; display: flex; align-items: center; justify-content: center;
+                     font-size: 1.5rem; margin-bottom: 1.1rem; color: var(--cl); background: color-mix(in srgb, var(--cl) 11%, #fff);
+                     transition: transform .45s cubic-bezier(.34,1.56,.64,1); }
+    .clx .bene:hover .ic { transform: scale(1.1) rotate(-6deg); }
+    .clx .bene h5 { font-family: var(--font-display); font-weight: 650; letter-spacing: -.022em; font-size: 1.15rem; }
+    .clx .bene p { color: var(--mut); font-size: .95rem; line-height: 1.5; margin: 0; }
 
-    /* Perfil del médico: foto redonda del mismo tamaño que la inicial, para
-       que la rejilla no salte según quién tenga foto y quién no. */
-    .clx .medcard .av-img { width: 96px; height: 96px; border-radius: 50%; object-fit: cover;
-                            display: block; margin: 0 auto .9rem;
-                            border: 3px solid color-mix(in srgb, var(--cl) 22%, #fff); }
-    .clx .medcard .ced { font-size: .8rem; color: var(--cl); font-weight: 590; margin-top: .2rem; }
-    .clx .medcard .sem { font-size: .9rem; color: var(--mut); line-height: 1.5; margin: .8rem 0 0;
-                         text-align: left; }
+    /* ── Sobre nosotros ──────────────────────────────────────────────── */
+    .clx .about { background: #fff; }
+    .clx .about blockquote { max-width: 780px; margin: 0 auto; text-align: center; font-family: var(--font-display);
+                             font-size: clamp(1.15rem, 2.2vw, 1.45rem); line-height: 1.55; letter-spacing: -.015em; color: #3a3a3f; }
+    .clx .about blockquote::before { content: "\201C"; display: block; font-size: 4.5rem; line-height: .6; color: var(--cl); opacity: .35; margin-bottom: .6rem; }
 
-    /* ===== Reseñas ===== */
-    .clx .rs-prom { font-family: var(--font-display); font-weight: 600; font-size: 2.2rem;
-                    line-height: 1; letter-spacing: -.04em; color: var(--ink); font-variant-numeric: tabular-nums; }
-    .clx .rs-star { color: #f5a524; letter-spacing: .06rem; }
-    .clx .rs-card { background: #fff; border: 1px solid rgba(0,0,0,.05); border-radius: 22px; padding: 1.6rem;
-                    box-shadow: 0 2px 8px rgba(0,0,0,.03), 0 12px 32px rgba(0,0,0,.05); }
-    html.lp-dark .clx .rs-card { background: rgba(255,255,255,.04); border-color: rgba(255,255,255,.08); box-shadow: none; }
-    .clx .rs-txt { color: var(--ink); font-size: .98rem; line-height: 1.55; letter-spacing: -.008em; }
-    .clx .rs-autor { font-weight: 590; font-size: .9rem; color: var(--ink); }
+    /* ── Servicios: rejilla compacta con filtro por categoría ────────────
+       Antes era una fila por categoría con 1–2 tarjetas y mucho hueco: con
+       10 categorías la página no acababa nunca. Ahora es una sola rejilla
+       pareja y unas pastillas filtran (sin JS se ven todos). */
+    .clx .servs { background: linear-gradient(180deg, var(--tint) 0%, #fff 100%); }
+    .clx .sv-chips { display: flex; gap: .5rem; overflow-x: auto; padding: .2rem .2rem 1rem; margin-bottom: 1rem;
+                     scrollbar-width: none; justify-content: safe center; }
+    .clx .sv-chips::-webkit-scrollbar { display: none; }
+    .clx .sv-chips[hidden] { display: none; }
+    .clx .sv-chip { flex: none; border: 1px solid var(--line); background: #fff; color: var(--ink); border-radius: 999px;
+                    padding: .55rem 1.05rem; font-weight: 550; font-size: .9rem; cursor: pointer;
+                    transition: background .2s ease, color .2s ease, border-color .2s ease; }
+    .clx .sv-chip:hover { border-color: var(--cl); color: var(--cl); }
+    .clx .sv-chip.on { background: var(--cl); border-color: var(--cl); color: var(--on-cl); }
+    .clx .sv-chip small { opacity: .6; margin-left: .25rem; }
+    .clx .sv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1rem; }
+    @media (max-width: 575.98px) { .clx .sv-grid { grid-template-columns: 1fr; gap: .7rem; } }
+    .clx .sv { display: flex; align-items: center; gap: 1rem; background: #fff; border: 1px solid var(--line);
+               border-radius: 20px; padding: 1.1rem 1.2rem; color: var(--ink); text-decoration: none;
+               box-shadow: 0 1px 4px rgba(0,0,0,.03), 0 10px 26px rgba(15,30,60,.05);
+               transition: transform .35s cubic-bezier(.22,1,.36,1), box-shadow .35s ease, border-color .35s ease; }
+    .clx .sv[hidden] { display: none; }
+    .clx a.sv:hover { transform: translateY(-3px); border-color: color-mix(in srgb, var(--cl) 35%, transparent);
+                      box-shadow: 0 4px 12px rgba(0,0,0,.04), 0 18px 40px rgba(15,30,60,.10); color: var(--ink); }
+    .clx .sv .si { width: 50px; height: 50px; flex: none; border-radius: 15px; display: flex; align-items: center;
+                   justify-content: center; font-size: 1.3rem; color: var(--cl); background: color-mix(in srgb, var(--cl) 10%, #fff); }
+    .clx .sv .tx { flex: 1; min-width: 0; }
+    .clx .sv .ct { font-size: .72rem; font-weight: 650; letter-spacing: .08em; text-transform: uppercase; color: var(--mut); }
+    .clx .sv .n { font-weight: 600; line-height: 1.3; letter-spacing: -.01em; }
+    .clx .sv .p { text-align: right; flex: none; }
+    .clx .sv .p small { display: block; font-size: .7rem; color: var(--mut); line-height: 1; }
+    .clx .sv .p b { font-family: var(--font-display); font-weight: 700; font-size: 1.12rem; letter-spacing: -.02em;
+                    color: var(--cl); font-variant-numeric: tabular-nums; }
+    .clx .sv .go { flex: none; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center;
+                   justify-content: center; background: var(--tint); color: var(--cl);
+                   transition: background .25s ease, color .25s ease, transform .3s ease; }
+    .clx a.sv:hover .go { background: var(--cl); color: var(--on-cl); transform: translateX(3px); }
+
+    /* ── Equipo ──────────────────────────────────────────────────────── */
+    .clx .team { background: #fff; }
+    .clx .medcard { position: relative; background: #fff; border: 1px solid var(--line); border-radius: 26px;
+                    overflow: hidden; height: 100%; display: flex; flex-direction: column;
+                    box-shadow: 0 2px 8px rgba(0,0,0,.03), 0 18px 44px rgba(15,30,60,.08);
+                    transition: transform .4s cubic-bezier(.22,1,.36,1), box-shadow .4s ease; }
+    .clx .medcard:hover { transform: translateY(-6px); box-shadow: 0 4px 12px rgba(0,0,0,.04), 0 28px 60px rgba(15,30,60,.13); }
+    .clx .medcard .cover { height: 96px; background: linear-gradient(135deg, var(--cl), var(--cl-d)); position: relative; }
+    .clx .medcard .cover::after { content: ''; position: absolute; inset: 0;
+        background: radial-gradient(circle at 85% 0%, rgba(255,255,255,.28), transparent 55%); }
+    .clx .medcard .av, .clx .medcard .av-img { width: 104px; height: 104px; border-radius: 50%; margin: -52px auto 0;
+        position: relative; z-index: 1; border: 5px solid #fff; box-shadow: 0 10px 26px rgba(15,30,60,.15); }
+    .clx .medcard .av-img { object-fit: cover; display: block; }
+    .clx .medcard .av { display: flex; align-items: center; justify-content: center; font-family: var(--font-display);
+                        font-weight: 700; font-size: 2.1rem; letter-spacing: -.02em; color: var(--cl);
+                        background: color-mix(in srgb, var(--cl) 10%, #fff); }
+    .clx .medcard .bd { padding: 1rem 1.6rem 1.6rem; text-align: center; flex: 1; display: flex; flex-direction: column; }
+    .clx .medcard .nm { font-family: var(--font-display); font-weight: 650; font-size: 1.2rem; letter-spacing: -.02em; }
+    .clx .medcard .sp { display: inline-block; margin-top: .35rem; font-size: .82rem; font-weight: 600; color: var(--cl);
+                        background: color-mix(in srgb, var(--cl) 9%, #fff); border-radius: 999px; padding: .25rem .75rem; }
+    .clx .medcard .ced { font-size: .8rem; color: var(--mut); margin-top: .55rem; }
+    .clx .medcard .ced .bi { color: #16a34a; }
+    .clx .medcard .sem { font-size: .92rem; color: var(--mut); line-height: 1.55; margin: .9rem 0 0; }
+    .clx .medhor { margin-top: 1.1rem; background: var(--tint); border-radius: 16px; padding: .85rem 1rem; text-align: left; font-size: .86rem; }
+    .clx .medhor-t { color: var(--cl); font-weight: 650; font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; margin-bottom: .35rem; }
+    .clx .medhor .d-flex + .d-flex { margin-top: .15rem; }
+    .clx .medcard .btn-cta { margin-top: auto; justify-content: center; padding: .75rem 1.2rem; font-size: .95rem; }
+    .clx .medcard .sp-btn { height: 1.1rem; }
+
+    /* ── Reseñas ─────────────────────────────────────────────────────── */
+    .clx .revs { background: linear-gradient(180deg, #fff 0%, var(--tint) 100%); }
+    .clx .rs-prom { font-family: var(--font-display); font-weight: 700; font-size: 2.6rem; line-height: 1;
+                    letter-spacing: -.045em; font-variant-numeric: tabular-nums; }
+    .clx .rs-star { color: #f5a524; letter-spacing: .08rem; }
+    .clx .rs-card { position: relative; background: #fff; border: 1px solid var(--line); border-radius: 24px; padding: 1.8rem;
+                    box-shadow: 0 2px 8px rgba(0,0,0,.03), 0 14px 36px rgba(15,30,60,.06); }
+    .clx .rs-card::before { content: "\201C"; position: absolute; right: 1.4rem; top: .4rem; font-family: Georgia, serif;
+                            font-size: 4.5rem; line-height: 1; color: var(--cl); opacity: .12; }
+    .clx .rs-txt { font-size: 1rem; line-height: 1.6; letter-spacing: -.008em; }
+    .clx .rs-autor { display: flex; align-items: center; gap: .6rem; font-weight: 600; font-size: .92rem; }
+    .clx .rs-autor .ini { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+                          font-size: .85rem; font-weight: 700; color: var(--cl); background: color-mix(in srgb, var(--cl) 10%, #fff); }
     .clx .rs-med { font-weight: 400; color: var(--mut); }
-    .clx .rs-resp { margin-top: .9rem; padding-left: .9rem; border-left: 3px solid color-mix(in srgb, var(--cl) 45%, transparent);
-                    font-size: .9rem; color: var(--mut); }
+    .clx .rs-resp { margin-top: 1rem; padding: .8rem 1rem; border-radius: 14px; background: var(--tint); font-size: .9rem; color: var(--mut); }
 
-    /* ===== Widgets pastel (beneficios) ===== */
-    .clx .bene { border-radius: 22px; padding: 1.8rem; height: 100%; }
-    .clx .bene.coral { background: #fbe6df; } .clx .bene.coral .bi { color: #d1694e; }
-    .clx .bene.sage  { background: #dcebe4; } .clx .bene.sage  .bi { color: #3f7a63; }
-    .clx .bene.teal  { background: #d7e8ea; } .clx .bene.teal  .bi { color: #2b6d76; }
-    html.lp-dark .clx .bene { background: rgba(255,255,255,.05); }
-    .clx .bene .ic { font-size: 2rem; margin-bottom: .8rem; display: block; }
-    .clx .bene h5 { font-family: var(--font-display); font-weight: 600; letter-spacing: -.022em; color: var(--ink); }
-    html.lp-dark .clx .bene h5 { color: #e6e8ec; }
-    .clx .bene p { color: #4b5560; font-size: .93rem; margin: 0; }
-    html.lp-dark .clx .bene p { color: #b8bcc4; }
+    /* ── Contacto: datos a la izquierda, mapa a la derecha ───────────── */
+    .clx .contact { background: #fff; }
+    .clx .ct-item { display: flex; align-items: center; gap: 1rem; background: #fff; border: 1px solid var(--line);
+                    border-radius: 20px; padding: 1.1rem 1.2rem; color: var(--ink); text-decoration: none; margin-bottom: .8rem;
+                    box-shadow: 0 1px 4px rgba(0,0,0,.03), 0 10px 26px rgba(15,30,60,.05);
+                    transition: transform .3s ease, border-color .3s ease; }
+    .clx a.ct-item:hover { transform: translateX(4px); border-color: color-mix(in srgb, var(--cl) 35%, transparent); color: var(--ink); }
+    .clx .ct-item .ic { width: 50px; height: 50px; flex: none; border-radius: 15px; display: flex; align-items: center;
+                        justify-content: center; font-size: 1.3rem; color: var(--cl); background: color-mix(in srgb, var(--cl) 10%, #fff); }
+    .clx .ct-item .ic.wa { color: #fff; background: #25d366; }
+    .clx .ct-item .lb { font-size: .74rem; font-weight: 650; letter-spacing: .08em; text-transform: uppercase; color: var(--mut); }
+    .clx .ct-item .vl { font-weight: 600; word-break: break-word; }
+    .clx .cl-map { border-radius: 26px; overflow: hidden; height: 100%; min-height: 380px; background: var(--tint);
+                   box-shadow: 0 4px 14px rgba(15,30,60,.06), 0 24px 56px rgba(15,30,60,.10); }
+    .clx .cl-map iframe { display: block; width: 100%; height: 100%; min-height: 380px; border: 0; }
 
-    /* ===== Servicios (tarjetas estilo healthcare, como la sección de planes) ===== */
-    .clx .soft-planes { background: linear-gradient(180deg, color-mix(in srgb, var(--cl) 9%, #eef1f9) 0%,
-                                     color-mix(in srgb, var(--cl) 4%, #f4f6fc) 55%, #fff 100%); }
-    html.lp-dark .clx .soft-planes { background: rgba(255,255,255,.03); }
-    .clx .catrow { display: flex; align-items: center; gap: .8rem; margin: 2.6rem 0 1.3rem; }
-    .clx .catrow .cico { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center;
-                         justify-content: center; font-size: 1.2rem; color: #fff;
-                         background: linear-gradient(135deg, var(--cl-d), var(--cl));
-                         box-shadow: 0 8px 20px color-mix(in srgb, var(--cl) 32%, transparent); }
-    .clx .catrow .ctxt { color: var(--ink); font-weight: 800; font-size: 1.15rem; }
-    .clx .catrow::after { content: ''; flex: 1; height: 1px;
-                          background: linear-gradient(90deg, color-mix(in srgb, var(--cl) 18%, transparent), transparent); }
-
-    /* Tarjeta vertical (icono arriba, nombre, precio), como los planes. */
-    .clx .serv { position: relative; background: #fff; border: 1px solid rgba(0,0,0,.05); border-radius: 22px;
-                 padding: 1.6rem; height: 100%; display: flex; flex-direction: column;
-                 box-shadow: 0 2px 8px rgba(0,0,0,.03), 0 12px 32px rgba(0,0,0,.05);
-                 transition: transform .35s cubic-bezier(.28,.11,.32,1), box-shadow .35s cubic-bezier(.28,.11,.32,1); }
-    html.lp-dark .clx .serv { background: rgba(255,255,255,.04); border-color: rgba(255,255,255,.08); box-shadow: none; }
-    .clx .serv:hover { transform: translateY(-6px); box-shadow: 0 4px 12px rgba(0,0,0,.04), 0 24px 56px rgba(0,0,0,.09); }
-    .clx .serv .si { width: 52px; height: 52px; border-radius: 15px; display: flex; align-items: center;
-                     justify-content: center; font-size: 1.4rem; color: var(--cl); margin-bottom: 1rem;
-                     background: linear-gradient(135deg, color-mix(in srgb, var(--cl) 16%, #fff), color-mix(in srgb, var(--cl) 6%, #fff)); }
-    html.lp-dark .clx .serv .si { background: color-mix(in srgb, var(--cl) 22%, transparent); }
-    .clx .serv .fav { position: absolute; top: 1.3rem; right: 1.3rem; color: color-mix(in srgb, var(--cl) 40%, #fff); font-size: 1.05rem; }
-    .clx .serv .n { color: var(--ink); font-weight: 700; line-height: 1.3; flex: 1; }
-    .clx .serv .p { color: var(--cta); font-weight: 800; font-size: 1.35rem; margin-top: .9rem; }
-    .clx .serv .p small { font-weight: 600; font-size: .74rem; color: var(--mut); display: block; line-height: 1; }
-
-    /* ===== Equipo (tarjeta por médico, con su horario) ===== */
-    .clx .medcard { background: var(--bs-body-bg); border: 1px solid color-mix(in srgb, var(--cl) 14%, #fff);
-                    border-radius: 20px; padding: 1.6rem; height: 100%; }
-    html.lp-dark .clx .medcard { border-color: rgba(255,255,255,.08); }
-    .clx .medcard .av { width: 92px; height: 92px; border-radius: 50%; margin: 0 auto .8rem; display: flex;
-                    align-items: center; justify-content: center; font-family: var(--font-display);
-                    font-weight: 800; font-size: 2rem; color: #fff;
-                    background: linear-gradient(135deg, var(--cl-d), var(--cl)); box-shadow: 0 10px 26px rgba(0,0,0,.12); }
-    .clx .medcard .nm { color: var(--ink); font-weight: 700; } .clx .medcard .sp { color: var(--mut); font-size: .9rem; }
-    .clx .medhor { border-top: 1px solid color-mix(in srgb, var(--cl) 12%, #fff); margin-top: .4rem; padding-top: .8rem;
-                   font-size: .86rem; color: var(--ink); }
-    html.lp-dark .clx .medhor { border-top-color: rgba(255,255,255,.08); }
-    .clx .medhor-t { color: var(--cl); font-weight: 700; font-size: .75rem; text-transform: uppercase;
-                     letter-spacing: .05em; margin-bottom: .4rem; }
-
-    /* ===== Contacto (fila de íconos) ===== */
-    .clx .feat { text-align: center; }
-    .clx .feat .ico { width: 72px; height: 72px; border-radius: 50%; margin: 0 auto .9rem; display: flex;
-                      align-items: center; justify-content: center; font-size: 1.7rem;
-                      background: color-mix(in srgb, var(--cl) 12%, #fff); color: var(--cl); }
-    html.lp-dark .clx .feat .ico { background: color-mix(in srgb, var(--cl) 24%, transparent); }
-    .clx .feat h6 { color: var(--ink); font-weight: 700; } .clx .feat .det { color: var(--mut); font-size: .9rem; }
-    .clx .feat a { color: inherit; text-decoration: none; }
-
-    /* ===== Banda de reserva ===== */
-    .clx .book { background: linear-gradient(120deg, var(--cl-d), var(--cl)); }
-    .clx .book h2.t, .clx .book .sub { color: #fff; }
-    .clx .book .eyebrow { color: rgba(255,255,255,.8); }
-    .clx .book .pub-card { border: 0; border-radius: 22px; box-shadow: 0 24px 60px rgba(0,0,0,.24); }
-    .clx .book .form-control, .clx .book .form-select {
-        background: var(--soft); border: 1px solid transparent; border-radius: 12px; padding: .7rem .9rem; }
-    .clx .book .form-control:focus, .clx .book .form-select:focus {
-        border-color: var(--cl); box-shadow: 0 0 0 .18rem color-mix(in srgb, var(--cl) 20%, transparent); }
-    .clx .book .btn-primary { background: var(--cta); border-color: var(--cta); border-radius: 999px; }
-    .clx .book .btn-primary:hover { background: var(--cta-d); border-color: var(--cta-d); }
-    .clx .book .hueco span { border-radius: 12px; }
+    /* ── Banda final de reserva ──────────────────────────────────────── */
+    .clx .book { position: relative; overflow: hidden; color: var(--on-cl); text-align: center;
+                 background: linear-gradient(125deg, var(--cl-d), var(--cl)); }
+    .clx .book::before, .clx .book::after { content: ''; position: absolute; border-radius: 50%; pointer-events: none;
+                                            background: rgba(255,255,255,.10); }
+    .clx .book::before { width: 420px; height: 420px; right: -120px; top: -180px; }
+    .clx .book::after  { width: 300px; height: 300px; left: -100px; bottom: -150px; }
+    .clx .book .wrap { position: relative; z-index: 1; }
+    .clx .book h2.t, .clx .book .sub { color: inherit; }
+    .clx .book .sub { opacity: .88; }
+    .clx .book .eyebrow { background: rgba(255,255,255,.16); color: inherit; }
+    .clx .book .btn-cta { background: #fff; color: var(--cl-d); box-shadow: 0 16px 40px rgba(0,0,0,.22); font-size: 1.05rem; padding: 1rem 2rem; }
+    .clx .book .btn-cta:hover { background: #fff; color: var(--cl); }
 </style>
 
 <div class="clx">
 
-<!-- ===== HERO (banner) ===== -->
+<!-- ===== HERO ===== -->
 <header class="hero<?= $foto ? ' con-foto' : '' ?>"
         <?php if ($foto): ?>style="--foto:url('<?= e($foto) ?>')"<?php endif; ?>>
-    <div class="wrap">
-        <div class="row align-items-center g-4 g-lg-5 w-100">
-            <div class="col-lg-7">
-                <?php if (cfg('marca_logo')): ?>
-                    <img src="<?= e(cfg('marca_logo')) ?>" alt="<?= e($marca) ?>" class="logo d-inline-block">
-                <?php else: ?>
-                    <span class="pill"><i class="bi bi-heart-pulse-fill"></i> <?= e($marca) ?></span>
-                <?php endif; ?>
+    <span class="orb a" aria-hidden="true"></span><span class="orb b" aria-hidden="true"></span>
+    <div class="wrap px-3 px-lg-4">
+        <div class="row align-items-center g-5 w-100 m-0">
+            <div class="col-lg-7 hero-text">
+                <div>
+                    <?php if (cfg('marca_logo')): ?>
+                        <img src="<?= e(cfg('marca_logo')) ?>" alt="<?= e($marca) ?>" class="logo">
+                    <?php else: ?>
+                        <span class="eyebrow"><i class="bi bi-heart-pulse-fill"></i> <?= e($marca) ?></span>
+                    <?php endif; ?>
+                </div>
                 <h1><?= e($titular) ?></h1>
                 <p class="lead"><?= e($lema ?: t('Cuidamos de tu salud con atención cercana y profesional.')) ?></p>
                 <div class="d-flex flex-wrap gap-2 mt-4">
@@ -350,19 +378,30 @@ include __DIR__ . '/publico_header.php';
                         <a href="tel:<?= e(preg_replace('/\s+/', '', $tel)) ?>" class="btn-gho"><i class="bi bi-telephone"></i> <?= e($tel) ?></a>
                     <?php endif; ?>
                 </div>
+                <?php /* Etiquetas con datos reales: especialidades del equipo y el
+                         promedio de reseñas (solo si existen). */ ?>
+                <?php if ($especialidades || $resResumen['total']): ?>
+                <div class="tags">
+                    <?php if ($resResumen['total']): ?>
+                        <span class="tag"><i class="bi bi-star-fill star"></i> <?= number_format($resResumen['promedio'], 1) ?> · <?= $resResumen['total'] ?> <?= $resResumen['total'] === 1 ? et('reseña') : et('reseñas') ?></span>
+                    <?php endif; ?>
+                    <?php foreach (array_slice($especialidades, 0, 4) as $esp): ?>
+                        <span class="tag"><i class="bi bi-check2-circle"></i> <?= e($esp) ?></span>
+                    <?php endforeach; ?>
+                </div>
+                <?php endif; ?>
             </div>
 
-            <?php /* Tarjeta de vidrio con datos reales: el elemento "pro" del banner. */ ?>
             <div class="col-lg-5">
                 <div class="hero-info">
                     <div class="hi-t"><i class="bi bi-shield-check"></i> <?= et('Atención profesional') ?></div>
                     <?php if (count($medicos)): ?>
                     <div class="hi-row"><div class="hi-ic"><i class="bi bi-person-badge"></i></div>
-                        <div><div class="hi-n"><?= count($medicos) ?></div><div class="hi-l"><?= count($medicos) === 1 ? et('especialista a tu servicio') : et('especialistas a tu servicio') ?></div></div></div>
+                        <div><div class="hi-n" data-count><?= count($medicos) ?></div><div class="hi-l"><?= count($medicos) === 1 ? et('especialista a tu servicio') : et('especialistas a tu servicio') ?></div></div></div>
                     <?php endif; ?>
                     <?php if ($nServicios): ?>
                     <div class="hi-row"><div class="hi-ic"><i class="bi bi-clipboard2-pulse"></i></div>
-                        <div><div class="hi-n"><?= $nServicios ?></div><div class="hi-l"><?= et('servicios disponibles') ?></div></div></div>
+                        <div><div class="hi-n" data-count><?= $nServicios ?></div><div class="hi-l"><?= et('servicios disponibles') ?></div></div></div>
                     <?php endif; ?>
                     <?php if ($anios >= 1): ?>
                     <div class="hi-row"><div class="hi-ic"><i class="bi bi-award"></i></div>
@@ -370,11 +409,11 @@ include __DIR__ . '/publico_header.php';
                     <?php endif; ?>
                     <?php if ($reservar): ?>
                     <div class="hi-row"><div class="hi-ic"><i class="bi bi-calendar-check"></i></div>
-                        <div><div class="hi-n" style="font-size:1rem"><?= et('Agenda en línea') ?></div><div class="hi-l"><?= et('Aparta tu cita 24/7') ?></div></div></div>
-                    <a href="<?= e($urlAgendar) ?>" class="hi-cta"><i class="bi bi-calendar-plus"></i> <?= et('Agendar ahora') ?></a>
+                        <div><div class="hi-n" style="font-size:1.05rem"><?= et('Agenda en línea') ?></div><div class="hi-l"><?= et('Aparta tu cita 24/7') ?></div></div></div>
+                    <a href="<?= e($urlAgendar) ?>" class="btn-cta"><i class="bi bi-calendar-plus"></i> <?= et('Agendar ahora') ?></a>
                     <?php elseif ($tel): ?>
                     <div class="hi-row"><div class="hi-ic"><i class="bi bi-telephone"></i></div>
-                        <div><div class="hi-n" style="font-size:1rem"><?= e($tel) ?></div><div class="hi-l"><?= et('Llámanos para tu cita') ?></div></div></div>
+                        <div><div class="hi-n" style="font-size:1.05rem"><?= e($tel) ?></div><div class="hi-l"><?= et('Llámanos para tu cita') ?></div></div></div>
                     <?php endif; ?>
                 </div>
             </div>
@@ -382,15 +421,15 @@ include __DIR__ . '/publico_header.php';
     </div>
 </header>
 
-<!-- ===== BENEFICIOS (widgets) ===== -->
-<section>
+<!-- ===== BENEFICIOS ===== -->
+<section class="benes">
     <div class="wrap">
-        <div class="row g-4">
-            <?php foreach ($benes as [$ic, $t1, $t2, $tono]): ?>
+        <div class="row g-4" data-stagger>
+            <?php foreach ($benes as [$ic, $t1, $t2]): ?>
             <div class="col-md-4">
-                <div class="bene <?= $tono ?>">
-                    <i class="bi <?= $ic ?> ic"></i>
-                    <h5 class="fw-bold"><?= e($t1) ?></h5>
+                <div class="bene">
+                    <span class="ic"><i class="bi <?= $ic ?>"></i></span>
+                    <h5><?= e($t1) ?></h5>
                     <p><?= e($t2) ?></p>
                 </div>
             </div>
@@ -401,101 +440,98 @@ include __DIR__ . '/publico_header.php';
 
 <!-- ===== SOBRE NOSOTROS ===== -->
 <?php if ($acerca): ?>
-<section class="soft">
-    <div class="wrap text-center">
-        <span class="eyebrow"><?= et('Sobre nosotros') ?></span>
-        <h2 class="t mb-3"><?= et('Conócenos') ?></h2>
-        <p class="sub"><?= nl2br(e($acerca)) ?></p>
+<section class="about">
+    <div class="wrap">
+        <div class="head" data-reveal>
+            <span class="eyebrow"><?= et('Sobre nosotros') ?></span>
+            <h2 class="t"><?= et('Conócenos') ?></h2>
+        </div>
+        <blockquote data-reveal><?= nl2br(e($acerca)) ?></blockquote>
     </div>
 </section>
 <?php endif; ?>
 
 <!-- ===== SERVICIOS ===== -->
 <?php if ($servicios): ?>
-<section id="servicios" class="soft-planes">
+<section id="servicios" class="servs">
     <div class="wrap">
-        <div class="text-center mb-4">
+        <div class="head" data-reveal>
             <span class="eyebrow"><?= et('Lo que ofrecemos') ?></span>
             <h2 class="t"><?= et('Nuestros servicios') ?></h2>
         </div>
-        <?php
-        // Ícono según la categoría (heurística por palabras); genérico si no cuadra.
-        $catIcon = function (string $c): string {
-            $c = mb_strtolower($c);
-            foreach ([
-                'cirug' => 'bi-scissors', 'consult' => 'bi-clipboard2-pulse', 'dental' => 'bi-emoji-smile',
-                'odont' => 'bi-emoji-smile', 'limpiez' => 'bi-stars', 'estud' => 'bi-clipboard2-data',
-                'labor' => 'bi-eyedropper', 'imagen' => 'bi-camera', 'rayos' => 'bi-camera',
-                'estét' => 'bi-gem', 'prevent' => 'bi-shield-check', 'urgen' => 'bi-heart-pulse',
-                'pediatr' => 'bi-emoji-laughing', 'ginec' => 'bi-gender-female', 'ópt' => 'bi-eyeglasses',
-            ] as $k => $ic) { if (str_contains($c, $k)) return $ic; }
-            return 'bi-plus-circle';
-        };
-        ?>
-        <?php foreach ($servicios as $categoria => $items): ?>
-            <div class="catrow">
-                <span class="cico"><i class="bi <?= $catIcon((string) $categoria) ?>"></i></span>
-                <span class="ctxt"><?= e($categoria) ?></span>
-            </div>
-            <div class="row g-4 align-items-stretch">
-                <?php foreach ($items as $s): ?>
-                <div class="col-6 col-lg-3">
-                    <div class="serv">
-                        <span class="si"><i class="bi <?= $catIcon((string) $categoria) ?>"></i></span>
-                        <i class="bi bi-heart fav"></i>
-                        <div class="n"><?= e($s['nombre']) ?></div>
-                        <?php if ((float) $s['precio'] > 0): ?>
-                            <div class="p"><small><?= et('Desde') ?></small><?= fmt_money($s['precio']) ?></div>
-                        <?php endif; ?>
-                    </div>
-                </div>
-                <?php endforeach; ?>
-            </div>
-        <?php endforeach; ?>
+        <?php if (count($servicios) > 1): /* El filtro solo tiene sentido con 2+ categorías; lo enciende el JS. */ ?>
+        <div class="sv-chips" role="tablist" hidden>
+            <button type="button" class="sv-chip on" data-cat=""><?= et('Todos') ?> <small><?= $nServicios ?></small></button>
+            <?php foreach ($servicios as $categoria => $items): ?>
+            <button type="button" class="sv-chip" data-cat="<?= e($categoria) ?>"><?= e($categoria) ?> <small><?= count($items) ?></small></button>
+            <?php endforeach; ?>
+        </div>
+        <?php endif; ?>
+        <div class="sv-grid">
+            <?php foreach ($servicios as $categoria => $items): foreach ($items as $s):
+                $tag = $reservar ? 'a' : 'div'; ?>
+            <<?= $tag ?> class="sv" data-cat="<?= e($categoria) ?>"<?= $reservar ? ' href="' . e($urlAgendar) . '"' : '' ?>>
+                <span class="si"><i class="bi <?= $catIcon((string) $categoria) ?>"></i></span>
+                <span class="tx">
+                    <span class="ct d-block"><?= e($categoria) ?></span>
+                    <span class="n d-block"><?= e($s['nombre']) ?></span>
+                </span>
+                <?php if ((float) $s['precio'] > 0): ?>
+                    <span class="p"><small><?= et('Desde') ?></small><b><?= fmt_money($s['precio']) ?></b></span>
+                <?php endif; ?>
+                <?php if ($reservar): ?><span class="go" aria-hidden="true"><i class="bi bi-arrow-right"></i></span><?php endif; ?>
+            </<?= $tag ?>>
+            <?php endforeach; endforeach; ?>
+        </div>
     </div>
 </section>
 <?php endif; ?>
 
 <!-- ===== EQUIPO ===== -->
 <?php if ($medicos): ?>
-<section id="equipo" class="soft">
+<section id="equipo" class="team">
     <div class="wrap">
-        <div class="text-center mb-5">
+        <div class="head" data-reveal>
             <span class="eyebrow"><?= et('Quién te atiende') ?></span>
             <h2 class="t"><?= et('Nuestro equipo') ?></h2>
         </div>
-        <div class="row g-4 justify-content-center">
+        <div class="row g-4 justify-content-center" data-stagger>
             <?php foreach ($medicos as $m): ?>
             <div class="col-sm-6 col-lg-4">
                 <div class="medcard">
+                    <div class="cover"></div>
                     <?php if (!empty($m['foto'])): ?>
                         <img src="<?= e($m['foto']) ?>" alt="<?= e($m['nombre']) ?>" class="av-img" loading="lazy">
                     <?php else: ?>
-                        <div class="av"><?= e(strtoupper(mb_substr($m['nombre'], 0, 1))) ?></div>
+                        <div class="av"><?= e($iniciales((string) $m['nombre'])) ?></div>
                     <?php endif; ?>
-                    <div class="text-center">
+                    <div class="bd">
                         <div class="nm"><?= e($m['nombre']) ?></div>
-                        <?php if ($m['especialidad']): ?><div class="sp"><?= e($m['especialidad']) ?></div><?php endif; ?>
+                        <?php if ($m['especialidad']): ?><div><span class="sp"><?= e($m['especialidad']) ?></span></div><?php endif; ?>
                         <?php if (!empty($m['cedula'])): ?>
                             <div class="ced"><i class="bi bi-patch-check-fill"></i> <?= et('Céd. Prof.') ?> <?= e($m['cedula']) ?></div>
                         <?php endif; ?>
                         <?php if (!empty($m['semblanza'])): ?>
                             <p class="sem"><?= e($m['semblanza']) ?></p>
                         <?php endif; ?>
-                    </div>
-                    <?php /* Cada médico con SU propio horario (cada quien su agenda). */ ?>
-                    <?php if (!empty($m['horario'])): ?>
-                    <div class="medhor">
-                        <div class="medhor-t"><i class="bi bi-clock"></i> <?= et('Horario') ?></div>
-                        <?php foreach ($m['horario'] as $h): ?>
-                        <div class="d-flex justify-content-between">
-                            <span><?= e($h['dias']) ?></span><span class="text-muted"><?= e($h['horas']) ?></span>
+                        <?php /* Cada médico con SU propio horario (cada quien su agenda). */ ?>
+                        <?php if (!empty($m['horario'])): ?>
+                        <div class="medhor">
+                            <div class="medhor-t"><i class="bi bi-clock"></i> <?= et('Horario') ?></div>
+                            <?php foreach ($m['horario'] as $h): ?>
+                            <div class="d-flex justify-content-between gap-2">
+                                <span><?= e($h['dias']) ?></span><span class="text-muted text-end"><?= e($h['horas']) ?></span>
+                            </div>
+                            <?php endforeach; ?>
                         </div>
-                        <?php endforeach; ?>
+                        <?php else: ?>
+                        <div class="medhor text-muted text-center"><?= et('Consulta con cita') ?></div>
+                        <?php endif; ?>
+                        <?php if ($reservar): ?>
+                            <div class="sp-btn"></div>
+                            <a href="<?= e($urlAgendar) ?>" class="btn-cta"><i class="bi bi-calendar-plus"></i> <?= et('Agendar cita') ?></a>
+                        <?php endif; ?>
                     </div>
-                    <?php else: ?>
-                    <div class="medhor text-muted small text-center"><?= et('Consulta con cita') ?></div>
-                    <?php endif; ?>
                 </div>
             </div>
             <?php endforeach; ?>
@@ -505,27 +541,22 @@ include __DIR__ . '/publico_header.php';
 <?php endif; ?>
 
 <!-- ===== RESEÑAS ===== -->
-<?php
-/* Solo se pinta si hay reseñas publicadas. Una sección de opiniones vacía
-   —"Sé el primero en opinar"— resta en vez de sumar: le dice al paciente que
-   nadie ha venido. Mejor que no exista hasta que tenga algo que enseñar. */
-$resResumen = resenas_resumen((int) $con['id']);
-$resLista   = $resResumen['total'] ? resenas_publicas((int) $con['id'], 9) : [];
-?>
 <?php if ($resLista): ?>
-<section id="resenas" class="soft-planes">
+<section id="resenas" class="revs">
     <div class="wrap">
-        <div class="text-center mb-4">
+        <div class="head" data-reveal>
             <span class="eyebrow"><?= et('Opiniones') ?></span>
             <h2 class="t"><?= et('Lo que dicen nuestros pacientes') ?></h2>
-            <div class="d-flex align-items-center justify-content-center gap-2 mt-2">
+            <div class="d-flex align-items-center justify-content-center gap-2 mt-3">
                 <span class="rs-prom"><?= number_format($resResumen['promedio'], 1) ?></span>
-                <span class="rs-star"><?= resena_estrellas($resResumen['promedio']) ?></span>
-                <span class="sub m-0"><?= $resResumen['total'] ?> <?= $resResumen['total'] === 1 ? et('reseña') : et('reseñas') ?></span>
+                <span>
+                    <span class="rs-star d-block"><?= resena_estrellas($resResumen['promedio']) ?></span>
+                    <span class="small text-muted"><?= $resResumen['total'] ?> <?= $resResumen['total'] === 1 ? et('reseña') : et('reseñas') ?></span>
+                </span>
             </div>
             <p class="sub"><?= et('Todas provienen de pacientes que sí tuvieron consulta aquí.') ?></p>
         </div>
-        <div class="row g-4">
+        <div class="row g-4" data-stagger>
             <?php foreach ($resLista as $rs): ?>
             <div class="col-md-6 col-lg-4">
                 <div class="rs-card h-100">
@@ -534,10 +565,13 @@ $resLista   = $resResumen['total'] ? resenas_publicas((int) $con['id'], 9) : [];
                         <p class="rs-txt">“<?= e($rs['comentario']) ?>”</p>
                     <?php endif; ?>
                     <div class="rs-autor">
-                        <?= e($rs['autor']) ?>
-                        <?php if ($rs['medico']): ?>
-                            <span class="rs-med">· <?= et('con') ?> <?= e($rs['medico']) ?></span>
-                        <?php endif; ?>
+                        <span class="ini"><?= e(mb_strtoupper(mb_substr((string) $rs['autor'], 0, 1))) ?></span>
+                        <span>
+                            <?= e($rs['autor']) ?>
+                            <?php if ($rs['medico']): ?>
+                                <span class="rs-med">· <?= et('con') ?> <?= e($rs['medico']) ?></span>
+                            <?php endif; ?>
+                        </span>
                     </div>
                     <?php if ($rs['respuesta']): ?>
                     <div class="rs-resp">
@@ -553,72 +587,92 @@ $resLista   = $resResumen['total'] ? resenas_publicas((int) $con['id'], 9) : [];
 <?php endif; ?>
 
 <!-- ===== CONTACTO ===== -->
-<?php $hayContacto = $correo || $tel || $dir || $wa || mapa_coords(cfg('web_mapa', '')); ?>
-<?php if ($hayContacto): ?>
-<section id="contacto">
+<?php
+$mapaSrc = mapa_embed_url(cfg('web_mapa', ''), (string) $dir);
+$irUrl   = $mapaSrc ? mapa_ir_url(cfg('web_mapa', ''), (string) $dir) : '';
+$hayDatos = $correo || $tel || $dir || $wa;
+?>
+<?php if ($hayDatos || $mapaSrc): ?>
+<section id="contacto" class="contact">
     <div class="wrap">
-        <div class="text-center mb-5">
+        <div class="head" data-reveal>
             <span class="eyebrow"><?= et('Visítanos') ?></span>
             <h2 class="t"><?= et('Contacto') ?></h2>
         </div>
-        <div class="row g-4">
-            <?php if ($correo): ?>
-            <div class="col-6 col-lg-3 feat"><div class="ico"><i class="bi bi-envelope"></i></div>
-                <h6><?= et('Correo') ?></h6><div class="det"><a href="mailto:<?= e($correo) ?>"><?= e($correo) ?></a></div></div>
+        <div class="row g-4 align-items-stretch">
+            <?php if ($hayDatos): ?>
+            <div class="<?= $mapaSrc ? 'col-lg-5' : 'col-lg-8 mx-auto' ?>" data-stagger>
+                <?php if ($wa): ?>
+                <a class="ct-item" href="<?= e($wa) ?>" target="_blank" rel="noopener"><span class="ic wa"><i class="bi bi-whatsapp"></i></span>
+                    <span><span class="lb d-block">WhatsApp</span><span class="vl"><?= et('Escríbenos') ?></span></span></a>
+                <?php endif; ?>
+                <?php if ($tel): ?>
+                <a class="ct-item" href="tel:<?= e(preg_replace('/\s+/', '', $tel)) ?>"><span class="ic"><i class="bi bi-telephone"></i></span>
+                    <span><span class="lb d-block"><?= et('Teléfono') ?></span><span class="vl"><?= e($tel) ?></span></span></a>
+                <?php endif; ?>
+                <?php if ($correo): ?>
+                <a class="ct-item" href="mailto:<?= e($correo) ?>"><span class="ic"><i class="bi bi-envelope"></i></span>
+                    <span><span class="lb d-block"><?= et('Correo') ?></span><span class="vl"><?= e($correo) ?></span></span></a>
+                <?php endif; ?>
+                <?php if ($dir): ?>
+                <a class="ct-item" href="https://maps.google.com/?q=<?= rawurlencode($dir) ?>" target="_blank" rel="noopener"><span class="ic"><i class="bi bi-geo-alt"></i></span>
+                    <span><span class="lb d-block"><?= et('Ubicación') ?></span><span class="vl"><?= e($dir) ?></span></span></a>
+                <?php endif; ?>
+                <?php if ($irUrl): ?>
+                    <?php /* En un móvil esto abre la app de mapas con la ruta trazada. */ ?>
+                    <a href="<?= e($irUrl) ?>" target="_blank" rel="noopener" class="btn-cta mt-2"><i class="bi bi-signpost-split"></i> <?= et('Cómo llegar') ?></a>
+                <?php endif; ?>
+            </div>
             <?php endif; ?>
-            <?php if ($tel): ?>
-            <div class="col-6 col-lg-3 feat"><div class="ico"><i class="bi bi-telephone"></i></div>
-                <h6><?= et('Teléfono') ?></h6><div class="det"><a href="tel:<?= e(preg_replace('/\s+/', '', $tel)) ?>"><?= e($tel) ?></a></div></div>
-            <?php endif; ?>
-            <?php if ($dir): ?>
-            <div class="col-6 col-lg-3 feat"><div class="ico"><i class="bi bi-geo-alt"></i></div>
-                <h6><?= et('Ubicación') ?></h6><div class="det"><a href="https://maps.google.com/?q=<?= rawurlencode($dir) ?>" target="_blank" rel="noopener"><?= e($dir) ?></a></div></div>
-            <?php endif; ?>
-            <?php if ($wa): ?>
-            <div class="col-6 col-lg-3 feat"><div class="ico"><i class="bi bi-whatsapp"></i></div>
-                <h6>WhatsApp</h6><div class="det"><a href="<?= e($wa) ?>" target="_blank" rel="noopener"><?= et('Escríbenos') ?></a></div></div>
-            <?php endif; ?>
-        </div>
-
-        <?php /* Mapa embebido, sin API key. Prefiere las coordenadas del enlace
-                 de Maps que pegó el consultorio; si no hay, busca por dirección. */ ?>
-        <?php $mapaSrc = mapa_embed_url(cfg('web_mapa', ''), (string) $dir); ?>
-        <?php if ($mapaSrc): ?>
-        <div class="cl-map mt-5">
-            <iframe title="<?= e($marca) ?>" width="100%" height="380" style="border:0;border-radius:22px"
-                    loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen
-                    src="<?= e($mapaSrc) ?>"></iframe>
-            <?php $irUrl = mapa_ir_url(cfg('web_mapa', ''), (string) $dir); ?>
-            <?php if ($irUrl): ?>
-            <div class="text-center mt-3">
-                <?php /* En un móvil esto abre la app de mapas con la ruta trazada,
-                         que es lo que el paciente necesita de verdad. */ ?>
-                <a href="<?= e($irUrl) ?>" target="_blank" rel="noopener" class="btn-cta">
-                    <i class="bi bi-signpost-split"></i> <?= et('Cómo llegar') ?>
-                </a>
+            <?php /* Mapa embebido, sin API key: coordenadas del enlace de Maps o dirección. */ ?>
+            <?php if ($mapaSrc): ?>
+            <div class="<?= $hayDatos ? 'col-lg-7' : 'col-12' ?>" data-reveal="right">
+                <div class="cl-map">
+                    <iframe title="<?= e($marca) ?>" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen
+                            src="<?= e($mapaSrc) ?>"></iframe>
+                </div>
+                <?php if ($irUrl && !$hayDatos): ?>
+                <div class="text-center mt-4">
+                    <a href="<?= e($irUrl) ?>" target="_blank" rel="noopener" class="btn-cta"><i class="bi bi-signpost-split"></i> <?= et('Cómo llegar') ?></a>
+                </div>
+                <?php endif; ?>
             </div>
             <?php endif; ?>
         </div>
-        <?php endif; ?>
     </div>
 </section>
-
 <?php endif; ?>
 
 <!-- ===== RESERVA (lleva a la página dedicada) ===== -->
 <?php if ($reservar): ?>
 <section class="book">
-    <div class="wrap text-center">
+    <div class="wrap" data-reveal="zoom">
         <span class="eyebrow"><?= et('Reserva en línea') ?></span>
         <h2 class="t mb-2"><?= et('Agenda tu cita') ?></h2>
         <p class="sub mb-4"><?= et('Elige el médico, el día y la hora que mejor te queden. Sin llamadas y sin esperas.') ?></p>
-        <a href="<?= e($urlAgendar) ?>" class="btn-cta btn-lg" style="font-size:1.05rem">
-            <i class="bi bi-calendar-plus"></i> <?= et('Agendar mi cita') ?>
-        </a>
+        <a href="<?= e($urlAgendar) ?>" class="btn-cta"><i class="bi bi-calendar-plus"></i> <?= et('Agendar mi cita') ?></a>
     </div>
 </section>
 <?php endif; ?>
 
 </div><!-- /.clx -->
+
+<script>
+/* Filtro de servicios por categoría. Sin JS las pastillas no aparecen y se
+   ven todos los servicios. */
+(function () {
+    var bar = document.querySelector('.sv-chips');
+    if (!bar) return;
+    bar.hidden = false;
+    var cards = document.querySelectorAll('.sv-grid .sv');
+    bar.addEventListener('click', function (e) {
+        var b = e.target.closest('.sv-chip');
+        if (!b) return;
+        bar.querySelectorAll('.sv-chip').forEach(function (x) { x.classList.toggle('on', x === b); });
+        var cat = b.getAttribute('data-cat');
+        cards.forEach(function (c) { c.hidden = !!cat && c.getAttribute('data-cat') !== cat; });
+    });
+})();
+</script>
 
 <?php include __DIR__ . '/publico_footer.php'; ?>

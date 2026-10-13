@@ -36,9 +36,26 @@ $acento = color_acento();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="<?= asset('assets/css/style.css') ?>" rel="stylesheet">
     <link href="<?= asset('assets/css/material.css') ?>" rel="stylesheet">
+    <?php if (!empty($motion)): /* El micrositio pide movimiento: mismo sistema que la landing. */ ?>
+    <link href="<?= asset('assets/css/landing-motion.css') ?>" rel="stylesheet">
+    <script>
+    (function (d) {
+        if (!('IntersectionObserver' in window) || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
+        d.classList.add('motion');
+        window.__lpMotionSafe = setTimeout(function () { d.classList.remove('motion'); }, 4000);
+    })(document.documentElement);
+    </script>
+    <?php endif; ?>
     <style>
-        /* El acento es el del consultorio (white-label). */
-        :root { --brand: <?= $acento ?>; --brand-dark: color-mix(in srgb, <?= $acento ?> 78%, #000); }
+        /* El acento es el del consultorio (white-label), también en los botones:
+           antes el "Agendar cita" salía azul MediOS sobre una marca roja. */
+        :root { --brand: <?= $acento ?>; --brand-dark: color-mix(in srgb, <?= $acento ?> 78%, #000);
+                --on-brand: <?= color_texto_sobre($acento) ?>; }
+        body.lp .btn-primary { --bs-btn-bg: var(--brand); --bs-btn-border-color: var(--brand);
+            --bs-btn-color: var(--on-brand); --bs-btn-hover-color: var(--on-brand);
+            --bs-btn-hover-bg: var(--brand-dark); --bs-btn-hover-border-color: var(--brand-dark);
+            --bs-btn-active-bg: var(--brand-dark); --bs-btn-active-border-color: var(--brand-dark);
+            --bs-btn-active-color: var(--on-brand); border-radius: 980px; font-weight: 590; }
         .pub-wrap { max-width: 640px; margin: 0 auto; padding: 2.5rem 1rem 3rem; }
         .pub-card { border: 0; border-radius: 18px; box-shadow: 0 10px 34px rgba(15,39,71,.10); }
         html.lp-dark .pub-card { box-shadow: 0 10px 34px rgba(0,0,0,.35); }

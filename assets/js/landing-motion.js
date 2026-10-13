@@ -57,7 +57,7 @@
 
         // ── Hero: contadores y la cita que se confirma sola ──────────────
         setTimeout(function () {
-            document.querySelectorAll('.lp-hero [data-count]').forEach(function (c) { countUp(c, 1600); });
+            document.querySelectorAll('.lp-hero [data-count], .clx .hero [data-count]').forEach(function (c) { countUp(c, 1600); });
         }, 700);
 
         var flip = document.querySelector('.lp-flip'), toast = document.querySelector('.lp-toast');

@@ -317,6 +317,23 @@ function color_acento(): string
     return preg_match('/^#[0-9a-fA-F]{6}$/', $c) ? $c : '#2563eb';
 }
 
+/**
+ * Color de texto legible sobre $hex: blanco sobre colores oscuros, casi negro
+ * sobre claros. El acento lo elige cada consultorio (puede ser un amarillo), y
+ * un botón con texto blanco sobre amarillo no se lee.
+ */
+function color_texto_sobre(string $hex): string
+{
+    if (!preg_match('/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i', $hex, $m)) return '#fff';
+    $lin = function (string $h): float {
+        $c = hexdec($h) / 255;
+        return $c <= 0.03928 ? $c / 12.92 : (($c + 0.055) / 1.055) ** 2.4;
+    };
+    $L = 0.2126 * $lin($m[1]) + 0.7152 * $lin($m[2]) + 0.0722 * $lin($m[3]);
+    // Contraste contra blanco (1.05/(L+.05)) vs. contra #111 ((L+.05)/.056): gana el mayor.
+    return (1.05 / ($L + 0.05)) >= (($L + 0.05) / 0.056) ? '#fff' : '#111';
+}
+
 /** Tema activo: preferencia del usuario (cookie) o el default del consultorio. */
 function tema_actual(): string
 {
