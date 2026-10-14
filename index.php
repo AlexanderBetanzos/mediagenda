@@ -42,6 +42,7 @@ track_pageview('publico');
     <link href="<?= asset('assets/css/style.css') ?>" rel="stylesheet">
     <link href="<?= asset('assets/css/material.css') ?>" rel="stylesheet">
     <link href="<?= asset('assets/css/landing-motion.css') ?>" rel="stylesheet">
+    <link href="<?= asset('assets/css/landing-extra.css') ?>" rel="stylesheet">
     <script>
     /* Movimiento solo si el usuario no pidió reducirlo. Si landing-motion.js no
        llega en 4 s, se quita la clase y la página queda visible y estática. */
@@ -71,6 +72,7 @@ track_pageview('publico');
         <div class="collapse navbar-collapse" id="nav">
             <ul class="navbar-nav mx-auto align-items-lg-center gap-lg-1">
                 <li class="nav-item"><a class="nav-link" href="#funciones">Funciones</a></li>
+                <li class="nav-item"><a class="nav-link" href="#recorrido">Recorrido</a></li>
                 <li class="nav-item"><a class="nav-link" href="#especialidades">Especialidades</a></li>
                 <li class="nav-item"><a class="nav-link" href="#beneficios">Beneficios</a></li>
                 <li class="nav-item"><a class="nav-link" href="#planes">Planes</a></li>
@@ -100,7 +102,7 @@ track_pageview('publico');
                 <p class="lp-sub mb-4">Protege el expediente de cada paciente, deja que la agenda confirme las citas por ti y cobra sin perseguir pagos. Tú atiendes; <?= e($marca) ?> se encarga del resto.</p>
                 <div class="d-flex flex-wrap gap-2 mb-4">
                     <a href="<?= BASE_URL ?>/auth/registro" class="btn lp-btn lp-btn-fill"><i class="bi bi-rocket-takeoff"></i> Prueba gratis <?= trial_dias_oferta() ?> días</a>
-                    <a href="#funciones" class="btn lp-btn lp-btn-ghost">Ver cómo funciona</a>
+                    <button type="button" class="btn lp-btn lp-btn-ghost" data-bs-toggle="modal" data-bs-target="#lpVideo"><i class="bi bi-play-circle-fill"></i> Ver video</button>
                 </div>
 
                 <?php
@@ -173,6 +175,8 @@ track_pageview('publico');
     </div>
 </header>
 
+<?php include __DIR__ . '/includes/landing/novedades.php'; ?>
+
 <!-- Franja de confianza -->
 <section class="lp-trust">
     <div class="container">
@@ -237,6 +241,8 @@ track_pageview('publico');
         </div>
     </div>
 </section>
+
+<?php include __DIR__ . '/includes/landing/recorrido.php'; ?>
 
 <!-- Interfaz por especialidad (giro) -->
 <?php /* Cada consultorio elige su interfaz al registrarse (includes/giros.php):
@@ -377,6 +383,9 @@ track_pageview('publico');
         </div>
     </div>
 </section>
+
+<?php include __DIR__ . '/includes/landing/destacados.php'; ?>
+<?php include __DIR__ . '/includes/landing/todo.php'; ?>
 
 <!-- Beneficios (sin/con) -->
 <section id="beneficios" class="py-6 bg-white">
@@ -785,6 +794,21 @@ track_pageview('publico');
         </div>
     </div>
 </footer>
+
+<!-- Video del producto (el anuncio de 30 s) -->
+<div class="modal fade" id="lpVideo" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:420px">
+        <div class="modal-content border-0 bg-transparent">
+            <video controls playsinline preload="none" poster="<?= BASE_URL ?>/assets/video/mediagenda-anuncio.jpg" style="width:100%;border-radius:20px;background:#000">
+                <source src="<?= BASE_URL ?>/assets/video/mediagenda-anuncio.mp4" type="video/mp4">
+            </video>
+        </div>
+    </div>
+</div>
+<script>
+document.getElementById('lpVideo').addEventListener('shown.bs.modal', function () { var v = this.querySelector('video'); v.play().catch(function () {}); });
+document.getElementById('lpVideo').addEventListener('hidden.bs.modal', function () { this.querySelector('video').pause(); });
+</script>
 
 <!-- WhatsApp flotante -->
 <?php $waLanding = 'https://wa.me/' . SOPORTE_WHATSAPP . '?text=' . rawurlencode('Hola, quiero ver cómo funcionaría ' . $marca . ' en mi consultorio. ¿Me ayudas?'); ?>
