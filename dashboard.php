@@ -321,6 +321,90 @@ if ($esAdmin && $verCitas) {
     try { $eq->execute([$tid]); $equipoHoy = $eq->fetchAll(); } catch (Throwable $e) {}
 }
 
+/* ── Diseño tipo "hospital dashboard" (referencia MediCare+) ────────── */
+
+/* Calendario del mes: citas por día (no canceladas). */
+$calMes = [];
+if ($verCitas) {
+    try {
+        $cq = $pdo->prepare("SELECT DAY(c.fecha) d, COUNT(*) n FROM citas c WHERE c.consultorio_id = ? AND c.estado <> 'cancelada'
+                             AND c.fecha BETWEEN DATE_FORMAT(CURDATE(), '%Y-%m-01') AND LAST_DAY(CURDATE()) $medC GROUP BY d");
+        $cq->execute([$tid]);
+        $calMes = array_map('intval', $cq->fetchAll(PDO::FETCH_KEY_PAIR));
+    } catch (Throwable $e) {}
+}
+$citasMes = array_sum($calMes);
+$atendidasMes = $verCitas ? ui_cuenta_dash($pdo, "SELECT COUNT(*) FROM citas c WHERE c.consultorio_id = ? AND c.estado = 'atendida' AND c.fecha >= DATE_FORMAT(CURDATE(), '%Y-%m-01') $medC", $tid) : 0;
+
+/* Ingresos del mes día por día, contra lo que iba el mes pasado a la misma fecha. */
+$ingDias = $ingLabels = [];
+$ingMesPrevAlDia = 0.0;
+if ($verFacturacion && $esAdmin) {
+    try {
+        $iq = $pdo->prepare("SELECT DAY(fecha) d, SUM(total) t FROM facturas WHERE consultorio_id = ? AND estado = 'pagada'
+                             AND fecha BETWEEN DATE_FORMAT(CURDATE(), '%Y-%m-01') AND CURDATE() GROUP BY d");
+        $iq->execute([$tid]);
+        $m = $iq->fetchAll(PDO::FETCH_KEY_PAIR);
+        for ($d = 1; $d <= (int) date('j'); $d++) { $ingLabels[] = (string) $d; $ingDias[] = round((float) ($m[$d] ?? 0), 2); }
+        $pq = $pdo->prepare("SELECT COALESCE(SUM(total),0) FROM facturas WHERE consultorio_id = ? AND estado = 'pagada'
+                             AND fecha BETWEEN DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 MONTH), '%Y-%m-01') AND DATE_SUB(CURDATE(), INTERVAL 1 MONTH)");
+        $pq->execute([$tid]);
+        $ingMesPrevAlDia = (float) $pq->fetchColumn();
+    } catch (Throwable $e) {}
+}
+$ingDelta = $ingMesPrevAlDia > 0 ? (int) round(($ingresosMes - $ingMesPrevAlDia) / $ingMesPrevAlDia * 100) : null;
+
+/* Top médicos del mes (admin): citas y atendidas. */
+$topMes = [];
+if ($esAdmin && $verCitas) {
+    try {
+        $tq = $pdo->prepare("SELECT u.id, u.nombre, u.especialidad, COALESCE(u.foto,'') foto, COUNT(c.id) n, SUM(c.estado = 'atendida') a
+                             FROM usuarios u JOIN citas c ON c.medico_id = u.id AND c.consultorio_id = u.consultorio_id
+                             WHERE u.consultorio_id = ? AND c.estado <> 'cancelada' AND c.fecha >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
+                             GROUP BY u.id ORDER BY n DESC LIMIT 4");
+        $tq->execute([$tid]);
+        $topMes = $tq->fetchAll();
+    } catch (Throwable $e) {
+        try { $tq = $pdo->prepare("SELECT u.id, u.nombre, u.especialidad, '' foto, COUNT(c.id) n, SUM(c.estado = 'atendida') a FROM usuarios u
+                                   JOIN citas c ON c.medico_id = u.id AND c.consultorio_id = u.consultorio_id WHERE u.consultorio_id = ? AND c.estado <> 'cancelada'
+                                   AND c.fecha >= DATE_FORMAT(CURDATE(), '%Y-%m-01') GROUP BY u.id ORDER BY n DESC LIMIT 4");
+              $tq->execute([$tid]); $topMes = $tq->fetchAll(); } catch (Throwable $e2) {}
+    }
+}
+
+/* Atenciones por especialidad (del médico) este mes contra el mes pasado. */
+$porEsp = [];
+if ($verCitas) {
+    try {
+        $eq2 = $pdo->prepare("SELECT COALESCE(NULLIF(u.especialidad,''), ?) esp,
+                                     SUM(c.fecha >= DATE_FORMAT(CURDATE(), '%Y-%m-01')) act,
+                                     SUM(c.fecha < DATE_FORMAT(CURDATE(), '%Y-%m-01')) prev
+                              FROM citas c JOIN usuarios u ON u.id = c.medico_id
+                              WHERE c.consultorio_id = ? AND c.estado <> 'cancelada'
+                                AND c.fecha BETWEEN DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 MONTH), '%Y-%m-01') AND CURDATE() $medC
+                              GROUP BY esp HAVING act > 0 ORDER BY act DESC LIMIT 5");
+        $eq2->execute([giro()['nombre'] ?? t('General'), $tid]);
+        $porEsp = $eq2->fetchAll();
+    } catch (Throwable $e) {}
+}
+
+/* Franja inferior de totales. */
+$franja = [
+    [t('Pacientes'), number_format($totPacientes), 'bi-people', '#2563eb'],
+    [t('Médicos'), number_format(ui_cuenta_dash($pdo, "SELECT COUNT(*) FROM usuarios WHERE consultorio_id = ? AND rol = 'medico' AND activo = 1", $tid)), 'bi-person-vcard', '#0d9488'],
+    [t('Personal'), number_format(ui_cuenta_dash($pdo, "SELECT COUNT(*) FROM usuarios WHERE consultorio_id = ? AND activo = 1", $tid)), 'bi-person-badge', '#6366f1'],
+    [t('Consultas (mes)'), number_format($consultasMes), 'bi-clipboard2-pulse', '#f59e0b'],
+];
+if ($verRecetas) $franja[] = [t('Recetas (mes)'), number_format($recetasMes), 'bi-capsule', '#8b5cf6'];
+$vacMes = ui_cuenta_dash($pdo, "SELECT COUNT(*) FROM vacunas_aplicadas WHERE consultorio_id = ? AND fecha >= DATE_FORMAT(CURDATE(), '%Y-%m-01')", $tid);
+if ($vacMes) $franja[] = [t('Vacunas (mes)'), number_format($vacMes), 'bi-shield-plus', '#10b981'];
+
+/** Conteo seguro (0 si la tabla aún no existe). */
+function ui_cuenta_dash(PDO $pdo, string $sql, int $tid): int
+{
+    try { $s = $pdo->prepare($sql); $s->execute([$tid]); return (int) $s->fetchColumn(); } catch (Throwable $e) { return 0; }
+}
+
 /* ── Próxima cita: la tarjeta protagonista del banner ───────────────── */
 $proxima = null;
 if ($verCitas) {
@@ -644,6 +728,16 @@ include __DIR__ . '/includes/header.php';
     </div>
 </div>
 
+<?php /* Pestañas como la referencia: el resumen y atajos a cada área. */ ?>
+<div class="dash-tabs mb-3">
+    <a href="<?= BASE_URL ?>/dashboard" class="on"><i class="bi bi-grid-1x2"></i> <?= et('Resumen') ?></a>
+    <a href="<?= BASE_URL ?>/pacientes/index"><i class="bi bi-people"></i> <?= et('Pacientes') ?></a>
+    <?php if ($verCitas): ?><a href="<?= BASE_URL ?>/citas/index"><i class="bi bi-calendar-check"></i> <?= et('Citas') ?></a><?php endif; ?>
+    <?php if ($esAdmin): ?><a href="<?= BASE_URL ?>/medicos/index"><i class="bi bi-person-vcard"></i> <?= et('Médicos') ?></a><?php endif; ?>
+    <?php if ($verFacturacion): ?><a href="<?= BASE_URL ?>/facturacion/index"><i class="bi bi-wallet2"></i> <?= et('Finanzas') ?></a><?php endif; ?>
+    <span class="dash-rango"><i class="bi bi-calendar3"></i> 1 – <?= (int) date('j') ?> <?= e(t(['', 'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'][(int) date('n')])) ?> <?= date('Y') ?></span>
+</div>
+
 <?php if ($cortesHoy): ?>
 <!-- ── Tus cortes de hoy (de Khronos) ───────────────────────────────── -->
 <div class="card mb-3">
@@ -694,7 +788,7 @@ include __DIR__ . '/includes/header.php';
 </div>
 <?php endif; ?>
 
-<!-- ── KPIs con mini gráfica y variación (como las referencias) ──────── -->
+<!-- ── KPIs (como la referencia: icono, cifra, variación y tendencia) ──── -->
 <?php
 $acentoHex = color_acento();
 $kpis = [];
@@ -704,23 +798,23 @@ if ($verFacturacion) $kpis[] = [t('Ingresos del mes'), fmt_money($ingresosMes), 
 elseif ($verRecetas) $kpis[] = [t('Recetas (mes)'), number_format($recetasMes), 'bi-capsule', '#8b5cf6', BASE_URL . '/recetas/index', null, 'recetas'];
 $kpis[] = [t('Consultas (mes)'), number_format($consultasMes), 'bi-clipboard2-pulse', '#6366f1', BASE_URL . '/expediente/index', null, 'consultas'];
 ?>
-<div class="row g-3 mb-4">
-    <?php foreach ($kpis as $ki => [$label, $value, $icon, $color, $link, $sub, $serieK]):
-        $dl = $delta($spark[$serieK]); ?>
+<div class="row g-3 mb-3">
+    <?php foreach ($kpis as $ki => [$label, $value, $icon, $color, $link, $sub, $serieK]): $dl = $delta($spark[$serieK]); ?>
     <div class="col-6 col-xl-3">
         <a href="<?= $link ?>" class="text-decoration-none">
-        <div class="card kpi2 h-100"><div class="card-body">
-            <div class="d-flex justify-content-between align-items-start gap-2">
-                <span class="kpi2-lbl"><?= e($label) ?></span>
-                <span class="kpi2-ic" style="--kpi:<?= e($color) ?>"><i class="bi <?= $icon ?>"></i></span>
+        <div class="card kpi3 h-100"><div class="card-body">
+            <div class="d-flex align-items-start gap-3">
+                <span class="kpi3-ic" style="--kpi:<?= e($color) ?>"><i class="bi <?= $icon ?>"></i></span>
+                <div class="min-w-0 flex-grow-1">
+                    <div class="kpi3-lbl"><?= e($label) ?></div>
+                    <div class="kpi3-n"><?= e($value) ?></div>
+                </div>
             </div>
-            <div class="kpi2-n mt-1" data-count><?= e($value) ?></div>
-            <div class="d-flex align-items-end justify-content-between gap-2">
-                <div class="min-w-0">
-                    <?php if ($dl === null): ?><span class="kpi2-d up"><?= et('Nuevo') ?></span>
-                    <?php elseif ($dl === 0): ?><span class="kpi2-d"><?= et('= semana pasada') ?></span>
-                    <?php else: ?><span class="kpi2-d <?= $dl > 0 ? 'up' : 'down' ?>"><i class="bi bi-arrow-<?= $dl > 0 ? 'up' : 'down' ?>-short"></i><?= abs($dl) ?>%</span><?php endif; ?>
-                    <?php if ($sub): ?><div class="kpi2-sub text-truncate"><?= e($sub) ?></div><?php endif; ?>
+            <div class="d-flex align-items-end justify-content-between gap-2 mt-2">
+                <div class="kpi3-d <?= $dl === null ? 'up' : ($dl > 0 ? 'up' : ($dl < 0 ? 'down' : '')) ?>">
+                    <?php if ($dl === null): ?><i class="bi bi-stars"></i> <?= et('Nuevo esta semana') ?>
+                    <?php elseif ($dl === 0): ?><?= et('Igual que la semana pasada') ?>
+                    <?php else: ?><i class="bi bi-arrow-<?= $dl > 0 ? 'up' : 'down' ?>"></i> <?= abs($dl) ?>% <span><?= et('vs semana pasada') ?></span><?php endif; ?>
                 </div>
                 <?= spark_svg($spark[$serieK], $color, 'sp' . $ki) ?>
             </div>
@@ -731,81 +825,142 @@ $kpis[] = [t('Consultas (mes)'), number_format($consultasMes), 'bi-clipboard2-pu
 </div>
 
 <?php if ($verCitas):
-    $diasSem = [t('Dom'), t('Lun'), t('Mar'), t('Mié'), t('Jue'), t('Vie'), t('Sáb')];
     $hoyF = date('Y-m-d');
-    $lateral = $equipoHoy ? 'equipo' : ($recetasRec ? 'recetas' : ''); ?>
-<!-- ── Agenda de la semana: tira de días + línea de tiempo ──────────────── -->
+    $mesesL = ['', 'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+    $primero = strtotime(date('Y-m-01'));
+    $offset = ((int) date('N', $primero)) - 1;            // lunes = 0
+    $diasMes = (int) date('t'); $hoyD = (int) date('j');
+    $lateral = $topMes ? 'top' : ($recetasRec ? 'recetas' : ''); ?>
+<!-- ── Resumen de citas (calendario) + ingresos + top médicos ──────────── -->
 <div class="row g-3 mb-3">
-    <div class="col-xl-<?= $lateral ? '8' : '12' ?>">
+    <div class="col-xl-<?= ($verFacturacion && $esAdmin) ? '5' : ($lateral ? '8' : '12') ?>">
         <div class="card h-100">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <span class="fw-semibold"><i class="bi bi-calendar-week text-brand"></i> <?= et('Agenda de la semana') ?></span>
-                <a href="<?= BASE_URL ?>/citas/calendario" class="small"><?= et('Ver calendario →') ?></a>
+                <span class="fw-semibold"><i class="bi bi-calendar3 text-brand"></i> <?= et('Resumen de citas') ?></span>
+                <a href="<?= BASE_URL ?>/citas/calendario" class="small"><?= et('Ver agenda →') ?></a>
             </div>
             <div class="card-body">
-                <div class="tl-dias" role="tablist">
-                    <?php foreach ($semana as $f => $cs): $ts = strtotime($f); ?>
-                    <button type="button" class="tl-dia<?= $f === $hoyF ? ' on' : '' ?>" data-dia="<?= $f ?>">
-                        <span class="tl-dia-n"><?= (int) date('j', $ts) ?></span>
-                        <span class="tl-dia-s"><?= $f === $hoyF ? et('Hoy') : e($diasSem[(int) date('w', $ts)]) ?></span>
-                        <?php if ($cs): ?><span class="tl-dia-c"><?= count($cs) ?></span><?php endif; ?>
-                    </button>
-                    <?php endforeach; ?>
+                <div class="cal-wrap">
+                    <div class="cal">
+                        <div class="cal-mes text-capitalize"><?= e(t($mesesL[(int) date('n')])) ?> <?= date('Y') ?></div>
+                        <div class="cal-grid">
+                            <?php foreach ([t('L'), t('M'), t('M'), t('J'), t('V'), t('S'), t('D')] as $dw): ?><span class="cal-dw"><?= e($dw) ?></span><?php endforeach; ?>
+                            <?php for ($k = 0; $k < $offset; $k++): ?><span></span><?php endfor; ?>
+                            <?php for ($d = 1; $d <= $diasMes; $d++): $f = date('Y-m-') . str_pad((string) $d, 2, '0', STR_PAD_LEFT); $n = $calMes[$d] ?? 0; ?>
+                                <a href="<?= BASE_URL ?>/citas/index?desde=<?= $f ?>&hasta=<?= $f ?>" class="cal-d<?= $d === $hoyD ? ' hoy' : '' ?><?= $n ? ' con' : '' ?><?= $d < $hoyD ? ' pasado' : '' ?>"
+                                   title="<?= $n ? $n . ' ' . e(t('citas')) : '' ?>"><?= $d ?><?php if ($n): ?><i style="--n:<?= min(1, $n / 8) ?>"></i><?php endif; ?></a>
+                            <?php endfor; ?>
+                        </div>
+                    </div>
+                    <div class="cal-tiles">
+                        <a class="cal-tile" style="--c:var(--brand)" href="<?= BASE_URL ?>/citas/index"><span><small><?= et('Citas de hoy') ?></small><b><?= $citasHoy ?></b></span><i class="bi bi-calendar-day"></i></a>
+                        <a class="cal-tile" style="--c:#16a34a" href="<?= BASE_URL ?>/citas/sala"><span><small><?= et('Atendidas hoy') ?></small><b><?= $citasAtendHoy ?></b></span><i class="bi bi-check2-circle"></i></a>
+                        <a class="cal-tile" style="--c:#f59e0b" href="<?= BASE_URL ?>/citas/index"><span><small><?= et('Próximas') ?></small><b><?= $citasPend ?></b></span><i class="bi bi-clock-history"></i></a>
+                        <div class="small text-muted text-center"><?= $citasMes ?> <?= et('citas este mes') ?> · <?= $atendidasMes ?> <?= et('atendidas') ?></div>
+                    </div>
                 </div>
-                <?php foreach ($semana as $f => $cs): ?>
-                <div class="tl-dia-body" data-dia="<?= $f ?>"<?= $f === $hoyF ? '' : ' hidden' ?>>
-                    <?php if (!$cs): ?>
-                        <div class="tl-vacio"><i class="bi bi-cup-hot"></i>
-                            <div class="fw-semibold"><?= et('Día libre') ?></div>
-                            <a href="<?= BASE_URL ?>/citas/create" class="small"><?= et('Agendar una cita') ?></a></div>
-                    <?php else: foreach ($cs as $c): ?>
-                        <a href="<?= BASE_URL ?>/citas/edit?id=<?= (int) $c['id'] ?>" class="tl-row text-decoration-none">
-                            <span class="tl-hora"><?= fmt_hora($c['hora']) ?></span>
-                            <span class="tl-item est-<?= e($c['estado']) ?>">
-                                <?= avatar_paciente((int) $c['pac_id'], $c['nombre'], $c['apellidos'], $c['foto'] ?? null, 34) ?>
-                                <span class="min-w-0 flex-grow-1">
-                                    <span class="d-block fw-semibold text-truncate"><?= e($c['nombre'] . ' ' . $c['apellidos']) ?></span>
-                                    <span class="d-block small text-muted text-truncate">
-                                        <?= e(implode(' · ', array_filter([$c['motivo'] ?? '', $c['medico'] ?? '', (int) ($c['duracion'] ?? 0) ? (int) $c['duracion'] . ' min' : '']))) ?>
-                                    </span>
-                                </span>
-                                <?php if (($c['modalidad'] ?? '') === 'en_linea'): ?><i class="bi bi-camera-video text-brand" title="<?= e(t('Videoconsulta')) ?>"></i><?php endif; ?>
-                                <span class="tl-est"><?= e(estado_label($c['estado'])) ?></span>
-                            </span>
-                        </a>
-                    <?php endforeach; endif; ?>
-                </div>
-                <?php endforeach; ?>
             </div>
         </div>
     </div>
-    <?php if ($lateral === 'equipo'): ?>
-    <div class="col-xl-4">
+
+    <?php if ($verFacturacion && $esAdmin): ?>
+    <div class="col-xl-<?= $lateral ? '4' : '7' ?>">
         <div class="card h-100">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <span class="fw-semibold"><i class="bi bi-people text-brand"></i> <?= et('Tu equipo hoy') ?></span>
+                <span class="fw-semibold"><i class="bi bi-graph-up-arrow text-brand"></i> <?= et('Ingresos del mes') ?></span>
+                <a href="<?= BASE_URL ?>/facturacion/index" class="small"><?= et('Ver cobros →') ?></a>
+            </div>
+            <div class="card-body d-flex flex-column">
+                <div class="d-flex align-items-end gap-2 flex-wrap">
+                    <span class="ing-tot"><?= fmt_money($ingresosMes) ?></span>
+                    <?php if ($ingDelta !== null): ?><span class="kpi3-d <?= $ingDelta >= 0 ? 'up' : 'down' ?>"><i class="bi bi-arrow-<?= $ingDelta >= 0 ? 'up' : 'down' ?>"></i> <?= abs($ingDelta) ?>% <span><?= et('vs el mes pasado a la fecha') ?></span></span><?php endif; ?>
+                </div>
+                <div class="flex-grow-1 mt-2" style="min-height:190px">
+                    <?php if ($verReportes): ?><canvas id="chartIngMes"></canvas>
+                    <?php else: ?><?= spark_svg($ingDias ?: [0, 0], '#16a34a', 'spIng') ?><?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
+
+    <?php if ($lateral === 'top'): ?>
+    <div class="col-xl-<?= ($verFacturacion && $esAdmin) ? '3' : '4' ?>">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="fw-semibold"><i class="bi bi-award text-brand"></i> <?= et('Médicos del mes') ?></span>
                 <a href="<?= BASE_URL ?>/medicos/index" class="small"><?= et('Ver todos') ?></a>
             </div>
             <div class="card-body py-2">
-                <?php foreach ($equipoHoy as $m): $ini = mb_strtoupper(mb_substr(preg_replace('/^(dra?|lic|mtr[oa]|psic)\.?\s+/iu', '', $m['nombre']), 0, 1)); ?>
+                <?php foreach ($topMes as $m): $ini = mb_strtoupper(mb_substr(preg_replace('/^(dra?|lic|mtr[oa]|psic)\.?\s+/iu', '', $m['nombre']), 0, 1)); ?>
                 <div class="eq-row">
-                    <span class="eq-av"><?= e($ini) ?></span>
+                    <?php if (!empty($m['foto'])): ?><img src="<?= e($m['foto']) ?>" alt="" class="eq-av" style="object-fit:cover"><?php else: ?><span class="eq-av"><?= e($ini) ?></span><?php endif; ?>
                     <span class="min-w-0 flex-grow-1">
                         <span class="d-block fw-semibold text-truncate"><?= e($m['nombre']) ?></span>
                         <span class="d-block small text-muted text-truncate"><?= e($m['especialidad'] ?: t('Médico')) ?></span>
                     </span>
-                    <span class="text-end flex-shrink-0">
-                        <span class="d-block fw-bold"><?= (int) $m['n'] ?></span>
-                        <span class="d-block small text-muted"><?= $m['prox'] ? et('próx.') . ' ' . fmt_hora($m['prox']) : ((int) $m['n'] ? et('terminó') : et('sin citas')) ?></span>
-                    </span>
+                    <span class="text-end flex-shrink-0"><span class="d-block fw-bold text-brand"><?= (int) $m['n'] ?></span><span class="d-block small text-muted"><?= et('citas') ?></span></span>
                 </div>
                 <?php endforeach; ?>
             </div>
         </div>
     </div>
     <?php elseif ($lateral === 'recetas'): ?>
-    <div class="col-xl-4"><?php $recetasMostradas = true; include __DIR__ . '/includes/dashboard_recetas.php'; ?></div>
+    <div class="col-xl-<?= ($verFacturacion && $esAdmin) ? '3' : '4' ?>"><?php $recetasMostradas = true; include __DIR__ . '/includes/dashboard_recetas.php'; ?></div>
     <?php endif; ?>
+</div>
+
+<!-- ── Atenciones por especialidad + agenda de hoy ─────────────────────── -->
+<?php $hoyCitas = $semana[$hoyF] ?? []; ?>
+<div class="row g-3 mb-3">
+    <?php if ($porEsp): ?>
+    <div class="col-xl-8">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="fw-semibold"><i class="bi bi-grid-3x3-gap text-brand"></i> <?= et('Atenciones por especialidad') ?></span>
+                <span class="small text-muted"><?= et('Este mes') ?></span>
+            </div>
+            <div class="card-body">
+                <div class="esp-grid">
+                    <?php $icEsp = ['bi-heart-pulse', 'bi-emoji-smile', 'bi-chat-heart', 'bi-eye', 'bi-bandaid'];
+                    foreach ($porEsp as $ei => $r): ?>
+                    <div class="esp-tile">
+                        <span class="esp-ic" style="--c:<?= ['#ef4444', '#2563eb', '#8b5cf6', '#0d9488', '#f59e0b'][$ei % 5] ?>"><i class="bi <?= $icEsp[$ei % 5] ?>"></i></span>
+                        <div class="esp-n"><?= e($r['esp']) ?></div>
+                        <div class="esp-v"><?= (int) $r['act'] ?></div>
+                        <div class="small text-muted"><?= et('citas') ?> · <?= et('mes pasado') ?>: <?= (int) $r['prev'] ?></div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
+    <div class="col-xl-<?= $porEsp ? '4' : '12' ?>">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="fw-semibold"><i class="bi bi-clock text-brand"></i> <?= et('Agenda de hoy') ?></span>
+                <a href="<?= BASE_URL ?>/citas/sala" class="small"><?= et('Sala de espera →') ?></a>
+            </div>
+            <div class="card-body py-2">
+                <?php if (!$hoyCitas): ?>
+                    <div class="tl-vacio"><i class="bi bi-cup-hot"></i><div class="fw-semibold"><?= et('Sin citas para hoy') ?></div>
+                        <a href="<?= BASE_URL ?>/citas/create" class="small"><?= et('Agendar una cita') ?></a></div>
+                <?php else: foreach (array_slice($hoyCitas, 0, 7) as $c): ?>
+                    <a href="<?= BASE_URL ?>/citas/edit?id=<?= (int) $c['id'] ?>" class="sch-row text-decoration-none">
+                        <span class="sch-h"><?= fmt_hora($c['hora']) ?></span>
+                        <span class="min-w-0 flex-grow-1">
+                            <span class="d-block fw-semibold text-truncate"><?= e($c['nombre'] . ' ' . $c['apellidos']) ?></span>
+                            <span class="d-block small text-muted text-truncate"><?= e($c['medico'] ?? '') ?><?= !empty($c['motivo']) ? ' · ' . e($c['motivo']) : '' ?></span>
+                        </span>
+                        <span class="tl-est est-<?= e($c['estado']) ?>"><?= e(estado_label($c['estado'])) ?></span>
+                    </a>
+                <?php endforeach; if (count($hoyCitas) > 7): ?>
+                    <a href="<?= BASE_URL ?>/citas/index" class="small d-block text-center mt-2"><?= sprintf(et('y %d más →'), count($hoyCitas) - 7) ?></a>
+                <?php endif; endif; ?>
+            </div>
+        </div>
+    </div>
 </div>
 <?php endif; ?>
 
@@ -1092,6 +1247,14 @@ $kpis[] = [t('Consultas (mes)'), number_format($consultasMes), 'bi-clipboard2-pu
 </div>
 <?php endif; ?>
 
+<!-- ── Franja inferior de totales (como la referencia) ─────────────────── -->
+<div class="dash-franja mb-4">
+    <?php foreach ($franja as [$fl, $fv, $fi, $fc]): ?>
+    <div class="df-item"><span class="df-ic" style="--c:<?= e($fc) ?>"><i class="bi <?= $fi ?>"></i></span>
+        <span><span class="df-l"><?= e($fl) ?></span><span class="df-v"><?= e($fv) ?></span></span></div>
+    <?php endforeach; ?>
+</div>
+
 <?php if (micrositio_visible()):
     $urlPub  = micrositio_url();
     $pendWeb = $esAdmin ? micrositio_pendientes() : [];   // solo el admin puede arreglarlo
@@ -1198,6 +1361,68 @@ html.app-light .welcome-banner {
 .kpi-card .stat-num { font-size: 1.5rem; }
 .kpi-card .kpi-sub { font-size: .7rem; opacity: .8; }
 .min-w-0 { min-width: 0; }
+
+/* ── Diseño tipo referencia (MediCare+) ─────────────────────────────── */
+.dash-tabs { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; padding: 5px; border-radius: 999px;
+             background: var(--g-glass-2, var(--bs-body-bg)); box-shadow: var(--g-shadow-sm, 0 6px 18px rgba(30,40,80,.08)); }
+.dash-tabs a { display: inline-flex; align-items: center; gap: .4rem; padding: .45rem 1rem; border-radius: 999px; font-weight: 600; font-size: .88rem;
+               color: inherit !important; text-decoration: none !important; opacity: .7; transition: all .15s ease; }
+.dash-tabs a:hover { opacity: 1; background: rgba(127,127,127,.1); }
+.dash-tabs a.on { opacity: 1; color: var(--brand) !important; background: color-mix(in srgb, var(--brand) 11%, transparent); }
+.dash-rango { margin-left: auto; font-size: .82rem; font-weight: 600; opacity: .7; padding: .4rem .9rem; border-radius: 999px; border: 1px solid rgba(127,127,127,.2); }
+@media (max-width: 767.98px) { .dash-rango { display: none; } }
+
+.kpi3 { transition: transform .25s cubic-bezier(.22,1,.36,1); } .kpi3:hover { transform: translateY(-3px); }
+.kpi3-ic { width: 48px; height: 48px; flex: none; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;
+           color: var(--kpi); background: color-mix(in srgb, var(--kpi) 13%, transparent); }
+.kpi3-lbl { font-size: .82rem; font-weight: 600; opacity: .65; }
+.kpi3-n { font-size: 1.65rem; font-weight: 800; letter-spacing: -.035em; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.kpi3-d { font-size: .76rem; font-weight: 700; opacity: .7; }
+.kpi3-d.up { color: #16a34a; opacity: 1; } .kpi3-d.down { color: #dc2626; opacity: 1; }
+.kpi3-d span { font-weight: 500; opacity: .75; color: var(--bs-body-color); }
+.kpi3 .spark { width: 42%; max-width: 120px; height: 34px; flex: none; overflow: visible; }
+
+.cal-wrap { display: grid; grid-template-columns: minmax(0, 1fr) 150px; gap: 1rem; align-items: start; }
+@media (max-width: 575.98px) { .cal-wrap { grid-template-columns: 1fr; } }
+.cal-mes { font-weight: 700; margin-bottom: .5rem; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; text-align: center; }
+.cal-dw { font-size: .7rem; font-weight: 700; opacity: .5; padding-bottom: .2rem; }
+.cal-d { position: relative; display: flex; align-items: center; justify-content: center; aspect-ratio: 1; border-radius: 10px; font-size: .82rem; font-weight: 600;
+         color: inherit !important; text-decoration: none !important; transition: background .15s ease; }
+.cal-d:hover { background: rgba(127,127,127,.12); }
+.cal-d.pasado { opacity: .55; }
+.cal-d.con { background: color-mix(in srgb, var(--brand) 8%, transparent); }
+.cal-d i { position: absolute; bottom: 4px; left: 50%; width: 5px; height: 5px; margin-left: -2.5px; border-radius: 50%; background: var(--brand); opacity: calc(.45 + var(--n) * .55); }
+.cal-d.hoy { background: linear-gradient(180deg, color-mix(in srgb, var(--brand) 78%, #fff), var(--brand)); color: #fff !important; opacity: 1;
+             box-shadow: 0 6px 14px color-mix(in srgb, var(--brand) 32%, transparent); }
+.cal-d.hoy i { background: #fff; }
+.cal-tiles { display: grid; gap: .55rem; }
+.cal-tile { display: flex; justify-content: space-between; align-items: center; padding: .75rem .85rem; border-radius: 14px; text-decoration: none !important;
+            color: inherit !important; background: color-mix(in srgb, var(--c) 9%, transparent); transition: transform .2s ease; }
+.cal-tile:hover { transform: translateX(3px); }
+.cal-tile small { display: block; font-size: .72rem; opacity: .7; } .cal-tile b { font-size: 1.5rem; font-weight: 800; letter-spacing: -.03em; }
+.cal-tile .bi { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; background: var(--c); }
+
+.ing-tot { font-size: 1.9rem; font-weight: 800; letter-spacing: -.04em; line-height: 1; font-variant-numeric: tabular-nums; }
+
+.esp-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: .8rem; }
+.esp-tile { padding: 1rem; border-radius: 16px; border: 1px solid rgba(127,127,127,.15); transition: transform .2s ease, box-shadow .2s ease; }
+.esp-tile:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(15,30,60,.08); }
+.esp-ic { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.15rem;
+          color: var(--c); background: color-mix(in srgb, var(--c) 12%, transparent); margin-bottom: .6rem; }
+.esp-n { font-size: .85rem; font-weight: 600; opacity: .8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.esp-v { font-size: 1.6rem; font-weight: 800; letter-spacing: -.03em; line-height: 1.1; }
+
+.sch-row { display: flex; align-items: center; gap: .75rem; padding: .6rem 0; border-bottom: 1px solid rgba(127,127,127,.12); color: inherit !important; }
+.sch-row:last-of-type { border-bottom: 0; }
+.sch-h { width: 54px; flex: none; font-size: .8rem; font-weight: 700; opacity: .65; font-variant-numeric: tabular-nums; }
+
+.dash-franja { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: .5rem; padding: .9rem 1rem; border-radius: 18px;
+               background: color-mix(in srgb, var(--brand) 6%, var(--g-glass-2, var(--bs-body-bg))); box-shadow: var(--g-shadow-sm, 0 6px 18px rgba(30,40,80,.08)); }
+.df-item { display: flex; align-items: center; gap: .7rem; padding: .3rem .4rem; }
+.df-ic { width: 42px; height: 42px; flex: none; border-radius: 13px; display: flex; align-items: center; justify-content: center; font-size: 1.15rem;
+         color: var(--c); background: color-mix(in srgb, var(--c) 13%, var(--bs-body-bg)); }
+.df-l { display: block; font-size: .74rem; opacity: .65; } .df-v { display: block; font-size: 1.2rem; font-weight: 800; letter-spacing: -.02em; }
 
 /* KPIs con mini gráfica */
 .kpi2 { transition: transform .25s cubic-bezier(.22,1,.36,1), box-shadow .25s ease; }
@@ -1316,6 +1541,24 @@ html.app-light .welcome-banner {
             plugins: { legend: { position: 'top', align: 'end', labels: { usePointStyle: true, boxWidth: 8 } }, tooltip: { backgroundColor: tipBg, cornerRadius: 8 } },
             scales: { x: { grid: { display: false }, border: { display: false } }, y: { grid: { color: grid }, border: { display: false }, beginAtZero: true, ticks: { precision: 0 } } } }
     });
+
+    // Ingresos del mes: curva de área suave con degradado (como la referencia)
+    var elI = document.getElementById('chartIngMes');
+    if (elI) {
+        var gi = elI.getContext('2d').createLinearGradient(0, 0, 0, 220);
+        gi.addColorStop(0, fade(brand, .32)); gi.addColorStop(1, fade(brand, 0));
+        new Chart(elI, {
+            type: 'line',
+            data: { labels: <?= json_encode($ingLabels) ?>, datasets: [{ label: <?= json_encode(t('Ingresos'), JSON_UNESCAPED_UNICODE) ?>, data: <?= json_encode($ingDias) ?>,
+                borderColor: brand, backgroundColor: gi, fill: true, tension: .42, borderWidth: 2.5,
+                pointRadius: function (c) { return c.dataIndex === <?= max(0, count($ingDias) - 1) ?> ? 4 : 0; }, pointBackgroundColor: brand, pointBorderColor: '#fff', pointBorderWidth: 2 }] },
+            options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+                plugins: { legend: { display: false }, tooltip: { backgroundColor: tipBg, cornerRadius: 10, padding: 10,
+                    callbacks: { title: function (i) { return <?= json_encode(t('Día'), JSON_UNESCAPED_UNICODE) ?> + ' ' + i[0].label; }, label: function (c) { return ' ' + moneyFmt(c.parsed.y); } } } },
+                scales: { x: { grid: { display: false }, border: { display: false }, ticks: { maxTicksLimit: 8 } },
+                          y: { grid: { color: grid }, border: { display: false }, beginAtZero: true, ticks: { maxTicksLimit: 4, callback: function (v) { return moneyFmt(v); } } } } }
+        });
+    }
 
     // Citas por estado (doughnut)
     var elEst = document.getElementById('chartEstados');
