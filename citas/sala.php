@@ -78,6 +78,7 @@ include __DIR__ . '/../includes/header.php';
     <h1 class="h3 mb-0"><i class="bi bi-hourglass-split text-brand"></i> <?= et('Sala de espera') ?> <span class="text-muted fs-6">· <?= fmt_fecha($hoy) ?></span></h1>
     <div class="d-flex gap-2 align-items-center">
         <?php if ($promEspera !== null): ?><span class="badge bg-light text-dark border"><?= et('Espera promedio hoy:') ?> <strong><?= $promEspera ?> min</strong></span><?php endif; ?>
+        <a href="<?= BASE_URL ?>/citas/pantalla" target="_blank" class="btn btn-sm btn-primary" title="<?= e(t('Ábrela en la TV de la sala de espera')) ?>"><i class="bi bi-tv"></i> <?= et('Pantalla de turnos') ?></a>
         <a href="<?= BASE_URL ?>/citas/calendario" class="btn btn-sm btn-outline-secondary"><i class="bi bi-calendar3"></i> <?= et('Calendario') ?></a>
     </div>
 </div>
@@ -153,6 +154,8 @@ include __DIR__ . '/../includes/header.php';
                         </div>
                     </div>
                     <?= btn('finalizar', $c['id'], 'btn-success', 'bi-check2-circle', t('Finalizar')) ?>
+                    <?php /* Vuelve a anunciarlo en la pantalla de turnos (nueva hora de llamado). */ ?>
+                    <?= btn('consulta', $c['id'], 'btn-outline-primary', 'bi-megaphone', t('Volver a llamar')) ?>
                     <a href="<?= BASE_URL ?>/pacientes/ver?id=<?= $c['paciente_id'] ?>" class="btn btn-sm btn-outline-secondary"><i class="bi bi-folder2-open"></i> <?= et('Expediente') ?></a>
                 </li>
                 <?php endforeach; endif; ?>

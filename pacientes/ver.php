@@ -395,6 +395,9 @@ include __DIR__ . '/../includes/header.php';
     if (modulo_activo('laboratorio'))  $estudios[] = [BASE_URL . '/laboratorio/index' . $pid, 'bi-eyedropper', t('Laboratorio')];
     if (modulo_activo('imagenologia')) $estudios[] = [BASE_URL . '/imagenologia/index' . $pid, 'bi-soundwave', t('Ultrasonidos')];
     if (modulo_activo('optica'))       $estudios[] = [BASE_URL . '/optica/graduacion' . $pid, 'bi-eyeglasses', t('Graduación')];
+    $yaVac = ($principal[0] ?? '') === BASE_URL . '/vacunacion/paciente' . $pid
+          || in_array(BASE_URL . '/vacunacion/paciente' . $pid, array_column($esp, 0), true);
+    if (modulo_activo('expediente') && !$yaVac) $estudios[] = [BASE_URL . '/vacunacion/paciente' . $pid, 'bi-shield-plus', t('Vacunas')];
     $grupos = array_filter([t('Cobros') => $cobros, t('Estudios') => $estudios, t('Especialidad') => $esp]);
     ?>
     <div class="ficha-acc">

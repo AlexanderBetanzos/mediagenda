@@ -34,6 +34,7 @@ function giros(): array
         'estetica'     => ['/estetica/index', 'Medicina estética', 'bi-magic'],
         'cirugia'      => ['/cirugia/index', 'Cirugía', 'bi-scissors'],
         'cardiologia'  => ['/cardiologia/index', 'Cardiología', 'bi-heart-pulse'],
+        'vacunas'      => ['/vacunacion/paciente', 'Vacunas', 'bi-shield-plus'],
     ];
 
     $vet = [
@@ -87,7 +88,7 @@ function giros(): array
                      'vocab' => ['Médicos' => 'Nutriólogos', 'Médico' => 'Nutriólogo', 'Nuevo médico' => 'Nuevo nutriólogo',
                                  'médicos' => 'nutriólogos']],
         'pediatria' => ['nombre' => 'Pediatría', 'icono' => 'bi-balloon-heart', 'desc' => 'Curvas de crecimiento a un clic en cada expediente.',
-                     'staff' => 'Pediatras', 'accesos' => ['crecimiento'],
+                     'staff' => 'Pediatras', 'accesos' => ['vacunas', 'crecimiento'],
                      'vocab' => ['Médicos' => 'Pediatras', 'Nuevo médico' => 'Nuevo pediatra']],
         'oftalmologia' => ['nombre' => 'Oftalmología y óptica', 'icono' => 'bi-eye', 'desc' => 'Examen oftalmológico y graduación al frente.',
                      'staff' => 'Oftalmólogos', 'accesos' => ['oftalmologia', 'optica'],
@@ -95,7 +96,7 @@ function giros(): array
         'estetica' => ['nombre' => 'Dermatología y estética', 'icono' => 'bi-magic', 'desc' => 'Dermatología, estética y mapa corporal al frente.',
                      'staff' => 'Médicos', 'accesos' => ['dermatologia', 'estetica'], 'vocab' => []],
         'veterinaria' => ['nombre' => 'Veterinaria', 'icono' => 'bi-house-heart', 'desc' => 'Mascotas con especie, raza y propietario; el recordatorio le llega al dueño.',
-                     'staff' => 'Veterinarios', 'accesos' => ['cirugia', 'dermatologia'], 'vocab' => $vet],
+                     'staff' => 'Veterinarios', 'accesos' => ['vacunas', 'cirugia', 'dermatologia'], 'vocab' => $vet],
         'clinica' => ['nombre' => 'Clínica u hospital', 'icono' => 'bi-hospital', 'desc' => 'Varias especialidades: todas las herramientas a la mano.',
                      'staff' => 'Médicos', 'accesos' => [], 'vocab' => []],
     ] + ['_accesos' => $A];

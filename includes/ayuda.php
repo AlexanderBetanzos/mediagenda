@@ -205,6 +205,17 @@ function ayuda_textos(): array
             'intro'  => 'Pacientes que ya vinieron pero llevan meses sin regresar y no tienen cita.',
             'pasos'  => ['Elige el periodo (3, 6 o 12 meses).', 'Escríbeles por WhatsApp o agéndales directamente.'],
         ],
+        'page:vacunacion' => [
+            'titulo' => 'Vacunación',
+            'intro'  => 'La cartilla de vacunas de cada paciente y quién tiene una dosis vencida o por tocar.',
+            'pasos'  => [
+                'Para registrar una vacuna entra al paciente y abre <b>Vacunas</b> (en la ficha o en "Más acciones").',
+                'Elige la vacuna: la <b>próxima dosis</b> se calcula sola con el refuerzo del catálogo (puedes cambiarla).',
+                'En <b>Vacunación → Por aplicar</b> ves las vencidas y las que tocan pronto; el botón de WhatsApp manda el recordatorio.',
+                'En <b>Catálogo</b> ajustas las vacunas y cada cuánto se refuerzan.',
+            ],
+            'tips'   => ['Desde la cartilla puedes imprimirla para entregarla al paciente.'],
+        ],
         'page:laboratorio' => [
             'titulo' => 'Laboratorio',
             'intro'  => 'Órdenes de estudios y sus resultados en el expediente.',

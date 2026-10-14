@@ -190,6 +190,7 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
                 // Clínico
                 if ($esClin && modulo_activo('plantillas')) $clinico[] = $li('plantillas', BASE_URL . '/plantillas/index', 'bi-file-earmark-text', t('Plantillas de consulta'));
                 if ($esClin && modulo_activo('documentos')) $clinico[] = $li('documentos', BASE_URL . '/documentos/index', 'bi-file-earmark-medical', t('Documentos'));
+                if (modulo_activo('expediente')) $clinico[] = $li('vacunacion', BASE_URL . '/vacunacion/index', 'bi-shield-plus', t('Vacunación'));
                 foreach ([['laboratorio', 'laboratorio', '/laboratorio/index', 'bi-eyedropper', 'Laboratorio'],
                           ['imagenologia', 'imagenologia', '/imagenologia/index', 'bi-soundwave', 'Ultrasonidos'],
                           ['optica', 'optica', '/optica/index', 'bi-eyeglasses', 'Óptica']] as [$mod, $key, $url, $ic, $lbl]) {
