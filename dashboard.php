@@ -70,7 +70,7 @@ if ($verFacturacion) {
          AND YEAR(fecha)=YEAR(CURDATE()) AND MONTH(fecha)=MONTH(CURDATE()) $medFiltro"
     )->fetchColumn();
     $pendienteCobrar = (float) $pdo->query(
-        "SELECT COALESCE(SUM(total),0) FROM facturas WHERE consultorio_id = $tid AND estado='pendiente' $medFiltro"
+        "SELECT COALESCE(SUM(" . sql_saldo_factura() . "),0) FROM facturas f WHERE consultorio_id = $tid AND estado='pendiente' $medFiltro"
     )->fetchColumn();
 }
 
@@ -476,7 +476,7 @@ $porCobrar = [];
 $porCobrarTotal = 0;
 if ($verFacturacion && !$esMedico) {
     $pc = $pdo->prepare(
-        "SELECT f.id, f.folio, f.total, f.fecha, DATEDIFF(CURDATE(), f.fecha) dias,
+        "SELECT f.id, f.folio, " . sql_saldo_factura() . " total, f.fecha, DATEDIFF(CURDATE(), f.fecha) dias,
                 p.id pac_id, p.nombre, p.apellidos, COALESCE(p.foto_mime, p.foto) AS foto
          FROM facturas f JOIN pacientes p ON p.id = f.paciente_id
          WHERE f.consultorio_id = ? AND f.estado = 'pendiente'

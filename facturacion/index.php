@@ -5,7 +5,7 @@ require_modulo('facturacion');
 
 $estado = $_GET['estado'] ?? '';
 $params = [tenant_id()];
-$sql = "SELECT f.*, p.nombre AS pac_nombre, p.apellidos AS pac_ape, COALESCE(p.foto_mime, p.foto) AS pac_foto
+$sql = "SELECT f.*, " . sql_saldo_factura() . " AS saldo, p.nombre AS pac_nombre, p.apellidos AS pac_ape, COALESCE(p.foto_mime, p.foto) AS pac_foto
         FROM facturas f JOIN pacientes p ON p.id = f.paciente_id WHERE f.consultorio_id = ?";
 if (in_array($estado, ['pendiente','pagada','cancelada'], true)) {
     $sql .= " AND f.estado = ?"; $params[] = $estado;
@@ -19,7 +19,7 @@ $facturas = $stmt->fetchAll();
 $tp = db()->prepare("SELECT COALESCE(SUM(total),0) FROM facturas WHERE estado='pagada' AND consultorio_id = ?");
 $tp->execute([tenant_id()]);
 $totPagado = (float) $tp->fetchColumn();
-$tn = db()->prepare("SELECT COALESCE(SUM(total),0) FROM facturas WHERE estado='pendiente' AND consultorio_id = ?");
+$tn = db()->prepare("SELECT COALESCE(SUM(" . sql_saldo_factura() . "),0) FROM facturas f WHERE estado='pendiente' AND consultorio_id = ?");
 $tn->execute([tenant_id()]);
 $totPend = (float) $tn->fetchColumn();
 
@@ -72,10 +72,13 @@ echo ui_stats([
                         </div>
                     </td>
                     <td class="text-end fw-semibold"><?= fmt_money($f['total']) ?></td>
-                    <td><span class="badge bg-<?= $badge ?>"><?= et(ucfirst($f['estado'])) ?></span></td>
+                    <td><?php if ($f['estado'] === 'pendiente' && (float) $f['saldo'] < (float) $f['total'] - 0.004): ?>
+                        <span class="badge bg-info text-dark"><?= et('Parcial') ?></span> <small class="text-muted"><?= et('saldo') ?> <?= fmt_money($f['saldo']) ?></small>
+                        <?php else: ?><span class="badge bg-<?= $badge ?>"><?= et(ucfirst($f['estado'])) ?></span><?php endif; ?></td>
                     <td class="text-end text-nowrap">
                         <a href="<?= BASE_URL ?>/facturacion/ver?id=<?= $f['id'] ?>" class="btn btn-sm btn-outline-secondary" title="<?= et('Ver/Imprimir') ?>"><i class="bi bi-printer"></i></a>
                         <?php if ($f['estado'] === 'pendiente'): ?>
+                        <a href="<?= BASE_URL ?>/facturacion/ver?id=<?= $f['id'] ?>#abonar" class="btn btn-sm btn-outline-primary" title="<?= et('Registrar abono') ?>"><i class="bi bi-plus-slash-minus"></i></a>
                         <form action="<?= BASE_URL ?>/facturacion/estado" method="post" class="d-inline">
                             <?= csrf_field() ?><input type="hidden" name="id" value="<?= $f['id'] ?>"><input type="hidden" name="estado" value="pagada">
                             <button class="btn btn-sm btn-outline-success" title="<?= et('Marcar pagada') ?>"><i class="bi bi-cash-coin"></i></button>

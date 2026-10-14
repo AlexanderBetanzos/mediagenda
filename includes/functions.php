@@ -382,6 +382,7 @@ function t(string $texto): string
 /** Escapa y traduce en un solo paso (para imprimir en HTML). */
 function et(string $texto): string { return e(t($texto)); }
 
+require_once __DIR__ . '/abonos.php';  // pagos parciales: saldo por cobrar
 require_once __DIR__ . '/giros.php';   // interfaz por giro (vocabulario y accesos)
 
 // Aplica la zona horaria configurada (si la tabla ya existe).

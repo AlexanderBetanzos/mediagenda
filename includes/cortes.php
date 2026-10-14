@@ -145,6 +145,24 @@ function cierre_pendiente(string $alcance, ?int $usuarioId = null): array
     $st->execute($p);
     $cobros = $st->fetchAll();
 
+    /* Abonos (pagos parciales): cada uno entra en la caja de quien lo cobró. */
+    try {
+        require_once __DIR__ . '/abonos.php';
+        asegurar_abonos();
+        $sql = "SELECT f.id, CONCAT(f.folio, ' · abono') folio, a.monto total, a.metodo metodo_pago, a.cobrado_en, f.notas,
+                       p.nombre, p.apellidos, u.nombre cobrador
+                FROM factura_pagos a JOIN facturas f ON f.id = a.factura_id JOIN pacientes p ON p.id = f.paciente_id
+                LEFT JOIN usuarios u ON u.id = a.cobrado_por
+                WHERE a.consultorio_id = ?";
+        $p = [$tid];
+        if ($desde) { $sql .= " AND a.cobrado_en > ?"; $p[] = $desde; }
+        if ($alcance === 'propio') { $sql .= " AND a.cobrado_por = ?"; $p[] = $usuarioId; }
+        $st = $pdo->prepare($sql);
+        $st->execute($p);
+        $cobros = array_merge($cobros, $st->fetchAll());
+        usort($cobros, fn ($x, $y) => strcmp((string) $y['cobrado_en'], (string) $x['cobrado_en']));
+    } catch (Throwable $e) {}
+
     $porMetodo = array_fill_keys(array_keys(cierre_metodos()), 0.0);
     $total = 0.0;
     foreach ($cobros as $c) {

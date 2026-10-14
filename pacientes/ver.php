@@ -444,7 +444,7 @@ try {
     $q = db()->prepare("SELECT MAX(DATE(fecha)) FROM consultas WHERE consultorio_id = ? AND paciente_id = ?"); $q->execute([$__t, $id]); $__ult = $q->fetchColumn() ?: null;
     $q = db()->prepare("SELECT fecha, hora FROM citas WHERE consultorio_id = ? AND paciente_id = ? AND estado IN ('programada','confirmada') AND fecha >= CURDATE() ORDER BY fecha, hora LIMIT 1");
     $q->execute([$__t, $id]); $__prox = $q->fetch() ?: null;
-    if (modulo_activo('facturacion')) { $q = db()->prepare("SELECT COALESCE(SUM(total),0) FROM facturas WHERE consultorio_id = ? AND paciente_id = ? AND estado = 'pendiente'"); $q->execute([$__t, $id]); $__saldo = (float) $q->fetchColumn(); }
+    if (modulo_activo('facturacion')) { $q = db()->prepare("SELECT COALESCE(SUM(" . sql_saldo_factura() . "),0) FROM facturas f WHERE consultorio_id = ? AND paciente_id = ? AND estado = 'pendiente'"); $q->execute([$__t, $id]); $__saldo = (float) $q->fetchColumn(); }
 } catch (Throwable $e) {}
 $__est = [
     [t('Consultas'), number_format(ui_cuenta("SELECT COUNT(*) FROM consultas WHERE consultorio_id = ? AND paciente_id = ?", [$__t, $id])), 'bi-clipboard2-pulse', 'var(--brand)'],
