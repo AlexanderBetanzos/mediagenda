@@ -651,11 +651,18 @@ echo ui_stats($__est); ?>
                     </div>
                     <div class="collapse show" id="vsCharts">
                         <div class="card-body">
-                            <div class="row g-3">
+                            <?php /* Una tarjeta por signo: valor actual, variación contra la
+                                     consulta anterior, estado y la curva de su evolución. */ ?>
+                            <div class="vs-grid">
                                 <?php foreach ($vsPayload as $key => $_): [$tit,$uni,$col] = $vsColores[$key]; ?>
-                                <div class="col-md-6 col-xl-4">
-                                    <div class="small fw-semibold mb-1"><?= e($tit) ?> <?php if ($uni): ?><span class="text-muted fw-normal">(<?= e($uni) ?>)</span><?php endif; ?></div>
-                                    <div style="height:170px"><canvas id="vsChart_<?= e($key) ?>"></canvas></div>
+                                <div class="vs-tile" style="--vc:<?= e($col) ?>">
+                                    <div class="vs-head">
+                                        <span class="vs-tit"><?= e($tit) ?></span>
+                                        <span class="vs-est" id="vsEst_<?= e($key) ?>" hidden></span>
+                                    </div>
+                                    <div class="vs-val"><span id="vsVal_<?= e($key) ?>">—</span> <?php if ($uni): ?><small><?= e($uni) ?></small><?php endif; ?>
+                                        <span class="vs-delta" id="vsDel_<?= e($key) ?>"></span></div>
+                                    <div class="vs-chart"><canvas id="vsChart_<?= e($key) ?>"></canvas></div>
                                 </div>
                                 <?php endforeach; ?>
                             </div>
@@ -1267,28 +1274,78 @@ echo ui_stats($__est); ?>
 </div>
 
 <?php if ($vsAny): ?>
+<style>
+.vs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem; }
+.vs-tile { border-radius: 16px; padding: 1rem 1rem .6rem; background: color-mix(in srgb, var(--vc) 6%, var(--bs-body-bg)); border: 1px solid color-mix(in srgb, var(--vc) 16%, transparent); }
+.vs-head { display: flex; justify-content: space-between; align-items: center; gap: .5rem; }
+.vs-tit { font-size: .8rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--vc); }
+.vs-est { font-size: .7rem; font-weight: 700; padding: .15rem .55rem; border-radius: 999px; }
+.vs-est.ok { background: rgba(34,197,94,.15); color: #15803d; } .vs-est.warn { background: rgba(245,158,11,.18); color: #b45309; } .vs-est.mal { background: rgba(239,68,68,.15); color: #b91c1c; }
+.vs-val { font-size: 1.7rem; font-weight: 800; letter-spacing: -.03em; line-height: 1.15; margin-top: .2rem; font-variant-numeric: tabular-nums; }
+.vs-val small { font-size: .8rem; font-weight: 600; opacity: .55; letter-spacing: 0; }
+.vs-delta { font-size: .75rem; font-weight: 700; opacity: .65; margin-left: .3rem; }
+.vs-chart { height: 110px; margin-top: .4rem; }
+</style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
 (function () {
     if (typeof Chart === 'undefined') return;
     var labels = <?= json_encode($vsLabels) ?>;
     var charts = <?= json_encode($vsPayload, JSON_UNESCAPED_UNICODE) ?>;
-    var isLight = !document.documentElement.classList.contains('dark') &&
-                  !document.documentElement.classList.contains('app-dark');
-    var grid = 'rgba(127,127,127,.14)';
+    var VET = <?= es_veterinaria() ? 'true' : 'false' ?>;
+    var grid = 'rgba(127,127,127,.12)';
+    var fmt = function (v) { return (Math.round(v * 10) / 10).toLocaleString('es-MX'); };
+    var ultimos = function (arr) { var r = arr.filter(function (v) { return v !== null && v !== undefined; }); return [r[r.length - 1], r[r.length - 2]]; };
+
+    /* Estado por signo (rangos de adulto; en veterinaria no aplican y no se muestran). */
+    function estado(key, v, v2) {
+        if (VET || v === undefined) return null;
+        if (key === 'imc')  return v < 18.5 ? ['Bajo peso', 'warn'] : v < 25 ? ['Normal', 'ok'] : v < 30 ? ['Sobrepeso', 'warn'] : ['Obesidad', 'mal'];
+        if (key === 'ta')   return (v >= 140 || v2 >= 90) ? ['Alta', 'mal'] : (v >= 130 || v2 >= 80) ? ['Elevada', 'warn'] : (v >= 120) ? ['Normal alta', 'warn'] : ['Normal', 'ok'];
+        if (key === 'temp') return v >= 38 ? ['Fiebre', 'mal'] : v >= 37.5 ? ['Febrícula', 'warn'] : v < 35.5 ? ['Baja', 'warn'] : ['Normal', 'ok'];
+        if (key === 'spo2') return v >= 95 ? ['Normal', 'ok'] : v >= 90 ? ['Baja', 'warn'] : ['Muy baja', 'mal'];
+        if (key === 'fc')   return v > 100 ? ['Alta', 'warn'] : v < 60 ? ['Baja', 'warn'] : ['Normal', 'ok'];
+        if (key === 'glucosa') return v >= 126 ? ['Alta', 'mal'] : v >= 100 ? ['Elevada', 'warn'] : v < 70 ? ['Baja', 'warn'] : ['Normal', 'ok'];
+        return null;
+    }
+
     Object.keys(charts).forEach(function (key) {
         var el = document.getElementById('vsChart_' + key);
         if (!el) return;
-        var ds = charts[key].ds.map(function (d) {
-            return { label: d.label, data: d.data, borderColor: d.color,
-                     backgroundColor: d.color, tension: .3, spanGaps: true,
-                     pointRadius: 3, borderWidth: 2 };
+        var d0 = charts[key].ds[0], d1 = charts[key].ds[1];
+        var u = ultimos(d0.data), u2 = d1 ? ultimos(d1.data) : [];
+
+        // Valor actual y variación contra la consulta anterior
+        document.getElementById('vsVal_' + key).textContent = u[0] === undefined ? '—' : fmt(u[0]) + (d1 && u2[0] !== undefined ? '/' + fmt(u2[0]) : '');
+        if (u[0] !== undefined && u[1] !== undefined && u[0] !== u[1]) {
+            var dl = u[0] - u[1];
+            var del = document.getElementById('vsDel_' + key);
+            del.innerHTML = '<i class="bi bi-arrow-' + (dl > 0 ? 'up' : 'down') + '-short"></i>' + fmt(Math.abs(dl));
+        }
+        var est = estado(key, u[0], u2[0]);
+        if (est) { var eE = document.getElementById('vsEst_' + key); eE.textContent = est[0]; eE.className = 'vs-est ' + est[1]; eE.hidden = false; }
+
+        // Eje con margen: un cambio pequeño no debe verse como un salto enorme
+        var todos = [].concat(d0.data, d1 ? d1.data : []).filter(function (v) { return v !== null; });
+        var mn = Math.min.apply(null, todos), mx = Math.max.apply(null, todos);
+        var pad = Math.max((mx - mn) * 0.6, Math.abs(mx) * 0.03, 1);
+
+        var ctx = el.getContext('2d');
+        var ds = charts[key].ds.map(function (d, i) {
+            var g = ctx.createLinearGradient(0, 0, 0, el.parentNode.clientHeight || 120);
+            g.addColorStop(0, d.color + (i ? '22' : '44')); g.addColorStop(1, d.color + '00');
+            return { label: d.label, data: d.data, borderColor: d.color, backgroundColor: g, fill: !i, tension: .4, spanGaps: true,
+                     borderWidth: 2.5, pointRadius: function (c) { return c.dataIndex === d.data.length - 1 ? 4 : 0; },
+                     pointBackgroundColor: d.color, pointBorderColor: '#fff', pointBorderWidth: 2, pointHoverRadius: 5 };
         });
         new Chart(el, { type: 'line', data: { labels: labels, datasets: ds },
-            options: { responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { display: ds.length > 1, labels: { boxWidth: 10, font: { size: 10 } } } },
-                scales: { x: { grid: { color: grid }, ticks: { maxTicksLimit: 6, font: { size: 10 } } },
-                          y: { grid: { color: grid }, ticks: { font: { size: 10 } } } } } });
+            options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+                plugins: { legend: { display: false },
+                    tooltip: { backgroundColor: 'rgba(20,24,35,.92)', padding: 10, cornerRadius: 10, displayColors: ds.length > 1,
+                               callbacks: { label: function (c) { return ' ' + c.dataset.label + ': ' + fmt(c.parsed.y); } } } },
+                scales: { x: { display: labels.length > 1, grid: { display: false }, border: { display: false }, ticks: { maxTicksLimit: 4, font: { size: 10 }, color: '#94a3b8' } },
+                          y: { suggestedMin: mn - pad, suggestedMax: mx + pad, grid: { color: grid }, border: { display: false },
+                               ticks: { maxTicksLimit: 4, font: { size: 10 }, color: '#94a3b8', callback: function (v) { return fmt(v); } } } } } });
     });
 })();
 </script>
