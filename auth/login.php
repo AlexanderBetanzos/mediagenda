@@ -56,7 +56,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link href="<?= asset('assets/css/style.css') ?>" rel="stylesheet">
 </head>
 <body>
-<div class="login-wrap">
+<div class="auth-split">
+<?php $authModo = 'login'; include __DIR__ . '/../includes/auth_lado.php'; ?>
+<div class="auth-main">
     <div class="card shadow login-card">
         <div class="card-body p-4 p-sm-5">
             <div class="text-center mb-4">
@@ -69,6 +71,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <p class="text-muted small"><?= e(cfg('marca_lema', 'Sistema de gestión médica y dental')) ?></p>
             </div>
 
+            <?php foreach (get_flash() as $fl): ?>
+                <div class="alert alert-<?= e($fl['tipo']) ?> py-2"><?= e($fl['msg']) ?></div>
+            <?php endforeach; ?>
             <?php if ($error): ?>
                 <div class="alert alert-danger py-2"><?= e($error) ?></div>
             <?php endif; ?>
@@ -84,7 +89,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                 </div>
                 <div class="mb-4">
-                    <label class="form-label"><?= et('Contraseña') ?></label>
+                    <div class="d-flex justify-content-between align-items-baseline">
+                        <label class="form-label"><?= et('Contraseña') ?></label>
+                        <a href="<?= BASE_URL ?>/auth/recuperar" class="small text-decoration-none"><?= et('¿La olvidaste?') ?></a>
+                    </div>
                     <div class="input-group">
                         <span class="input-group-text"><i class="bi bi-lock"></i></span>
                         <input type="password" name="password" class="form-control" required placeholder="••••••••">
@@ -110,6 +118,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         </div>
     </div>
+</div>
 </div>
 <script>
 function setLang(l){ document.cookie = 'lang=' + l + ';path=<?= BASE_URL ?>/;max-age=31536000;samesite=Lax'; location.reload(); }

@@ -102,6 +102,7 @@ if ($okToken !== '') {
                     <?php endif; ?>
                 </div>
 
+                <?= cita_botones_extra($cita) ?>
                 <p class="text-muted small text-center mt-3 mb-0"><?= et('Si no puedes venir, avísanos desde ese enlace.') ?></p>
                 <div class="text-center">
                     <a href="<?= BASE_URL ?>/c/<?= e($slug) ?>" class="d-inline-block mt-3 small text-decoration-none">&larr; <?= et('Volver al inicio') ?></a>
@@ -126,6 +127,12 @@ include __DIR__ . '/../includes/publico_header.php';
     <h1 class="h3 fw-bold mb-1"><?= et('Agenda tu cita') ?></h1>
     <p class="text-muted mb-0"><?= et('Elige el médico, el día y la hora que mejor te queden.') ?></p>
 </div>
+<?php $agPaso = !$agMedId ? 1 : (!$agHuecos ? 2 : 3); ?>
+<ol class="ag-pasos" aria-label="<?= et('Pasos') ?>">
+    <?php foreach ([1 => t('Con quién'), 2 => t('Día'), 3 => t('Hora y datos')] as $n => $lbl): ?>
+    <li class="<?= $n < $agPaso ? 'hecho' : ($n === $agPaso ? 'ahora' : '') ?>"><span><?= $n < $agPaso ? '<i class="bi bi-check-lg"></i>' : $n ?></span><?= e($lbl) ?></li>
+    <?php endforeach; ?>
+</ol>
 
 <?php include __DIR__ . '/../includes/agenda_reservar_render.php'; ?>
 

@@ -11,6 +11,7 @@ $archivos->execute([$pid, tenant_id()]);
 $archivos = $archivos->fetchAll();
 
 $titulo = t('Estudios');
+$portalActivo = 'archivos';
 include __DIR__ . '/../includes/portal_header.php';
 ?>
 <h1 class="h3 mb-3"><i class="bi bi-paperclip text-brand"></i> <?= et('Mis estudios y documentos') ?></h1>

@@ -21,6 +21,7 @@ usort($pend, fn ($x, $y) => strcmp($x['proxima'], $y['proxima']));
 $hoy = date('Y-m-d');
 
 $titulo = t('Mis vacunas');
+$portalActivo = 'vacunas';
 include __DIR__ . '/../includes/portal_header.php';
 ?>
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">

@@ -83,7 +83,9 @@ $volver = $clin ? BASE_URL . '/c/' . rawurlencode($slug) : BASE_URL . '/';
     <style>:root { --brand: <?= $acento ?>; --brand-dark: color-mix(in srgb, <?= $acento ?> 78%, #000); }</style>
 </head>
 <body>
-<div class="login-wrap">
+<div class="auth-split">
+<?php $authModo = 'portal'; include __DIR__ . '/../includes/auth_lado.php'; ?>
+<div class="auth-main">
     <div class="card shadow login-card">
         <div class="card-body p-4 p-sm-5">
             <div class="text-center mb-4">
@@ -127,6 +129,7 @@ $volver = $clin ? BASE_URL . '/c/' . rawurlencode($slug) : BASE_URL . '/';
             </div>
         </div>
     </div>
+</div>
 </div>
 <script>
 document.querySelectorAll('.toggle-pass').forEach(function (btn) {

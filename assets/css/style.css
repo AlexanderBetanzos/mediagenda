@@ -629,3 +629,33 @@ html.lp-dark .lp-float-t { color: var(--d-ink); }
     outline-offset: -2px;
     border-radius: 4px;
 }
+
+/* ── Acceso (login / registro / recuperar): panel de marca + formulario ── */
+.auth-split { min-height: 100vh; display: grid; grid-template-columns: minmax(340px, 44%) 1fr; background: #f6f8fb; }
+.auth-lado { position: relative; overflow: hidden; color: #fff;
+    background: radial-gradient(120% 80% at 0% 0%, color-mix(in srgb, var(--brand) 70%, #fff) 0%, transparent 55%),
+                linear-gradient(150deg, var(--brand-dark), var(--brand) 70%); }
+.auth-lado::after { content: ""; position: absolute; right: -120px; bottom: -120px; width: 380px; height: 380px; border-radius: 50%;
+    border: 60px solid rgba(255,255,255,.07); }
+.auth-lado-in { position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column; padding: 48px clamp(28px, 5vw, 64px); }
+.auth-marca { display: flex; align-items: center; gap: 10px; color: #fff; text-decoration: none; font-weight: 800; font-size: 1.15rem; }
+.auth-marca img { height: 38px; width: auto; max-width: 150px; object-fit: contain; background: #fff; border-radius: 10px; padding: 4px 8px; }
+.auth-marca i { font-size: 1.6rem; }
+.auth-titular { font-size: clamp(1.6rem, 2.6vw, 2.3rem); font-weight: 800; letter-spacing: -.02em; line-height: 1.15; margin: auto 0 28px; max-width: 460px; }
+.auth-puntos { list-style: none; padding: 0; margin: 0 0 auto; display: grid; gap: 16px; max-width: 440px; }
+.auth-puntos li { display: flex; gap: 14px; align-items: flex-start; }
+.auth-puntos i { flex: 0 0 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: rgba(255,255,255,.16); font-size: 1.15rem; }
+.auth-puntos b { display: block; }
+.auth-puntos span { opacity: .82; font-size: .9rem; }
+.auth-pie { margin-top: 32px; font-size: .8rem; opacity: .75; }
+.auth-main { display: flex; align-items: center; justify-content: center; padding: 32px 16px; }
+.auth-main .login-card { box-shadow: 0 1px 2px rgba(15,23,42,.04), 0 18px 50px -24px rgba(15,23,42,.35) !important; border-radius: 22px; }
+.auth-main .form-control, .auth-main .input-group-text, .auth-main .form-select { padding-top: .62rem; padding-bottom: .62rem; }
+.auth-main .btn-primary { border-radius: 12px; font-weight: 600; }
+@media (max-width: 991.98px) {
+    .auth-split { grid-template-columns: 1fr; }
+    .auth-lado-in { padding: 22px 20px; }
+    .auth-titular { font-size: 1.3rem; margin: 14px 0 0; }
+    .auth-puntos, .auth-pie { display: none; }
+    .auth-main { padding: 20px 16px 40px; align-items: flex-start; }
+}

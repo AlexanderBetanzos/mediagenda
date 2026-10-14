@@ -168,7 +168,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?= meta_pixel_head() ?>
 </head>
 <body>
-<div class="login-wrap">
+<div class="auth-split">
+<?php $authModo = 'registro'; include __DIR__ . '/../includes/auth_lado.php'; ?>
+<div class="auth-main">
     <div class="card shadow login-card" style="max-width:480px">
         <div class="card-body p-4 p-sm-5">
             <div class="text-center mb-4">
@@ -286,6 +288,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         </div>
     </div>
+</div>
 </div>
 <script>
 document.querySelectorAll('.toggle-pw').forEach(function (btn) {

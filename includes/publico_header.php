@@ -77,6 +77,25 @@ $acento = color_acento();
                     font-weight: 700; padding: 5px 12px; border-radius: 999px; }
         .ag-badge-ok { background: #e7f7ee; color: #1a7f47; }
         .ag-badge-off { background: rgba(127,127,127,.14); color: #64748b; }
+        /* Pasos de la reserva y médicos como tarjetas. */
+        .ag-pasos { display: flex; justify-content: center; gap: 6px; list-style: none; padding: 0; margin: 0 0 1.25rem; flex-wrap: wrap; }
+        .ag-pasos li { display: flex; align-items: center; gap: 7px; font-size: .82rem; font-weight: 600; color: #94a3b8; }
+        .ag-pasos li + li::before { content: ""; width: 22px; height: 2px; background: rgba(127,127,127,.25); border-radius: 2px; margin-right: 2px; }
+        .ag-pasos span { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: .78rem;
+                         border: 2px solid rgba(127,127,127,.3); }
+        .ag-pasos li.ahora { color: inherit; }
+        .ag-pasos li.ahora span { border-color: var(--brand); color: var(--brand); }
+        .ag-pasos li.hecho span { background: var(--brand); border-color: var(--brand); color: var(--on-brand); }
+        .ag-meds { display: grid; gap: 8px; }
+        .ag-med { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 12px 14px; border-radius: 14px;
+                  border: 1px solid rgba(127,127,127,.25); background: transparent; color: inherit; transition: border-color .15s, background .15s; }
+        .ag-med:hover { border-color: var(--brand); }
+        .ag-med.sel { border-color: var(--brand); background: color-mix(in srgb, var(--brand) 7%, transparent); }
+        .ag-med .ini { width: 42px; height: 42px; flex: 0 0 42px; border-radius: 50%; display: grid; place-items: center; font-weight: 700;
+                       background: color-mix(in srgb, var(--brand) 14%, transparent); color: var(--brand); }
+        .ag-med .txt { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+        .ag-med .txt small { color: #94a3b8; }
+        .ag-med > i { color: var(--brand); }
         /* Huecos de horario: botones grandes, pensados para el pulgar. */
         .hueco input { position: absolute; opacity: 0; }
         .hueco span { display: block; text-align: center; padding: .6rem 1rem; border: 1px solid rgba(127,127,127,.35);

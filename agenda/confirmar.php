@@ -159,6 +159,8 @@ $badgeCls = $cancelada ? 'ag-badge-off' : 'ag-badge-ok';
                 </form>
             <?php endif; ?>
 
+            <?php if (!$cancelada): ?><?= cita_botones_extra($c) ?><?php endif; ?>
+
             <?php if ($c['estado'] === 'cancelada' && $reservar): ?>
                 <a href="<?= e(agenda_online_url(tenant()['slug'] ?? '')) ?>" class="btn btn-primary btn-lg w-100 mt-2 py-3 fw-semibold">
                     <i class="bi bi-calendar-plus"></i> <?= et('Agendar otra fecha') ?>

@@ -15,6 +15,7 @@ $recetas->execute([$pid, tenant_id()]);
 $recetas = $recetas->fetchAll();
 
 $titulo = t('Mis recetas');
+$portalActivo = 'recetas';
 include __DIR__ . '/../includes/portal_header.php';
 ?>
 <h1 class="h3 mb-3"><i class="bi bi-capsule text-brand"></i> <?= et('Mis recetas') ?></h1>

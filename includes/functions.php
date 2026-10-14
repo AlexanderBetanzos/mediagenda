@@ -3530,3 +3530,50 @@ function dientes_fdi(): array
         [48,47,46,45,44,43,42,41], [31,32,33,34,35,36,37,38]
     );
 }
+
+/**
+ * Enlaces para que el paciente guarde su cita en su calendario: Google
+ * Calendar y un .ics (Apple/Outlook) como data URI. $cita trae fecha, hora,
+ * duracion y opcionalmente med_nombre.
+ */
+function cita_calendario_links(array $cita): array
+{
+    $ini = strtotime($cita['fecha'] . ' ' . substr((string) $cita['hora'], 0, 5));
+    if (!$ini) return ['google' => '', 'ics' => ''];
+    $fin = $ini + 60 * max(10, (int) ($cita['duracion'] ?? 0) ?: 30);
+    $titulo = t('Cita') . ' · ' . marca_nombre();
+    $detalle = trim((!empty($cita['med_nombre']) ? t('Te atiende') . ': ' . $cita['med_nombre'] : '')
+        . (!empty($cita['id']) ? "\n" . t('Folio') . ': ' . cita_folio((int) $cita['id']) : ''));
+    $lugar = (string) cfg('direccion');
+    $f = fn ($t) => date('Ymd\THis', $t);
+    $google = 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' . rawurlencode($titulo)
+        . '&dates=' . $f($ini) . '/' . $f($fin) . '&ctz=' . rawurlencode(date_default_timezone_get())
+        . '&details=' . rawurlencode($detalle) . ($lugar !== '' ? '&location=' . rawurlencode($lugar) : '');
+    $esc = fn ($s) => str_replace(["\\", ';', ',', "\n"], ["\\\\", '\;', '\,', '\n'], $s);
+    $ics = "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//MediOS//Agenda//ES\r\nBEGIN:VEVENT\r\n"
+        . 'UID:cita-' . ($cita['id'] ?? $ini) . '@' . ($_SERVER['HTTP_HOST'] ?? 'medios') . "\r\n"
+        . 'DTSTAMP:' . gmdate('Ymd\THis\Z') . "\r\n"
+        . 'DTSTART;TZID=' . date_default_timezone_get() . ':' . $f($ini) . "\r\n"
+        . 'DTEND;TZID=' . date_default_timezone_get() . ':' . $f($fin) . "\r\n"
+        . 'SUMMARY:' . $esc($titulo) . "\r\n" . ($detalle !== '' ? 'DESCRIPTION:' . $esc($detalle) . "\r\n" : '')
+        . ($lugar !== '' ? 'LOCATION:' . $esc($lugar) . "\r\n" : '')
+        . "BEGIN:VALARM\r\nTRIGGER:-PT2H\r\nACTION:DISPLAY\r\nDESCRIPTION:" . $esc($titulo) . "\r\nEND:VALARM\r\n"
+        . "END:VEVENT\r\nEND:VCALENDAR\r\n";
+    return ['google' => $google, 'ics' => 'data:text/calendar;charset=utf-8,' . rawurlencode($ics)];
+}
+
+/** Botones "Agregar a mi calendario" y "Cómo llegar" para las pantallas de cita. */
+function cita_botones_extra(array $cita): string
+{
+    $l = cita_calendario_links($cita);
+    if ($l['google'] === '') return '';
+    $h = '<div class="d-flex flex-wrap gap-2 justify-content-center mt-3">'
+        . '<div class="dropdown"><button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown"><i class="bi bi-calendar-plus"></i> ' . et('Agregar a mi calendario') . '</button>'
+        . '<ul class="dropdown-menu"><li><a class="dropdown-item" target="_blank" rel="noopener" href="' . e($l['google']) . '"><i class="bi bi-google me-2"></i>Google Calendar</a></li>'
+        . '<li><a class="dropdown-item" download="cita.ics" href="' . e($l['ics']) . '"><i class="bi bi-apple me-2"></i>' . et('Apple / Outlook (.ics)') . '</a></li></ul></div>';
+    if (cfg('direccion')) {
+        $h .= '<a class="btn btn-sm btn-outline-secondary" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query='
+            . rawurlencode(cfg('direccion')) . '"><i class="bi bi-geo-alt"></i> ' . et('Cómo llegar') . '</a>';
+    }
+    return $h . '</div>';
+}

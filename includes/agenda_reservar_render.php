@@ -75,6 +75,17 @@ $agAccion = $agAccion ?? '';
             <input type="hidden" name="c" value="<?= e($agSlug) ?>">
             <input type="hidden" name="f" id="agFechaHidden" value="<?= e($agFecha) ?>">
             <label class="form-label small fw-semibold"><?= et('Selecciona con quién deseas agendar tu cita') ?></label>
+            <?php if (count($agMedicos) <= 8): ?>
+            <div class="ag-meds">
+                <?php foreach ($agMedicos as $m): $pp = preg_split('/\s+/', trim(preg_replace('/^(dra?|lic|psic|mvz|nut)\.?\s+/i', '', $m['nombre']))); ?>
+                <button type="submit" name="m" value="<?= (int) $m['id'] ?>" class="ag-med<?= $agMedId === (int) $m['id'] ? ' sel' : '' ?>" onclick="document.getElementById('agFechaHidden').value=''">
+                    <span class="ini"><?= e(mb_strtoupper(mb_substr($pp[0] ?? '', 0, 1) . mb_substr($pp[1] ?? '', 0, 1))) ?></span>
+                    <span class="txt"><b><?= e($m['nombre']) ?></b><?php if ($m['especialidad']): ?><small><?= e($m['especialidad']) ?></small><?php endif; ?></span>
+                    <i class="bi <?= $agMedId === (int) $m['id'] ? 'bi-check-circle-fill' : 'bi-chevron-right' ?>"></i>
+                </button>
+                <?php endforeach; ?>
+            </div>
+            <?php else: ?>
             <select name="m" class="form-select form-select-lg" onchange="document.getElementById('agFechaHidden').value=''; this.form.submit()">
                 <option value=""><?= et('Selecciona…') ?></option>
                 <?php foreach ($agMedicos as $m): ?>
@@ -83,6 +94,7 @@ $agAccion = $agAccion ?? '';
                     </option>
                 <?php endforeach; ?>
             </select>
+            <?php endif; ?>
         </form>
 
         <?php /* Paso 2: calendario de días disponibles del médico. */ ?>
