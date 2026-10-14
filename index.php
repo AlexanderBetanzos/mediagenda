@@ -254,7 +254,7 @@ track_pageview('publico');
         <div class="row g-3" data-stagger>
             <?php foreach (giros_lista() as $gk => $gd): ?>
             <div class="col-sm-6 col-lg-4">
-                <a href="<?= BASE_URL ?>/auth/registro?giro=<?= e($gk) ?>" class="lp-giro<?= $gk === 'veterinaria' ? ' vet' : '' ?>">
+                <a href="<?= $gk === 'veterinaria' ? BASE_URL . '/veterinarias' : BASE_URL . '/auth/registro?giro=' . e($gk) ?>" class="lp-giro<?= $gk === 'veterinaria' ? ' vet' : '' ?>">
                     <span class="lp-giro-ic"><i class="bi <?= e($gd['icono']) ?>"></i></span>
                     <span class="flex-grow-1">
                         <span class="lp-giro-t"><?= e($gd['nombre']) ?><?= $gk === 'veterinaria' ? ' <span class="lp-giro-new">Nuevo</span>' : '' ?></span>
