@@ -126,7 +126,7 @@ html.motion .vt-chip { animation: lpUp .8s 1.6s cubic-bezier(.22,1,.36,1) both, 
 html.motion .vt-dia .vt-paso-ic { transform: scale(.5); opacity: 0; transition: transform .6s cubic-bezier(.34,1.56,.64,1), opacity .4s ease; transition-delay: calc(.3s * var(--i) + .2s); }
 html.motion .vt-dia.is-in .vt-paso-ic { transform: none; opacity: 1; }
 .vt-paso b { display: block; font-family: var(--font-display); letter-spacing: -.01em; }
-.vt-paso span { font-size: .88rem; color: var(--muted); }
+.vt-paso > span:not(.vt-paso-ic) { font-size: .88rem; color: var(--muted); }
 @media (max-width: 767.98px) { .vt-dia { grid-template-columns: 1fr; } .vt-dia-linea { display: none; } }
 
 /* ── Planes, FAQ, CTA ── */
