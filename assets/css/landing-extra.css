@@ -114,3 +114,5 @@ html.motion .lx-float { animation: lpBob 5s 1s ease-in-out infinite; }
 .lx-todo-it:hover { transform: translateY(-3px); }
 .lx-todo-it .bi { width: 38px; height: 38px; border-radius: 12px; flex: none; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
                   color: var(--c, var(--brand)); background: color-mix(in srgb, var(--c, var(--brand)) 12%, transparent); }
+/* 28 módulos: la cascada se acorta para que los últimos no tarden 2.5 s */
+html.motion .lx-todo > [data-reveal] { transition-delay: calc(min(var(--d, 0), 10) * 45ms); }
