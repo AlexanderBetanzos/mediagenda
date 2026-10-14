@@ -42,9 +42,9 @@ function paciente_wa_mensaje(array $p): string
     /* Portal del paciente (si el plan lo incluye). */
     $slug = (string) (tenant()['slug'] ?? '');
     if (modulo_activo('portal')) {
-        $ve = $vet ? 'sus citas, recetas y estudios' : 'tus citas, tus recetas y tus estudios';
+        $ve = $vet ? 'sus citas, recetas, vacunas y estudios' : 'tus citas, tus recetas, tus vacunas y tus estudios';
         if (!empty($p['portal_activo'])) {
-            $msg .= "\n*" . ($vet ? 'Portal del propietario' : 'Tu portal de paciente') . "*\n"
+            $msg .= "\n*" . ($vet ? 'Portal del tutor' : 'Tu portal de paciente') . "*\n"
                   . "Ahí ves {$ve}:\n"
                   . url_absoluta('/portal/login' . ($slug !== '' ? '?c=' . rawurlencode($slug) : '')) . "\n"
                   . "Usuario: {$p['email']}\n"
@@ -59,7 +59,7 @@ function paciente_wa_mensaje(array $p): string
                 } catch (Throwable $e) { $token = ''; }
             }
             if ($token !== '') {
-                $msg .= "\n*" . ($vet ? 'Portal del propietario' : 'Tu portal de paciente') . "*\n"
+                $msg .= "\n*" . ($vet ? 'Portal del tutor' : 'Tu portal de paciente') . "*\n"
                       . "Crea tu contraseña aquí y consulta {$ve} cuando quieras:\n"
                       . url_absoluta('/portal/activar?t=' . $token) . "\n"
                       . "Tu usuario será tu correo: {$p['email']}\n";

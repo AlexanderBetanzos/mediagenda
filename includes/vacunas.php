@@ -45,6 +45,12 @@ function asegurar_vacunas(): void
         INDEX idx_va_prox (consultorio_id, proxima)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
+    // Recordatorio automático ya enviado para esta próxima dosis (solo si falta).
+    try {
+        if (!$pdo->query("SHOW COLUMNS FROM vacunas_aplicadas LIKE 'recordado_en'")->fetch())
+            $pdo->exec("ALTER TABLE vacunas_aplicadas ADD COLUMN recordado_en DATETIME NULL DEFAULT NULL");
+    } catch (Throwable $e) {}
+
     /* Catálogo inicial la primera vez (según la interfaz del consultorio). */
     $tid = (int) tenant_id();
     $n = $pdo->prepare('SELECT COUNT(*) FROM vacunas_catalogo WHERE consultorio_id = ?');
@@ -111,3 +117,40 @@ function vacuna_wa_mensaje(array $p, string $vacuna, string $fecha): string
     }
     return $msg;
 }
+
+/**
+ * Recordatorios automáticos de vacuna (los llama el cron diario junto con los
+ * de cita, ya con el consultorio activo): correo a quien le toca su próxima
+ * dosis dentro de $dias días. Una sola vez por dosis (recordado_en).
+ */
+function vacunas_recordatorios(int $cid, int $dias = 3): int
+{
+    require_once __DIR__ . '/correo.php';
+    try {
+        asegurar_vacunas();
+        $st = db()->prepare(
+            "SELECT a.id, a.nombre vacuna, a.proxima, p.*
+             FROM vacunas_aplicadas a JOIN pacientes p ON p.id = a.paciente_id
+             WHERE a.consultorio_id = ? AND a.recordado_en IS NULL AND a.proxima BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL ? DAY)
+               AND NOT EXISTS (SELECT 1 FROM vacunas_aplicadas b WHERE b.consultorio_id = a.consultorio_id AND b.paciente_id = a.paciente_id
+                               AND b.nombre = a.nombre AND (b.fecha > a.fecha OR (b.fecha = a.fecha AND b.id > a.id)))"
+        );
+        $st->execute([$cid, $dias]);
+    } catch (Throwable $e) { return 0; }
+    $marca = db()->prepare('UPDATE vacunas_aplicadas SET recordado_en = NOW() WHERE id = ? AND consultorio_id = ?');
+    $n = 0;
+    foreach ($st->fetchAll() as $r) {
+        // r.id es el del paciente (p.*); el de la aplicación viene antes y p.* lo pisa: se vuelve a leer abajo.
+        if (filter_var($r['email'] ?? '', FILTER_VALIDATE_EMAIL) && correo_recordatorio_vacuna($r, $r['vacuna'], $r['proxima'])) $n++;
+    }
+    // Se marcan todas las de la consulta (con o sin correo) para no reintentar cada día.
+    try {
+        $ids = db()->prepare(
+            "SELECT a.id FROM vacunas_aplicadas a WHERE a.consultorio_id = ? AND a.recordado_en IS NULL
+               AND a.proxima BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL ? DAY)");
+        $ids->execute([$cid, $dias]);
+        foreach ($ids->fetchAll(PDO::FETCH_COLUMN) as $aid) $marca->execute([(int) $aid, $cid]);
+    } catch (Throwable $e) {}
+    return $n;
+}
+

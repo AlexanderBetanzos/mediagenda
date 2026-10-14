@@ -399,7 +399,7 @@ html.app-dark .pf-bar { background: rgba(30,30,36,.85); }
         var nm = vet ? q('nombre') : (q('nombre') + ' ' + q('apellidos')).trim();
         nombre.textContent = nm || vacio;
         var partes = vet ? [q('especie'), q('raza'), edad(q('fecha_nacimiento'))] : [edad(q('fecha_nacimiento')), q('telefono')];
-        if (vet && (q('propietario') || q('apellidos'))) partes.push('Dueño: ' + (q('propietario') + ' ' + q('apellidos')).trim());
+        if (vet && (q('propietario') || q('apellidos'))) partes.push(<?= json_encode(t('Tutor') . ': ', JSON_UNESCAPED_UNICODE) ?> + (q('propietario') + ' ' + q('apellidos')).trim());
         sub.textContent = partes.filter(Boolean).join(' · ');
         var campos = main.querySelectorAll('input:not([type=hidden]):not([type=file]):not([type=checkbox]), select, textarea');
         var llenos = 0;

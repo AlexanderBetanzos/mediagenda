@@ -49,6 +49,12 @@ function recordatorios_enviar(?string $fecha = null, ?callable $echo = null): ar
         );
         $st->execute([$cid, $fecha]);
         $citas = $st->fetchAll();
+
+        // Vacunas que tocan en los próximos 3 días (corre aunque no haya citas).
+        require_once __DIR__ . '/vacunas.php';
+        $vac = vacunas_recordatorios($cid);
+        if ($vac) { $log("consultorio $cid: $vac recordatorios de vacuna"); $totVac = ($totVac ?? 0) + $vac; }
+
         if (!$citas) continue;
 
         $marca = db()->prepare('UPDATE citas SET recordatorio_en = NOW() WHERE id = ? AND consultorio_id = ?');
@@ -85,5 +91,5 @@ function recordatorios_enviar(?string $fecha = null, ?callable $echo = null): ar
     cfg_all(true);
 
     return ['fecha' => $fecha, 'procesadas' => $totProc, 'correos' => $totMail,
-            'whatsapp' => $totWa, 'detalle' => $detalle];
+            'whatsapp' => $totWa, 'vacunas' => $totVac ?? 0, 'detalle' => $detalle];
 }

@@ -720,7 +720,7 @@ track_pageview('publico');
                 ['¿Mis datos están seguros?','Tus datos viajan cifrados, con respaldos y acceso por roles para tu equipo. Cada consultorio tiene su información aislada.'],
                 ['¿Qué pasa con mi información si cancelo?','Tus pacientes y expedientes son tuyos, no nuestros. Cancelas desde el panel, conservas el acceso hasta el final del periodo pagado y te ayudamos a llevarte tu información.'],
                 ['¿Sirve para mi especialidad?','Sí. Al registrarte eliges tu interfaz: medicina general, odontología, psicología, nutrición, pediatría, oftalmología, dermatología y estética, veterinaria o clínica multiespecialidad. El panel adapta su lenguaje, las herramientas que van al frente y los datos del expediente; la puedes cambiar cuando quieras.'],
-                ['¿Sirve para veterinarias?','Sí. Con la interfaz veterinaria registras mascotas con especie, raza, sexo, microchip y propietario, y los recordatorios de cita le llegan al dueño por WhatsApp o correo.'],
+                ['¿Sirve para veterinarias?','Sí. Con la interfaz veterinaria registras mascotas con especie, raza, sexo, microchip y tutor; llevas su cartilla de vacunas y los recordatorios de cita y de vacuna le llegan al tutor por WhatsApp o correo.'],
             ] as $i => [$q,$a]): ?>
             <div class="accordion-item">
                 <h2 class="accordion-header">

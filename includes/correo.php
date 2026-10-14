@@ -391,3 +391,19 @@ function correo_aviso_plataforma(string $asunto, string $titulo, array $filas, s
         tenant_override(null, true);
     }
 }
+
+/** Recordatorio de vacuna por correo ($p = fila del paciente). */
+function correo_recordatorio_vacuna(array $p, string $vacuna, string $fecha): bool
+{
+    $vet = function_exists('es_veterinaria') && es_veterinaria();
+    $cuerpo = ($vet
+            ? 'Hola,<br><br>A <strong>' . e($p['nombre']) . '</strong> le toca su vacuna <strong>' . e($vacuna) . '</strong>'
+            : 'Hola <strong>' . e(trim(explode(' ', (string) $p['nombre'])[0])) . '</strong>,<br><br>Te toca tu vacuna <strong>' . e($vacuna) . '</strong>')
+        . ' el <strong>' . e(fmt_fecha($fecha)) . '</strong> en <strong>' . e(marca_nombre()) . '</strong>.<br><br>'
+        . 'Agenda tu visita para mantener ' . ($vet ? 'su' : 'tu') . ' esquema al día.';
+    $cta = $url = '';
+    if (function_exists('micrositio_visible') && micrositio_visible() && agenda_online_activa()) { $cta = 'Agendar mi cita'; $url = micrositio_url(); }
+    $html = correo_layout('Recordatorio de vacuna', $cuerpo, $cta, $url, 'Vacunación');
+    return enviar_correo((string) $p['email'], 'Recordatorio de vacuna: ' . $vacuna . ' · ' . marca_nombre(), $html);
+}
+

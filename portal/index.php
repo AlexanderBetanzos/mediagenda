@@ -25,6 +25,23 @@ include __DIR__ . '/../includes/portal_header.php';
 <h1 class="h3 mb-1"><?= et('Hola') ?>, <?= e($pac['nombre']) ?> 👋</h1>
 <p class="text-muted"><?= et('Aquí están tus próximas citas y tu historial.') ?></p>
 
+<?php /* La próxima vacuna (la más cercana entre las últimas de cada una). */
+$prVac = null;
+try {
+    $q = db()->prepare("SELECT a.nombre, a.proxima FROM vacunas_aplicadas a WHERE a.paciente_id = ? AND a.consultorio_id = ? AND a.proxima IS NOT NULL
+        AND NOT EXISTS (SELECT 1 FROM vacunas_aplicadas b WHERE b.consultorio_id = a.consultorio_id AND b.paciente_id = a.paciente_id AND b.nombre = a.nombre
+                        AND (b.fecha > a.fecha OR (b.fecha = a.fecha AND b.id > a.id)))
+        ORDER BY a.proxima LIMIT 1");
+    $q->execute([$pid, tenant_id()]);
+    $prVac = $q->fetch() ?: null;
+} catch (Throwable $e) { /* sin módulo de vacunas todavía */ }
+if ($prVac): $venc = $prVac['proxima'] < date('Y-m-d'); ?>
+<a href="<?= BASE_URL ?>/portal/vacunas" class="alert <?= $venc ? 'alert-danger' : 'alert-info' ?> d-flex align-items-center gap-2 text-decoration-none">
+    <i class="bi bi-shield-plus fs-5"></i>
+    <span><strong><?= et('Vacuna') ?>: <?= e($prVac['nombre']) ?></strong> · <?= $venc ? et('pendiente desde') : et('te toca el') ?> <?= e(fmt_fecha($prVac['proxima'])) ?>. <?= et('Ver mi cartilla →') ?></span>
+</a>
+<?php endif; ?>
+
 <div class="card mb-4">
     <div class="card-header bg-white fw-semibold"><i class="bi bi-calendar-event text-brand"></i> <?= et('Próximas citas') ?></div>
     <div class="list-group list-group-flush">

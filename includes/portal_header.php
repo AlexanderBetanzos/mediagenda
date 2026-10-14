@@ -26,6 +26,7 @@ if (function_exists('track_pageview')) track_pageview('portal');
             <ul class="navbar-nav me-auto">
                 <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>/portal/index"><i class="bi bi-calendar-check"></i> <?= et('Mis citas') ?></a></li>
                 <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>/portal/recetas"><i class="bi bi-capsule"></i> <?= et('Recetas') ?></a></li>
+                <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>/portal/vacunas"><i class="bi bi-shield-plus"></i> <?= et('Vacunas') ?></a></li>
                 <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>/portal/archivos"><i class="bi bi-paperclip"></i> <?= et('Estudios') ?></a></li>
             </ul>
             <div class="d-flex align-items-center gap-3">

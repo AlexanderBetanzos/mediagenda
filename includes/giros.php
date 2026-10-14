@@ -45,8 +45,14 @@ function giros(): array
         'primer paciente' => 'primera mascota', 'Primer paciente' => 'Primera mascota',
         'Paciente registrado' => 'Mascota registrada', 'Paciente actualizado' => 'Mascota actualizada',
         'Paciente eliminado' => 'Mascota eliminada',
-        'Portal del paciente' => 'Portal del propietario', 'portal del paciente' => 'portal del propietario',
-        'Portal de pacientes' => 'Portal de propietarios',
+        'Portal del paciente' => 'Portal del tutor', 'portal del paciente' => 'portal del tutor',
+        'Portal de pacientes' => 'Portal de tutores',
+        // Propietario / dueño → tutor (así se dice hoy en las veterinarias de LATAM).
+        'Nombre del propietario' => 'Nombre del tutor', 'Apellidos del propietario' => 'Apellidos del tutor',
+        'Teléfono del propietario' => 'Teléfono del tutor', 'Correo del propietario' => 'Correo del tutor',
+        'Portal del propietario' => 'Portal del tutor', 'del propietario' => 'del tutor', 'al propietario' => 'al tutor',
+        'el propietario' => 'el tutor', 'Propietario' => 'Tutor', 'propietario' => 'tutor', 'Propietarios' => 'Tutores', 'propietarios' => 'tutores',
+        'del dueño' => 'del tutor', 'al dueño' => 'al tutor', 'el dueño' => 'el tutor', 'Dueño' => 'Tutor', 'dueño' => 'tutor', 'dueños' => 'tutores',
         'del paciente' => 'de la mascota', 'Del paciente' => 'De la mascota',
         'al paciente' => 'a la mascota', 'el paciente' => 'la mascota', 'El paciente' => 'La mascota',
         'un paciente' => 'una mascota', 'Un paciente' => 'Una mascota', 'este paciente' => 'esta mascota',
@@ -63,7 +69,7 @@ function giros(): array
         'Tu consultorio' => 'Tu clínica', 'tu consultorio' => 'tu clínica',
         'Consultorio' => 'Clínica', 'consultorio' => 'clínica', 'Consultorios' => 'Clínicas', 'consultorios' => 'clínicas',
         // Validaciones del formulario (el campo "Apellidos" es del propietario).
-        'Los apellidos son obligatorios.' => 'Los apellidos del propietario son obligatorios.',
+        'Los apellidos son obligatorios.' => 'Los apellidos del tutor son obligatorios.',
         'El nombre es obligatorio.' => 'El nombre de la mascota es obligatorio.',
     ];
 
@@ -95,7 +101,7 @@ function giros(): array
                      'vocab' => []],
         'estetica' => ['nombre' => 'Dermatología y estética', 'icono' => 'bi-magic', 'desc' => 'Dermatología, estética y mapa corporal al frente.',
                      'staff' => 'Médicos', 'accesos' => ['dermatologia', 'estetica'], 'vocab' => []],
-        'veterinaria' => ['nombre' => 'Veterinaria', 'icono' => 'bi-house-heart', 'desc' => 'Mascotas con especie, raza y propietario; el recordatorio le llega al dueño.',
+        'veterinaria' => ['nombre' => 'Veterinaria', 'icono' => 'bi-house-heart', 'desc' => 'Mascotas con especie, raza y tutor; vacunas y recordatorios le llegan al tutor.',
                      'staff' => 'Veterinarios', 'accesos' => ['vacunas', 'cirugia', 'dermatologia'], 'vocab' => $vet],
         'clinica' => ['nombre' => 'Clínica u hospital', 'icono' => 'bi-hospital', 'desc' => 'Varias especialidades: todas las herramientas a la mano.',
                      'staff' => 'Médicos', 'accesos' => [], 'vocab' => []],
