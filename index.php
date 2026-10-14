@@ -260,7 +260,9 @@ track_pageview('publico');
         <div class="row g-3" data-stagger>
             <?php foreach (giros_lista() as $gk => $gd): ?>
             <div class="col-sm-6 col-lg-4">
-                <a href="<?= $gk === 'veterinaria' ? BASE_URL . '/veterinarias' : BASE_URL . '/auth/registro?giro=' . e($gk) ?>" class="lp-giro<?= $gk === 'veterinaria' ? ' vet' : '' ?>">
+                <?php $pagGiro = ['veterinaria' => 'veterinarias', 'dental' => 'dentistas', 'psicologia' => 'psicologos', 'nutricion' => 'nutriologos', 'pediatria' => 'pediatras',
+                                 'oftalmologia' => 'oftalmologos', 'estetica' => 'dermatologos', 'medico' => 'medicos', 'clinica' => 'clinicas'][$gk] ?? null; ?>
+                <a href="<?= $pagGiro ? BASE_URL . '/' . $pagGiro : BASE_URL . '/auth/registro?giro=' . e($gk) ?>" class="lp-giro<?= $gk === 'veterinaria' ? ' vet' : '' ?>">
                     <span class="lp-giro-ic"><i class="bi <?= e($gd['icono']) ?>"></i></span>
                     <span class="flex-grow-1">
                         <span class="lp-giro-t"><?= e($gd['nombre']) ?><?= $gk === 'veterinaria' ? ' <span class="lp-giro-new">Nuevo</span>' : '' ?></span>
@@ -766,7 +768,7 @@ track_pageview('publico');
 <footer class="landing-footer py-5">
     <div class="container">
         <div class="row g-4">
-            <div class="col-lg-4">
+            <div class="col-lg-3">
                 <div class="h5 mb-2"><i class="bi bi-heart-pulse-fill"></i> <?= e($marca) ?></div>
                 <p class="small mb-0" style="max-width:280px">Software de gestión para consultorios, clínicas y hospitales de cualquier especialidad: agenda, expediente, recetas y facturación.</p>
             </div>
@@ -777,12 +779,19 @@ track_pageview('publico');
                 <a class="lp-foot-link" href="#faq">Preguntas</a>
             </div>
             <div class="col-6 col-lg-2">
+                <div class="fw-semibold mb-2">Especialidades</div>
+                <?php foreach (['medicos' => 'Médicos', 'dentistas' => 'Dentistas', 'psicologos' => 'Psicólogos', 'nutriologos' => 'Nutriólogos', 'pediatras' => 'Pediatras',
+                                'oftalmologos' => 'Oftalmología', 'dermatologos' => 'Dermatología', 'veterinarias' => 'Veterinarias', 'clinicas' => 'Clínicas'] as $ps => $pn): ?>
+                    <a class="lp-foot-link" href="<?= BASE_URL ?>/<?= $ps ?>"><?= $pn ?></a>
+                <?php endforeach; ?>
+            </div>
+            <div class="col-6 col-lg-2">
                 <div class="fw-semibold mb-2">Cuenta</div>
                 <a class="lp-foot-link" href="<?= BASE_URL ?>/auth/registro">Prueba gratis</a>
                 <a class="lp-foot-link" href="<?= BASE_URL ?>/auth/login">Iniciar sesión</a>
                 <a class="lp-foot-link" href="<?= BASE_URL ?>/privacidad">Aviso de privacidad</a>
             </div>
-            <div class="col-lg-4">
+            <div class="col-lg-3">
                 <div class="fw-semibold mb-2">¿Listo para empezar?</div>
                 <a href="<?= BASE_URL ?>/auth/registro" class="btn btn-primary"><i class="bi bi-rocket-takeoff"></i> Crear cuenta gratis</a>
             </div>
