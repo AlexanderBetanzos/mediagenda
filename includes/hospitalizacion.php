@@ -126,7 +126,7 @@ function hosp_atrasadas(): array
         $st->execute([$tid]);
         $inds = $st->fetchAll();
         if (!$inds) return [];
-        $hechas = db()->prepare('SELECT CONCAT(indicacion_id, "|", programada) FROM hosp_aplicaciones WHERE consultorio_id = ? AND programada >= ?');
+        $hechas = db()->prepare("SELECT CONCAT(indicacion_id, '|', programada) FROM hosp_aplicaciones WHERE consultorio_id = ? AND programada >= ?");
         $hechas->execute([$tid, date('Y-m-d H:i:s', time() - 86400)]);
         $hechas = array_flip($hechas->fetchAll(PDO::FETCH_COLUMN));
         $out = [];
