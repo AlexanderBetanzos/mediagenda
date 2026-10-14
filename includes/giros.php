@@ -224,6 +224,7 @@ function giro_nivel(string $modulo, ?string $giro = null): string
         'odontograma'  => [['dental', 'clinica'],                                           ['veterinaria', 'psicologia', 'oftalmologia', 'nutricion', 'pediatria', 'estetica']],
         'crecimiento'  => [['pediatria', 'nutricion', 'medico', 'clinica'],                 ['veterinaria', 'psicologia', 'oftalmologia', 'dental', 'estetica']],
         'prenatal'     => [['medico', 'clinica'],                                           ['veterinaria', 'psicologia', 'oftalmologia', 'dental', 'nutricion', 'pediatria', 'estetica']],
+        'hospitalizacion' => [['clinica', 'veterinaria'],                                    ['psicologia', 'nutricion', 'oftalmologia', 'dental', 'estetica']],
         'mapacorporal' => [['medico', 'clinica', 'estetica'],                               ['veterinaria', 'psicologia', 'oftalmologia', 'dental']],
     ];
     if (!isset($tabla[$modulo])) return 'frente';

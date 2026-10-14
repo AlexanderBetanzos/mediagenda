@@ -398,6 +398,7 @@ include __DIR__ . '/../includes/header.php';
     $yaVac = ($principal[0] ?? '') === BASE_URL . '/vacunacion/paciente' . $pid
           || in_array(BASE_URL . '/vacunacion/paciente' . $pid, array_column($esp, 0), true);
     if (modulo_activo('expediente') && !$yaVac) $estudios[] = [BASE_URL . '/vacunacion/paciente' . $pid, 'bi-shield-plus', t('Vacunas')];
+    if (modulo_activo('expediente') && giro_aplica('hospitalizacion')) $estudios[] = [BASE_URL . '/hospitalizacion/index' . $pid, 'bi-hospital', t('Hospitalizar')];
     $grupos = array_filter([t('Cobros') => $cobros, t('Estudios') => $estudios, t('Especialidad') => $esp]);
     ?>
     <div class="ficha-acc">

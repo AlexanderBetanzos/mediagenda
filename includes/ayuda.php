@@ -216,6 +216,17 @@ function ayuda_textos(): array
             ],
             'tips'   => ['Desde la cartilla puedes imprimirla para entregarla al paciente.'],
         ],
+        'page:hospitalizacion' => [
+            'titulo' => 'Hospitalización',
+            'intro'  => 'Pacientes internados con su kardex: qué medicamento toca, a qué hora y quién lo aplicó.',
+            'pasos'  => [
+                '<b>Ingresar paciente</b>: elige al paciente, la cama o área y el motivo (también desde su ficha → "Más acciones" → Hospitalizar).',
+                'En la estancia agrega las <b>indicaciones</b>: medicamento, dosis, vía y cada cuántas horas; el kardex programa las dosis solo.',
+                'En <b>Lo que toca</b> marca cada dosis como <b>Aplicada</b> u <b>Omitida</b>; queda quién y a qué hora. Las atrasadas se ven en rojo.',
+                'Registra la evolución y los signos; al terminar, <b>Dar de alta</b> con el resumen para casa.',
+            ],
+            'tips'   => ['Suspender una indicación detiene sus dosis siguientes sin borrar lo ya registrado.', 'Usa "Imprimir kardex" para la hoja del turno.'],
+        ],
         'page:laboratorio' => [
             'titulo' => 'Laboratorio',
             'intro'  => 'Órdenes de estudios y sus resultados en el expediente.',
