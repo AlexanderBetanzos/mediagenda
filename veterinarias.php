@@ -168,7 +168,7 @@ html.motion .vt-dia.is-in .vt-paso-ic { transform: none; opacity: 1; }
         <?php endforeach; ?>
     </div>
     <div class="container">
-        <div class="row align-items-center g-5 py-5" style="min-height:620px">
+        <div class="row align-items-center g-4 g-lg-5 py-5" style="min-height:620px">
             <div class="col-lg-6 lp-hero-text">
                 <span class="vt-eyebrow mb-3"><i class="bi bi-heart-fill"></i> <?= et('Software para veterinarias') ?></span>
                 <h1 class="vt-h1 mb-3"><?= et('Tu veterinaria,') ?><br><em><?= et('de la consulta a la vacuna') ?></em></h1>

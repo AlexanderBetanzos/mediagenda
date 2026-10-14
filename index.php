@@ -136,7 +136,7 @@ track_pageview('publico');
                         <div class="card-body p-3 p-sm-4">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <span class="fw-semibold text-brand"><i class="bi bi-grid-1x2-fill"></i> Panel del consultorio</span>
-                                <span class="badge bg-success">En vivo</span>
+                                <span class="badge text-bg-light border">DEMO</span>
                             </div>
                             <div class="row g-2 mb-3">
                                 <?php foreach ([['Citas hoy','14','#2563eb'],['Pacientes','231','#14b8a6'],['Ingresos','$48k','#16a34a']] as [$l,$n,$c]): ?>
@@ -770,7 +770,8 @@ track_pageview('publico');
         <div class="row g-4">
             <div class="col-lg-3">
                 <div class="h5 mb-2"><i class="bi bi-heart-pulse-fill"></i> <?= e($marca) ?></div>
-                <p class="small mb-0" style="max-width:280px">Software de gestión para consultorios, clínicas y hospitales de cualquier especialidad: agenda, expediente, recetas y facturación.</p>
+                <p class="small mb-3" style="max-width:280px">Software de gestión para consultorios, clínicas y hospitales de cualquier especialidad: agenda, expediente, recetas y facturación.</p>
+                <a class="lp-foot-link d-inline-flex align-items-center gap-2" href="https://www.facebook.com/profile.php?id=61595231466388" target="_blank" rel="noopener"><i class="bi bi-facebook fs-5"></i> Síguenos en Facebook</a>
             </div>
             <div class="col-6 col-lg-2">
                 <div class="fw-semibold mb-2">Producto</div>

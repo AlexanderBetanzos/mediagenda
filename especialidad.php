@@ -73,7 +73,7 @@ $desde = '$' . number_format(min(array_column(planes_mp(), 'precio')), 0);
 <header class="es-hero">
     <span class="es-orb a" aria-hidden="true"></span><span class="es-orb b" aria-hidden="true"></span>
     <div class="container position-relative">
-        <div class="row align-items-center g-5 py-5" style="min-height:600px">
+        <div class="row align-items-center g-4 g-lg-5 py-5" style="min-height:600px">
             <div class="col-lg-6 lp-hero-text">
                 <span class="es-eyebrow mb-3"><i class="bi bi-stars"></i> <?= e($E['eyebrow']) ?></span>
                 <h1 class="es-h1 mb-3"><?= e($E['h1'][0]) ?><br><em><?= e($E['h1'][1]) ?></em></h1>

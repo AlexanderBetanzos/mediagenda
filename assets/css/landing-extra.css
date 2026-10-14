@@ -116,3 +116,9 @@ html.motion .lx-float { animation: lpBob 5s 1s ease-in-out infinite; }
                   color: var(--c, var(--brand)); background: color-mix(in srgb, var(--c, var(--brand)) 12%, transparent); }
 /* 28 módulos: la cascada se acorta para que los últimos no tarden 2.5 s */
 html.motion .lx-todo > [data-reveal] { transition-delay: calc(min(var(--d, 0), 10) * 45ms); }
+
+/* Celular: nada se sale a los lados (tarjetas flotantes de las maquetas) */
+html:has(body.lp), body.lp { overflow-x: clip; }
+@media (max-width: 575.98px) {
+    .lx-float { right: 6px !important; }
+}

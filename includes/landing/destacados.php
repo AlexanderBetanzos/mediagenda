@@ -10,7 +10,7 @@ $__barE = [30, 34, 28, 38, 31, 36];
 <!-- Destacado: vacunación -->
 <section class="lx-dest">
     <div class="container">
-        <div class="row g-5 align-items-center">
+        <div class="row g-4 g-lg-5 align-items-center">
             <div class="col-lg-6" data-reveal="left">
                 <span class="lp-eyebrow">Vacunación <span class="lx-nuevo">Nuevo</span></span>
                 <h2 class="mb-3">Que ninguna vacuna se quede pendiente</h2>
@@ -42,7 +42,7 @@ $__barE = [30, 34, 28, 38, 31, 36];
 <!-- Destacado: sala de espera y pantalla de turnos -->
 <section class="lx-dest">
     <div class="container">
-        <div class="row g-5 align-items-center flex-lg-row-reverse">
+        <div class="row g-4 g-lg-5 align-items-center flex-lg-row-reverse">
             <div class="col-lg-6" data-reveal="right">
                 <span class="lp-eyebrow">Sala de espera <span class="lx-nuevo">Nuevo</span></span>
                 <h2 class="mb-3">Tu recepción, como la de un hospital</h2>
@@ -69,7 +69,7 @@ $__barE = [30, 34, 28, 38, 31, 36];
 <!-- Destacado: dinero bajo control (gráfica) -->
 <section class="lx-dest">
     <div class="container">
-        <div class="row g-5 align-items-center">
+        <div class="row g-4 g-lg-5 align-items-center">
             <div class="col-lg-6" data-reveal="left">
                 <span class="lp-eyebrow">Tu dinero</span>
                 <h2 class="mb-3">Sabes cuánto entra, cuánto sale y cuánto te queda</h2>
@@ -103,7 +103,7 @@ $__barE = [30, 34, 28, 38, 31, 36];
 <!-- Destacado: WhatsApp al paciente -->
 <section class="lx-dest">
     <div class="container">
-        <div class="row g-5 align-items-center flex-lg-row-reverse">
+        <div class="row g-4 g-lg-5 align-items-center flex-lg-row-reverse">
             <div class="col-lg-6" data-reveal="right">
                 <span class="lp-eyebrow">WhatsApp</span>
                 <h2 class="mb-3">Un mensaje y tu paciente tiene todo</h2>

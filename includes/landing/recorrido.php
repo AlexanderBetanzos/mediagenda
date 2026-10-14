@@ -29,7 +29,7 @@ $__tabs = [
 
         <?php foreach ($__tabs as $__i => [$__k, $__ic, $__n, $__tt, $__bul]): ?>
         <div class="lx-pane<?= $__i ? '' : ' on' ?>" data-pane="<?= $__k ?>">
-            <div class="row g-5 align-items-center">
+            <div class="row g-4 g-lg-5 align-items-center">
                 <div class="col-lg-4 lx-tour-txt">
                     <h3><?= e($__tt) ?></h3>
                     <ul><?php foreach ($__bul as $__b): ?><li><i class="bi bi-check2-circle"></i> <?= e($__b) ?></li><?php endforeach; ?></ul>
@@ -46,11 +46,11 @@ $__tabs = [
                                 <div class="mk-kpi"><small>Ingresos del mes</small><b>$48k</b> <em>▲ 9%</em></div>
                             </div>
                             <div class="row g-3">
-                                <div class="col-7"><div class="mk-card"><div class="mk-lbl">Ingresos del mes</div>
+                                <div class="col-sm-7"><div class="mk-card"><div class="mk-lbl">Ingresos del mes</div>
                                     <svg class="mk-chart" viewBox="0 0 300 110" preserveAspectRatio="none" aria-hidden="true">
                                         <defs><linearGradient id="mkGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--brand);stop-opacity:.3"/><stop offset="1" style="stop-color:var(--brand);stop-opacity:0"/></linearGradient></defs>
                                         <path class="mk-area" d="<?= $__curva ?> L300,110 L0,110 Z"/><path class="mk-line" d="<?= $__curva ?>"/></svg></div></div>
-                                <div class="col-5"><div class="mk-card"><div class="mk-lbl">Agenda de hoy</div>
+                                <div class="col-sm-5"><div class="mk-card"><div class="mk-lbl">Agenda de hoy</div>
                                     <div class="mk-row" style="--c:#16a34a"><b>09:00</b> Martínez G.<span class="st">Confirmada</span></div>
                                     <div class="mk-row" style="--c:#3b82f6"><b>10:30</b> López P.<span class="st">Programada</span></div>
                                     <div class="mk-row" style="--c:#8b5cf6"><b>11:15</b> Rodríguez C.<span class="st">Atendida</span></div></div></div>
