@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 /* Marca a mostrar: la de la clínica si vino por slug, si no la del producto. */
 $marca  = $clin ? marca_nombre() : 'Portal del paciente';
-$acento = color_acento();
+$acento = $clin ? color_acento() : '#2563eb';   // sin clínica: el color del producto
 $logo   = $clin ? cfg('marca_logo') : '';
 $volver = $clin ? BASE_URL . '/c/' . rawurlencode($slug) : BASE_URL . '/';
 ?>
