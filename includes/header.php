@@ -194,7 +194,7 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
                 foreach ([['laboratorio', 'laboratorio', '/laboratorio/index', 'bi-eyedropper', 'Laboratorio'],
                           ['imagenologia', 'imagenologia', '/imagenologia/index', 'bi-soundwave', 'Ultrasonidos'],
                           ['optica', 'optica', '/optica/index', 'bi-eyeglasses', 'Óptica']] as [$mod, $key, $url, $ic, $lbl]) {
-                    if (!modulo_activo($mod)) continue;
+                    if (!modulo_activo($mod) || !giro_aplica($mod)) continue;   // p. ej. Óptica en una veterinaria
                     $it = $li($key, BASE_URL . $url, $ic, t($lbl));
                     if (giro_modulo_al_frente($mod)) $clinico[] = $it; else $mas[] = $it;
                 }
@@ -203,7 +203,7 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
                 if (modulo_activo('presupuestos')) $caja[] = $li('presupuestos', BASE_URL . '/presupuestos/index', 'bi-clipboard2-check', t('Presupuestos'));
                 if (modulo_activo('facturacion'))  $caja[] = $li('corte', BASE_URL . '/corte/index', 'bi-cash-stack', t('Corte de caja'));
                 if (modulo_activo('facturacion') && $esAdm) $caja[] = $li('egresos', BASE_URL . '/egresos/index', 'bi-arrow-left-right', t('Egresos e ingresos'));
-                if (modulo_activo('farmacia')) {
+                if (modulo_activo('farmacia') && giro_aplica('farmacia')) {
                     $pos = [$li('pos', BASE_URL . '/pos/index', 'bi-shop', t('Punto de venta')),
                             $li('inventario', BASE_URL . '/inventario/index', 'bi-box-seam', t('Inventario'))];
                     if (giro_modulo_al_frente('farmacia')) array_push($caja, ...$pos); else array_push($mas, ...$pos);

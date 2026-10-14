@@ -140,7 +140,7 @@ function giro_accesos(): array
  */
 function giro_muestra_especialidad(string $modulo): bool
 {
-    if (!es_veterinaria()) return true;
+    if (!es_veterinaria()) return giro_aplica($modulo);   // p. ej. prenatal solo en medicina general/clínica
     return in_array($modulo, ['cirugia', 'dermatologia', 'cardiologia', 'laboratorio', 'imagenologia', 'oftalmologia', 'traumatologia'], true);
 }
 
@@ -205,17 +205,34 @@ function mascota_propietario(array $p): string
 }
 
 /**
- * ¿Este módulo va al frente del menú para el giro del consultorio? Los que no
- * (Óptica para una psicóloga, Laboratorio para un dentista…) no se quitan —
- * el plan los incluye—, se agrupan en "Más herramientas" para no estorbar.
+ * Qué tan relevante es un módulo para el giro del consultorio:
+ *   'frente' → es de su especialidad: al frente en menú y ficha.
+ *   'mas'    → puede servirle a veces: plegado en "Más herramientas".
+ *   'nunca'  → no tiene sentido (Óptica o Prenatal en una veterinaria,
+ *              Laboratorio en psicología): no se muestra en ningún lado.
+ * Un módulo que no está en la tabla es general y va al frente.
  */
-function giro_modulo_al_frente(string $modulo): bool
+function giro_nivel(string $modulo, ?string $giro = null): string
 {
-    $rel = [
-        'laboratorio'  => ['medico', 'clinica', 'veterinaria', 'nutricion', 'pediatria', 'estetica'],
-        'imagenologia' => ['medico', 'clinica', 'veterinaria'],
-        'optica'       => ['oftalmologia', 'clinica'],
-        'farmacia'     => ['medico', 'clinica', 'veterinaria', 'dental', 'estetica', 'nutricion', 'oftalmologia', 'pediatria'],
+    $g = $giro ?? giro_actual();
+    $tabla = [
+        //                frente                                                         nunca
+        'optica'       => [['oftalmologia', 'clinica'],                                     ['veterinaria', 'psicologia', 'dental', 'nutricion']],
+        'imagenologia' => [['medico', 'clinica', 'veterinaria'],                            ['psicologia', 'nutricion']],
+        'laboratorio'  => [['medico', 'clinica', 'veterinaria', 'nutricion', 'pediatria', 'estetica'], ['psicologia']],
+        'farmacia'     => [['medico', 'clinica', 'veterinaria', 'dental', 'estetica', 'nutricion', 'oftalmologia', 'pediatria'], []],
+        'odontograma'  => [['dental', 'clinica'],                                           ['veterinaria', 'psicologia', 'oftalmologia', 'nutricion', 'pediatria', 'estetica']],
+        'crecimiento'  => [['pediatria', 'nutricion', 'medico', 'clinica'],                 ['veterinaria', 'psicologia', 'oftalmologia', 'dental', 'estetica']],
+        'prenatal'     => [['medico', 'clinica'],                                           ['veterinaria', 'psicologia', 'oftalmologia', 'dental', 'nutricion', 'pediatria', 'estetica']],
+        'mapacorporal' => [['medico', 'clinica', 'estetica'],                               ['veterinaria', 'psicologia', 'oftalmologia', 'dental']],
     ];
-    return !isset($rel[$modulo]) || in_array(giro_actual(), $rel[$modulo], true);
+    if (!isset($tabla[$modulo])) return 'frente';
+    [$frente, $nunca] = $tabla[$modulo];
+    return in_array($g, $frente, true) ? 'frente' : (in_array($g, $nunca, true) ? 'nunca' : 'mas');
 }
+
+/** ¿El módulo se muestra (al frente o en "más") para este giro? */
+function giro_aplica(string $modulo): bool { return giro_nivel($modulo) !== 'nunca'; }
+
+/** ¿Este módulo va al frente del menú? (si no, a "Más herramientas"). */
+function giro_modulo_al_frente(string $modulo): bool { return giro_nivel($modulo) === 'frente'; }

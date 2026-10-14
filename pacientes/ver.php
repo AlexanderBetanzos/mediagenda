@@ -294,7 +294,7 @@ if (modulo_activo('documentos')) {
 // Graduaciones (óptica). El historial es el valor clínico: se ve cómo avanza
 // la miopía año con año, así que se listan todas, de la más nueva a la más vieja.
 $graduaciones = [];
-if (modulo_activo('optica')) {
+if (modulo_activo('optica') && giro_aplica('optica')) {
     $sg = db()->prepare('SELECT * FROM optica_graduaciones WHERE paciente_id = ? AND consultorio_id = ?
                          ORDER BY fecha DESC, id DESC');
     $sg->execute([$id, tenant_id()]);
@@ -384,17 +384,17 @@ include __DIR__ . '/../includes/header.php';
             if ($ruta === '/crecimiento/index' && es_veterinaria()) continue;
             $esp[$ruta] = [BASE_URL . $ruta . $pid, $ic, t($lbl)];
         }
-        if ($p['tipo'] === 'dental') $esp['/odontograma/index'] = [BASE_URL . '/odontograma/index' . $pid, 'bi-emoji-smile', t('Odontograma')];
-        if (!es_veterinaria())      $esp['/crecimiento/index'] = [BASE_URL . '/crecimiento/index' . $pid, 'bi-graph-up-arrow', t('Crecimiento')];
+        if ($p['tipo'] === 'dental' && giro_aplica('odontograma')) $esp['/odontograma/index'] = [BASE_URL . '/odontograma/index' . $pid, 'bi-emoji-smile', t('Odontograma')];
+        if (giro_aplica('crecimiento')) $esp['/crecimiento/index'] = [BASE_URL . '/crecimiento/index' . $pid, 'bi-graph-up-arrow', t('Crecimiento')];
     }
     $esp = array_values($esp);
     $principal = array_shift($esp);   // la herramienta de la especialidad va al frente
     $cobros = $estudios = [];
     if (modulo_activo('facturacion'))  $cobros[]   = [BASE_URL . '/facturacion/create' . $pid, 'bi-receipt', t('Nuevo cobro')];
     if (modulo_activo('presupuestos')) $cobros[]   = [BASE_URL . '/presupuestos/index' . $pid, 'bi-clipboard2-check', t('Presupuestos')];
-    if (modulo_activo('laboratorio'))  $estudios[] = [BASE_URL . '/laboratorio/index' . $pid, 'bi-eyedropper', t('Laboratorio')];
-    if (modulo_activo('imagenologia')) $estudios[] = [BASE_URL . '/imagenologia/index' . $pid, 'bi-soundwave', t('Ultrasonidos')];
-    if (modulo_activo('optica'))       $estudios[] = [BASE_URL . '/optica/graduacion' . $pid, 'bi-eyeglasses', t('Graduación')];
+    if (modulo_activo('laboratorio') && giro_aplica('laboratorio'))   $estudios[] = [BASE_URL . '/laboratorio/index' . $pid, 'bi-eyedropper', t('Laboratorio')];
+    if (modulo_activo('imagenologia') && giro_aplica('imagenologia')) $estudios[] = [BASE_URL . '/imagenologia/index' . $pid, 'bi-soundwave', t('Ultrasonidos')];
+    if (modulo_activo('optica') && giro_aplica('optica'))             $estudios[] = [BASE_URL . '/optica/graduacion' . $pid, 'bi-eyeglasses', t('Graduación')];
     $yaVac = ($principal[0] ?? '') === BASE_URL . '/vacunacion/paciente' . $pid
           || in_array(BASE_URL . '/vacunacion/paciente' . $pid, array_column($esp, 0), true);
     if (modulo_activo('expediente') && !$yaVac) $estudios[] = [BASE_URL . '/vacunacion/paciente' . $pid, 'bi-shield-plus', t('Vacunas')];
@@ -508,7 +508,7 @@ echo ui_stats($__est); ?>
     <!-- Ficha del paciente -->
     <div class="col-lg-4">
         <div class="card mb-4">
-            <div class="card-header bg-white fw-semibold"><i class="bi bi-person-vcard text-brand"></i> <?= et('Datos de contacto') ?></div>
+            <div class="card-header bg-white fw-semibold"><i class="bi bi-person-vcard text-brand"></i> <?= es_veterinaria() ? et('Datos del tutor') : et('Datos de contacto') ?></div>
             <ul class="list-group list-group-flush">
                 <li class="list-group-item"><i class="bi bi-telephone me-2 text-muted"></i><?= e($p['telefono'] ?: '—') ?></li>
                 <li class="list-group-item"><i class="bi bi-envelope me-2 text-muted"></i><?= e($p['email'] ?: '—') ?></li>
@@ -542,8 +542,9 @@ echo ui_stats($__est); ?>
                     'Alergias' => $p['alergias'], 'Enfermedades crónicas' => $p['enf_cronicas'] ?? '',
                     'Antecedentes personales' => $p['antecedentes'], 'Antecedentes familiares' => $p['antecedentes_familiares'] ?? '',
                     'Cirugías' => $p['cirugias'] ?? '', 'Vacunas' => $p['vacunas'] ?? '',
-                    'Hábitos' => $p['habitos'] ?? '', 'Notas' => $p['notas'],
+                    (es_veterinaria() ? 'Alimentación y desparasitación' : 'Hábitos') => $p['habitos'] ?? '', 'Notas' => $p['notas'],
                 ];
+                if (es_veterinaria()) unset($clin['Antecedentes familiares']);   // no aplica a una mascota
                 foreach ($clin as $lbl => $val): ?>
                     <p class="mb-2"><strong><?= et($lbl) ?>:</strong><br><?= nl2br(e($val ?: '—')) ?></p>
                 <?php endforeach; ?>
@@ -595,7 +596,7 @@ echo ui_stats($__est); ?>
             <?php if (modulo_activo('documentos')): ?>
             <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-docs"><i class="bi bi-file-earmark-medical"></i> <?= et('Documentos') ?> (<?= count($documentos) ?>)</button></li>
             <?php endif; ?>
-            <?php if (modulo_activo('optica')): ?>
+            <?php if (modulo_activo('optica') && giro_aplica('optica')): ?>
             <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-grad"><i class="bi bi-eyeglasses"></i> <?= et('Graduaciones') ?> (<?= count($graduaciones) ?>)</button></li>
             <?php endif; ?>
         </ul>
@@ -722,7 +723,7 @@ echo ui_stats($__est); ?>
                                 <?php if (giro_muestra_especialidad('estetica')): ?><li><a class="dropdown-item" href="<?= BASE_URL ?>/estetica/index?paciente_id=<?= $id ?>"><i class="bi bi-magic me-2"></i><?= et('Medicina estética') ?></a></li><?php endif; ?>
                                 <?php endif; ?>
                                 <li><hr class="dropdown-divider"></li>
-                                <?php if (modulo_activo('optica')): ?>
+                                <?php if (modulo_activo('optica') && giro_aplica('optica')): ?>
                                 <?php if (giro_muestra_especialidad('optica')): ?><li><a class="dropdown-item" href="<?= BASE_URL ?>/optica/graduacion?paciente_id=<?= $id ?>"><i class="bi bi-eyeglasses me-2"></i><?= et('Óptica (graduación)') ?></a></li><?php endif; ?>
                                 <?php endif; ?>
                                 <?php if (modulo_activo('laboratorio')): ?>
@@ -1221,7 +1222,7 @@ echo ui_stats($__est); ?>
             </div>
             <?php endif; ?>
 
-            <?php if (modulo_activo('optica')): ?>
+            <?php if (modulo_activo('optica') && giro_aplica('optica')): ?>
             <!-- Graduaciones (óptica) -->
             <div class="tab-pane fade" id="tab-grad">
                 <div class="d-flex justify-content-between align-items-center mb-2">
