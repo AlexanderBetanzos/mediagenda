@@ -29,12 +29,12 @@ function ilustracion_especialidad(string $slug): string
             </svg>
             <div class="d-flex justify-content-between small text-muted"><span>Sesión 1 · Moderada-grave</span><span class="il-chip">Sesión 6 · Leve</span></div>
         </div>
-        <div class="il-float" style="left:-16px;top:-18px"><i class="bi bi-camera-video"></i><div><b>Sesión en línea</b><span>Jueves 18:00</span></div></div>
+        <div class="il-float" style="right:-14px;bottom:-22px"><i class="bi bi-camera-video"></i><div><b>Sesión en línea</b><span>Jueves 18:00</span></div></div>
         <?php break;
     case 'nutriologos': ?>
         <div class="il-card"><div class="il-hd"><b>Peso · contra la meta</b><span>Valoraciones</span><?= $demo ?></div>
             <svg class="il-svg" viewBox="0 0 300 140" preserveAspectRatio="none" aria-hidden="true">
-                <line x1="0" y1="112" x2="300" y2="112" class="il-meta"/><text x="240" y="106" class="il-txt">Meta 72 kg</text>
+                <line x1="0" y1="112" x2="300" y2="112" class="il-meta"/><text x="12" y="106" class="il-txt">Meta 72 kg</text>
                 <path class="il-linea" d="M10,24 C50,34 80,46 120,60 C160,74 200,84 240,94 C260,98 280,100 290,102"/>
                 <?php foreach ([[10,24],[70,42],[120,60],[180,79],[240,94],[290,102]] as $i => [$x, $y]): ?><circle class="il-pt" style="--i:<?= $i ?>" cx="<?= $x ?>" cy="<?= $y ?>" r="5"/><?php endforeach; ?>
             </svg>
