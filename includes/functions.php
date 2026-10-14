@@ -5,6 +5,10 @@
 require_once __DIR__ . '/../config/config.php';
 
 if (session_status() === PHP_SESSION_NONE) {
+    // Cookie de sesión fuera del alcance de JavaScript, sin viajar en peticiones
+    // de otros sitios y, en HTTPS, solo por canal cifrado.
+    $__https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
+    session_set_cookie_params(['lifetime' => 0, 'path' => '/', 'secure' => $__https, 'httponly' => true, 'samesite' => 'Lax']);
     session_start();
 }
 

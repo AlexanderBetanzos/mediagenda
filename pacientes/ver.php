@@ -40,6 +40,13 @@ $stmt->execute([$id, tenant_id()]);
 $p = $stmt->fetch();
 if (!$p) { http_response_code(404); die('Paciente no encontrado.'); }
 
+/* Bitácora de acceso al expediente (quién lo abrió y cuándo): una entrada por
+   persona y paciente cada 30 minutos, para no llenar la tabla con recargas. */
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    $__k = 'vio_pac_' . $id;
+    if (($_SESSION[$__k] ?? 0) < time() - 1800) { $_SESSION[$__k] = time(); auditar('ver', 'paciente', $id); }
+}
+
 /* --- Alta de consulta (expediente). Solo médicos y admin. --- */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'consulta') {
     verify_csrf();

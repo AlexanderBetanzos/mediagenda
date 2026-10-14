@@ -109,7 +109,7 @@ echo ui_stats([
                         <a href="<?= BASE_URL ?>/pacientes/edit?id=<?= $p['id'] ?>" class="btn btn-sm btn-outline-primary" title="<?= et('Editar') ?>"><i class="bi bi-pencil"></i></a>
                         <?php if (has_role('admin', 'recepcion')): ?>
                         <form action="<?= BASE_URL ?>/pacientes/delete" method="post" class="d-inline"
-                              onsubmit="return confirm('¿Eliminar a <?= e(addslashes($p['nombre'].' '.$p['apellidos'])) ?>? Se borrarán también sus citas y consultas.');">
+                              onsubmit="return confirm('¿Eliminar a <?= e(addslashes($p['nombre'].' '.$p['apellidos'])) ?>? Solo se puede si no tiene expediente clínico.');">
                             <?= csrf_field() ?>
                             <input type="hidden" name="id" value="<?= $p['id'] ?>">
                             <button class="btn btn-sm btn-outline-danger" title="<?= et('Eliminar') ?>"><i class="bi bi-trash"></i></button>
