@@ -9,6 +9,7 @@ require_platform();
 
 $id = (int) ($_GET['id'] ?? $_POST['id'] ?? 0);
 require_platform_consultorio($id);   // socios: solo sus consultorios asignados
+asegurar_programa_social();
 $c  = db()->prepare('SELECT * FROM consultorios WHERE id = ?');
 $c->execute([$id]);
 $c = $c->fetch();
@@ -65,6 +66,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             flash('Plan actualizado a ' . $planes[$nuevo]['nombre'] . ' y membresía activada.');
         } else {
             flash('Plan no válido.', 'danger');
+        }
+        redirect('/platform/consultorio?id=' . $id);
+    }
+
+    if ($accion === 'programa_social') {
+        $nota = mb_substr(trim($_POST['programa_social_nota'] ?? ''), 0, 255);
+        if (isset($_POST['programa_social'])) {
+            if ($nota === '') {
+                flash('Anota qué organización es y qué documento revisaste (acta, RFC o constancia de donataria).', 'warning');
+                redirect('/platform/consultorio?id=' . $id);
+            }
+            // Entra con el plan más completo y la membresía activa, sin cobro.
+            $plan = isset($planes['clinica']) ? 'clinica' : $c['plan'];
+            db()->prepare("UPDATE consultorios SET programa_social = 1, programa_social_nota = ?, plan = ?, estado = 'activa' WHERE id = ?")
+                ->execute([$nota, $plan, $id]);
+            auditar('programa_social_alta', 'consultorio', $id, $nota, $id);
+            flash('Consultorio dentro del programa social: plan ' . ($planes[$plan]['nombre'] ?? $plan) . ' activo y sin costo.');
+        } else {
+            // Salir del programa no le quita el acceso de golpe: el dueño decide
+            // después si lo pasa a Expirada o le asigna un plan de pago.
+            db()->prepare('UPDATE consultorios SET programa_social = 0, programa_social_nota = ? WHERE id = ?')
+                ->execute([$nota ?: null, $id]);
+            auditar('programa_social_baja', 'consultorio', $id, $nota, $id);
+            flash('Consultorio fuera del programa social. Sigue con su estado actual: cámbialo arriba si ya no debe tener acceso.');
         }
         redirect('/platform/consultorio?id=' . $id);
     }
@@ -149,6 +174,35 @@ include __DIR__ . '/_head.php';
             </div>
             <div class="col-12">
                 <button class="btn btn-primary"><i class="bi bi-check-lg"></i> <?= et('Guardar datos') ?></button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Programa social -->
+<div class="card mb-4 <?= es_programa_social($c) ? 'border-success' : '' ?>">
+    <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-heart-fill text-danger"></i> <?= et('Programa social (fundaciones)') ?></span>
+        <?php if (es_programa_social($c)): ?><span class="badge bg-success"><?= et('Sin costo') ?></span><?php endif; ?>
+    </div>
+    <div class="card-body">
+        <p class="small text-muted"><?= et('Para fundaciones, A.C. e I.A.P. que dan consultas sin fines de lucro. Al activarlo, el consultorio queda con el plan Clínica y la membresía activa, sin cobro y sin fecha de vencimiento. Solo actívalo después de revisar su acta constitutiva o su constancia de donataria autorizada.') ?></p>
+        <form method="post" class="row g-3 align-items-end">
+            <?= csrf_field() ?>
+            <input type="hidden" name="id" value="<?= $id ?>">
+            <input type="hidden" name="accion" value="programa_social">
+            <div class="col-md-8">
+                <label class="form-label"><?= et('Organización y documento revisado') ?></label>
+                <input type="text" name="programa_social_nota" class="form-control" maxlength="255"
+                       value="<?= e($c['programa_social_nota'] ?? '') ?>"
+                       placeholder="<?= e(t('Ej. Fundación X, A.C. · RFC FXA0101011A1 · donataria autorizada')) ?>">
+            </div>
+            <div class="col-md-4">
+                <div class="form-check form-switch mb-2">
+                    <input class="form-check-input" type="checkbox" role="switch" name="programa_social" id="programa_social" value="1" <?= es_programa_social($c) ? 'checked' : '' ?>>
+                    <label class="form-check-label" for="programa_social"><?= et('En el programa social') ?></label>
+                </div>
+                <button class="btn btn-success"><i class="bi bi-check-lg"></i> <?= et('Guardar') ?></button>
             </div>
         </form>
     </div>

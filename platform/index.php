@@ -9,6 +9,7 @@ require_once __DIR__ . '/../includes/mercadopago.php';
 require_platform();
 
 $pdo = db();
+asegurar_programa_social();
 
 /* ── Acciones sobre un consultorio ──────────────────────────────────── */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -101,13 +102,19 @@ $consultorios = $pdo->query(
 )->fetchAll();
 
 /* ── Resumen + MRR estimado ─────────────────────────────────────────── */
-$tot = ['total' => 0, 'trial' => 0, 'activa' => 0, 'suspendida' => 0, 'expirada' => 0];
+$tot = ['total' => 0, 'trial' => 0, 'activa' => 0, 'suspendida' => 0, 'expirada' => 0, 'social' => 0];
 $mrr = 0.0;
 $porPlan = [];
 foreach ($consultorios as $c) {
     $tot['total']++;
     $tot[$c['estado']] = ($tot[$c['estado']] ?? 0) + 1;
     if ($c['estado'] === 'activa') {
+        // Las fundaciones del programa social no pagan: no suman al MRR.
+        if (es_programa_social($c)) {
+            $tot['social']++;
+            $porPlan['Programa social'] = ($porPlan['Programa social'] ?? 0) + 1;
+            continue;
+        }
         $mrr += $planPrecio[$c['plan']] ?? 0;
         $nom = $planNombre[$c['plan']] ?? ucfirst($c['plan']);
         $porPlan[$nom] = ($porPlan[$nom] ?? 0) + 1;
@@ -156,7 +163,7 @@ include __DIR__ . '/_head.php';
     $kpis = [
         [et('Consultorios'), (string) $tot['total'],       'bi-buildings',      'var(--brand)'],
         [et('MRR estimado'), fmt_money($mrr),              'bi-graph-up-arrow', '#22c55e'],
-        [et('Activos'),      (string) $tot['activa'],       'bi-check-circle',   '#22c55e'],
+        [et('Activos'),      $tot['social'] ? $tot['activa'] . ' (' . $tot['social'] . ' ' . t('sin costo') . ')' : (string) $tot['activa'], 'bi-check-circle', '#22c55e'],
         [et('En prueba'),    (string) $tot['trial'],        'bi-stopwatch',      '#6366f1'],
         [et('Suspendidos'),  (string) $tot['suspendida'],   'bi-pause-circle',   '#ef4444'],
     ];
@@ -227,7 +234,7 @@ include __DIR__ . '/_head.php';
                 $dias = (int) floor((strtotime($c['trial_fin']) - strtotime('today')) / 86400); ?>
                 <tr data-buscar="<?= e(mb_strtolower($c['nombre'] . ' ' . $c['email'] . ' ' . $c['slug'])) ?>">
                     <td>
-                        <div class="fw-semibold"><?= e($c['nombre']) ?><?php if ($c['id'] == 1): ?> <span class="badge bg-secondary bg-opacity-50"><?= et('principal') ?></span><?php endif; ?></div>
+                        <div class="fw-semibold"><?= e($c['nombre']) ?><?php if ($c['id'] == 1): ?> <span class="badge bg-secondary bg-opacity-50"><?= et('principal') ?></span><?php endif; ?><?php if (es_programa_social($c)): ?> <span class="badge bg-danger bg-opacity-75" title="<?= e($c['programa_social_nota'] ?? '') ?>"><i class="bi bi-heart-fill"></i> <?= et('programa social') ?></span><?php endif; ?></div>
                         <div class="small text-muted"><i class="bi bi-envelope"></i> <?= e($c['email']) ?></div>
                     </td>
                     <td>

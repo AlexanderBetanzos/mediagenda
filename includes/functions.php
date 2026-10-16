@@ -692,6 +692,31 @@ function ensure_plataforma_config_table(): void
 }
 
 /**
+ * Programa social (BETASYD Social): fundaciones, A.C. e I.A.P. que usan MediOS
+ * sin costo. Es una marca sobre el consultorio y no un plan, para que nunca
+ * aparezca en la landing, el registro ni el checkout: solo la activa el dueño
+ * desde /platform/consultorio, después de revisar los papeles de la
+ * organización (acta constitutiva o constancia de donataria autorizada).
+ */
+function asegurar_programa_social(): void
+{
+    static $hecho = false;
+    if ($hecho) return;
+    $hecho = true;
+    try {
+        db()->exec("ALTER TABLE consultorios
+            ADD COLUMN IF NOT EXISTS programa_social      TINYINT(1)   NOT NULL DEFAULT 0,
+            ADD COLUMN IF NOT EXISTS programa_social_nota VARCHAR(255) DEFAULT NULL");
+    } catch (Throwable $e) { /* MySQL viejo sin IF NOT EXISTS: se ignora */ }
+}
+
+/** ¿Este consultorio está en el programa social (sin costo)? */
+function es_programa_social(?array $c): bool
+{
+    return !empty($c['programa_social']);
+}
+
+/**
  * Lee un ajuste global. Devuelve $default si está vacío, no existe, o la tabla
  * aún no se ha creado: así el sistema arranca sin tocar la base.
  */

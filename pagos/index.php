@@ -45,7 +45,12 @@ include __DIR__ . '/../includes/header.php';
                         <span class="badge bg-success fs-6"><i class="bi bi-check-circle"></i> Activa</span>
                         <h2 class="h5 mb-0">Plan <?= e($planNombre ?: '—') ?></h2>
                     </div>
-                    <?php if ($cancelada): ?>
+                    <?php if (es_programa_social($t)): ?>
+                        <div class="alert alert-success mb-0">
+                            <i class="bi bi-heart-fill"></i> Tu organización forma parte del <strong>programa social de BETASYD</strong>:
+                            usas <?= e(marca_nombre()) ?> sin costo. Si tienes dudas, escríbenos a <?= e(SOPORTE_EMAIL) ?>.
+                        </div>
+                    <?php elseif ($cancelada): ?>
                         <div class="alert alert-warning mb-3">
                             <i class="bi bi-info-circle"></i> Tu suscripción está <strong>cancelada</strong>.
                             Conservas el acceso hasta <strong><?= $proximo ? fmt_fecha($proximo) : 'el fin del periodo' ?></strong>.
@@ -54,7 +59,8 @@ include __DIR__ . '/../includes/header.php';
                         <p class="text-muted mb-3"><i class="bi bi-calendar-event"></i> Próximo cobro: <strong><?= fmt_fecha($proximo) ?></strong></p>
                     <?php endif; ?>
 
-                    <?php if ($puedeCancelar): ?>
+                    <?php if (es_programa_social($t)): ?>
+                    <?php elseif ($puedeCancelar): ?>
                         <form method="post" onsubmit="return confirm('¿Cancelar tu suscripción? Seguirás con acceso hasta el final del periodo pagado.');">
                             <?= csrf_field() ?>
                             <input type="hidden" name="accion" value="cancelar">
