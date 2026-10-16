@@ -134,8 +134,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 );
 
                 // Meta Pixel: se disparan en la siguiente página (panel o checkout).
-                meta_pixel_evento('CompleteRegistration');
-                meta_pixel_evento($pagar ? 'InitiateCheckout' : 'StartTrial');
+                // Valor = precio mensual del plan elegido (Meta lo pide para optimizar).
+                $pixelValor = ['value' => (float) (planes_mp()[$plan]['precio'] ?? 0), 'currency' => 'MXN', 'content_name' => $planNom];
+                meta_pixel_evento('CompleteRegistration', $pixelValor);
+                meta_pixel_evento($pagar ? 'InitiateCheckout' : 'StartTrial', $pixelValor);
 
                 if ($pagar) {
                     // Básico/Clínica: a pagar para activar (checkout embebido;

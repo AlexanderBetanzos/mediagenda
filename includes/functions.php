@@ -749,10 +749,13 @@ function meta_pixel_id(): string
     return preg_match('/^\d{10,20}$/', $id) ? $id : '';
 }
 
-/** Encola un evento estándar para dispararlo en la siguiente página que pinte el Pixel. */
-function meta_pixel_evento(string $evento): void
+/**
+ * Encola un evento estándar para dispararlo en la siguiente página que pinte
+ * el Pixel. $params: parámetros estándar (value, currency, content_name).
+ */
+function meta_pixel_evento(string $evento, array $params = []): void
 {
-    $_SESSION['meta_pixel_eventos'][] = $evento;
+    $_SESSION['meta_pixel_eventos'][] = [$evento, $params];
 }
 
 /**
@@ -762,10 +765,13 @@ function meta_pixel_evento(string $evento): void
 function meta_pixel_head(bool $pageview = true): string
 {
     $id = meta_pixel_id();
-    $eventos = array_values(array_intersect(
-        $_SESSION['meta_pixel_eventos'] ?? [],
-        ['CompleteRegistration', 'StartTrial', 'InitiateCheckout', 'Lead', 'Subscribe']
-    ));
+    $eventos = [];
+    foreach ($_SESSION['meta_pixel_eventos'] ?? [] as $ev) {
+        [$nombre, $params] = is_array($ev) ? $ev + [1 => []] : [$ev, []];
+        if (!in_array($nombre, ['CompleteRegistration', 'StartTrial', 'InitiateCheckout', 'Lead', 'Subscribe'], true)) continue;
+        $params = array_intersect_key((array) $params, array_flip(['value', 'currency', 'content_name']));
+        $eventos[] = "fbq('track','" . $nombre . "'" . ($params ? ',' . json_encode($params, JSON_HEX_TAG | JSON_HEX_APOS | JSON_UNESCAPED_UNICODE) : '') . ");";
+    }
     unset($_SESSION['meta_pixel_eventos']);
     if ($id === '' || (!$pageview && !$eventos)) return '';
 
@@ -779,7 +785,7 @@ function meta_pixel_head(bool $pageview = true): string
         . ($pageview ? '' : "fbq('set','autoConfig',false,'" . $id . "');\n")
         . "fbq('init','" . $id . "');\n";
     if ($pageview) $js .= "fbq('track','PageView');\n";
-    foreach ($eventos as $ev) $js .= "fbq('track','" . $ev . "');\n";
+    foreach ($eventos as $ev) $js .= $ev . "\n";
 
     $noscript = $pageview
         ? '<noscript><img height="1" width="1" style="display:none" alt="" src="https://www.facebook.com/tr?id='
