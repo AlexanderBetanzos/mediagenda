@@ -150,3 +150,12 @@ html.motion .lx-alt-pill .bi { display: inline-block; animation: lxLatido 1.6s e
                background: #fff1f2; border: 1px solid #fecdd3; border-radius: 999px; padding: .4rem .95rem; transition: transform .2s ease; }
 .lx-alt-hero:hover { transform: translateY(-2px); color: #881337; }
 .lx-alt-hero .bi-heart-fill { color: #e11d48; }
+/* Menú: con "Altruista" ya no caben los textos en dos renglones */
+@media (min-width: 992px) {
+    .landing-nav .nav-link, .landing-nav .btn { white-space: nowrap; }
+    .landing-nav .navbar-nav .nav-link { padding-left: .45rem; padding-right: .45rem; }
+}
+@media (min-width: 992px) and (max-width: 1399.98px) {
+    .landing-nav .navbar-nav .nav-link { font-size: .9rem; padding-left: .35rem; padding-right: .35rem; }
+    .landing-nav .nav-link .bi-person-heart { display: none; }
+}
