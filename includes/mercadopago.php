@@ -20,6 +20,13 @@ function planes_mp(): array
     if ($cache !== null) return $cache;
 
     try {
+        // Precios de oct-2026 ($299 / $599 / $1,199), una sola vez. Después se
+        // editan desde /platform/ajustes y esto ya no los vuelve a tocar.
+        if (plataforma_cfg('precios_version') === '') {
+            $up = db()->prepare('UPDATE planes SET precio = ? WHERE clave = ?');
+            foreach (['basico' => 299, 'profesional' => 599, 'clinica' => 1199] as $k => $p) $up->execute([$p, $k]);
+            guardar_plataforma_cfg(['precios_version' => '2026-10']);
+        }
         $rows = db()->query(
             'SELECT clave, nombre, precio, descripcion, items, destacado, mp_plan_id
              FROM planes WHERE activo = 1 ORDER BY orden, precio'
@@ -39,9 +46,9 @@ function planes_mp(): array
     } catch (Throwable $e) { /* tabla planes aún no creada */ }
 
     return $cache = [
-        'basico'      => ['nombre' => 'Básico',      'precio' => 499.0,  'descripcion' => 'Un médico, todo bajo control',              'items' => [], 'destacado' => false, 'mp_plan_id' => null],
-        'profesional' => ['nombre' => 'Profesional', 'precio' => 999.0,  'descripcion' => 'El que eligen los consultorios que crecen', 'items' => [], 'destacado' => true,  'mp_plan_id' => null],
-        'clinica'     => ['nombre' => 'Clínica',     'precio' => 1999.0, 'descripcion' => 'Varias sucursales, un solo control',        'items' => [], 'destacado' => false, 'mp_plan_id' => null],
+        'basico'      => ['nombre' => 'Básico',      'precio' => 299.0,  'descripcion' => 'Un médico, todo bajo control',              'items' => [], 'destacado' => false, 'mp_plan_id' => null],
+        'profesional' => ['nombre' => 'Profesional', 'precio' => 599.0,  'descripcion' => 'El que eligen los consultorios que crecen', 'items' => [], 'destacado' => true,  'mp_plan_id' => null],
+        'clinica'     => ['nombre' => 'Clínica',     'precio' => 1199.0, 'descripcion' => 'Varias sucursales, un solo control',        'items' => [], 'destacado' => false, 'mp_plan_id' => null],
     ];
 }
 

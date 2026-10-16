@@ -84,6 +84,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect('/platform/ajustes');
     }
 
+    if ($accion === 'precios') {
+        // Solo cambia lo que cobran las suscripciones NUEVAS: las que ya están
+        // en Mercado Pago conservan el monto con el que se crearon.
+        $cambios = [];
+        $up = db()->prepare('UPDATE planes SET precio = ? WHERE clave = ?');
+        foreach (planes_mp() as $k => $pl) {
+            $nuevo = round((float) str_replace([',', '$', ' '], '', (string) ($_POST['precio'][$k] ?? '')), 2);
+            if ($nuevo < 10 || $nuevo > 100000) {
+                flash('Revisa el precio de ' . $pl['nombre'] . ': debe ser un monto entre $10 y $100,000.', 'danger');
+                redirect('/platform/ajustes#precios');
+            }
+            if ($nuevo !== round($pl['precio'], 2)) {
+                $up->execute([$nuevo, $k]);
+                $cambios[] = $pl['nombre'] . ' $' . number_format($pl['precio']) . ' → $' . number_format($nuevo);
+            }
+        }
+        guardar_plataforma_cfg(['precios_version' => date('Y-m-d')]);
+        if ($cambios) auditar('plataforma_precios', 'plataforma', null, implode(' · ', $cambios), null, $actor);
+        flash($cambios ? 'Precios actualizados: ' . implode(' · ', $cambios) : 'Sin cambios en los precios.');
+        redirect('/platform/ajustes#precios');
+    }
+
     if ($accion === 'guardar') {
         ['nuevos' => $nuevos, 'errores' => $errores] =
             mp_credenciales_desde_post($_POST, mp_access_token(), mp_public_key());
@@ -349,6 +371,33 @@ include __DIR__ . '/_head.php';
                     </div>
                     <div class="col-md-4">
                         <button class="btn btn-primary w-100"><i class="bi bi-check-lg"></i> Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+<!-- Precios de los planes: los lee la landing, el registro y Mercado Pago -->
+        <div class="card mb-4" id="precios">
+            <div class="card-header"><i class="bi bi-tags"></i> Precios de los planes</div>
+            <div class="card-body">
+                <p class="text-muted small">
+                    Precio mensual con IVA incluido. Se ve al instante en la landing y en el registro, y es lo que
+                    Mercado Pago cobra a las suscripciones <strong>nuevas</strong>. Quien ya paga conserva su precio.
+                </p>
+                <form method="post" class="row g-3 align-items-end">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="accion" value="precios">
+                    <?php foreach (planes_mp() as $k => $pl): ?>
+                    <div class="col-md-3">
+                        <label class="form-label"><?= e($pl['nombre']) ?></label>
+                        <div class="input-group"><span class="input-group-text">$</span>
+                            <input name="precio[<?= e($k) ?>]" class="form-control" inputmode="decimal" required
+                                   value="<?= e(rtrim(rtrim(number_format($pl['precio'], 2, '.', ''), '0'), '.')) ?>">
+                            <span class="input-group-text">MXN</span></div>
+                    </div>
+                    <?php endforeach; ?>
+                    <div class="col-md-3">
+                        <button class="btn btn-primary w-100"><i class="bi bi-check-lg"></i> Guardar precios</button>
                     </div>
                 </form>
             </div>

@@ -10,9 +10,9 @@
 -- =====================================================================
 
 -- 1) Precios ----------------------------------------------------------------
-UPDATE planes SET precio =  499.00 WHERE clave = 'basico';
-UPDATE planes SET precio =  999.00 WHERE clave = 'profesional';
-UPDATE planes SET precio = 1999.00 WHERE clave = 'clinica';
+UPDATE planes SET precio =  299.00 WHERE clave = 'basico';
+UPDATE planes SET precio =  599.00 WHERE clave = 'profesional';
+UPDATE planes SET precio = 1199.00 WHERE clave = 'clinica';
 
 -- 2) Presentación -----------------------------------------------------------
 --    Solo módulos con código detrás. Se quitaron de las tarjetas Telemedicina

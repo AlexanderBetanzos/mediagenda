@@ -45,9 +45,9 @@ un solo lugar; ver `sql/actualizar_produccion.sql`.
 
 | Plan | Precio | Para quién | Incluye (resumen) |
 |---|---|---|---|
-| **Básico** | $499 | Médico solo / consultorio chico | Núcleo: citas, expediente, recetas, facturación simple, recordatorios por correo |
-| **Profesional** | $999 | Consultorio en crecimiento | Todo Básico + WhatsApp, portal del paciente, telemedicina básica, reportes, plantillas por especialidad |
-| **Clínica** | $1,999 | Clínica / multi-médico / multi-sucursal | Todo Profesional + farmacia/POS, laboratorio, ultrasonido, multi-sucursal, IA clínica, RH, CFDI/SAT, integraciones avanzadas |
+| **Básico** | $299 | Médico solo / consultorio chico | Núcleo: citas, expediente, recetas, facturación simple, recordatorios por correo |
+| **Profesional** | $599 | Consultorio en crecimiento | Todo Básico + WhatsApp, portal del paciente, telemedicina básica, reportes, plantillas por especialidad |
+| **Clínica** | $1,199 | Clínica / multi-médico / multi-sucursal | Todo Profesional + farmacia/POS, laboratorio, ultrasonido, multi-sucursal, IA clínica, RH, CFDI/SAT, integraciones avanzadas |
 
 > Escalera x2 y cada plan bajo una barrera redonda ($500 / $1,000 / $2,000).
 >
