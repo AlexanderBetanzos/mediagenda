@@ -72,12 +72,12 @@ track_pageview('publico');
         <div class="collapse navbar-collapse" id="nav">
             <ul class="navbar-nav mx-auto align-items-lg-center gap-lg-1">
                 <li class="nav-item"><a class="nav-link" href="#funciones">Funciones</a></li>
-                <li class="nav-item"><a class="nav-link" href="#recorrido">Recorrido</a></li>
+                <li class="nav-item d-lg-none d-xl-block"><a class="nav-link" href="#recorrido">Recorrido</a></li>
                 <li class="nav-item"><a class="nav-link" href="#especialidades">Especialidades</a></li>
                 <li class="nav-item"><a class="nav-link" href="#beneficios">Beneficios</a></li>
                 <li class="nav-item"><a class="nav-link" href="#planes">Planes</a></li>
                 <li class="nav-item"><a class="nav-link lx-alt-nav" href="#altruista"><i class="bi bi-heart-fill"></i> Altruista</a></li>
-                <li class="nav-item"><a class="nav-link" href="#faq">Preguntas</a></li>
+                <li class="nav-item d-lg-none d-xl-block"><a class="nav-link" href="#faq">Preguntas</a></li>
                 <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>/portal/login"><i class="bi bi-person-heart"></i> Portal del paciente</a></li>
             </ul>
             <ul class="navbar-nav align-items-lg-center gap-lg-2">
