@@ -774,6 +774,9 @@ function meta_pixel_head(bool $pageview = true): string
         . "n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;"
         . "t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,"
         . "document,'script','https://connect.facebook.net/en_US/fbevents.js');\n"
+        // En el panel no se dejan los eventos automáticos del Pixel (clics y
+        // metadatos de la página): ahí puede haber datos de pacientes.
+        . ($pageview ? '' : "fbq('set','autoConfig',false,'" . $id . "');\n")
         . "fbq('init','" . $id . "');\n";
     if ($pageview) $js .= "fbq('track','PageView');\n";
     foreach ($eventos as $ev) $js .= "fbq('track','" . $ev . "');\n";
