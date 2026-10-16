@@ -713,6 +713,19 @@ track_pageview('publico');
             </div>
             <?php endforeach; ?>
         </div>
+        <!-- Programa social: las fundaciones lo usan sin costo (se activa a mano
+             desde /platform/consultorio después de revisar sus documentos). -->
+        <div class="card border-0 shadow-sm mt-5 mx-auto" style="max-width:820px" data-reveal>
+            <div class="card-body p-4 d-flex flex-column flex-md-row align-items-center gap-3 text-center text-md-start">
+                <div class="fs-1 text-danger"><i class="bi bi-heart-fill"></i></div>
+                <div class="flex-grow-1">
+                    <div class="fw-semibold">¿Eres fundación, A.C. o I.A.P.?</div>
+                    <div class="small text-muted">Si das consultas sin fines de lucro (dispensario, clínica comunitaria, brigadas),
+                        usa <?= e($marca) ?> <strong>sin costo</strong> con todas las funciones del plan Clínica.</div>
+                </div>
+                <a href="https://betasyd.com.mx/social" class="btn btn-outline-primary text-nowrap" target="_blank" rel="noopener">Conoce el programa <i class="bi bi-arrow-right"></i></a>
+            </div>
+        </div>
     </div>
 </section>
 
@@ -731,6 +744,7 @@ track_pageview('publico');
                 ['¿Mis datos están seguros?','Tus datos viajan cifrados, con respaldos y acceso por roles para tu equipo. Cada consultorio tiene su información aislada.'],
                 ['¿Qué pasa con mi información si cancelo?','Tus pacientes y expedientes son tuyos, no nuestros. Cancelas desde el panel, conservas el acceso hasta el final del periodo pagado y te ayudamos a llevarte tu información.'],
                 ['¿Sirve para mi especialidad?','Sí. Al registrarte eliges tu interfaz: medicina general, odontología, psicología, nutrición, pediatría, oftalmología, dermatología y estética, veterinaria o clínica multiespecialidad. El panel adapta su lenguaje, las herramientas que van al frente y los datos del expediente; la puedes cambiar cuando quieras.'],
+                ['¿Tienen precio especial para fundaciones?','Sí: las fundaciones, asociaciones civiles e I.A.P. que dan consultas sin fines de lucro usan ' . $marca . ' sin costo, con todas las funciones del plan Clínica. Conoce el programa y aplica en betasyd.com.mx/social.'],
                 ['¿Sirve para veterinarias?','Sí. Con la interfaz veterinaria registras mascotas con especie, raza, sexo, microchip y tutor; llevas su cartilla de vacunas y los recordatorios de cita y de vacuna le llegan al tutor por WhatsApp o correo.'],
             ] as $i => [$q,$a]): ?>
             <div class="accordion-item">
@@ -778,6 +792,7 @@ track_pageview('publico');
                 <a class="lp-foot-link" href="#funciones">Funciones</a>
                 <a class="lp-foot-link" href="#planes">Planes</a>
                 <a class="lp-foot-link" href="#faq">Preguntas</a>
+                <a class="lp-foot-link" href="https://betasyd.com.mx/social" target="_blank" rel="noopener">Fundaciones (sin costo)</a>
             </div>
             <div class="col-6 col-lg-2">
                 <div class="fw-semibold mb-2">Especialidades</div>
