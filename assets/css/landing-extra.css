@@ -122,3 +122,31 @@ html:has(body.lp), body.lp { overflow-x: clip; }
 @media (max-width: 575.98px) {
     .lx-float { right: 6px !important; }
 }
+
+/* Software altruista (programa social) */
+.lx-alt-card { position: relative; overflow: hidden; border-radius: 28px; padding: clamp(1.6rem, 4vw, 3.4rem); color: #fff;
+               background: radial-gradient(520px 360px at 92% 0%, rgba(251,113,133,.45), transparent 70%),
+                           radial-gradient(480px 320px at 0% 100%, rgba(56,198,217,.28), transparent 70%),
+                           linear-gradient(135deg, #3b0a1e 0%, #6b1131 45%, #9f1239 100%);
+               box-shadow: 0 30px 70px -30px rgba(159,18,57,.6); }
+.lx-alt-pill { display: inline-flex; align-items: center; gap: .45rem; font-size: .78rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
+               background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.25); border-radius: 999px; padding: .4rem .9rem; }
+.lx-alt-pill .bi { color: #fda4af; }
+html.motion .lx-alt-pill .bi { display: inline-block; animation: lxLatido 1.6s ease-in-out infinite; }
+@keyframes lxLatido { 0%,100% { transform: scale(1); } 15% { transform: scale(1.25); } 30% { transform: scale(1); } 45% { transform: scale(1.18); } }
+.lx-alt-t { font-family: var(--font-display); font-weight: 800; letter-spacing: -.035em; line-height: 1.06; font-size: clamp(1.9rem, 4vw, 2.9rem); color: #fff; }
+.lx-alt-t span { color: #fecdd3; }
+.lx-alt-p { color: rgba(255,255,255,.85); font-size: 1.08rem; }
+.lx-alt-btn { color: #9f1239 !important; }
+.lx-alt-btn .bi { color: #e11d48; }
+.lx-alt-box { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.18); border-radius: 20px; padding: 1.1rem 1.3rem; backdrop-filter: blur(6px); }
+.lx-alt-h { font-size: .74rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: #fecdd3; margin-bottom: .7rem; }
+.lx-alt-chip { font-size: .85rem; font-weight: 600; padding: .35rem .8rem; border-radius: 999px; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.2); }
+.lx-alt-step { display: flex; gap: .8rem; align-items: flex-start; padding: .45rem 0; }
+.lx-alt-n { flex: none; width: 30px; height: 30px; border-radius: 50%; background: #fff; color: #9f1239; font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: .9rem; }
+.lx-alt-d { font-size: .88rem; color: rgba(255,255,255,.75); }
+.lx-alt-nav .bi { color: #e11d48; }
+.lx-alt-hero { display: inline-flex; align-items: center; gap: .45rem; font-size: .9rem; color: #9f1239; text-decoration: none;
+               background: #fff1f2; border: 1px solid #fecdd3; border-radius: 999px; padding: .4rem .95rem; transition: transform .2s ease; }
+.lx-alt-hero:hover { transform: translateY(-2px); color: #881337; }
+.lx-alt-hero .bi-heart-fill { color: #e11d48; }

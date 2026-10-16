@@ -76,6 +76,7 @@ track_pageview('publico');
                 <li class="nav-item"><a class="nav-link" href="#especialidades">Especialidades</a></li>
                 <li class="nav-item"><a class="nav-link" href="#beneficios">Beneficios</a></li>
                 <li class="nav-item"><a class="nav-link" href="#planes">Planes</a></li>
+                <li class="nav-item"><a class="nav-link lx-alt-nav" href="#altruista"><i class="bi bi-heart-fill"></i> Altruista</a></li>
                 <li class="nav-item"><a class="nav-link" href="#faq">Preguntas</a></li>
                 <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>/portal/login"><i class="bi bi-person-heart"></i> Portal del paciente</a></li>
             </ul>
@@ -104,6 +105,7 @@ track_pageview('publico');
                     <a href="<?= BASE_URL ?>/auth/registro" class="btn lp-btn lp-btn-fill"><i class="bi bi-rocket-takeoff"></i> Prueba gratis <?= trial_dias_oferta() ?> días</a>
                     <button type="button" class="btn lp-btn lp-btn-ghost" data-bs-toggle="modal" data-bs-target="#lpVideo"><i class="bi bi-play-circle-fill"></i> Ver video</button>
                 </div>
+                <a href="#altruista" class="lx-alt-hero mb-4"><i class="bi bi-heart-fill"></i> ¿Fundación o A.C.? Úsalo <b>sin costo</b> <i class="bi bi-arrow-right"></i></a>
 
                 <?php
                 /* Franja de datos. Todo lo de aquí es COMPROBABLE en el producto:
@@ -713,17 +715,47 @@ track_pageview('publico');
             </div>
             <?php endforeach; ?>
         </div>
-        <!-- Programa social: las fundaciones lo usan sin costo (se activa a mano
-             desde /platform/consultorio después de revisar sus documentos). -->
-        <div class="card border-0 shadow-sm mt-5 mx-auto" style="max-width:820px" data-reveal>
-            <div class="card-body p-4 d-flex flex-column flex-md-row align-items-center gap-3 text-center text-md-start">
-                <div class="fs-1 text-danger"><i class="bi bi-heart-fill"></i></div>
-                <div class="flex-grow-1">
-                    <div class="fw-semibold">¿Eres fundación, A.C. o I.A.P.?</div>
-                    <div class="small text-muted">Si das consultas sin fines de lucro (dispensario, clínica comunitaria, brigadas),
-                        usa <?= e($marca) ?> <strong>sin costo</strong> con todas las funciones del plan Clínica.</div>
+    </div>
+</section>
+
+<!-- Software altruista: las fundaciones lo usan sin costo (se activa a mano
+     desde /platform/consultorio después de revisar sus documentos). -->
+<section id="altruista" class="lx-alt py-6">
+    <div class="container">
+        <div class="lx-alt-card" data-reveal="zoom">
+            <div class="row g-4 g-lg-5 align-items-center">
+                <div class="col-lg-6">
+                    <span class="lx-alt-pill"><i class="bi bi-heart-fill"></i> Software altruista</span>
+                    <h2 class="lx-alt-t mt-3 mb-3">Si ayudas sin cobrar,<br><span>nosotros tampoco te cobramos.</span></h2>
+                    <p class="lx-alt-p mb-4">Fundaciones, asociaciones civiles e I.A.P. que dan consultas sin fines de lucro usan <?= e($marca) ?> <strong>sin costo</strong>, con todas las funciones del plan Clínica. Sin mensualidad y sin fecha de vencimiento, para que cada peso se quede en tus pacientes.</p>
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="https://betasyd.com.mx/social" class="btn btn-light btn-lg fw-semibold lx-alt-btn" target="_blank" rel="noopener"><i class="bi bi-heart-fill"></i> Aplicar al programa</a>
+                        <a href="<?= BASE_URL ?>/auth/registro" class="btn btn-outline-light btn-lg">Crear mi cuenta</a>
+                    </div>
                 </div>
-                <a href="https://betasyd.com.mx/social" class="btn btn-outline-primary text-nowrap" target="_blank" rel="noopener">Conoce el programa <i class="bi bi-arrow-right"></i></a>
+                <div class="col-lg-6">
+                    <div class="lx-alt-box mb-3">
+                        <div class="lx-alt-h">¿Para quién es?</div>
+                        <div class="d-flex flex-wrap gap-2">
+                            <?php foreach (['Dispensarios','Clínicas comunitarias','Brigadas médicas','Fundaciones','A.C.','I.A.P.'] as $q): ?>
+                            <span class="lx-alt-chip"><?= e($q) ?></span>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                    <div class="lx-alt-box">
+                        <div class="lx-alt-h">Cómo funciona</div>
+                        <?php foreach ([
+                            ['1', 'Aplica al programa', 'Cuéntanos a quién atiendes en betasyd.com.mx/social.'],
+                            ['2', 'Revisamos tus documentos', 'Tu acta constitutiva o tu constancia de donataria autorizada.'],
+                            ['3', 'Activamos tu cuenta', 'Plan Clínica completo, sin cobro y sin vencimiento.'],
+                        ] as [$n, $t, $d]): ?>
+                        <div class="lx-alt-step">
+                            <span class="lx-alt-n"><?= $n ?></span>
+                            <div><b><?= e($t) ?></b><div class="lx-alt-d"><?= e($d) ?></div></div>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -792,7 +824,7 @@ track_pageview('publico');
                 <a class="lp-foot-link" href="#funciones">Funciones</a>
                 <a class="lp-foot-link" href="#planes">Planes</a>
                 <a class="lp-foot-link" href="#faq">Preguntas</a>
-                <a class="lp-foot-link" href="https://betasyd.com.mx/social" target="_blank" rel="noopener">Fundaciones (sin costo)</a>
+                <a class="lp-foot-link" href="#altruista">Software altruista</a>
             </div>
             <div class="col-6 col-lg-2">
                 <div class="fw-semibold mb-2">Especialidades</div>
