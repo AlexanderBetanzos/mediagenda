@@ -41,6 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($r['ok'])            { $webFoto = $r['url']; }
     elseif ($r['error'])     { flash($r['error'], 'warning'); }
 
+    $giroAntes = giro_actual();
     $giroNuevo = (string) ($_POST['giro'] ?? giro_actual());
     if (!isset(giros_lista()[$giroNuevo])) $giroNuevo = giro_actual();
 
@@ -110,6 +111,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     auditar('config_editar');
     flash('Configuración guardada correctamente.');
+
+    /* Al cambiar de giro llega su kit: plantillas de consulta y servicios
+       propios (aditivo: no duplica ni toca lo que ya tenías). */
+    if ($giroNuevo !== $giroAntes) {
+        $kit = giro_kit_aplicar(tenant_id(), $giroNuevo, (int) current_user()['id']);
+        if ($kit['plantillas'] || $kit['servicios']) {
+            flash(sprintf(t('Agregamos el kit de %s: %d plantillas de consulta y %d servicios (con precio en 0 para que pongas los tuyos).'),
+                giros_lista()[$giroNuevo]['nombre'], $kit['plantillas'], $kit['servicios']), 'info');
+        }
+    }
     redirect('/configuracion/index');
 }
 
@@ -132,7 +143,7 @@ include __DIR__ . '/../includes/header.php';
     <div class="card mb-4">
         <div class="card-header fw-semibold"><i class="bi bi-grid-1x2 text-brand"></i> <?= et('Interfaz de tu especialidad') ?></div>
         <div class="card-body">
-            <p class="text-muted small mb-3"><?= et('Adapta el lenguaje del panel, las herramientas que van al frente y los datos del expediente. Tus registros no se pierden al cambiar.') ?></p>
+            <p class="text-muted small mb-3"><?= et('Adapta el lenguaje del panel, las herramientas que van al frente y los datos del expediente. Al cambiar, se agregan las plantillas de consulta, servicios y consentimientos de esa especialidad. Tus registros no se pierden.') ?></p>
             <div class="row g-2">
                 <?php foreach (giros_lista() as $gk => $gd): ?>
                 <div class="col-sm-6 col-lg-4">

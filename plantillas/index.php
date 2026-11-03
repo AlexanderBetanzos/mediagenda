@@ -28,10 +28,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $existentes = array_flip($ya->fetchAll(PDO::FETCH_COLUMN));
         $ins = db()->prepare('INSERT INTO plantillas_consulta (consultorio_id, nombre, especialidad, tipo, motivo, exploracion, diagnostico, tratamiento, receta, notas, creado_por) VALUES (?,?,?,?,?,?,?,?,?,?,?)');
         $n = 0;
-        foreach (plantillas_semilla() as $p) {
+        // Primero las del giro; en veterinaria no se siembran las de medicina humana.
+        $semilla = array_merge(giro_kit_plantillas(giro_actual()), es_veterinaria() ? [] : plantillas_semilla());
+        foreach ($semilla as $p) {
             [$nombre, $esp, $tipo, $motivo, $expl, $dx, $tx, $rx, $notas] = $p;
             if (isset($existentes[mb_strtolower($nombre)])) continue;
             $ins->execute([$tid, $nombre, $esp, $tipo, $motivo ?: null, $expl ?: null, $dx ?: null, $tx ?: null, $rx ?: null, $notas ?: null, current_user()['id']]);
+            $existentes[mb_strtolower($nombre)] = 1;   // el giro y el paquete general pueden repetir nombre
             $n++;
         }
         flash($n > 0 ? "Se agregaron $n plantillas por especialidad." : 'Ya tenías todas las plantillas base.');

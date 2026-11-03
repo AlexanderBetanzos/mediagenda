@@ -114,6 +114,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'giro'           => $giro,   // interfaz: médica, dental, veterinaria…
                 ]);
 
+                // Kit de su giro: plantillas de consulta y catálogo de servicios listos.
+                try { giro_kit_aplicar($cid, $giro, $uid); } catch (Throwable $e) {}
+
                 // Aviso al dueño de la plataforma: llegó un consultorio nuevo.
                 require_once __DIR__ . '/../includes/correo.php';
                 $planNom = planes_mp()[$plan]['nombre'] ?? $plan;

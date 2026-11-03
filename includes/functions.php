@@ -388,6 +388,7 @@ function et(string $texto): string { return e(t($texto)); }
 
 require_once __DIR__ . '/abonos.php';  // pagos parciales: saldo por cobrar
 require_once __DIR__ . '/giros.php';   // interfaz por giro (vocabulario y accesos)
+require_once __DIR__ . '/giro_kits.php';   // contenido propio de cada giro (plantillas, servicios, consentimientos)
 
 // Aplica la zona horaria configurada (si la tabla ya existe).
 date_default_timezone_set(cfg('zona_horaria', 'America/Mexico_City'));
@@ -3516,8 +3517,11 @@ function ensure_consentimientos_table(): void
  */
 function consentimientos_plantillas(): array
 {
+    // Primero los del giro (psicoterapia, cirugía de mascota, extracción…).
+    $kit = giro_kit_consentimientos(giro_actual());
+    $aviso = 'Aviso de privacidad y tratamiento de datos (LFPDPPP)';
     $base = 'Yo, {paciente}, declaro que se me ha explicado en lenguaje claro ';
-    return [
+    $generales = [
         'Consentimiento general de atención médica' =>
             $base . 'la naturaleza de mi padecimiento y el plan de atención propuesto en {consultorio}. '
             . "He podido hacer preguntas y se me han respondido. Autorizo la atención médica y los "
@@ -3537,6 +3541,9 @@ function consentimientos_plantillas(): array
             $base . 'que se tomarán fotografías clínicas con fines de seguimiento y expediente. Autorizo '
             . "su captura y resguardo confidencial; no se usarán con fines distintos sin mi autorización.",
     ];
+    // En veterinaria los generales hablan de una persona: solo queda el aviso de privacidad.
+    if (es_veterinaria()) $generales = [$aviso => $generales[$aviso]];
+    return $kit + $generales;
 }
 
 /** Caras de un diente: clave => etiqueta. Se guardan como "O,M,V". */
