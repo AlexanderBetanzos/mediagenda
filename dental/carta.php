@@ -158,6 +158,12 @@ dental_encabezado('Carta dental', 'bi-emoji-smile', $pac, $pid, 'carta');
 .fx-toast{position:absolute;left:50%;bottom:1rem;transform:translateX(-50%);background:#0f172a;color:#fff;border-radius:99px;padding:.45rem 1rem;font-size:.8rem;opacity:0;transition:.2s;pointer-events:none}
 .fx-toast.on{opacity:.92}
 .fx-face{cursor:pointer}.fx-face:hover{fill:rgba(99,102,241,.12)}
+.fx-views{position:relative}
+.fx-3d{position:absolute;top:.6rem;left:.6rem;z-index:2;border:1px solid #e0e7ff;background:#fff;color:#4338ca;border-radius:12px;width:40px;height:34px;font-size:1.15rem;box-shadow:0 4px 12px rgba(67,56,202,.15)}
+.fx-3d.on{background:#4338ca;color:#fff;border-color:#4338ca}
+.fx-3dbox{position:absolute;inset:0;border-radius:0;background:radial-gradient(ellipse at 50% 45%,#fff 0%,#eef0ff 70%)}
+.fx-3dbox canvas{display:block;touch-action:none}
+.fx-views.en3d>div:not(.fx-3dbox){visibility:hidden}
 @media (max-width:991px){
   .fx{padding:0}.fx-card{border-radius:0;height:100%;grid-template-columns:1fr;grid-template-rows:auto auto auto 1fr;overflow-y:auto}
   .fx-nav{flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid #eef0f6;padding:.4rem .6rem}
@@ -252,12 +258,15 @@ dental_encabezado('Carta dental', 'bi-emoji-smile', $pac, $pid, 'carta');
 </form>
 </div>
 
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <div class="fx" id="fx" hidden role="dialog" aria-modal="true" aria-label="<?= e(t('Detalle de la pieza')) ?>">
   <div class="fx-card">
     <button type="button" class="fx-x" id="fxX" title="<?= e(t('Cerrar')) ?> (Esc)"><i class="bi bi-x-lg"></i></button>
     <button type="button" class="fx-x" style="right:3.4rem" data-ayuda="dental.detalle" title="<?= e(t('¿Cómo funciona?')) ?>"><i class="bi bi-question-lg"></i></button>
     <div class="fx-nav" id="fxNav"></div>
     <div class="fx-views">
+        <button type="button" class="fx-3d" id="fx3dBtn" title="<?= e(t('Ver la pieza en 3D')) ?>"><i class="bi bi-badge-3d"></i></button>
+        <div id="fx3dBox" class="fx-3dbox" hidden></div>
         <div><div class="fx-vl"><?= et('Vestibular') ?></div><svg id="fxV" viewBox="-14 -4 68 108"></svg></div>
         <div><div class="fx-vl"><?= et('Oclusal') ?></div><svg id="fxO" viewBox="-4 -4 48 48"></svg></div>
         <div><svg id="fxL" viewBox="-14 -4 68 108"></svg><div class="fx-vl"><?= et('Lingual / palatina') ?></div></div>
@@ -731,7 +740,22 @@ function abrirFoco(d) {
     document.getElementById('fx').hidden = false; document.body.style.overflow = 'hidden';
     renderFoco();
 }
-function cerrarFoco() { foco = null; document.getElementById('fx').hidden = true; document.body.style.overflow = ''; }
+function cerrarFoco() { foco = null; document.getElementById('fx').hidden = true; document.body.style.overflow = ''; apagar3d(); }
+/* Pieza en 3D (se carga solo cuando se pide). */
+var D3 = null, D3URL = <?= json_encode(asset('assets/js/diente3d.js')) ?>;
+var HALLCOL = {}; Object.keys(HALL).forEach(function (k) { HALLCOL[k] = HALL[k].color; });
+function apagar3d() {
+    if (D3) { D3.destruir(); D3 = null; }
+    document.getElementById('fx3dBox').hidden = true; document.querySelector('.fx-views').classList.remove('en3d'); document.getElementById('fx3dBtn').classList.remove('on');
+}
+function prender3d() {
+    var box = document.getElementById('fx3dBox');
+    box.hidden = false; document.querySelector('.fx-views').classList.add('en3d'); document.getElementById('fx3dBtn').classList.add('on');
+    box.innerHTML = '<div class="d-flex h-100 align-items-center justify-content-center"><div class="spinner-border text-primary"></div></div>';
+    var go = function () { if (!foco) return; D3 = window.Diente3D.montar(box, { diente: +foco.d, marcas: marcas[foco.d] || {}, hall: HALLCOL }); };
+    if (window.Diente3D) go(); else import(D3URL).then(go).catch(function () { box.innerHTML = '<div class="p-3 small text-muted">3D no disponible en este navegador.</div>'; });
+}
+document.getElementById('fx3dBtn').addEventListener('click', function () { if (D3 || !document.getElementById('fx3dBox').hidden) apagar3d(); else prender3d(); });
 function toast(t) { var x = document.getElementById('fxToast'); x.textContent = t; x.classList.add('on'); clearTimeout(x._t); x._t = setTimeout(function () { x.classList.remove('on'); }, 1600); }
 function carasFoco() { return Object.keys(foco.caras).filter(function (k) { return foco.caras[k]; }); }
 function det(d) { DET[d] = DET[d] || {}; return DET[d]; }
@@ -773,6 +797,7 @@ function renderFoco() {
         var g = el('g', { filter: 'url(#fSh)' }, svg);
         dibujaLateral(g, +d, v[2], { grande: true, lado: v[1], regiones: regionesLat(+d, v[1]) });
     });
+    if (D3) D3.actualizar(+d, marcas[d] || {});
     var so = document.getElementById('fxO'); so.innerHTML = ''; defs(so);
     dibujaOclusal(el('g', { filter: 'url(#fSh)' }, so), +d, sup, function (dd, k) { return !!foco.caras[k]; });
     // Cruz de caras

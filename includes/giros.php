@@ -37,7 +37,7 @@ function giros(): array
         'cardiologia'  => ['/cardiologia/index', 'Cardiología', 'bi-heart-pulse'],
         'vacunas'      => ['/vacunacion/paciente', 'Vacunas', 'bi-shield-plus'],
         'fisioterapia' => ['/fisioterapia/index', 'Fisioterapia', 'bi-person-walking'],
-        'mapacorporal' => ['/mapacorporal/index', 'Mapa corporal', 'bi-person-bounding-box'],
+        'mapacorporal' => ['/mapacorporal/index', 'Mapa corporal 3D', 'bi-person-bounding-box'],
     ];
 
     $vet = [
@@ -83,7 +83,7 @@ function giros(): array
 
     return $g = [
         'medico' => ['nombre' => 'Medicina general', 'icono' => 'bi-heart-pulse', 'desc' => 'Consultorio médico, de cualquier especialidad.',
-                     'staff' => 'Médicos', 'accesos' => ['crecimiento'], 'vocab' => []],
+                     'staff' => 'Médicos', 'accesos' => ['mapacorporal', 'crecimiento'], 'vocab' => []],
         'dental' => ['nombre' => 'Odontología', 'icono' => 'bi-emoji-smile', 'desc' => 'Carta dental, fotos clínicas, periodontograma y plan de tratamiento.',
                      'staff' => 'Odontólogos', 'accesos' => ['dental', 'odontograma'], 'tipo' => 'dental',
                      'vocab' => ['Médicos' => 'Odontólogos', 'Médico' => 'Odontólogo', 'Nuevo médico' => 'Nuevo odontólogo',

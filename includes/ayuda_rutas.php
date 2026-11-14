@@ -167,10 +167,12 @@ function ayuda_textos_rutas(): array
         'Registra indicación y calidad de preparación (Boston en colonoscopia).', 'Captura hallazgos por segmento, Los Ángeles, Helicobacter, pólipos y biopsias.',
         'Anota la fecha del próximo control.',
     ]);
-    $T['ruta:mapacorporal/index'] = $g('Mapa corporal', 'Ubica hallazgos exactamente donde están en el cuerpo.', [
-        'Da clic sobre el punto del cuerpo: el marcador cae ahí.', 'Escribe la zona, la severidad y una nota.',
-        'Cuando se resuelva, quítalo del mapa (queda en el historial).',
-    ]);
+    $T['ruta:mapacorporal/index'] = $g('Mapa corporal 3D', 'Ubica hallazgos exactamente donde están, sobre un cuerpo en 3D que puedes girar.', [
+        'Arrastra para girar el cuerpo, usa la rueda (o pellizca) para acercar. Los botones <b>Frente</b>, <b>Espalda</b> y ⇄ lo orientan.',
+        'Al pasar el cursor se ilumina la zona; al tocar, el punto queda fijado y la <b>zona</b> se elige sola (corazón, pulmones, hígado, riñones…).',
+        'Escribe el hallazgo, la severidad y una nota, y da clic en <b>Agregar</b>.',
+        'Cada hallazgo aparece como etiqueta sobre el cuerpo; tócala para ubicarlo en la lista.',
+    ], ['Cambia la apariencia entre <b>Piel</b>, <b>Anatomía</b> y <b>Holograma</b>.', 'La pestaña <b>Ilustración</b> conserva el mapa 2D de siempre.']);
     $T['ruta:neumologia/index'] = $g('Neumología', 'Control de asma y EPOC.', [
         'Registra disnea (mMRC), saturación y espirometría (FEV1, FVC).', 'Captura flujo pico y control del asma (ACT).', 'La gráfica de FEV1 y saturación muestra la tendencia.',
     ]);
@@ -270,7 +272,8 @@ function ayuda_textos_rutas(): array
         '<b>Vigilar</b> lo registra como hallazgo; <b>Tratar</b> además lo agrega al plan (obturación, o endodoncia si llega a pulpa).',
         '<b>Restauración</b> registra lo que ya trae; <b>Tratamiento</b> agrega al plan o como realizado; <b>Ausente</b> marca la pieza faltante.',
         'Anota pruebas endodónticas (frío, calor, percusión…) y una nota de la pieza.',
-    ], ['Cambia de diente con la columna de números o con las flechas ↑ ↓. Esc cierra.', 'Recuerda dar <b>Guardar</b> en la carta al terminar.']);
+    ], ['El botón <b>3D</b> muestra la pieza en 3D con lo registrado (conductos, corona, implante, caries); gírala con el dedo o el mouse.',
+        'Cambia de diente con la columna de números o con las flechas ↑ ↓. Esc cierra.', 'Recuerda dar <b>Guardar</b> en la carta al terminar.']);
     $T['ruta:dental/historia'] = $g('Historia clínica odontológica', 'Lo que necesitas saber antes de atender.', [
         'Marca los <b>antecedentes de riesgo</b>: salen como alerta roja en el expediente dental.',
         'Registra hábitos e higiene, ATM y apertura, tejidos blandos y oclusión (clase de Angle, overjet y overbite).',

@@ -3244,6 +3244,9 @@ function ensure_mapacorporal_table(): void
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
         db()->exec("ALTER TABLE mapa_corporal_hallazgos ADD COLUMN IF NOT EXISTS pos_x SMALLINT DEFAULT NULL");
         db()->exec("ALTER TABLE mapa_corporal_hallazgos ADD COLUMN IF NOT EXISTS pos_y SMALLINT DEFAULT NULL");
+        // Punto en el cuerpo 3D (metros, cuerpo de pie mirando al frente).
+        db()->exec("ALTER TABLE mapa_corporal_hallazgos ADD COLUMN IF NOT EXISTS pos3_x DECIMAL(6,3) DEFAULT NULL,
+                    ADD COLUMN IF NOT EXISTS pos3_y DECIMAL(6,3) DEFAULT NULL, ADD COLUMN IF NOT EXISTS pos3_z DECIMAL(6,3) DEFAULT NULL");
     } catch (Throwable $e) { /* ya existe */ }
 }
 
