@@ -23,7 +23,7 @@ Options -MultiViews
     RewriteRule ^c/([A-Za-z0-9_-]+)/?$ index.php?c=$1 [L,QSA]
 
     # 2b) Páginas por especialidad (contenido en includes/landing/especialidades.php).
-    RewriteRule ^(dentistas|psicologos|nutriologos|pediatras|oftalmologos|dermatologos|medicos|clinicas)/?$ especialidad.php?e=$1 [L,QSA]
+    RewriteRule ^(dentistas|psicologos|nutriologos|pediatras|fisioterapeutas|oftalmologos|dermatologos|medicos|clinicas)/?$ especialidad.php?e=$1 [L,QSA]
 
     # 3) Sirve internamente la URL limpia desde el archivo .php real.
     #    Ej: /pacientes/index  ->  /pacientes/index.php

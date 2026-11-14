@@ -1,7 +1,7 @@
 <?php
 /**
  * Cabecera del portal del paciente. Define $titulo (y opcionalmente
- * $portalActivo: citas|recetas|vacunas|archivos) antes de incluir.
+ * $portalActivo: citas|recetas|vacunas|archivos|ejercicios) antes de incluir.
  * Lleva el logo y el color de la clínica; en el celular la navegación va
  * en una barra fija abajo, al alcance del pulgar.
  */
@@ -16,6 +16,12 @@ $pnav = [
     'vacunas'  => ['/portal/vacunas', 'bi-shield-plus', t('Vacunas')],
     'archivos' => ['/portal/archivos', 'bi-paperclip', t('Estudios')],
 ];
+// Rutina de fisioterapia: la pestaña aparece solo si tiene un plan compartido.
+try {
+    $peq = db()->prepare('SELECT 1 FROM fisio_planes WHERE paciente_id = ? AND consultorio_id = ? AND activo = 1 AND portal = 1 LIMIT 1');
+    $peq->execute([(int) ($pac['id'] ?? 0), tenant_id()]);
+    if ($peq->fetchColumn() || $portalActivo === 'ejercicios') $pnav['ejercicios'] = ['/portal/ejercicios', 'bi-person-walking', t('Ejercicios')];
+} catch (Throwable $e) { /* tabla aún no creada */ }
 $ini = mb_strtoupper(mb_substr((string) ($pac['nombre'] ?? ''), 0, 1) . mb_substr((string) ($pac['apellidos'] ?? ''), 0, 1));
 ?>
 <!doctype html>

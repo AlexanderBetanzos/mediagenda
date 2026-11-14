@@ -305,6 +305,12 @@ function ayuda_textos(): array
             'El <b>mapa corporal</b> ubica lesiones o zonas tratadas.',
             'Usa <b>Presupuestos</b> para paquetes de sesiones.',
         ]],
+        'fisioterapia' => ['Tu panel de fisioterapia', 'Historia clínica, notas SOAP y planes de ejercicio en casa.', [
+            'En el expediente, el botón <b>Fisioterapia</b> abre la historia clínica: dolor (EVA), goniometría, fuerza, pruebas especiales y escalas.',
+            'Cada sesión se documenta en una <b>nota de evolución SOAP</b>; "Repetir la sesión anterior" copia las intervenciones.',
+            'Arma el <b>plan de ejercicios</b> desde la biblioteca: lo imprimes, lo mandas por WhatsApp y el paciente marca sus días en el portal.',
+            'El <b>informe de evolución</b> compara la valoración inicial contra la actual, listo para el médico que refirió.',
+        ]],
         'veterinaria' => ['Tu panel veterinario', 'El panel habla de <b>mascotas</b> y <b>propietarios</b>.', [
             'Cada ficha es de una mascota: especie, raza, sexo, color, esterilizado y microchip.',
             'Los datos de contacto son del <b>propietario</b>: los recordatorios por WhatsApp y correo le llegan a él.',

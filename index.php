@@ -262,7 +262,7 @@ track_pageview('publico');
         <div class="row g-3" data-stagger>
             <?php foreach (giros_lista() as $gk => $gd): ?>
             <div class="col-sm-6 col-lg-4">
-                <?php $pagGiro = ['veterinaria' => 'veterinarias', 'dental' => 'dentistas', 'psicologia' => 'psicologos', 'nutricion' => 'nutriologos', 'pediatria' => 'pediatras',
+                <?php $pagGiro = ['veterinaria' => 'veterinarias', 'dental' => 'dentistas', 'psicologia' => 'psicologos', 'nutricion' => 'nutriologos', 'pediatria' => 'pediatras', 'fisioterapia' => 'fisioterapeutas',
                                  'oftalmologia' => 'oftalmologos', 'estetica' => 'dermatologos', 'medico' => 'medicos', 'clinica' => 'clinicas'][$gk] ?? null; ?>
                 <a href="<?= $pagGiro ? BASE_URL . '/' . $pagGiro : BASE_URL . '/auth/registro?giro=' . e($gk) ?>" class="lp-giro<?= $gk === 'veterinaria' ? ' vet' : '' ?>">
                     <span class="lp-giro-ic"><i class="bi <?= e($gd['icono']) ?>"></i></span>
@@ -828,7 +828,7 @@ track_pageview('publico');
             </div>
             <div class="col-6 col-lg-2">
                 <div class="fw-semibold mb-2">Especialidades</div>
-                <?php foreach (['medicos' => 'Médicos', 'dentistas' => 'Dentistas', 'psicologos' => 'Psicólogos', 'nutriologos' => 'Nutriólogos', 'pediatras' => 'Pediatras',
+                <?php foreach (['medicos' => 'Médicos', 'dentistas' => 'Dentistas', 'psicologos' => 'Psicólogos', 'nutriologos' => 'Nutriólogos', 'pediatras' => 'Pediatras', 'fisioterapeutas' => 'Fisioterapia',
                                 'oftalmologos' => 'Oftalmología', 'dermatologos' => 'Dermatología', 'veterinarias' => 'Veterinarias', 'clinicas' => 'Clínicas'] as $ps => $pn): ?>
                     <a class="lp-foot-link" href="<?= BASE_URL ?>/<?= $ps ?>"><?= $pn ?></a>
                 <?php endforeach; ?>

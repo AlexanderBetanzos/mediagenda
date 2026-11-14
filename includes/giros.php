@@ -35,6 +35,8 @@ function giros(): array
         'cirugia'      => ['/cirugia/index', 'Cirugía', 'bi-scissors'],
         'cardiologia'  => ['/cardiologia/index', 'Cardiología', 'bi-heart-pulse'],
         'vacunas'      => ['/vacunacion/paciente', 'Vacunas', 'bi-shield-plus'],
+        'fisioterapia' => ['/fisioterapia/index', 'Fisioterapia', 'bi-person-walking'],
+        'mapacorporal' => ['/mapacorporal/index', 'Mapa corporal', 'bi-person-bounding-box'],
     ];
 
     $vet = [
@@ -101,6 +103,10 @@ function giros(): array
                      'vocab' => []],
         'estetica' => ['nombre' => 'Dermatología y estética', 'icono' => 'bi-magic', 'desc' => 'Dermatología, estética y mapa corporal al frente.',
                      'staff' => 'Médicos', 'accesos' => ['dermatologia', 'estetica'], 'vocab' => []],
+        'fisioterapia' => ['nombre' => 'Fisioterapia y rehabilitación', 'icono' => 'bi-person-walking', 'desc' => 'Historia clínica, notas SOAP y planes de ejercicio en casa.',
+                     'staff' => 'Fisioterapeutas', 'accesos' => ['fisioterapia', 'mapacorporal'],
+                     'vocab' => $sesion + ['Médicos' => 'Fisioterapeutas', 'Médico' => 'Fisioterapeuta', 'Nuevo médico' => 'Nuevo fisioterapeuta',
+                                           'médicos' => 'fisioterapeutas']],
         'veterinaria' => ['nombre' => 'Veterinaria', 'icono' => 'bi-house-heart', 'desc' => 'Mascotas con especie, raza y tutor; vacunas y recordatorios le llegan al tutor.',
                      'staff' => 'Veterinarios', 'accesos' => ['vacunas', 'cirugia', 'dermatologia'], 'vocab' => $vet],
         'clinica' => ['nombre' => 'Clínica u hospital', 'icono' => 'bi-hospital', 'desc' => 'Varias especialidades: todas las herramientas a la mano.',
@@ -217,15 +223,15 @@ function giro_nivel(string $modulo, ?string $giro = null): string
     $g = $giro ?? giro_actual();
     $tabla = [
         //                frente                                                         nunca
-        'optica'       => [['oftalmologia', 'clinica'],                                     ['veterinaria', 'psicologia', 'dental', 'nutricion']],
+        'optica'       => [['oftalmologia', 'clinica'],                                     ['veterinaria', 'psicologia', 'dental', 'nutricion', 'fisioterapia']],
         'imagenologia' => [['medico', 'clinica', 'veterinaria'],                            ['psicologia', 'nutricion']],
         'laboratorio'  => [['medico', 'clinica', 'veterinaria', 'nutricion', 'pediatria', 'estetica'], ['psicologia']],
         'farmacia'     => [['medico', 'clinica', 'veterinaria', 'dental', 'estetica', 'nutricion', 'oftalmologia', 'pediatria'], []],
-        'odontograma'  => [['dental', 'clinica'],                                           ['veterinaria', 'psicologia', 'oftalmologia', 'nutricion', 'pediatria', 'estetica']],
-        'crecimiento'  => [['pediatria', 'nutricion', 'medico', 'clinica'],                 ['veterinaria', 'psicologia', 'oftalmologia', 'dental', 'estetica']],
-        'prenatal'     => [['medico', 'clinica'],                                           ['veterinaria', 'psicologia', 'oftalmologia', 'dental', 'nutricion', 'pediatria', 'estetica']],
-        'hospitalizacion' => [['clinica', 'veterinaria'],                                    ['psicologia', 'nutricion', 'oftalmologia', 'dental', 'estetica']],
-        'mapacorporal' => [['medico', 'clinica', 'estetica'],                               ['veterinaria', 'psicologia', 'oftalmologia', 'dental']],
+        'odontograma'  => [['dental', 'clinica'],                                           ['veterinaria', 'psicologia', 'oftalmologia', 'nutricion', 'pediatria', 'estetica', 'fisioterapia']],
+        'crecimiento'  => [['pediatria', 'nutricion', 'medico', 'clinica'],                 ['veterinaria', 'psicologia', 'oftalmologia', 'dental', 'estetica', 'fisioterapia']],
+        'prenatal'     => [['medico', 'clinica'],                                           ['veterinaria', 'psicologia', 'oftalmologia', 'dental', 'nutricion', 'pediatria', 'estetica', 'fisioterapia']],
+        'hospitalizacion' => [['clinica', 'veterinaria'],                                    ['psicologia', 'nutricion', 'oftalmologia', 'dental', 'estetica', 'fisioterapia']],
+        'mapacorporal' => [['medico', 'clinica', 'estetica', 'fisioterapia'],               ['veterinaria', 'psicologia', 'oftalmologia', 'dental']],
     ];
     if (!isset($tabla[$modulo])) return 'frente';
     [$frente, $nunca] = $tabla[$modulo];

@@ -389,6 +389,7 @@ function et(string $texto): string { return e(t($texto)); }
 require_once __DIR__ . '/abonos.php';  // pagos parciales: saldo por cobrar
 require_once __DIR__ . '/giros.php';   // interfaz por giro (vocabulario y accesos)
 require_once __DIR__ . '/giro_kits.php';   // contenido propio de cada giro (plantillas, servicios, consentimientos)
+require_once __DIR__ . '/fisioterapia.php';   // historia clínica, notas SOAP y planes de ejercicio
 
 // Aplica la zona horaria configurada (si la tabla ya existe).
 date_default_timezone_set(cfg('zona_horaria', 'America/Mexico_City'));
@@ -3141,6 +3142,21 @@ function resumen_verticales(int $pid): array
         if ($r['gad7'] !== null) { [$l] = gad7_nivel((int) $r['gad7']); $v[] = 'GAD-7 ' . (int) $r['gad7'] . ' (' . t($l) . ')'; }
         $out[] = ['icon'=>'bi-chat-heart','color'=>'#7c3aed','label'=>t('Psicología'),
                   'value'=>$v ? implode(' · ', $v) : t('sesión registrada'), 'url'=>'/psicologia/index?paciente_id=' . $pid];
+    }
+    // Fisioterapia: diagnóstico vigente, sesiones y último dolor registrado.
+    if ($r = $one("SELECT COUNT(*) n, MAX(fecha) f FROM fisio_notas WHERE paciente_id=? AND consultorio_id=?", [$pid, $tid])) {
+        $vf = $one("SELECT tipo, region, eva FROM fisio_valoraciones WHERE paciente_id=? AND consultorio_id=? ORDER BY fecha DESC, id DESC LIMIT 1", [$pid, $tid]);
+        if ((int) $r['n'] > 0 || $vf) {
+            $ue = $one("SELECT COALESCE(eva_post, eva_pre) e FROM fisio_notas WHERE paciente_id=? AND consultorio_id=? AND (eva_post IS NOT NULL OR eva_pre IS NOT NULL) ORDER BY fecha DESC, id DESC LIMIT 1", [$pid, $tid]);
+            $v = [];
+            if ($vf && $vf['region']) $v[] = $vf['region'];
+            if ((int) $r['n'] > 0) $v[] = (int) $r['n'] . ' ' . t('sesiones');
+            $eva = $ue ? $ue['e'] : ($vf['eva'] ?? null);
+            if ($eva !== null) $v[] = 'EVA ' . (int) $eva;
+            if ($vf && $vf['tipo'] === 'alta') $v[] = t('de alta');
+            $out[] = ['icon'=>'bi-person-walking','color'=>'#0d9488','label'=>t('Fisioterapia'),
+                      'value'=>implode(' · ', $v), 'url'=>'/fisioterapia/index?paciente_id=' . $pid];
+        }
     }
     // Último examen oftalmológico.
     if ($r = $one("SELECT pio_od, pio_oi FROM oftalmo_examenes WHERE paciente_id=? AND consultorio_id=? ORDER BY fecha DESC, id DESC LIMIT 1", [$pid, $tid])) {

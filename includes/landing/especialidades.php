@@ -228,5 +228,32 @@ function landing_especialidades(): array
             'seo' => ['Una clínica con varios médicos necesita orden en tres frentes: la agenda de cada quien, la recepción y el dinero. Con hojas de cálculo y libretas, ninguno cuadra.',
                       'Con un software para clínicas cada médico tiene su agenda, recepción maneja la sala de espera y cada persona cierra su caja con su diferencia.'],
         ],
+        'fisioterapeutas' => [
+            'giro' => 'fisioterapia', 'c' => '#0d9488', 'cd' => '#0f766e', 'nombre' => 'Fisioterapeutas',
+            'title' => 'Software para fisioterapeutas: historia clínica, notas SOAP y planes de ejercicio',
+            'eyebrow' => 'Software para fisioterapeutas',
+            'h1' => ['Tu consulta de fisioterapia,', 'de la valoración al alta'],
+            'sub' => 'Historia clínica con goniometría, fuerza y pruebas especiales, notas de evolución SOAP con EVA y planes de ejercicio en casa que tu paciente sigue desde su celular.',
+            'func' => [
+                ['bi-clipboard2-pulse', 'Historia clínica fisioterapéutica', 'Dolor (EVA), banderas rojas, goniometría con rangos normales, fuerza 0-5, pruebas especiales por región y escalas funcionales.'],
+                ['bi-journal-text', 'Notas de evolución SOAP', 'Cada sesión con EVA al llegar y al salir, intervenciones aplicadas y sus parámetros.'],
+                ['bi-list-check', 'Planes de ejercicio en casa', 'Armas la rutina con clics desde una biblioteca de ejercicios editable, con series, repeticiones y videos.'],
+                ['bi-phone', 'Rutina en el celular del paciente', 'La ve en su portal, marca los días que la hace y tú ves su apego.'],
+                ['bi-file-earmark-medical', 'Informe de evolución y alta', 'Compara la valoración inicial contra la actual, listo para el médico que refirió.'],
+                ['bi-graph-down-arrow', 'Gráfica del dolor', 'La EVA de cada sesión en una gráfica para ver el avance del paciente.'],
+                ['bi-pen', 'Consentimientos', 'Tratamiento, punción seca, electroterapia y terapia manual, firmados en pantalla.'],
+                ['bi-calendar-heart', 'Agenda y recordatorios', 'Sesiones con recordatorio por WhatsApp para que no falten.'],
+            ],
+            'dia' => [['bi-calendar-check', 'Agenda', 'Sesión con recordatorio.'], ['bi-journal-text', 'Nota SOAP', 'EVA, intervenciones y respuesta.'],
+                      ['bi-list-check', 'Plan', 'Rutina en casa por WhatsApp.'], ['bi-phone', 'Apego', 'El paciente marca sus días.'],
+                      ['bi-receipt', 'Cobro', 'La sesión queda pagada y en tu corte.']],
+            'faq' => [
+                ['¿Trae ejercicios precargados?', 'Sí. Una biblioteca de ejercicios de rehabilitación por región, con instrucciones para el paciente, que puedes editar y ampliar con tus propios videos.'],
+                ['¿Puedo comparar la valoración inicial con la actual?', 'Sí. La reevaluación arranca con las mediciones anteriores como referencia y el informe de evolución muestra el cambio en EVA, arcos, fuerza y escalas.'],
+                ['¿Mis pacientes necesitan instalar algo?', 'No. Reciben la rutina por WhatsApp o la ven en su portal desde el navegador del celular.'],
+            ],
+            'seo' => ['En fisioterapia el paciente mejora entre sesiones, en casa. Si la rutina se entrega en una hoja suelta y la evolución vive en una libreta, no sabes si la está haciendo ni puedes mostrar su avance.',
+                      'Con un software para fisioterapeutas llevas la historia clínica con mediciones, documentas cada sesión en formato SOAP y das seguimiento al ejercicio en casa, todo en el mismo expediente.'],
+        ],
     ];
 }

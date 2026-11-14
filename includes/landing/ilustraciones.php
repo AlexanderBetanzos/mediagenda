@@ -42,6 +42,17 @@ function ilustracion_especialidad(string $slug): string
         </div>
         <div class="il-float" style="right:-14px;bottom:-22px"><i class="bi bi-graph-down-arrow"></i><div><b>−4.2 kg</b><span>desde la 1a valoración</span></div></div>
         <?php break;
+    case 'fisioterapeutas': ?>
+        <div class="il-card"><div class="il-hd"><b>Dolor (EVA) · por sesión</b><span>Hombro derecho · 8 sesiones</span><?= $demo ?></div>
+            <svg class="il-svg" viewBox="0 0 300 140" preserveAspectRatio="none" aria-hidden="true">
+                <line x1="0" y1="35" x2="300" y2="35" class="il-guia"/><line x1="0" y1="80" x2="300" y2="80" class="il-guia"/>
+                <path class="il-linea" d="M10,20 C50,30 80,44 120,58 C160,72 190,88 225,100 C255,110 275,116 290,120"/>
+                <?php foreach ([[10,20],[60,34],[120,58],[170,78],[225,100],[290,120]] as $i => [$x, $y]): ?><circle class="il-pt" style="--i:<?= $i ?>" cx="<?= $x ?>" cy="<?= $y ?>" r="5"/><?php endforeach; ?>
+            </svg>
+            <div class="il-mini"><span><small>EVA</small><b>8 → 2</b></span><span><small>Flexión</small><b>110° → 165°</b></span><span><small>SPADI</small><b>62 → 18</b></span></div>
+        </div>
+        <div class="il-float" style="right:-14px;bottom:-22px"><i class="bi bi-check2-circle"></i><div><b>Rutina en casa</b><span>12 de 14 días</span></div></div>
+        <?php break;
     case 'pediatras': ?>
         <div class="il-card"><div class="il-hd"><b>Curva de crecimiento · talla</b><span>Sofía · 0–4 años</span><?= $demo ?></div>
             <svg class="il-svg" viewBox="0 0 300 140" preserveAspectRatio="none" aria-hidden="true">

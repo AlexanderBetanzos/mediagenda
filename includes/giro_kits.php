@@ -158,6 +158,56 @@ function giro_kit_plantillas(string $giro): array
                 'Próximo ajuste en 4 semanas.'],
         ];
 
+    case 'fisioterapia':
+        $e = 'Rehabilitación y Fisioterapia';
+        return [
+            ['Valoración fisioterapéutica inicial', $e, $g,
+                'Motivo de consulta y diagnóstico médico de referencia:',
+                "EVA: ___/10  Inicio: ___  Mecanismo:\nInspección / postura:\nPalpación:\nArcos de movimiento (activo/pasivo):\nFuerza (Daniels 0-5):\nPruebas especiales:\nMarcha y funcionalidad:",
+                'Diagnóstico fisioterapéutico:', "Objetivos a corto y largo plazo:\nPlan: terapia manual / agentes físicos / ejercicio terapéutico / educación.\nSesiones estimadas: ___  Frecuencia: ___", '',
+                'Banderas rojas descartadas. Se explica el diagnóstico y el plan; el paciente acepta el tratamiento.'],
+            ['Sesión de fisioterapia (SOAP)', $e, $g,
+                'S: Cómo llega, cambios desde la última sesión. EVA al llegar: ___/10',
+                "O: Hallazgos y mediciones de hoy:\nIntervenciones y parámetros:",
+                'A: Respuesta al tratamiento y avance hacia los objetivos:', 'P: Próxima sesión / progresión / tarea en casa:', '',
+                'EVA al salir: ___/10. Tolerancia: buena / regular / mala.'],
+            ['Reevaluación', $e, $g,
+                'Reevaluación tras ___ sesiones',
+                "EVA: ___/10 (inicial ___)\nArcos de movimiento comparados:\nFuerza comparada:\nEscala funcional: ___ (inicial ___)",
+                'Evolución: favorable / estacionaria / desfavorable', 'Ajuste del plan:', '',
+                'Se comentan los avances con el paciente y se ajustan objetivos.'],
+            ['Lumbalgia mecánica', $e, $g,
+                'Dolor lumbar',
+                "EVA: ___  Irradiación: ___  Banderas rojas: negativas\nFlexión / extensión lumbar:\nLasègue / Slump:\nOswestry: ___%",
+                'Lumbalgia mecánica inespecífica', 'Educación en dolor, terapia manual, control motor y fortalecimiento del core. Plan en casa.', '',
+                'Mantenerse activo; evitar reposo prolongado.'],
+            ['Cervicalgia', $e, $g,
+                'Dolor cervical',
+                "EVA: ___  Rotaciones e inclinaciones:\nSpurling / ULTT1:\nNDI: ___%  Postura:",
+                'Cervicalgia mecánica', 'Terapia manual, ejercicio de control craneocervical y escapular, ergonomía.', '',
+                'Pausas activas cada hora frente a la computadora.'],
+            ['Hombro doloroso', $e, $g,
+                'Dolor de hombro',
+                "EVA: ___  Flexión / abducción / rotaciones:\nNeer / Hawkins / Jobe / arco doloroso:\nSPADI: ___%",
+                'Síndrome de dolor subacromial / tendinopatía del manguito rotador', 'Ejercicio progresivo de manguito y escapulares, terapia manual, control del dolor.', '',
+                'Evitar cargas por encima de la cabeza mientras haya dolor.'],
+            ['Esguince de tobillo', $e, $g,
+                'Esguince de tobillo',
+                "Grado: ___  Edema: ___  Equimosis: ___\nCajón anterior / inclinación talar:\nApoyo y marcha:",
+                'Esguince de tobillo grado ___', 'Control de edema, movilidad, fortalecimiento de peroneos y propiocepción progresiva.', '',
+                'Regreso gradual a la actividad según tolerancia.'],
+            ['Rehabilitación postquirúrgica de rodilla', $e, $g,
+                'Postquirúrgico de rodilla (cirugía: ___ fecha: ___)',
+                "Herida: ___  Edema: ___\nFlexión: ___°  Extensión: ___°\nActivación de cuádriceps: ___  Marcha / apoyo:",
+                'Postoperatorio de ___, semana ___', 'Protocolo del cirujano: control de edema, movilidad, activación de cuádriceps, marcha.', '',
+                'Respetar las restricciones de carga indicadas por el cirujano.'],
+            ['Alta de fisioterapia', $e, $g,
+                'Alta del programa de rehabilitación',
+                "EVA final: ___ (inicial ___)\nArcos y fuerza finales:\nEscala funcional final: ___ (inicial ___)",
+                'Objetivos cumplidos / mejoría parcial', 'Programa de ejercicio en casa para mantenimiento.', '',
+                'Se entrega informe de alta y plan de mantenimiento.'],
+        ];
+
     case 'nutricion':
         $e = 'Nutrición';
         return [
@@ -307,6 +357,18 @@ function giro_kit_servicios(string $giro): array
             ['Corona', 'Prótesis', 60, 1], ['Blanqueamiento', 'Estética dental', 60, 0],
             ['Ajuste de ortodoncia', 'Ortodoncia', 30, 0], ['Curetaje / raspado', 'Periodoncia', 60, 1],
         ];
+    case 'fisioterapia':
+        return [
+            ['Valoración inicial', 'Valoración', 60, 0], ['Sesión de fisioterapia', 'Sesión', 50, 0],
+            ['Reevaluación', 'Valoración', 45, 0], ['Terapia manual', 'Sesión', 45, 0],
+            ['Electroterapia', 'Agentes físicos', 30, 0], ['Ultrasonido terapéutico', 'Agentes físicos', 15, 0],
+            ['Láser terapéutico', 'Agentes físicos', 15, 0], ['Punción seca', 'Procedimientos', 30, 0],
+            ['Vendaje neuromuscular', 'Procedimientos', 20, 0], ['Ondas de choque', 'Agentes físicos', 20, 0],
+            ['Rehabilitación postquirúrgica', 'Sesión', 60, 0], ['Rehabilitación neurológica', 'Sesión', 60, 0],
+            ['Fisioterapia deportiva', 'Sesión', 50, 0], ['Fisioterapia de suelo pélvico', 'Sesión', 50, 0],
+            ['Sesión a domicilio', 'Sesión', 60, 0], ['Paquete de 10 sesiones', 'Paquetes', 50, 0],
+            ['Informe de evolución', 'Documentos', 15, 0],
+        ];
     case 'nutricion':
         return [
             ['Primera consulta nutricional', 'Consulta', 60, 0], ['Consulta de seguimiento', 'Consulta', 30, 0],
@@ -416,6 +478,30 @@ function giro_kit_consentimientos(string $giro): array
             'Consentimiento para peeling químico' =>
                 $b . 'el procedimiento y sus riesgos (enrojecimiento, descamación, manchas). Me comprometo a usar protector '
                 . 'solar y a evitar el sol según las indicaciones.',
+        ];
+    case 'fisioterapia':
+        $b = 'Yo, {paciente}, declaro que en {consultorio} se me explicó en lenguaje claro ';
+        return [
+            'Consentimiento informado para tratamiento de fisioterapia' =>
+                $b . 'mi diagnóstico fisioterapéutico, los objetivos y el plan de tratamiento (terapia manual, agentes físicos, '
+                . 'ejercicio terapéutico y educación), su duración estimada y sus posibles molestias (dolor o rigidez temporal '
+                . 'después de la sesión). Informé mis enfermedades, cirugías, medicamentos y si estoy embarazada o uso marcapasos. '
+                . 'Entiendo que puedo suspender el tratamiento cuando lo decida. Autorizo el tratamiento.',
+            'Consentimiento para punción seca' =>
+                $b . 'que la punción seca consiste en introducir una aguja fina y estéril en puntos gatillo musculares. Sus posibles '
+                . 'efectos son dolor durante y después de la técnica, moretones y, de forma rara, mareo o desmayo; de forma muy rara, '
+                . 'neumotórax en punciones del tórax. Declaro no tener miedo extremo a las agujas, trastornos de coagulación ni tomar '
+                . 'anticoagulantes, o haberlo informado. Autorizo su aplicación.',
+            'Consentimiento para electroterapia y agentes físicos' =>
+                $b . 'el uso de corrientes, ultrasonido, láser, calor o frío, sus beneficios y riesgos (irritación o quemadura de la '
+                . 'piel). Declaro no tener marcapasos, implantes metálicos en la zona, cáncer activo ni embarazo, o haberlo informado. '
+                . 'Avisaré de inmediato si siento ardor o molestia intensa.',
+            'Consentimiento para terapia manual y manipulación' =>
+                $b . 'que las técnicas de movilización y manipulación articular pueden causar dolor o rigidez temporales y, de forma '
+                . 'muy rara, complicaciones más serias. Se descartaron las contraindicaciones conocidas. Autorizo su aplicación.',
+            'Consentimiento para fotografía y video clínico' =>
+                'Yo, {paciente}, autorizo a {consultorio} a tomar fotografías y videos de mi postura, marcha y ejercicios con fines '
+                . 'clínicos y de seguimiento. Se guardan en mi expediente y no se publican sin mi autorización por escrito.',
         ];
     case 'pediatria':
         return [
