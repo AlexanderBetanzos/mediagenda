@@ -3143,6 +3143,17 @@ function resumen_verticales(int $pid): array
         $out[] = ['icon'=>'bi-chat-heart','color'=>'#7c3aed','label'=>t('Psicología'),
                   'value'=>$v ? implode(' · ', $v) : t('sesión registrada'), 'url'=>'/psicologia/index?paciente_id=' . $pid];
     }
+    // Dental: tratamientos pendientes de la carta y último periodontograma.
+    if ($r = $one("SELECT COUNT(DISTINCT diente, estado) n FROM odontograma_marcas WHERE paciente_id=? AND consultorio_id=? AND condicion='requerido'", [$pid, $tid])) {
+        $pp = $one("SELECT bop_pct FROM dental_perio WHERE paciente_id=? AND consultorio_id=? ORDER BY fecha DESC, id DESC LIMIT 1", [$pid, $tid]);
+        if ((int) $r['n'] > 0 || $pp) {
+            $v = [];
+            if ((int) $r['n'] > 0) $v[] = (int) $r['n'] . ' ' . t('tratamientos por hacer');
+            if ($pp && $pp['bop_pct'] !== null) $v[] = 'BOP ' . (float) $pp['bop_pct'] . '%';
+            $out[] = ['icon'=>'bi-emoji-smile','color'=>'#0ea5e9','label'=>t('Dental'),
+                      'value'=>implode(' · ', $v), 'url'=>'/dental/index?paciente_id=' . $pid];
+        }
+    }
     // Fisioterapia: diagnóstico vigente, sesiones y último dolor registrado.
     if ($r = $one("SELECT COUNT(*) n, MAX(fecha) f FROM fisio_notas WHERE paciente_id=? AND consultorio_id=?", [$pid, $tid])) {
         $vf = $one("SELECT tipo, region, eva FROM fisio_valoraciones WHERE paciente_id=? AND consultorio_id=? ORDER BY fecha DESC, id DESC LIMIT 1", [$pid, $tid]);

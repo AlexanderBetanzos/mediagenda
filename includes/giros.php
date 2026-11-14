@@ -24,7 +24,8 @@ function giros(): array
 
     // Accesos de especialidad: [ruta del módulo por paciente, etiqueta, icono].
     $A = [
-        'odontograma'  => ['/odontograma/index', 'Odontograma', 'bi-emoji-smile'],
+        'dental'       => ['/dental/index', 'Expediente dental', 'bi-clipboard2-heart'],
+        'odontograma'  => ['/dental/carta', 'Carta dental', 'bi-emoji-smile'],
         'psicologia'   => ['/psicologia/index', 'Psicología', 'bi-chat-heart'],
         'nutricion'    => ['/nutricion/index', 'Nutrición', 'bi-egg-fried'],
         'crecimiento'  => ['/crecimiento/index', 'Crecimiento', 'bi-graph-up-arrow'],
@@ -83,8 +84,8 @@ function giros(): array
     return $g = [
         'medico' => ['nombre' => 'Medicina general', 'icono' => 'bi-heart-pulse', 'desc' => 'Consultorio médico, de cualquier especialidad.',
                      'staff' => 'Médicos', 'accesos' => ['crecimiento'], 'vocab' => []],
-        'dental' => ['nombre' => 'Odontología', 'icono' => 'bi-emoji-smile', 'desc' => 'Odontograma al frente y pacientes dentales por omisión.',
-                     'staff' => 'Odontólogos', 'accesos' => ['odontograma'], 'tipo' => 'dental',
+        'dental' => ['nombre' => 'Odontología', 'icono' => 'bi-emoji-smile', 'desc' => 'Carta dental, fotos clínicas, periodontograma y plan de tratamiento.',
+                     'staff' => 'Odontólogos', 'accesos' => ['dental', 'odontograma'], 'tipo' => 'dental',
                      'vocab' => ['Médicos' => 'Odontólogos', 'Médico' => 'Odontólogo', 'Nuevo médico' => 'Nuevo odontólogo',
                                  'médicos' => 'odontólogos']],
         'psicologia' => ['nombre' => 'Psicología', 'icono' => 'bi-chat-heart', 'desc' => 'Habla de sesiones, con la nota psicológica a un clic.',

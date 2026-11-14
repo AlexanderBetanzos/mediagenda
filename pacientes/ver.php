@@ -391,7 +391,10 @@ include __DIR__ . '/../includes/header.php';
             if ($ruta === '/crecimiento/index' && es_veterinaria()) continue;
             $esp[$ruta] = [BASE_URL . $ruta . $pid, $ic, t($lbl)];
         }
-        if ($p['tipo'] === 'dental' && giro_aplica('odontograma')) $esp['/odontograma/index'] = [BASE_URL . '/odontograma/index' . $pid, 'bi-emoji-smile', t('Odontograma')];
+        if ($p['tipo'] === 'dental' && giro_aplica('odontograma')) {
+            $esp['/dental/index'] = [BASE_URL . '/dental/index' . $pid, 'bi-clipboard2-heart', t('Expediente dental')];
+            $esp['/dental/carta'] = [BASE_URL . '/dental/carta' . $pid, 'bi-emoji-smile', t('Carta dental')];
+        }
         if (giro_aplica('crecimiento')) $esp['/crecimiento/index'] = [BASE_URL . '/crecimiento/index' . $pid, 'bi-graph-up-arrow', t('Crecimiento')];
     }
     $esp = array_values($esp);

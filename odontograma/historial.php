@@ -47,7 +47,7 @@ include __DIR__ . '/../includes/header.php';
     <h1 class="h3 mb-0"><i class="bi bi-clock-history text-brand"></i> <?= et('Historial del odontograma') ?></h1>
     <div class="no-print">
         <button type="button" onclick="window.print()" class="btn btn-outline-secondary btn-sm"><i class="bi bi-printer"></i> <?= et('Imprimir / PDF') ?></button>
-        <a href="<?= BASE_URL ?>/odontograma/index?paciente_id=<?= $pid ?>" class="btn btn-primary btn-sm"><i class="bi bi-pencil"></i> <?= et('Editar odontograma') ?></a>
+        <a href="<?= BASE_URL ?>/dental/carta?paciente_id=<?= $pid ?>" class="btn btn-primary btn-sm"><i class="bi bi-pencil"></i> <?= et('Editar en la carta dental') ?></a>
     </div>
 </div>
 

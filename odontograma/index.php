@@ -10,6 +10,9 @@ require_modulo('especialidades');
 if (!has_role('medico', 'admin')) { http_response_code(403); die('Solo médico o admin.'); }
 
 $pid = (int) ($_GET['paciente_id'] ?? $_POST['paciente_id'] ?? 0);
+// La carta dental (dientes dibujados, arcada y plan con precios) es la vista
+// principal; esta rejilla por caras sigue disponible con ?clasica=1.
+if ($_SERVER['REQUEST_METHOD'] !== 'POST' && empty($_GET['clasica'])) redirect('/dental/carta?paciente_id=' . $pid);
 $pac = db()->prepare('SELECT * FROM pacientes WHERE id = ? AND consultorio_id = ?');
 $pac->execute([$pid, tenant_id()]);
 $pac = $pac->fetch();
@@ -27,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     );
     auditar('odontograma', 'paciente', $pid);
     flash(t('Odontograma guardado.'));
-    redirect('/odontograma/index?paciente_id=' . $pid);
+    redirect('/odontograma/index?clasica=1&paciente_id=' . $pid);
 }
 
 $estado     = odo_cargar($pid);
@@ -62,6 +65,7 @@ include __DIR__ . '/../includes/header.php';
             </button>
         </form>
         <?php endif; ?>
+        <a href="<?= BASE_URL ?>/dental/carta?paciente_id=<?= $pid ?>" class="btn btn-primary btn-sm"><i class="bi bi-stars"></i> <?= et('Carta dental') ?></a>
         <button type="button" onclick="window.print()" class="btn btn-outline-secondary btn-sm"><i class="bi bi-printer"></i> <?= et('Imprimir / PDF') ?></button>
     </div>
 </div>

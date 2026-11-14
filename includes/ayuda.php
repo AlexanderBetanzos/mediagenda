@@ -275,10 +275,12 @@ function ayuda_textos(): array
             'En el expediente, el menú <b>Especialidad</b> tiene herramientas por área (cardiología, dermatología, prenatal…).',
             'Las curvas de <b>Crecimiento</b> están a un clic para tus pacientes pediátricos.',
         ]],
-        'dental' => ['Tu panel dental', 'Pensado para odontología: el odontograma va al frente.', [
-            'Al registrar un paciente queda como <b>dental</b> automáticamente.',
-            'En su expediente, el botón <b>Odontograma</b> marca piezas, caras y tratamientos, con historial.',
-            'Usa <b>Presupuestos</b> para cotizar el plan de tratamiento y llevar los abonos.',
+        'dental' => ['Tu panel dental', 'Carta dental, fotos clínicas, periodontograma y plan de tratamiento.', [
+            'En la ficha, <b>Expediente dental</b> reúne alertas médicas, plan pendiente, periodonto, fotos y notas.',
+            'La <b>carta dental</b> dibuja cada pieza (corona, raíz y caras): elige Planeado, Realizado o Existente, un procedimiento y toca el diente. Cambia a vista de <b>arcada</b> cuando quieras.',
+            'Sube la <b>serie fotográfica</b> desde el celular y compara antes / después con el deslizador.',
+            'El <b>periodontograma</b> captura 6 sitios por diente con avance automático y calcula sangrado, placa y bolsas.',
+            'Del plan sale el <b>presupuesto</b> con precios de tu catálogo; al registrar la nota de evolución, el tratamiento se marca realizado.',
         ]],
         'psicologia' => ['Tu panel de psicología', 'El panel habla de <b>sesiones</b> y pone tu nota psicológica a un clic.', [
             'En el expediente del paciente, el botón <b>Psicología</b> abre el registro de sesión.',

@@ -44,7 +44,7 @@ $acento = color_acento();
             <?php if (cfg('marca_logo')): ?>
                 <img src="<?= e(cfg('marca_logo')) ?>" alt="" style="max-height:60px;max-width:220px;width:auto;object-fit:contain">
             <?php else: ?>
-                <i class="bi bi-person-walking acento" style="font-size:2.4rem"></i>
+                <i class="bi <?= e($hojaIcono ?? 'bi-person-walking') ?> acento" style="font-size:2.4rem"></i>
             <?php endif; ?>
             <div>
                 <h1 class="h4 mb-0 acento"><?= e(marca_nombre()) ?></h1>
