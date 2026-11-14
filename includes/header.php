@@ -121,7 +121,7 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
     <div class="d-none d-md-block col-md-3 col-lg-2"></div>
     <?php require_once __DIR__ . '/ayuda.php'; /* mini-tutoriales: el "?" junto al título */ ?>
     <?php require_once __DIR__ . '/ui.php';    /* franja de indicadores por sección */ ?>
-    <h1 class="app-page-title h5 fw-bold mb-0 ps-1 d-none d-md-flex align-items-center gap-2 text-truncate"><?= e($titulo) ?> <?= ayuda_btn('page:' . ($activo ?? '')) ?></h1>
+    <h1 class="app-page-title h5 fw-bold mb-0 ps-1 d-none d-md-flex align-items-center gap-2 text-truncate"><?= e($titulo) ?> <?= ayuda_btn(ayuda_clave_pagina()) ?></h1>
 
     <div class="navbar-nav flex-row ms-auto align-items-center gap-3 px-3">
         <div class="topbar-clock text-end lh-1 d-none d-sm-block">

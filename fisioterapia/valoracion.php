@@ -184,7 +184,7 @@ $sel = fn ($opts, $cur) => implode('', array_map(fn ($o) => '<option value="' . 
 </div></div>
 
 <div class="card mb-3 fv-sec" id="s-rom"><div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-    <span><i class="bi bi-rulers text-brand"></i> <?= et('Goniometría (arcos de movimiento, en grados)') ?></span>
+    <span><i class="bi bi-rulers text-brand"></i> <?= et('Goniometría (arcos de movimiento, en grados)') ?> <?= ayuda_btn('fisio.goniometria') ?></span>
     <span class="d-flex gap-1"><button type="button" class="btn btn-sm btn-outline-primary" id="romCargar"><i class="bi bi-magic"></i> <?= et('Cargar movimientos de la región') ?></button>
     <button type="button" class="btn btn-sm btn-light" data-add="rom"><i class="bi bi-plus"></i> <?= et('Fila') ?></button></span>
 </div><div class="card-body p-2"><div class="table-responsive">
@@ -239,7 +239,7 @@ $sel = fn ($opts, $cur) => implode('', array_map(fn ($o) => '<option value="' . 
 </div></div>
 
 <div class="card mb-3 fv-sec" id="s-esc"><div class="card-header d-flex justify-content-between align-items-center">
-    <span><i class="bi bi-speedometer2 text-brand"></i> <?= et('Escalas funcionales') ?></span>
+    <span><i class="bi bi-speedometer2 text-brand"></i> <?= et('Escalas funcionales') ?> <?= ayuda_btn('fisio.escalas') ?></span>
     <button type="button" class="btn btn-sm btn-light" data-add="esc"><i class="bi bi-plus"></i> <?= et('Fila') ?></button>
 </div><div class="card-body p-2">
     <datalist id="dlEscalas"><?php foreach (fisio_escalas() as $n => [$max]): ?><option value="<?= e($n) ?>"><?= $max ? '0-' . $max : '' ?></option><?php endforeach; ?></datalist>

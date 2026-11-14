@@ -24,7 +24,7 @@
         </div>
     </div>
 </div>
-<button type="button" class="ayuda-fab" data-ayuda="<?= e('page:' . ($activo ?? '')) ?>" title="<?= e(t('Ayuda')) ?>" aria-label="<?= e(t('Ayuda')) ?>"><i class="bi bi-question-lg"></i></button>
+<button type="button" class="ayuda-fab" data-ayuda="<?= e(ayuda_clave_pagina()) ?>" title="<?= e(t('Ayuda')) ?>" aria-label="<?= e(t('Ayuda')) ?>"><i class="bi bi-question-lg"></i></button>
 <style>
 .btn-ayuda { border: 0; background: transparent; padding: 0 .1rem; line-height: 1; color: var(--brand); opacity: .75; font-size: 1.05rem; cursor: pointer; transition: opacity .2s, transform .2s; }
 .btn-ayuda:hover { opacity: 1; transform: scale(1.12); }
@@ -68,7 +68,7 @@ function setTema(pref) {
 /* ── Ayuda: modal flotante de los "?" y centro de ayuda (de Khronos) ── */
 (function () {
     var AYUDA = <?= json_encode(ayuda_textos(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) ?>;
-    var PAGINA = <?= json_encode('page:' . ($activo ?? '')) ?>;
+    var PAGINA = <?= json_encode(ayuda_clave_pagina()) ?>;
     var el = document.getElementById('ayudaModal');
     if (!el || !window.bootstrap) return;
     var modal = bootstrap.Modal.getOrCreateInstance(el);

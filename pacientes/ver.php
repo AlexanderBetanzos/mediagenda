@@ -564,7 +564,7 @@ echo ui_stats($__est); ?>
 
         <?php if (modulo_activo('portal') && has_role('admin', 'medico', 'recepcion')): ?>
         <div class="card mt-4">
-            <div class="card-header bg-white fw-semibold"><i class="bi bi-person-lock text-brand"></i> <?= et('Portal del paciente') ?></div>
+            <div class="card-header bg-white fw-semibold"><i class="bi bi-person-lock text-brand"></i> <?= et('Portal del paciente') ?> <?= ayuda_btn('paciente.portal') ?></div>
             <div class="card-body">
                 <?php if ($p['portal_activo']): ?>
                     <p class="mb-2"><span class="badge bg-success"><?= et('Activo') ?></span> <?= et('El paciente entra con su correo.') ?></p>
@@ -749,6 +749,7 @@ echo ui_stats($__est); ?>
                         <button class="btn btn-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#formConsulta">
                             <i class="bi bi-plus-lg"></i> <?= et('Nueva consulta') ?>
                         </button>
+                        <?= ayuda_btn('paciente.consulta') ?>
                     </div>
                     <?php endif; ?>
                 </div>
@@ -810,7 +811,7 @@ echo ui_stats($__est); ?>
                             <div class="border rounded p-3 mb-3" style="background:rgba(127,127,127,.06)">
                                 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
                                     <span class="fw-semibold small">
-                                        <i class="bi bi-stars text-brand"></i> <?= et('Dicta o pega tus notas y la IA las acomoda') ?>
+                                        <i class="bi bi-stars text-brand"></i> <?= et('Dicta o pega tus notas y la IA las acomoda') ?> <?= ayuda_btn('paciente.ia') ?>
                                     </span>
                                     <span class="small text-muted" id="iaRestantes">
                                         <?= (int) ia_restantes() ?> <?= et('de este mes') ?>
@@ -1058,7 +1059,7 @@ echo ui_stats($__est); ?>
                 <?php endif; ?>
 
                 <div class="card">
-                    <div class="card-header bg-white fw-semibold"><i class="bi bi-capsule text-brand"></i> <?= et('Medicamentos actuales') ?></div>
+                    <div class="card-header bg-white fw-semibold"><i class="bi bi-capsule text-brand"></i> <?= et('Medicamentos actuales') ?> <?= ayuda_btn('paciente.medicamentos') ?></div>
                     <div class="table-responsive">
                         <table class="table align-middle mb-0">
                             <thead class="table-light"><tr><th><?= et('Medicamento') ?></th><th><?= et('Dosis') ?></th><th><?= et('Frecuencia') ?></th><th><?= et('Vía') ?></th><th><?= et('Desde') ?></th><th><?= et('Estado') ?></th><?php if (has_role('medico','admin')): ?><th></th><?php endif; ?></tr></thead>
@@ -1098,6 +1099,7 @@ echo ui_stats($__est); ?>
                     <button class="btn btn-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#formArchivo">
                         <i class="bi bi-cloud-upload"></i> <?= et('Subir archivo') ?>
                     </button>
+                    <?= ayuda_btn('paciente.archivos') ?>
                 </div>
                 <div class="collapse mb-4" id="formArchivo">
                     <div class="card card-body">

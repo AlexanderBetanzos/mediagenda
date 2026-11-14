@@ -18,6 +18,8 @@
  * Si una clave no existe, ayuda_btn() no pinta nada.
  */
 
+require_once __DIR__ . '/ayuda_rutas.php';
+
 function ayuda_textos(): array
 {
     static $cache = null;
@@ -330,6 +332,13 @@ function ayuda_textos(): array
     $T['giro'] = ['titulo' => $gt, 'intro' => $gi, 'pasos' => $gp,
                   'tips' => ['¿Tu práctica es otra? Cambia la interfaz en <b>Configuración → Interfaz de tu especialidad</b>.']];
 
+    /* Guías por pantalla y por acción (includes/ayuda_rutas.php). Una entrada
+       de texto es un alias de otra clave. */
+    foreach (ayuda_textos_rutas() as $k => $v) {
+        if (is_string($v)) { if (isset($T[$v])) $T[$k] = $T[$v]; continue; }
+        $T[$k] = array_filter($v, fn ($x) => $x !== [] && $x !== '');
+    }
+
     /* Todo pasa por t(): vocabulario del giro (mascota, sesión…) e idioma. */
     foreach ($T as &$h) {
         $h['titulo'] = t($h['titulo']);
@@ -340,6 +349,26 @@ function ayuda_textos(): array
     }
     unset($h);
     return $cache = $T;
+}
+
+/**
+ * Guía de la pantalla actual: la que la página pida en $ayuda, la de su ruta
+ * ('ruta:dental/carta'), la de su carpeta ('ruta:dental') o la de su menú
+ * ('page:<activo>').
+ */
+function ayuda_clave_pagina(): string
+{
+    $T = ayuda_textos();
+    if (!empty($GLOBALS['ayuda']) && isset($T[$GLOBALS['ayuda']])) return $GLOBALS['ayuda'];
+    $root = realpath(__DIR__ . '/..');
+    $file = realpath((string) ($_SERVER['SCRIPT_FILENAME'] ?? ''));
+    if ($root && $file && strpos($file, $root) === 0) {
+        $rel = trim(str_replace('\\', '/', substr($file, strlen($root))), '/');
+        $rel = preg_replace('/\.php$/', '', $rel);
+        if (isset($T['ruta:' . $rel])) return 'ruta:' . $rel;
+        if (isset($T['ruta:' . dirname($rel)])) return 'ruta:' . dirname($rel);
+    }
+    return 'page:' . ($GLOBALS['activo'] ?? '');
 }
 
 /** Botón "?" que abre el mini-tutorial de $clave. Vacío si no hay texto. */

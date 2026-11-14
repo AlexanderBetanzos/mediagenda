@@ -108,7 +108,7 @@ dental_encabezado('Carta dental', 'bi-emoji-smile', $pac, $pid, 'carta');
 .cd-hint{font-size:.78rem}
 @media (max-width:991px){.cd-panel{position:static}}
 /* Detalle de pieza */
-.fx{position:fixed;inset:0;z-index:1065;display:flex;align-items:center;justify-content:center;padding:1rem;
+.fx{position:fixed;inset:0;z-index:1045;display:flex;align-items:center;justify-content:center;padding:1rem;
     background:linear-gradient(135deg,rgba(191,203,255,.82),rgba(226,214,255,.82));backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 .fx[hidden]{display:none}
 .fx-card{position:relative;color:#1f2937;background:rgba(255,255,255,.94);border-radius:26px;box-shadow:0 30px 90px rgba(67,56,202,.28);
@@ -177,6 +177,7 @@ dental_encabezado('Carta dental', 'bi-emoji-smile', $pac, $pid, 'carta');
         <button type="button" class="btn btn-outline-secondary" data-m="realizado"><i class="bi bi-check-circle"></i> <?= et('Realizado') ?></button>
         <button type="button" class="btn btn-outline-secondary" data-m="existente"><i class="bi bi-record-circle"></i> <?= et('Existente') ?></button>
     </div>
+    <?= ayuda_btn('dental.modos') ?>
     <div class="btn-group btn-group-sm" role="group">
         <button type="button" class="btn btn-outline-secondary active" data-view="carta"><i class="bi bi-layout-three-columns"></i> <?= et('Carta') ?></button>
         <button type="button" class="btn btn-outline-secondary" data-view="arcada"><i class="bi bi-circle-half"></i> <?= et('Arcada') ?></button>
@@ -215,7 +216,7 @@ dental_encabezado('Carta dental', 'bi-emoji-smile', $pac, $pid, 'carta');
 
     <div class="card mb-3">
         <div class="card-header bg-transparent d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <span class="fw-semibold"><i class="bi bi-list-task text-brand"></i> <?= et('Plan de tratamiento') ?></span>
+            <span class="fw-semibold"><i class="bi bi-list-task text-brand"></i> <?= et('Plan de tratamiento') ?> <?= ayuda_btn('dental.plan') ?></span>
             <div class="d-flex gap-2 align-items-center">
                 <span class="small text-muted" id="cdTotales"></span>
                 <?php if (modulo_activo('presupuestos')): ?>
@@ -254,6 +255,7 @@ dental_encabezado('Carta dental', 'bi-emoji-smile', $pac, $pid, 'carta');
 <div class="fx" id="fx" hidden role="dialog" aria-modal="true" aria-label="<?= e(t('Detalle de la pieza')) ?>">
   <div class="fx-card">
     <button type="button" class="fx-x" id="fxX" title="<?= e(t('Cerrar')) ?> (Esc)"><i class="bi bi-x-lg"></i></button>
+    <button type="button" class="fx-x" style="right:3.4rem" data-ayuda="dental.detalle" title="<?= e(t('¿Cómo funciona?')) ?>"><i class="bi bi-question-lg"></i></button>
     <div class="fx-nav" id="fxNav"></div>
     <div class="fx-views">
         <div><div class="fx-vl"><?= et('Vestibular') ?></div><svg id="fxV" viewBox="-14 -4 68 108"></svg></div>

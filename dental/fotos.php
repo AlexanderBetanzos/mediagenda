@@ -142,7 +142,7 @@ $etColor = ['inicial' => 'secondary', 'progreso' => 'info', 'final' => 'success'
         </div>
         <select class="form-select form-select-sm w-auto" id="fCat"><option value=""><?= et('Todas las vistas') ?></option><?php foreach (array_keys($vistas) as $c): ?><option><?= e($c) ?></option><?php endforeach; ?></select>
         <?php if (count($fotos) >= 2): ?>
-        <button type="button" class="btn btn-sm btn-outline-primary ms-auto" id="cmpBtn"><i class="bi bi-layout-split"></i> <?= et('Comparar antes / después') ?></button>
+        <button type="button" class="btn btn-sm btn-outline-primary ms-auto" id="cmpBtn"><i class="bi bi-layout-split"></i> <?= et('Comparar antes / después') ?></button> <?= ayuda_btn('dental.comparar') ?>
         <?php endif; ?>
     </div>
     <div class="alert alert-primary py-2 small" id="cmpHint" hidden><i class="bi bi-info-circle"></i> <?= et('Elige dos fotos: primero el "antes" y luego el "después".') ?></div>
