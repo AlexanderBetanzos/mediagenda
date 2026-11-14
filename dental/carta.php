@@ -20,12 +20,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $in = is_array($in) ? $in : [];
     odo_guardar($pid, is_array($in['marcas'] ?? null) ? $in['marcas'] : [], is_array($in['notas'] ?? null) ? $in['notas'] : [],
         mb_substr(trim((string) ($_POST['motivo'] ?? '')), 0, 120) ?: t('Carta dental'));
+    if (is_array($in['detalle'] ?? null)) dental_piezas_guardar($pid, $in['detalle']);
     auditar('odontograma', 'paciente', $pid);
     flash(t('Carta dental guardada.'));
     redirect('/dental/carta?paciente_id=' . $pid);
 }
 
 $estado = odo_cargar($pid);
+$piezas = dental_piezas($pid);
+$st = db()->prepare('SELECT datos, fecha FROM dental_perio WHERE paciente_id = ? AND consultorio_id = ? ORDER BY fecha DESC, id DESC LIMIT 1');
+$st->execute([$pid, tenant_id()]);
+$perioUlt = $st->fetch() ?: null;
 $versiones = db()->prepare('SELECT COUNT(*) FROM odontograma_historial WHERE paciente_id = ? AND consultorio_id = ?');
 $versiones->execute([$pid, tenant_id()]);
 $versiones = (int) $versiones->fetchColumn();
@@ -72,7 +77,7 @@ dental_encabezado('Carta dental', 'bi-emoji-smile', $pac, $pid, 'carta');
 .cd-tooth .hit{fill:transparent}
 .cd-tooth:hover .hit{fill:rgba(37,99,235,.06)}
 .cd-tooth.sel .hit{fill:rgba(37,99,235,.13);stroke:var(--cd-sel);stroke-width:1.2}
-.cd-face{cursor:pointer;stroke:#94a3b8;stroke-width:.8;transition:filter .12s}
+.cd-face{cursor:pointer;stroke:#d5dce6;stroke-width:.6;transition:filter .12s}
 .cd-face:hover{filter:brightness(.9)}
 .cd-face.fsel{stroke:var(--cd-sel);stroke-width:2}
 .cd-num{font:600 11px system-ui,sans-serif;fill:#64748b;text-anchor:middle}
@@ -102,6 +107,64 @@ dental_encabezado('Carta dental', 'bi-emoji-smile', $pac, $pid, 'carta');
 .cd-dirty{display:none}.cd-wrap.dirty .cd-dirty{display:inline-flex}
 .cd-hint{font-size:.78rem}
 @media (max-width:991px){.cd-panel{position:static}}
+/* Detalle de pieza */
+.fx{position:fixed;inset:0;z-index:1065;display:flex;align-items:center;justify-content:center;padding:1rem;
+    background:linear-gradient(135deg,rgba(191,203,255,.82),rgba(226,214,255,.82));backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.fx[hidden]{display:none}
+.fx-card{position:relative;color:#1f2937;background:rgba(255,255,255,.94);border-radius:26px;box-shadow:0 30px 90px rgba(67,56,202,.28);
+    width:min(1220px,100%);height:min(790px,100%);display:grid;grid-template-columns:64px minmax(230px,300px) 210px 1fr;grid-template-rows:minmax(0,1fr);overflow:hidden;animation:fxIn .22s ease-out}
+@keyframes fxIn{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
+.fx-nav{border-right:1px solid #eef0f6;overflow-y:auto;padding:.6rem 0;display:flex;flex-direction:column;align-items:center;gap:2px;scrollbar-width:none}
+.fx-nav button{border:0;background:none;width:40px;height:30px;border-radius:99px;font-size:.78rem;font-weight:600;color:#94a3b8}
+.fx-nav button.on{background:#2563eb;color:#fff;box-shadow:0 6px 14px rgba(37,99,235,.35)}
+.fx-nav button.mk{color:#e11d48}
+.fx-nav hr{width:24px;margin:.3rem 0;opacity:.2}
+.fx-views{min-height:0;display:flex;flex-direction:column;justify-content:space-between;padding:1rem .5rem;background:radial-gradient(ellipse at 50% 50%,#fff 0%,#f6f7fb 70%)}
+.fx-views>div{flex:1;min-height:0;display:flex;flex-direction:column}
+.fx-views>div:nth-child(2){flex:.62}
+.fx-views svg{width:100%;flex:1 1 0;height:0;min-height:0;cursor:pointer}
+.fx-vl{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:#94a3b8;text-align:center;font-weight:700}
+.fx-cross{border-left:1px solid #eef0f6;border-right:1px solid #eef0f6;padding:1.2rem .8rem;display:flex;flex-direction:column;align-items:center;gap:.45rem;justify-content:center;background:#fbfbfe}
+.fx-row{display:flex;gap:.4rem}
+.fx-f{border:1px solid #e5e7eb;background:#fff;border-radius:12px;padding:.5rem .55rem;font-size:.76rem;font-weight:600;color:#64748b;min-width:58px;box-shadow:0 3px 10px rgba(15,23,42,.05);transition:.12s;position:relative}
+.fx-f:hover{border-color:#c7d2fe;color:#4338ca}
+.fx-f.on{background:#fff1f2;border-color:#fda4af;color:#be123c;box-shadow:0 6px 16px rgba(244,63,94,.22)}
+.fx-f .mk{position:absolute;top:3px;right:4px;width:6px;height:6px;border-radius:50%}
+.fx-f.wide{min-width:176px}
+.fx-side{padding:1.4rem 1.5rem;overflow-y:auto}
+.fx-h{font-size:1.45rem;font-weight:800;letter-spacing:-.02em;margin:0;display:flex;align-items:center;gap:.4rem}
+.fx-back{border:0;background:none;color:#94a3b8;font-size:1.1rem;padding:0 .2rem}
+.fx-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(98px,1fr));gap:.6rem;margin:.9rem 0 1.1rem}
+.fx-tile{border:1px solid #eef0f6;border-radius:16px;background:#fff;box-shadow:0 6px 18px rgba(15,23,42,.06);padding:.85rem .4rem .7rem;text-align:center;cursor:pointer;font-size:.76rem;font-weight:600;color:#1e40af;transition:.14s}
+.fx-tile i{font-size:1.45rem;display:block;margin-bottom:.25rem;color:#3b82f6}
+.fx-tile:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(37,99,235,.14)}
+.fx-tile.on{background:#2563eb;color:#fff;border-color:#2563eb}.fx-tile.on i{color:#fff}
+.fx-lbl{font-size:.72rem;font-weight:800;color:#0f172a;margin:.9rem 0 .4rem}
+.fx-seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:.5rem}
+.fx-opt{border:1px solid #eef0f6;border-radius:14px;background:#fff;box-shadow:0 4px 12px rgba(15,23,42,.05);padding:.6rem .5rem;font-size:.8rem;font-weight:600;color:#475569}
+.fx-opt.on{background:#2563eb;color:#fff;border-color:#2563eb;box-shadow:0 8px 18px rgba(37,99,235,.3)}
+.fx-acts{display:flex;gap:.5rem;margin-top:1.2rem}
+.fx-acts .btn{border-radius:14px;padding:.6rem 1rem;font-weight:700;flex:1}
+.fx-sum{background:#f6f7fb;border-radius:14px;padding:.7rem .8rem;font-size:.82rem;color:#334155}
+.fx-mk{display:flex;align-items:center;gap:.5rem;padding:.35rem 0;border-bottom:1px solid #eef0f6;font-size:.82rem}
+.fx-endo{display:grid;grid-template-columns:1fr 1fr;gap:.35rem .8rem}
+.fx-endo label{font-size:.78rem;color:#475569;display:flex;align-items:center;gap:.35rem}
+.fx-endo select{font-size:.75rem;padding:.15rem 1.6rem .15rem .4rem;border-radius:8px}
+.fx-perio{display:grid;grid-template-columns:repeat(3,1fr);gap:.4rem}
+.fx-perio div{border:1px solid #eef0f6;border-radius:12px;background:#fff;text-align:center;padding:.35rem .2rem;font-size:.68rem;color:#64748b}
+.fx-perio b{display:block;font-size:.95rem;color:#0f172a}.fx-perio b.w{color:#dc2626}
+.fx-x{position:absolute;top:.8rem;right:.9rem;z-index:2;border:0;background:#f1f5f9;border-radius:50%;width:36px;height:36px;color:#475569}
+.fx-tag{display:inline-flex;align-items:center;justify-content:center;min-width:44px;height:44px;border-radius:14px;background:#2563eb;color:#fff;font-weight:800;font-size:1.1rem;box-shadow:0 8px 18px rgba(37,99,235,.3)}
+.fx-toast{position:absolute;left:50%;bottom:1rem;transform:translateX(-50%);background:#0f172a;color:#fff;border-radius:99px;padding:.45rem 1rem;font-size:.8rem;opacity:0;transition:.2s;pointer-events:none}
+.fx-toast.on{opacity:.92}
+.fx-face{cursor:pointer}.fx-face:hover{fill:rgba(99,102,241,.12)}
+@media (max-width:991px){
+  .fx{padding:0}.fx-card{border-radius:0;height:100%;grid-template-columns:1fr;grid-template-rows:auto auto auto 1fr;overflow-y:auto}
+  .fx-nav{flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid #eef0f6;padding:.4rem .6rem}
+  .fx-nav hr{display:none}
+  .fx-views{flex-direction:row;height:240px}.fx-views svg{height:auto}.fx-views>div{flex:1;display:flex;flex-direction:column}
+  .fx-cross{border:0}.fx-side{overflow:visible}
+}
 </style>
 
 <div class="cd-wrap" id="cd">
@@ -188,6 +251,21 @@ dental_encabezado('Carta dental', 'bi-emoji-smile', $pac, $pid, 'carta');
 </form>
 </div>
 
+<div class="fx" id="fx" hidden role="dialog" aria-modal="true" aria-label="<?= e(t('Detalle de la pieza')) ?>">
+  <div class="fx-card">
+    <button type="button" class="fx-x" id="fxX" title="<?= e(t('Cerrar')) ?> (Esc)"><i class="bi bi-x-lg"></i></button>
+    <div class="fx-nav" id="fxNav"></div>
+    <div class="fx-views">
+        <div><div class="fx-vl"><?= et('Vestibular') ?></div><svg id="fxV" viewBox="-14 -4 68 108"></svg></div>
+        <div><div class="fx-vl"><?= et('Oclusal') ?></div><svg id="fxO" viewBox="-4 -4 48 48"></svg></div>
+        <div><svg id="fxL" viewBox="-14 -4 68 108"></svg><div class="fx-vl"><?= et('Lingual / palatina') ?></div></div>
+    </div>
+    <div class="fx-cross" id="fxCross"></div>
+    <div class="fx-side" id="fxSide"></div>
+    <div class="fx-toast" id="fxToast"></div>
+  </div>
+</div>
+
 <script>
 (function () {
 'use strict';
@@ -215,6 +293,10 @@ var T = <?= json_encode([
     'evol' => t('Registrar nota de evolución'),
 ], JSON_UNESCAPED_UNICODE) ?>;
 var EVOL_URL = <?= json_encode(BASE_URL . '/dental/evolucion?paciente_id=' . $pid) ?>;
+var DET = <?= json_encode((object) $piezas, JSON_UNESCAPED_UNICODE) ?>;
+var PERIO = <?= $perioUlt ? ($perioUlt['datos'] ?: '{}') : '{}' ?>;
+var PERIO_FECHA = <?= json_encode($perioUlt ? fmt_fecha($perioUlt['fecha']) : '') ?>;
+var PERIO_URL = <?= json_encode(BASE_URL . '/dental/perio?paciente_id=' . $pid) ?>;
 
 var SUP = [18,17,16,15,14,13,12,11,21,22,23,24,25,26,27,28];
 var INF = [48,47,46,45,44,43,42,41,31,32,33,34,35,36,37,38];
@@ -247,12 +329,12 @@ function visible(cond) { return filtro === 'todo' || filtro === cond; }
 function colorDe(cond, est) { return cond === 'requerido' ? COL.plan : cond === 'realizado' ? COL.done : (HALL[est] ? HALL[est].color : '#94a3b8'); }
 function dinero(n) { return MONEDA.replace(/[\d.,]+/, Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })); }
 
-function snapshot() { return JSON.stringify({ m: marcas, n: notas }); }
+function snapshot() { return JSON.stringify({ m: marcas, n: notas, x: DET }); }
 function cambio(fn) {
     hist.push(snapshot()); if (hist.length > 80) hist.shift(); redo = [];
     fn(); sucio = true; render();
 }
-function restaurar(s) { var o = JSON.parse(s); marcas = o.m; notas = o.n; sucio = true; render(); }
+function restaurar(s) { var o = JSON.parse(s); marcas = o.m; notas = o.n; DET = o.x || DET; sucio = true; render(); }
 
 /* ---------------- formas de diente ----------------
  * Diente "inferior" (corona arriba, raíz abajo) en una caja de 40×100.
@@ -268,7 +350,23 @@ var FORMAS = {
            raiz:   ['M5,39 C6,57 8,79 11,90 C14,82 16,62 18,46 L22,46 C24,62 26,82 29,90 C32,79 34,57 35,39 Z'], canal: ['M11.5,44 C12,60 11.5,74 11,86', 'M28.5,44 C28,60 28.5,74 29,86'] }
 };
 
-function dibujaLateral(g, d, sup) {
+/* Encía (roja) y cresta ósea (azul) según el último periodontograma; si no
+ * hay sondaje, posición normal (margen 1 mm sobre la unión, hueso a 2 mm). */
+function encia(t, d, lado) {
+    var x = PERIO[d] || {}, K = 3.2, b = lado === 'l' ? 3 : 0;
+    var orden = mesialDer(d) ? [b + 2, b + 1, b] : [b, b + 1, b + 2];   // izquierda → derecha en pantalla
+    var gy = [], by = [];
+    orden.forEach(function (s) {
+        var mg = x.mg && x.mg[s] !== '' && x.mg[s] != null ? +x.mg[s] : -0.6, ps = x.ps && x.ps[s] !== '' && x.ps[s] != null ? +x.ps[s] : 2;
+        gy.push(40 + mg * K); by.push(40 + (mg + ps + 1) * K);
+    });
+    var curva = function (ys, pap) { return 'M-8,' + (ys[0] - pap) + ' C2,' + (ys[0] - pap) + ' 4,' + ys[0] + ' 9,' + ys[0] + ' S16,' + (ys[1] + 1.5) + ' 20,' + (ys[1] + 1.5) + ' S28,' + ys[2] + ' 31,' + ys[2] + ' S38,' + (ys[2] - pap) + ' 48,' + (ys[2] - pap); };
+    el('path', { d: curva(by, 2), fill: 'none', stroke: '#60a5fa', 'stroke-width': 2.4, opacity: .55, 'stroke-linecap': 'round' }, t);
+    el('path', { d: curva(gy, 5), fill: 'none', stroke: '#e11d48', 'stroke-width': 1.3, opacity: .85, 'stroke-linecap': 'round' }, t);
+}
+
+function dibujaLateral(g, d, sup, op) {
+    op = op || {};
     var f = FORMAS[clase(d)];
     var c = (marcas[d] || {}).C || {};
     var ausente = c.existente === 'ausente' && visible('existente');
@@ -309,9 +407,13 @@ function dibujaLateral(g, d, sup) {
         if (visible('realizado') && m.realizado === 'obturacion') hayObt = COL.done;
         if (visible('requerido') && m.requerido === 'obturacion') hayObt = hayObt || COL.plan;
     });
-    if (hayObt) el('path', { d: 'M13,14 Q20,10 27,14 L26,24 Q20,27 14,24 Z', fill: hayObt, opacity: .85 }, t);
-    if (hayCaries) el('circle', { cx: 24, cy: 14, r: 4.2, fill: HALL.caries.color, opacity: .9 }, t);
-    if (hayFract) el('path', { d: 'M9,10 L15,16 L12,20 L19,26', stroke: HALL.fractura.color, 'stroke-width': 1.8, fill: 'none' }, t);
+    if (!op.grande) {
+        if (hayObt) el('path', { d: 'M13,14 Q20,10 27,14 L26,24 Q20,27 14,24 Z', fill: hayObt, opacity: .85 }, t);
+        if (hayCaries) el('circle', { cx: 24, cy: 14, r: 4.2, fill: HALL.caries.color, opacity: .9 }, t);
+        if (hayFract) el('path', { d: 'M9,10 L15,16 L12,20 L19,26', stroke: HALL.fractura.color, 'stroke-width': 1.8, fill: 'none' }, t);
+    }
+    if (!ausente) encia(t, d, op.lado || 'v');
+    if (op.regiones) op.regiones(t, f);
     // Extracción planeada: X roja sobre todo el diente
     if (visible('requerido') && c.requerido === 'extraccion') {
         el('path', { d: 'M5,5 L35,95 M35,5 L5,95', stroke: COL.plan, 'stroke-width': 2.6, 'stroke-linecap': 'round' }, g);
@@ -319,40 +421,57 @@ function dibujaLateral(g, d, sup) {
     if (ausente) el('path', { d: 'M8,20 L32,80 M32,20 L8,80', stroke: '#94a3b8', 'stroke-width': 1.5 }, g);
 }
 
-/* Vista oclusal: anillo de 4 caras + centro, radio 15, centro (20,20). */
-function arco(r1, r2, a1, a2) {
-    var rad = Math.PI / 180, p = function (r, a) { return [20 + r * Math.cos(a * rad), 20 + r * Math.sin(a * rad)]; };
-    var A = p(r2, a1), B = p(r2, a2), C = p(r1, a2), D = p(r1, a1);
-    return 'M' + A + ' A' + r2 + ',' + r2 + ' 0 0 1 ' + B + ' L' + C + ' A' + r1 + ',' + r1 + ' 0 0 0 ' + D + ' Z';
-}
+/* Vista oclusal con la silueta de cada tipo de diente (caja 40×40) y sus
+ * cinco caras recortadas dentro de ella. */
+var OCL = {
+    inc: 'M5,17 C5,11 12,9.5 20,9.5 C28,9.5 35,11 35,17 C35,24 27,29.5 20,29.5 C13,29.5 5,24 5,17 Z',
+    can: 'M20,5 C27,8.5 33.5,14.5 33,21 C32,28 25.5,34 20,35 C14.5,34 8,28 7,21 C6.5,14.5 13,8.5 20,5 Z',
+    pre: 'M9,9.5 C14,5.5 26,5.5 31,9.5 C35.5,14 35.5,26 31,30.5 C26,34.5 14,34.5 9,30.5 C4.5,26 4.5,14 9,9.5 Z',
+    mol: 'M7,5.5 C14,3 26,3 33,5.5 C37,9.5 37.5,30 33.5,34.5 C26,37.5 14,37.5 6.5,34.5 C2.5,30 3,9.5 7,5.5 Z'
+};
+var FISURA = {
+    inc: '', can: 'M14,20 Q20,17 26,20',
+    pre: 'M12,20 Q16,17.5 20,20 Q24,22.5 28,20',
+    mol: 'M10,15 L16,20 L10,26 M16,20 L24,20 M24,20 L30,14 M24,20 L30,26 M20,9 L20,31'
+};
+var REG = { top: 'M0,0 L40,0 L27,13.5 L13,13.5 Z', right: 'M40,0 L40,40 L27,26.5 L27,13.5 Z',
+            bottom: 'M40,40 L0,40 L13,26.5 L27,26.5 Z', left: 'M0,40 L0,0 L13,13.5 L13,26.5 Z' };
+var clipN = 0;
 function carasPos(d, sup) {
     // arriba / abajo: vestibular hacia fuera de la boca; mesial hacia la línea media.
     var md = mesialDer(d);
     return { top: sup ? 'V' : 'L', bottom: sup ? 'L' : 'V', right: md ? 'M' : 'D', left: md ? 'D' : 'M' };
 }
-function dibujaOclusal(g, d, sup) {
-    var pos = carasPos(d, sup), r1 = 6.5, r2 = 15.5;
-    var segs = { top: arco(r1, r2, -135, -45), right: arco(r1, r2, -45, 45), bottom: arco(r1, r2, 45, 135), left: arco(r1, r2, 135, 225) };
+function dibujaOclusal(g, d, sup, selFn) {
+    var pos = carasPos(d, sup), cl = clase(d), id = 'oc' + (++clipN);
+    var silueta = OCL[cl], tr = sup ? '' : 'translate(0,40) scale(1,-1)';
     var c = (marcas[d] || {}).C || {};
     var ausente = c.existente === 'ausente' && visible('existente');
-    var og = el('g', { opacity: ausente ? .25 : 1 }, g);
-    Object.keys(segs).forEach(function (k) { cara(og, d, pos[k], segs[k]); });
-    cara(og, d, 'O', null);
-    // Estado de diente completo: aro exterior
+    var cp = el('clipPath', { id: id }, g); el('path', { d: silueta, transform: tr }, cp);
+    var og = el('g', { opacity: ausente ? .22 : 1 }, g);
+    el('path', { d: silueta, transform: tr, fill: 'url(#gOcl)', stroke: '#b8c3d1', 'stroke-width': 1 }, og);
+    var rg = el('g', { 'clip-path': 'url(#' + id + ')' }, og);
+    Object.keys(REG).forEach(function (k) { cara(rg, d, pos[k], REG[k], selFn); });
+    cara(rg, d, 'O', null, selFn);
+    if (FISURA[cl]) el('path', { d: FISURA[cl], fill: 'none', stroke: '#c5ced9', 'stroke-width': .9, 'pointer-events': 'none', 'stroke-linecap': 'round' }, rg);
+    el('path', { d: silueta, transform: tr, fill: 'none', stroke: '#aab6c6', 'stroke-width': 1, 'pointer-events': 'none' }, og);
+    // Estado de diente completo: contorno de color
     ['existente', 'realizado', 'requerido'].forEach(function (cond) {
         var est = c[cond]; if (!est || !visible(cond) || est === 'ausente') return;
-        el('circle', { cx: 20, cy: 20, r: 17.6, fill: 'none', stroke: colorDe(cond, est), 'stroke-width': 2.2,
-            'stroke-dasharray': cond === 'requerido' ? '3 2' : '' }, og);
+        el('path', { d: silueta, transform: (tr ? tr + ' ' : '') + 'translate(20,20) scale(1.12) translate(-20,-20)', fill: 'none', stroke: colorDe(cond, est), 'stroke-width': 2,
+            'stroke-dasharray': cond === 'requerido' ? '3 2' : '', 'pointer-events': 'none' }, og);
     });
 }
-function cara(g, d, k, path) {
+function cara(g, d, k, path, selFn) {
     var m = marcas[d] && marcas[d][k] ? marcas[d][k] : {};
-    var base = (visible('existente') && m.existente && HALL[m.existente]) ? HALL[m.existente].color : '#fff';
-    var attrs = { 'class': 'cd-face' + (caraSelDe(d, k) ? ' fsel' : ''), fill: base, 'data-d': d, 'data-c': k };
-    var n = path ? el('path', Object.assign({ d: path }, attrs), g) : el('circle', Object.assign({ cx: 20, cy: 20, r: 6.5 }, attrs), g);
-    var shape = function (fill) { return path ? el('path', { d: path, fill: fill, 'pointer-events': 'none' }, g) : el('circle', { cx: 20, cy: 20, r: 6.5, fill: fill, 'pointer-events': 'none' }, g); };
-    if (visible('realizado') && m.realizado) shape('url(#pDone)');
-    if (visible('requerido') && m.requerido) shape('url(#pPlan)');
+    var base = (visible('existente') && m.existente && HALL[m.existente]) ? HALL[m.existente].color : 'transparent';
+    var on = selFn ? selFn(d, k) : caraSelDe(d, k);
+    var attrs = { 'class': 'cd-face' + (on ? ' fsel' : ''), fill: base, 'fill-opacity': base === 'transparent' ? 1 : .8, 'data-d': d, 'data-c': k };
+    var mk = function (extra) { return path ? el('path', Object.assign({ d: path }, extra), g) : el('rect', Object.assign({ x: 13, y: 13.5, width: 14, height: 13, rx: 4.5 }, extra), g); };
+    var n = mk(attrs);
+    if (visible('realizado') && m.realizado) mk({ fill: 'url(#pDone)', 'pointer-events': 'none' });
+    if (visible('requerido') && m.requerido) mk({ fill: 'url(#pPlan)', 'pointer-events': 'none' });
+    if (on) mk({ fill: 'rgba(244,63,94,.22)', 'pointer-events': 'none' });
     var tt = el('title', {}, n); tt.textContent = d + ' · ' + T.caras[k];
 }
 function caraSelDe(d, k) { return sel.indexOf(String(d)) !== -1 && caraSel[k]; }
@@ -374,6 +493,10 @@ function defs(svg) {
     el('stop', { offset: '0', 'stop-color': '#93c5fd' }, g3); el('stop', { offset: '1', 'stop-color': '#2563eb' }, g3);
     var g4 = el('radialGradient', { id: 'gDiente', cx: '.4', cy: '.35', r: '.85' }, d);
     el('stop', { offset: '0', 'stop-color': '#ffffff' }, g4); el('stop', { offset: '1', 'stop-color': '#dfe6ee' }, g4);
+    var g6 = el('radialGradient', { id: 'gOcl', cx: '.42', cy: '.38', r: '.75' }, d);
+    el('stop', { offset: '0', 'stop-color': '#ffffff' }, g6); el('stop', { offset: '.7', 'stop-color': '#f1f4f8' }, g6); el('stop', { offset: '1', 'stop-color': '#dde3eb' }, g6);
+    var fl = el('filter', { id: 'fSh', x: '-30%', y: '-30%', width: '160%', height: '160%' }, d);
+    el('feDropShadow', { dx: 0, dy: 3, stdDeviation: 3, 'flood-color': '#4f46e5', 'flood-opacity': .16 }, fl);
     var g5 = el('radialGradient', { id: 'gEncia', cx: '.5', cy: '.5', r: '.6' }, d);
     el('stop', { offset: '0', 'stop-color': '#f9c4c4' }, g5); el('stop', { offset: '1', 'stop-color': '#ec8f95' }, g5);
 }
@@ -578,7 +701,225 @@ function render() {
     document.getElementById('cdUndo').disabled = !hist.length;
     document.getElementById('cdRedo').disabled = !redo.length;
     document.querySelectorAll('#cdChips .cd-chip').forEach(function (b) { b.classList.toggle('on', !!caraSel[b.dataset.c]); });
+    if (foco) renderFoco();
 }
+
+/* ---------------- detalle de pieza ---------------- */
+var TX = <?= json_encode([
+    'dental' => t('Dental'), 'tratamiento' => t('Tratamiento'), 'ausente' => t('Ausente'), 'patologia' => t('Patología'), 'restauracion' => t('Restauración'),
+    'caries' => t('Caries'), 'prof' => t('Profundidad'), 'esmalte' => t('Esmalte'), 'dentina' => t('Dentina'), 'pulpa' => t('Pulpa'),
+    'cav' => t('Cavitación'), 'si' => t('Sí'), 'no' => t('No'), 'clase' => t('Clasificación'), 'vigilar' => t('Vigilar'), 'tratar' => t('Tratar'),
+    'aplicar' => t('Aplicar'), 'resumen' => t('En esta pieza'), 'sinNada' => t('Pieza sana: sin registros.'), 'endo' => t('Pruebas endodónticas'),
+    'perio' => t('Periodonto'), 'sinPerio' => t('Sin periodontograma.'), 'abrirPerio' => t('Abrir periodontograma'), 'completo' => t('Diente completo'),
+    'eligeCaras' => t('Elige primero las caras en la cruz.'), 'listo' => t('Registrado'), 'nota' => t('Nota de la pieza'),
+    'planeado' => t('Planeado'), 'realizado' => t('Realizado'), 'quitarAus' => t('Quitar ausente'), 'marcarAus' => t('Marcar como ausente'),
+    'frio' => t('Frío'), 'calor' => t('Calor'), 'palpacion' => t('Palpación'), 'percusion' => t('Percusión'), 'electrica' => t('Eléctrica'),
+    'normal' => t('Normal'), 'positivo' => t('Positivo'), 'negativo' => t('Negativo'), 'aumentado' => t('Aumentado'), 'prolongado' => t('Prolongado'), 'doloroso' => t('Doloroso'),
+    'cervV' => t('Cervical'), 'evol' => t('Nota de evolución'), 'sinCav' => t('sin cavitación'), 'conCav' => t('con cavitación'),
+], JSON_UNESCAPED_UNICODE) ?>;
+var PATO = [['caries', 'bi-virus'], ['fractura', 'bi-lightning'], ['desgaste', 'bi-water'], ['pigmento', 'bi-palette'], ['apical', 'bi-bullseye'], ['desarrollo', 'bi-diagram-3']];
+var PATO_TRAT = { caries: 'obturacion', fractura: 'obturacion', desgaste: 'obturacion', apical: 'endodoncia' };
+var REST = [['obturado', 'bi-square-half'], ['sellante', 'bi-droplet-half'], ['corona', 'bi-gem'], ['endodoncia', 'bi-bezier2'], ['implante', 'bi-nut'], ['protesis', 'bi-link-45deg']];
+var TRATI = { obturacion: 'bi-square-half', sellante: 'bi-droplet-half', endodoncia: 'bi-bezier2', corona: 'bi-gem', protesis: 'bi-link-45deg', implante: 'bi-nut', extraccion: 'bi-x-octagon' };
+var foco = null;   // { d, caras:{}, panel, pato, car:{prof,cav,clase}, tmodo }
+
+function esSup(d) { var q = Math.floor(d / 10); return q === 1 || q === 2; }
+function abrirFoco(d) {
+    foco = { d: String(d), caras: {}, panel: 'home', pato: null, car: { prof: 'dentina', cav: 'no', clase: 'C2' }, tmodo: 'requerido' };
+    document.getElementById('fx').hidden = false; document.body.style.overflow = 'hidden';
+    renderFoco();
+}
+function cerrarFoco() { foco = null; document.getElementById('fx').hidden = true; document.body.style.overflow = ''; }
+function toast(t) { var x = document.getElementById('fxToast'); x.textContent = t; x.classList.add('on'); clearTimeout(x._t); x._t = setTimeout(function () { x.classList.remove('on'); }, 1600); }
+function carasFoco() { return Object.keys(foco.caras).filter(function (k) { return foco.caras[k]; }); }
+function det(d) { DET[d] = DET[d] || {}; return DET[d]; }
+
+/* Regiones de la corona en la vista lateral (para tocar caras). */
+function regionesLat(d, lado) {
+    return function (t, f) {
+        var id = 'fxc' + (++clipN), cp = el('clipPath', { id: id }, t); el('path', { d: f.corona }, cp);
+        var g = el('g', { 'clip-path': 'url(#' + id + ')' }, t);
+        var md = mesialDer(d), derM = lado === 'v' ? md : !md;
+        var R = { O: 'M-2,-2 L42,-2 L42,13 L-2,13 Z', izq: 'M-2,13 L12,13 L12,44 L-2,44 Z', der: 'M28,13 L42,13 L42,44 L28,44 Z', cen: 'M12,13 L28,13 L28,44 L12,44 Z' };
+        var mapa = { O: 'O', izq: derM ? 'D' : 'M', der: derM ? 'M' : 'D', cen: lado === 'v' ? 'V' : 'L' };
+        var B = { O: [20, 7.5, 9, 5], izq: [8.5, 28, 5, 10], der: [31.5, 28, 5, 10], cen: [20, 27, 7.5, 11] };
+        Object.keys(R).forEach(function (r) {
+            var k = mapa[r], m = (marcas[d] || {})[k] || {}, b = B[r];
+            var blob = function (fill, op) { el('ellipse', { cx: b[0], cy: b[1], rx: b[2], ry: b[3], fill: fill, opacity: op, 'pointer-events': 'none' }, g); };
+            if (m.existente && HALL[m.existente]) blob(HALL[m.existente].color, .62);
+            if (m.realizado) blob('url(#pDone)', 1);
+            if (m.requerido) blob('url(#pPlan)', 1);
+            if (foco && foco.caras[k]) blob('#fb7185', .38);
+            el('path', { d: R[r], fill: 'transparent', 'class': 'fx-face', 'data-c': k }, g);
+        });
+    };
+}
+function renderFoco() {
+    if (!foco) return;
+    var d = foco.d, sup = esSup(+d);
+    // Navegación por número (arcada superior y luego inferior)
+    var nav = SUP.map(function (x) { return x; }).concat(['-']).concat(INF);
+    document.getElementById('fxNav').innerHTML = nav.map(function (x) {
+        if (x === '-') return '<hr>';
+        var tiene = marcas[x] && Object.keys(marcas[x]).length;
+        return '<button type="button" data-n="' + x + '" class="' + (String(x) === d ? 'on' : '') + (tiene ? ' mk' : '') + '">' + x + '</button>';
+    }).join('');
+    var on = document.querySelector('#fxNav .on'); if (on) on.scrollIntoView({ block: 'nearest' });
+    // Vistas grandes: vestibular arriba (raíz hacia arriba), oclusal, lingual abajo.
+    [['fxV', 'v', true], ['fxL', 'l', false]].forEach(function (v) {
+        var svg = document.getElementById(v[0]); svg.innerHTML = ''; defs(svg);
+        var g = el('g', { filter: 'url(#fSh)' }, svg);
+        dibujaLateral(g, +d, v[2], { grande: true, lado: v[1], regiones: regionesLat(+d, v[1]) });
+    });
+    var so = document.getElementById('fxO'); so.innerHTML = ''; defs(so);
+    dibujaOclusal(el('g', { filter: 'url(#fSh)' }, so), +d, sup, function (dd, k) { return !!foco.caras[k]; });
+    // Cruz de caras
+    var md = mesialDer(+d), M = 'M', D = 'D';
+    var b = function (k, lbl, wide) {
+        var m = (marcas[d] || {})[k] || {}, col = m.requerido ? COL.plan : m.realizado ? COL.done : (m.existente && HALL[m.existente] ? HALL[m.existente].color : '');
+        return '<button type="button" class="fx-f' + (foco.caras[k] ? ' on' : '') + (wide ? ' wide' : '') + '" data-f="' + k + '">' + esc(lbl) + (col ? '<span class="mk" style="background:' + col + '"></span>' : '') + '</button>';
+    };
+    var izq = md ? D : M, der = md ? M : D;
+    document.getElementById('fxCross').innerHTML =
+        '<div class="fx-row">' + b('V', T.caras.V) + '</div>' +
+        '<div class="fx-row">' + b(izq, T.caras[izq]) + b('O', T.caras.O) + b(der, T.caras[der]) + '</div>' +
+        '<div class="fx-row">' + b('L', T.caras.L) + '</div>' +
+        '<div class="mt-3">' + b('C', TX.completo, true) + '</div>' +
+        '<div class="small text-muted text-center mt-2" style="max-width:180px">' + esc(T.hintFace) + '</div>';
+    renderSide();
+}
+function tile(key, icon, lbl, on) { return '<div class="fx-tile' + (on ? ' on' : '') + '" data-t="' + key + '"><i class="bi ' + icon + '"></i>' + esc(lbl) + '</div>'; }
+function opt(grp, val, lbl, cur) { return '<button type="button" class="fx-opt' + (cur === val ? ' on' : '') + '" data-o="' + grp + '" data-v="' + val + '">' + esc(lbl) + '</button>'; }
+function resumenCaras() { var cs = carasFoco(); return cs.length ? cs.map(function (k) { return T.caras[k]; }).join(', ') : '—'; }
+function renderSide() {
+    var d = foco.d, h = '<div class="d-flex align-items-center gap-3 mb-1"><span class="fx-tag">' + d + '</span><div><div class="fw-bold">' + esc(nombre(+d)) + '</div><div class="small text-muted">' + esc(resumenCaras()) + '</div></div></div>';
+    var back = '<button type="button" class="fx-back" data-p="home"><i class="bi bi-chevron-left"></i></button>';
+    if (foco.panel === 'home') {
+        var aus = ((marcas[d] || {}).C || {}).existente === 'ausente';
+        h += '<h3 class="fx-h mt-3">' + esc(TX.dental) + '</h3><div class="fx-tiles">' +
+            tile('trat', 'bi-tools', TX.tratamiento) + tile('aus', aus ? 'bi-arrow-counterclockwise' : 'bi-x-circle', aus ? TX.quitarAus : TX.ausente) +
+            tile('pato', 'bi-virus2', TX.patologia) + tile('rest', 'bi-shield-check', TX.restauracion) + '</div>';
+        // Lo registrado en la pieza
+        h += '<div class="fx-lbl">' + esc(TX.resumen) + '</div>';
+        var filas = [];
+        Object.keys(marcas[d] || {}).forEach(function (k) { Object.keys(marcas[d][k]).forEach(function (cond) { filas.push([k, cond, marcas[d][k][cond]]); }); });
+        if (!filas.length) h += '<div class="fx-sum">' + esc(TX.sinNada) + '</div>';
+        filas.forEach(function (f) {
+            var dd = defDe(f[1], f[2]); if (!dd) return;
+            var extra = '';
+            if (f[2] === 'caries' && DET[d] && DET[d].caries && DET[d].caries[f[0]]) {
+                var cd = DET[d].caries[f[0]];
+                extra = ' <span class="text-muted">· ' + [cd.prof ? TX[cd.prof] : '', cd.cav ? (cd.cav === 'si' ? TX.conCav : TX.sinCav) : '', cd.clase].filter(Boolean).join(', ') + '</span>';
+            }
+            h += '<div class="fx-mk"><span class="cd-badge cd-b-' + f[1] + '">' + esc(f[1] === 'requerido' ? T.planeado : f[1] === 'realizado' ? T.realizado : T.existente) + '</span>'
+               + '<span class="flex-grow-1">' + esc(dd.label_t) + ' <span class="text-muted">· ' + esc(f[0] === 'C' ? T.completo : T.caras[f[0]]) + '</span>' + extra + '</span>'
+               + (f[1] === 'requerido' ? '<button type="button" class="btn btn-sm btn-link p-0" data-hechof="' + f[0] + '|' + f[2] + '" title="' + esc(T.marcarHecho) + '"><i class="bi bi-check2-circle"></i></button>' : '')
+               + '<button type="button" class="btn btn-sm btn-link p-0 text-danger" data-delf="' + f[0] + '|' + f[1] + '"><i class="bi bi-x-lg"></i></button></div>';
+        });
+        // Pruebas endodónticas
+        var en = (DET[d] || {}).endo || {};
+        h += '<div class="fx-lbl">' + esc(TX.endo) + '</div><div class="fx-endo">';
+        [['frio', 'bi-snow2'], ['calor', 'bi-fire'], ['palpacion', 'bi-hand-index'], ['percusion', 'bi-hammer'], ['electrica', 'bi-lightning-charge']].forEach(function (p) {
+            h += '<label><i class="bi ' + p[1] + ' text-primary"></i><span class="flex-grow-1">' + esc(TX[p[0]]) + '</span><select class="form-select form-select-sm w-auto" data-endo="' + p[0] + '"><option value="">—</option>' +
+                ['normal', 'positivo', 'negativo', 'aumentado', 'prolongado', 'doloroso'].map(function (v) { return '<option value="' + v + '"' + (en[p[0]] === v ? ' selected' : '') + '>' + esc(TX[v]) + '</option>'; }).join('') + '</select></label>';
+        });
+        h += '</div>';
+        // Periodonto (último periodontograma)
+        h += '<div class="fx-lbl d-flex justify-content-between">' + esc(TX.perio) + (PERIO_FECHA ? ' <span class="text-muted fw-normal">' + esc(PERIO_FECHA) + '</span>' : '') + '</div>';
+        var px = PERIO[d];
+        if (px && px.ps) {
+            var md = mesialDer(+d), lab = function (b) { return md ? [b + 2, b + 1, b] : [b, b + 1, b + 2]; };
+            var nm = { 0: 'D', 1: '', 2: 'M' };
+            h += '<div class="fx-perio">';
+            [['l', 3], ['v', 0]].forEach(function (L) {
+                lab(L[1]).forEach(function (sx) {
+                    var ps = px.ps[sx], mg = px.mg ? px.mg[sx] : '';
+                    h += '<div><b class="' + (ps !== '' && +ps >= 4 ? 'w' : '') + '">' + (ps === '' || ps == null ? '·' : ps) + '</b>' + (L[0] === 'v' ? 'V' : 'L') + (nm[sx % 3] || '') + (mg !== '' && mg != null ? ' · MG ' + mg : '') + (px.bop && px.bop[sx] ? ' <span class="text-danger">●</span>' : '') + '</div>';
+                });
+            });
+            h += '</div>';
+        } else h += '<div class="fx-sum">' + esc(TX.sinPerio) + ' <a href="' + PERIO_URL + '">' + esc(TX.abrirPerio) + '</a></div>';
+        h += '<div class="fx-lbl">' + esc(TX.nota) + '</div><textarea class="form-control form-control-sm" id="fxNota" rows="2" maxlength="200">' + esc(notas[d] || '') + '</textarea>';
+        h += '<a class="btn btn-sm btn-outline-primary w-100 mt-3" style="border-radius:12px" href="' + EVOL_URL + '&diente=' + d + '"><i class="bi bi-journal-plus"></i> ' + esc(TX.evol) + '</a>';
+    } else if (foco.panel === 'pato') {
+        h += '<h3 class="fx-h mt-3">' + back + esc(TX.patologia) + '</h3><div class="fx-tiles">' + PATO.map(function (p) { return tile('p:' + p[0], p[1], HALL[p[0]].label_t, foco.pato === p[0]); }).join('') + '</div>';
+        if (foco.pato === 'caries') {
+            h += '<div class="fx-lbl">' + esc(TX.prof) + '</div><div class="fx-seg">' + opt('prof', 'esmalte', TX.esmalte, foco.car.prof) + opt('prof', 'dentina', TX.dentina, foco.car.prof) + opt('prof', 'pulpa', TX.pulpa, foco.car.prof) + '</div>';
+            h += '<div class="fx-lbl">' + esc(TX.cav) + '</div><div class="fx-seg">' + opt('cav', 'si', TX.si, foco.car.cav) + opt('cav', 'no', TX.no, foco.car.cav) + '</div>';
+            h += '<div class="fx-lbl">' + esc(TX.clase) + '</div><div class="fx-seg">' + ['C1', 'C2', 'C3', 'C4'].map(function (c) { return opt('clase', c, c, foco.car.clase); }).join('') + '</div>';
+        }
+        if (foco.pato) {
+            h += '<div class="fx-sum mt-3"><b>' + d + '</b> · ' + esc(resumenCaras()) + ' · ' + esc(HALL[foco.pato].label_t) +
+                 (foco.pato === 'caries' ? ' ' + esc(TX[foco.car.prof]) + ', ' + esc(foco.car.cav === 'si' ? TX.conCav : TX.sinCav) + ', ' + foco.car.clase : '') + '</div>';
+            h += '<div class="fx-acts"><button type="button" class="btn btn-light border" data-act="vigilar"><i class="bi bi-eye"></i> ' + esc(TX.vigilar) + '</button>' +
+                 (PATO_TRAT[foco.pato] ? '<button type="button" class="btn btn-primary" data-act="tratar"><i class="bi bi-tools"></i> ' + esc(TX.tratar) + '</button>' : '') + '</div>';
+        }
+    } else if (foco.panel === 'rest') {
+        h += '<h3 class="fx-h mt-3">' + back + esc(TX.restauracion) + '</h3><div class="fx-tiles">' + REST.map(function (r) { return tile('r:' + r[0], r[1], HALL[r[0]].label_t); }).join('') + '</div>';
+        h += '<div class="fx-sum">' + esc(T.hintFace) + '</div>';
+    } else if (foco.panel === 'trat') {
+        h += '<h3 class="fx-h mt-3">' + back + esc(TX.tratamiento) + '</h3>';
+        h += '<div class="fx-seg mt-3">' + opt('tmodo', 'requerido', TX.planeado, foco.tmodo) + opt('tmodo', 'realizado', TX.realizado, foco.tmodo) + '</div>';
+        h += '<div class="fx-tiles">' + Object.keys(TRAT).map(function (k) { return tile('t:' + k, TRATI[k] || 'bi-tools', TRAT[k].label_t); }).join('') + '</div>';
+    }
+    document.getElementById('fxSide').innerHTML = h;
+}
+/* Aplica un estado a la pieza en foco, en las caras elegidas (o completa). */
+function aplicarFoco(cond, est) {
+    var d = foco.d, def = defDe(cond, est); if (!def) return false;
+    var cs = def.completo ? ['C'] : carasFoco().filter(function (k) { return k !== 'C'; });
+    if (!cs.length) { toast(TX.eligeCaras); return false; }
+    var mPrev = modo, aPrev = armado; modo = cond; armado = est;
+    cambio(function () { aplicar(d, cs, true); });
+    modo = mPrev; armado = aPrev;
+    return cs;
+}
+document.getElementById('fx').addEventListener('click', function (ev) {
+    if (!foco) return;
+    var t = ev.target, x;
+    if (t === this) { cerrarFoco(); return; }
+    if ((x = t.closest('#fxX'))) { cerrarFoco(); return; }
+    if ((x = t.closest('[data-n]'))) { foco.d = x.dataset.n; foco.caras = {}; foco.panel = 'home'; renderFoco(); return; }
+    if ((x = t.closest('[data-f]'))) { foco.caras[x.dataset.f] = !foco.caras[x.dataset.f]; renderFoco(); return; }
+    if ((x = t.closest('.fx-face'))) { var k = x.dataset.c; foco.caras[k] = !foco.caras[k]; renderFoco(); return; }
+    if ((x = t.closest('[data-p]'))) { foco.panel = x.dataset.p; foco.pato = null; renderSide(); return; }
+    if ((x = t.closest('[data-o]'))) { if (x.dataset.o === 'tmodo') foco.tmodo = x.dataset.v; else foco.car[x.dataset.o] = x.dataset.v; renderSide(); return; }
+    if ((x = t.closest('[data-delf]'))) { var p = x.dataset.delf.split('|'); cambio(function () { del(foco.d, p[0], p[1]); if (p[1] === 'existente' && DET[foco.d] && DET[foco.d].caries) delete DET[foco.d].caries[p[0]]; }); return; }
+    if ((x = t.closest('[data-hechof]'))) { var q = x.dataset.hechof.split('|'); marcarHecho(foco.d, q[1], [q[0]]); return; }
+    if ((x = t.closest('[data-t]'))) {
+        var v = x.dataset.t;
+        if (v === 'trat' || v === 'pato' || v === 'rest') { foco.panel = v; foco.pato = null; renderSide(); return; }
+        if (v === 'aus') {
+            var aus = ((marcas[foco.d] || {}).C || {}).existente === 'ausente';
+            cambio(function () { if (aus) del(foco.d, 'C', 'existente'); else set(foco.d, 'C', 'existente', 'ausente'); });
+            toast(TX.listo); return;
+        }
+        if (v.indexOf('p:') === 0) { foco.pato = v.slice(2); renderSide(); return; }
+        if (v.indexOf('r:') === 0) { if (aplicarFoco('existente', v.slice(2))) { toast(TX.listo); } return; }
+        if (v.indexOf('t:') === 0) { if (aplicarFoco(foco.tmodo, v.slice(2))) { toast(TX.listo); } return; }
+    }
+    if ((x = t.closest('[data-act]'))) {
+        var est = foco.pato, cs = aplicarFoco('existente', est); if (!cs) return;
+        if (est === 'caries') {
+            hist.pop();   // un solo paso de deshacer para todo el registro
+            cambio(function () {
+                cs.forEach(function (k) { det(foco.d).caries = det(foco.d).caries || {}; det(foco.d).caries[k] = { prof: foco.car.prof, cav: foco.car.cav, clase: foco.car.clase }; });
+            });
+        }
+        if (x.dataset.act === 'tratar' && PATO_TRAT[est]) {
+            var tr = est === 'caries' && foco.car.prof === 'pulpa' ? 'endodoncia' : PATO_TRAT[est];
+            var defT = TRAT[tr], csT = defT.completo ? ['C'] : cs;
+            cambio(function () { csT.forEach(function (k) { set(foco.d, k, 'requerido', tr); }); });
+        }
+        toast(TX.listo); foco.panel = 'home'; foco.pato = null; renderSide();
+    }
+});
+document.getElementById('fx').addEventListener('change', function (ev) {
+    if (!foco) return;
+    var s2 = ev.target;
+    if (s2.dataset.endo) { var d = foco.d, v = s2.value; cambio(function () { det(d).endo = det(d).endo || {}; if (v) det(d).endo[s2.dataset.endo] = v; else delete det(d).endo[s2.dataset.endo]; }); }
+    if (s2.id === 'fxNota') { var dn = foco.d, n = s2.value.trim(); cambio(function () { if (n) notas[dn] = n; else delete notas[dn]; }); }
+});
 
 /* ---------------- eventos ---------------- */
 function seleccionar(d, multi) {
@@ -595,8 +936,8 @@ function clicDiente(ev, d, caraK) {
         cambio(function () { aplicar(d, cs); });
         return;
     }
-    seleccionar(d, ev.ctrlKey || ev.metaKey || ev.shiftKey);
-    render();
+    if (ev.ctrlKey || ev.metaKey || ev.shiftKey) { seleccionar(d, true); render(); return; }
+    sel = [String(d)]; render(); abrirFoco(d);
 }
 function flashHint(t) { var h = document.getElementById('cdHint'); h.innerHTML = '<span class="text-danger"><i class="bi bi-exclamation-circle"></i> ' + esc(t) + '</span>'; }
 
@@ -609,7 +950,7 @@ document.getElementById('cdArch').addEventListener('click', function (ev) {
     var t = ev.target.closest('.at'); if (!t) return;
     var def = armado && defDe(modo, armado);
     if (def && !def.completo && !Object.keys(caraSel).some(function (k) { return caraSel[k]; })) { seleccionar(t.dataset.d, true); render(); flashHint(T.eligeCaras); return; }
-    if (def) clicDiente(ev, t.dataset.d, null); else { seleccionar(t.dataset.d, true); render(); }
+    clicDiente(ev, t.dataset.d, null);
 });
 document.querySelectorAll('.cd-mode .btn').forEach(function (b) {
     b.addEventListener('click', function () {
@@ -665,10 +1006,14 @@ document.getElementById('cdRedo').addEventListener('click', function () { if (!r
 document.addEventListener('keydown', function (ev) {
     if (ev.target.matches('input,textarea,select')) return;
     if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === 'z') { ev.preventDefault(); document.getElementById(ev.shiftKey ? 'cdRedo' : 'cdUndo').click(); }
-    if (ev.key === 'Escape') { armado = null; sel = []; render(); }
+    if (ev.key === 'Escape') { if (foco) { cerrarFoco(); return; } armado = null; sel = []; render(); }
+    if (foco && (ev.key === 'ArrowDown' || ev.key === 'ArrowUp')) {
+        var orden = SUP.concat(INF).map(String), i = orden.indexOf(foco.d);
+        foco.d = orden[(i + (ev.key === 'ArrowDown' ? 1 : -1) + orden.length) % orden.length]; foco.caras = {}; foco.panel = 'home'; renderFoco(); ev.preventDefault();
+    }
 });
 document.getElementById('cdForm').addEventListener('submit', function () {
-    document.getElementById('cdDatos').value = JSON.stringify({ marcas: marcas, notas: notas });
+    document.getElementById('cdDatos').value = JSON.stringify({ marcas: marcas, notas: notas, detalle: DET });
     sucio = false;
 });
 window.addEventListener('beforeunload', function (ev) { if (sucio) { ev.preventDefault(); ev.returnValue = T.salir; } });

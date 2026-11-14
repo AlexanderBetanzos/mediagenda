@@ -48,6 +48,12 @@ function ensure_dental_tables(): void
             sitios4 SMALLINT, sitios6 SMALLINT, diagnostico VARCHAR(255), notas TEXT, creado_por INT,
             creado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, INDEX idx_dp (consultorio_id, paciente_id, fecha)
         ) $opt",
+        "CREATE TABLE IF NOT EXISTS dental_piezas (
+            id INT AUTO_INCREMENT PRIMARY KEY, consultorio_id INT NOT NULL DEFAULT 1, paciente_id INT NOT NULL,
+            diente VARCHAR(2) NOT NULL, datos TEXT, actualizado_por INT,
+            actualizado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            UNIQUE KEY uq_dpz (consultorio_id, paciente_id, diente)
+        ) $opt",
         "CREATE TABLE IF NOT EXISTS dental_evolucion (
             id INT AUTO_INCREMENT PRIMARY KEY, consultorio_id INT NOT NULL DEFAULT 1, paciente_id INT NOT NULL,
             fecha DATE NOT NULL, dientes VARCHAR(120), caras VARCHAR(20), procedimiento VARCHAR(160) NOT NULL,
@@ -177,4 +183,53 @@ function perio_indices(array $d): array
         'ps'    => $nPs ? round($sumPs / $nPs, 2) : null,
         's4' => $s4, 's6' => $s6, 'nic_max' => $nicMax, 'dientes' => count(array_filter($d, fn ($t) => empty($t['aus']))),
     ];
+}
+
+/* ------------------------- Detalle por pieza ------------------------- */
+
+/**
+ * Detalle clínico por diente que no cabe en las marcas del odontograma:
+ * características de la caries por cara (profundidad, cavitación, clase) y
+ * pruebas endodónticas (frío, calor, palpación, percusión, eléctrica).
+ * @return array<string, array> diente => datos
+ */
+function dental_piezas(int $pid): array
+{
+    try {
+        $st = db()->prepare('SELECT diente, datos FROM dental_piezas WHERE paciente_id = ? AND consultorio_id = ?');
+        $st->execute([$pid, tenant_id()]);
+        $o = [];
+        foreach ($st as $r) $o[$r['diente']] = json_decode((string) $r['datos'], true) ?: [];
+        return $o;
+    } catch (Throwable $e) { return []; }
+}
+
+/** Guarda el detalle por pieza que llega de la carta (solo campos conocidos). */
+function dental_piezas_guardar(int $pid, array $in): void
+{
+    $caras = array_keys(odo_caras());
+    $pruebas = ['frio', 'calor', 'palpacion', 'percusion', 'electrica'];
+    $resultados = ['', 'normal', 'positivo', 'negativo', 'aumentado', 'prolongado', 'doloroso'];
+    $pdo = db();
+    $pdo->prepare('DELETE FROM dental_piezas WHERE paciente_id = ? AND consultorio_id = ?')->execute([$pid, tenant_id()]);
+    $ins = $pdo->prepare('INSERT INTO dental_piezas (consultorio_id, paciente_id, diente, datos, actualizado_por) VALUES (?,?,?,?,?)');
+    foreach ($in as $d => $x) {
+        if (!in_array((int) $d, dientes_fdi(), true) || !is_array($x)) continue;
+        $o = [];
+        foreach ((array) ($x['caries'] ?? []) as $c => $cd) {
+            if (!in_array($c, $caras, true) || !is_array($cd)) continue;
+            $o['caries'][$c] = [
+                'prof'  => in_array($cd['prof'] ?? '', ['esmalte', 'dentina', 'pulpa'], true) ? $cd['prof'] : '',
+                'cav'   => in_array($cd['cav'] ?? '', ['si', 'no'], true) ? $cd['cav'] : '',
+                'clase' => in_array($cd['clase'] ?? '', ['C1', 'C2', 'C3', 'C4'], true) ? $cd['clase'] : '',
+            ];
+        }
+        foreach ($pruebas as $p) {
+            $v = (string) ($x['endo'][$p] ?? '');
+            if ($v !== '' && in_array($v, $resultados, true)) $o['endo'][$p] = $v;
+        }
+        $nota = mb_substr(trim((string) ($x['obs'] ?? '')), 0, 300);
+        if ($nota !== '') $o['obs'] = $nota;
+        if ($o) $ins->execute([tenant_id(), $pid, (string) (int) $d, json_encode($o, JSON_UNESCAPED_UNICODE), current_user()['id'] ?? null]);
+    }
 }

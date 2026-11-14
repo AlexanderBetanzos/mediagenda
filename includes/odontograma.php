@@ -24,6 +24,11 @@ function odo_hallazgos(): array
         'implante'   => ['label' => 'Implante',    'color' => '#0dcaf0', 'completo' => true],
         'protesis'   => ['label' => 'Prótesis',    'color' => '#6c757d', 'completo' => true],
         'ausente'    => ['label' => 'Ausente',     'color' => '#adb5bd', 'completo' => true],
+        // Patología adicional (detalle de pieza).
+        'desgaste'   => ['label' => 'Desgaste',    'color' => '#a16207', 'completo' => false],
+        'pigmento'   => ['label' => 'Pigmentación', 'color' => '#8b5cf6', 'completo' => false],
+        'apical'     => ['label' => 'Lesión apical', 'color' => '#be123c', 'completo' => true],
+        'desarrollo' => ['label' => 'Defecto de desarrollo', 'color' => '#0f766e', 'completo' => true],
     ];
 }
 
