@@ -51,6 +51,7 @@
          consultorio: "13/07/2026" ordenado como texto quedaría mal. */ ?>
 <script>window.APP_FORMATO_FECHA = <?= json_encode(cfg('formato_fecha', 'd/m/Y')) ?>;</script>
 <script src="<?= asset('assets/js/tabla-orden.js') ?>"></script>
+<script src="<?= asset('assets/js/flow.js') ?>"></script>
 <script>
 /* Guarda la preferencia de tema del usuario y la aplica al instante. */
 function setTema(pref) {

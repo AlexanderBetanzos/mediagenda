@@ -59,6 +59,7 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
     <link href="<?= asset('assets/css/style.css') ?>" rel="stylesheet">
     <link href="<?= asset('assets/css/material.css') ?>" rel="stylesheet">
     <link href="<?= asset('assets/css/panel-glass.css') ?>" rel="stylesheet">
+    <link href="<?= asset('assets/css/panel-clean.css') ?>" rel="stylesheet">
     <style>
         /* Color de acento del consultorio (white-label).
 
@@ -100,7 +101,7 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
     </style>
     <?= meta_pixel_head(false) /* solo eventos encolados, sin PageView */ ?>
 </head>
-<body class="ui-glass">
+<body class="ui-glass ui-clean">
 <nav class="navbar navbar-dark app-navbar sticky-top flex-md-nowrap p-0">
     <!-- Marca en la barra superior: solo en móvil (junto al menú). En desktop
          la marca vive en el sidebar como "ficha" (estilo GymOS). -->
@@ -123,7 +124,14 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
     <?php require_once __DIR__ . '/ui.php';    /* franja de indicadores por sección */ ?>
     <h1 class="app-page-title h5 fw-bold mb-0 ps-1 d-none d-md-flex align-items-center gap-2 text-truncate"><?= e($titulo) ?> <?= ayuda_btn(ayuda_clave_pagina()) ?></h1>
 
-    <div class="navbar-nav flex-row ms-auto align-items-center gap-3 px-3">
+    <?php /* Buscador global (como la referencia): busca pacientes desde
+             cualquier pantalla. "/" o Ctrl/⌘+K lo enfocan (assets/js/flow.js). */ ?>
+    <form class="top-search d-none d-lg-flex ms-auto" action="<?= BASE_URL ?>/pacientes/index" method="get" role="search">
+        <i class="bi bi-search"></i>
+        <input type="search" name="q" placeholder="<?= e(t('Buscar pacientes…')) ?>" aria-label="<?= e(t('Buscar pacientes…')) ?>" autocomplete="off">
+        <kbd>/</kbd>
+    </form>
+    <div class="navbar-nav flex-row ms-auto ms-lg-3 align-items-center gap-3 px-3">
         <div class="topbar-clock text-end lh-1 d-none d-sm-block">
             <div id="clkTime" class="fw-bold"></div>
             <div id="clkDate" class="small text-muted text-capitalize"></div>
@@ -149,6 +157,10 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
         <div class="dropdown">
             <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
                 <span class="avatar-circle"><?= e($ini) ?></span>
+                <span class="top-user d-none d-xl-block lh-sm">
+                    <span class="d-block fw-semibold text-truncate"><?= e($u['nombre']) ?></span>
+                    <span class="d-block small text-muted"><?= e(rol_label($u['rol'])) ?></span>
+                </span>
             </a>
             <ul class="dropdown-menu dropdown-menu-end">
                 <li class="dropdown-header">

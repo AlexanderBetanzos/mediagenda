@@ -857,6 +857,8 @@ function track_pageview(string $area): void
     if ($done) return;
     $done = true;
     if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') return;
+    // Precarga del navegador (assets/js/flow.js): aún no es una visita real.
+    if (stripos((string) ($_SERVER['HTTP_SEC_PURPOSE'] ?? $_SERVER['HTTP_PURPOSE'] ?? ''), 'prefetch') !== false) return;
 
     $ua = (string) ($_SERVER['HTTP_USER_AGENT'] ?? '');
     if ($ua !== '' && preg_match('~bot|crawl|spider|slurp|bingpreview|facebookexternalhit|preview|monitor|headless|curl|wget|python-requests~i', $ua)) return;
