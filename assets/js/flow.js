@@ -27,6 +27,13 @@
         });
     }
 
+    /* Al abrir "Más herramientas", bajar el menú lo justo para que se vea completo. */
+    var mas = document.getElementById('navMas');
+    if (mas && menu) mas.addEventListener('shown.bs.collapse', function () {
+        var r = mas.getBoundingClientRect(), m = menu.getBoundingClientRect();
+        if (r.bottom > m.bottom - 8) menu.scrollBy({ top: r.bottom - m.bottom + 24, behavior: quieto ? 'auto' : 'smooth' });
+    });
+
     /* ── 2. Precarga al pasar el cursor (Chrome/Edge): navegar se siente
            instantáneo. Solo enlaces de navegación, nunca acciones. ────────── */
     if (HTMLScriptElement.supports && HTMLScriptElement.supports('speculationrules')) {

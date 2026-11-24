@@ -309,3 +309,16 @@ body.ui-clean .esp-tile, body.ui-clean .kpi3, body.ui-clean .ui-stat { transitio
     .flow-row { animation: none; }
     body.ui-clean .sidebar .nav-link:hover { transform: none; }
 }
+
+/* ---------- "Más herramientas": el grupo plegable del menú ----------
+   Antes los subelementos quedaban sueltos (con sangría y efecto al pasar
+   el cursor recortados contra el borde del menú). Ahora van como grupo:
+   línea guía a la izquierda, sangría y el padre marcado mientras está abierto. */
+body.ui-clean .sidebar #navMas { padding-left: 0 !important; margin: 2px 12px 6px 30px; border-left: 2px solid var(--c-bd); }
+body.ui-clean .sidebar #navMas .nav-link { margin: 1px 0 1px 8px !important; padding: .45rem .7rem !important; font-size: .86rem; }
+body.ui-clean .sidebar #navMas .nav-link:hover { transform: none; }
+body.ui-clean .sidebar #navMas .nav-link.active { box-shadow: none !important; }
+body.ui-clean .sidebar .nav-mas:not(.collapsed) { background: var(--c-hover) !important; color: var(--c-txt) !important; }
+body.ui-clean .sidebar .nav-mas:not(.collapsed) .bi:first-child { color: var(--g-brand) !important; }
+body.ui-clean .sidebar .nav-mas .nav-mas-ic { color: var(--c-txt-3) !important; transition: transform .25s ease !important; }
+body.ui-clean .sidebar .nav-mas:hover { transform: none; }
