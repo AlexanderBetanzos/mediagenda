@@ -1,0 +1,14 @@
+/* Azul de la página principal (landing y páginas por especialidad): el mismo
+   azul cerúleo del panel. Solo cambia la cara pública de MediOS; el panel de
+   cada consultorio sigue usando el color que eligió en Configuración. */
+:root {
+    --brand:       #0f8dbf;
+    --brand-dark:  #0b6e96;
+    --brand-light: #e6f4fa;
+    --accent:      #38b0dc;
+    --cta:         #0f8dbf;
+    --cta-dark:    #0b6e96;
+    --d-accent:    #0f8dbf;
+    --d-accent2:   #4fc0e8;
+    --d-accent3:   #8fd8f2;
+}

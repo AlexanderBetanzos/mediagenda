@@ -40,6 +40,7 @@ track_pageview('publico');
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="<?= asset('assets/css/style.css') ?>" rel="stylesheet">
+    <link href="<?= asset('assets/css/landing-azul.css') ?>" rel="stylesheet">
     <link href="<?= asset('assets/css/material.css') ?>" rel="stylesheet">
     <link href="<?= asset('assets/css/landing-motion.css') ?>" rel="stylesheet">
     <link href="<?= asset('assets/css/landing-extra.css') ?>" rel="stylesheet">
@@ -141,7 +142,7 @@ track_pageview('publico');
                                 <span class="badge text-bg-light border">DEMO</span>
                             </div>
                             <div class="row g-2 mb-3">
-                                <?php foreach ([['Citas hoy','14','#2563eb'],['Pacientes','231','#14b8a6'],['Ingresos','$48k','#16a34a']] as [$l,$n,$c]): ?>
+                                <?php foreach ([['Citas hoy','14','#0f8dbf'],['Pacientes','231','#14b8a6'],['Ingresos','$48k','#16a34a']] as [$l,$n,$c]): ?>
                                 <div class="col-4"><div class="lp-tile">
                                     <div class="lp-tile-n" style="color:<?= $c ?>" data-count><?= $n ?></div>
                                     <div class="lp-tile-l"><?= $l ?></div>
@@ -435,12 +436,12 @@ track_pageview('publico');
     .lp-plan:hover { transform: translateY(-6px); box-shadow: 0 4px 12px rgba(0,0,0,.04), 0 24px 56px rgba(0,0,0,.09); }
     /* El plan destacado se marca con un filo azul de 1px, no con una sombra de
        color: en iOS la jerarquía se da con contorno, no con dramatismo. */
-    .lp-plan.feat { border-color: rgba(37,99,235,.35);
-                    box-shadow: 0 4px 14px rgba(37,99,235,.08), 0 24px 56px rgba(37,99,235,.10); }
+    .lp-plan.feat { border-color: rgba(15,141,191,.35);
+                    box-shadow: 0 4px 14px rgba(15,141,191,.08), 0 24px 56px rgba(15,141,191,.10); }
     .lp-plan-pop { position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
                    background: var(--brand); color: #fff; font-weight: 590; font-size: .74rem;
                    letter-spacing: -.01em; padding: .34rem 1rem; border-radius: 999px;
-                   box-shadow: 0 4px 14px rgba(37,99,235,.28); }
+                   box-shadow: 0 4px 14px rgba(15,141,191,.28); }
     .lp-plan-ic { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center;
                   justify-content: center; font-size: 1.4rem; color: var(--brand); margin-bottom: 1.4rem;
                   background: color-mix(in srgb, var(--brand) 9%, #fff); }
@@ -491,7 +492,7 @@ track_pageview('publico');
                            color-mix(in srgb, var(--brand) 26%, transparent),
                            color-mix(in srgb, var(--brand) 6%, transparent) 62%, transparent 74%);
                border-radius: 46% 54% 58% 42% / 52% 44% 56% 48%; pointer-events: none; }
-    .lp-hero .lp-pill { background: #fff; border: 1px solid rgba(37,99,235,.18); color: var(--brand);
+    .lp-hero .lp-pill { background: #fff; border: 1px solid rgba(15,141,191,.18); color: var(--brand);
                         box-shadow: 0 2px 10px rgba(30,45,80,.06); font-weight: 590; }
     .lp-h1 { font-family: var(--font-display); font-weight: 600; font-size: clamp(2.5rem, 5.2vw, 4rem);
              line-height: 1.05; letter-spacing: -.038em; color: var(--ink); }
@@ -503,7 +504,7 @@ track_pageview('publico');
     .lp-btn:active { transform: scale(.975); }
     .lp-btn-fill { background: var(--brand); color: #fff; }
     .lp-btn-fill:hover { background: var(--cta-dark); color: #fff; }
-    .lp-btn-ghost { background: #fff; color: var(--brand); border-color: rgba(37,99,235,.28); }
+    .lp-btn-ghost { background: #fff; color: var(--brand); border-color: rgba(15,141,191,.28); }
     .lp-btn-ghost:hover { background: var(--brand); color: #fff; border-color: var(--brand); }
 
     /* Franja de datos: icono en pastilla, cifra en Display, etiqueta debajo. */
@@ -553,7 +554,7 @@ track_pageview('publico');
     html.lp-dark .lp-h1-ac { color: var(--d-accent2); }
     html.lp-dark .lp-sub, html.lp-dark .lp-stat-l { color: var(--d-muted); }
     html.lp-dark .lp-hero .lp-pill { background: var(--d-panel); border-color: var(--d-border); color: var(--d-accent2); box-shadow: none; }
-    html.lp-dark .lp-stat-ic { background: rgba(37,99,235,.16); color: var(--d-accent2); }
+    html.lp-dark .lp-stat-ic { background: rgba(15,141,191,.16); color: var(--d-accent2); }
     html.lp-dark .lp-btn-ghost { background: transparent; color: var(--d-accent2); border-color: var(--d-border); }
     html.lp-dark .lp-btn-ghost:hover { background: var(--brand); color: #fff; border-color: var(--brand); }
     html.lp-dark .lp-planes { background: var(--d-bg); }
@@ -633,7 +634,7 @@ track_pageview('publico');
                               box-shadow: 0 1px 4px rgba(0,0,0,.02), 0 8px 24px rgba(15,30,60,.04);
                               transition: border-color .25s ease, box-shadow .25s ease; }
     .lp-faq .accordion-item:has(.accordion-button:not(.collapsed)) { border-color: color-mix(in srgb, var(--brand) 35%, transparent) !important;
-                              box-shadow: 0 2px 8px rgba(0,0,0,.03), 0 16px 40px rgba(37,99,235,.08); }
+                              box-shadow: 0 2px 8px rgba(0,0,0,.03), 0 16px 40px rgba(15,141,191,.08); }
     .lp-faq .accordion-button { padding: 1.15rem 1.35rem; font-weight: 600; letter-spacing: -.012em; color: var(--ink); background: #fff; }
     .lp-faq .accordion-button:not(.collapsed) { background: #fff; color: var(--brand); box-shadow: none; }
     .lp-faq .accordion-body { padding: 0 1.35rem 1.25rem; line-height: 1.6; }
@@ -642,7 +643,7 @@ track_pageview('publico');
     .lp-cta-sec { padding: 1rem 0 5rem; }
     .lp-cta2 { position: relative; overflow: hidden; border-radius: 32px; color: #fff; padding: 4.5rem 1.5rem;
                background: linear-gradient(125deg, var(--brand-dark) 0%, var(--brand) 55%, #38bdf8 135%);
-               box-shadow: 0 30px 80px rgba(37,99,235,.28); }
+               box-shadow: 0 30px 80px rgba(15,141,191,.28); }
     .lp-cta2::before, .lp-cta2::after { content: ''; position: absolute; border-radius: 50%; background: rgba(255,255,255,.10); pointer-events: none; }
     .lp-cta2::before { width: 440px; height: 440px; right: -140px; top: -200px; }
     .lp-cta2::after  { width: 320px; height: 320px; left: -120px; bottom: -170px; }

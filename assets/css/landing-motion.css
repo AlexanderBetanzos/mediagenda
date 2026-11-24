@@ -80,7 +80,7 @@ html.motion .lp-btn-fill::after, html.motion .lp-cta .btn-light::after, html.mot
     content: ""; position: absolute; inset: 0; width: 40%; z-index: -1; pointer-events: none;
     background: linear-gradient(90deg, transparent, rgba(255,255,255,.45), transparent);
     animation: lpShine 4.5s 2s ease-in-out infinite; }
-html.motion .lp-cta .btn-light::after, html.motion .lp-cta2 .btn-light::after { background: linear-gradient(90deg, transparent, rgba(37,99,235,.18), transparent); }
+html.motion .lp-cta .btn-light::after, html.motion .lp-cta2 .btn-light::after { background: linear-gradient(90deg, transparent, rgba(15,141,191,.18), transparent); }
 
 /* ── WhatsApp: onda que invita sin estorbar ──────────────────────────── */
 @keyframes lpPing { 0% { box-shadow: 0 0 0 0 rgba(37,211,102,.55); } 80%, 100% { box-shadow: 0 0 0 18px rgba(37,211,102,0); } }
