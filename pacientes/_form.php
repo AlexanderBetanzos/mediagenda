@@ -32,8 +32,8 @@ $v = fn(string $k) => e($p[$k] ?? '');
                     <button type="button" id="fotoSnap" class="btn btn-primary btn-sm"><i class="bi bi-camera-fill"></i> <?= et('Capturar') ?></button>
                     <button type="button" id="fotoCamCancel" class="btn btn-outline-secondary btn-sm"><?= et('Cancelar') ?></button>
                 </div>
-                <div id="fotoCamErr" class="small text-danger mt-1 d-none"></div>
             </div>
+            <div id="fotoCamErr" class="small text-danger mt-2 d-none" style="max-width:340px;text-align:left"></div>
             <canvas id="fotoCanvas" class="d-none"></canvas>
             <div class="form-text"><?= et('Sube una imagen del dispositivo o tómala con la cámara (PC o celular).') ?></div>
         </div>
@@ -309,8 +309,9 @@ $v = fn(string $k) => e($p[$k] ?? '');
     function stopCam() { stopStream(); cam.classList.add('d-none'); }
     function startStream(deviceId) {
         stopStream();
-        var c = deviceId ? { video: { deviceId: { exact: deviceId } }, audio: false } : { video: { facingMode: 'user' }, audio: false };
-        return navigator.mediaDevices.getUserMedia(c).then(function (s) { stream = s; video.srcObject = s; });
+        var v = deviceId ? { deviceId: { exact: deviceId } } : { facingMode: 'user' };
+        var abrir = window.MediosDisp ? MediosDisp.abrirCamara(v) : navigator.mediaDevices.getUserMedia({ video: v, audio: false });
+        return abrir.then(function (s) { stream = s; video.srcObject = s; return video.play().catch(function () {}); });
     }
     function listCameras() {
         if (!navigator.mediaDevices.enumerateDevices) return Promise.resolve();
@@ -329,8 +330,11 @@ $v = fn(string $k) => e($p[$k] ?? '');
             errBox.textContent = 'Tu navegador no permite usar la cámara aquí. Usa "Elegir archivo".'; errBox.classList.remove('d-none'); return;
         }
         cam.classList.remove('d-none');
-        startStream(null).then(listCameras).catch(function () {
-            errBox.textContent = 'No se pudo abrir la cámara. Revisa los permisos del navegador.'; errBox.classList.remove('d-none');
+        camSelect.innerHTML = '<option>Abriendo cámara…</option>';
+        startStream(null).then(listCameras).catch(function (e) {
+            var falla = function (t) { errBox.textContent = t; errBox.classList.remove('d-none'); stopCam(); };
+            if (window.MediosDisp) MediosDisp.errorCamara(e).then(falla);
+            else falla('No se pudo abrir la cámara (' + (e && e.name || 'error') + '). Revisa los permisos del navegador.');
         });
     });
     camSelect.addEventListener('change', function () { if (camSelect.value) startStream(camSelect.value).then(listCameras).catch(function () {}); });

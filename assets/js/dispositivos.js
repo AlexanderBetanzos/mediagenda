@@ -551,6 +551,37 @@
         box._t = setTimeout(function () { box.hidden = true; }, 7000);
     }
 
+    /* Abrir la cámara con explicación clara de por qué falla (Mac bloquea a
+       Chrome, permiso negado al sitio, otra app la usa…). Si la cámara pedida
+       no existe (p. ej. "frontal" en una PC), reintenta con cualquiera. */
+    function abrirCamara(video) {
+        return navigator.mediaDevices.getUserMedia({ video: video || true, audio: false }).catch(function (e) {
+            if (e && (e.name === 'OverconstrainedError' || e.name === 'NotFoundError') && video && video !== true) {
+                return navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+            }
+            throw e;
+        });
+    }
+    function errorCamara(e) {
+        var n = e && e.name, m = String(e && e.message || '');
+        var mac = /Mac/.test(navigator.platform || navigator.userAgent), win = /Win/.test(navigator.platform || navigator.userAgent);
+        if (!window.isSecureContext) return Promise.resolve('La cámara solo funciona en una conexión segura (https).');
+        if (n === 'NotAllowedError' || n === 'SecurityError') {
+            if (/system/i.test(m)) {
+                return Promise.resolve(mac
+                    ? 'Tu Mac no le da permiso de cámara al navegador. Abre Configuración del Sistema → Privacidad y seguridad → Cámara, activa Google Chrome (o tu navegador), ciérralo por completo y vuelve a abrirlo.'
+                    : win ? 'Windows tiene bloqueada la cámara. Abre Configuración → Privacidad y seguridad → Cámara y activa "Permitir que las aplicaciones de escritorio accedan a la cámara".'
+                    : 'El sistema operativo tiene bloqueada la cámara para este navegador. Revisa sus permisos de privacidad.');
+            }
+            return Promise.resolve('El navegador tiene bloqueada la cámara para este sitio. Da clic en el ícono junto a la dirección (a la izquierda de ' + location.host + ') → Cámara → Permitir, y recarga la página.');
+        }
+        if (n === 'NotReadableError' || n === 'TrackStartError' || n === 'AbortError')
+            return Promise.resolve('Otra aplicación está usando la cámara (Zoom, Meet, FaceTime, Teams…). Ciérrala y vuelve a intentar.');
+        if (n === 'NotFoundError' || n === 'DevicesNotFoundError')
+            return Promise.resolve('No se encontró ninguna cámara conectada a este equipo.');
+        return Promise.resolve('No se pudo abrir la cámara' + (n ? ' (' + n + ')' : '') + '. Intenta recargar la página.');
+    }
+
     /* Escanear con la cámara (modal). Devuelve una promesa con el código. */
     function cargarJsQR() {
         if (window.jsQR) return Promise.resolve();
@@ -575,7 +606,7 @@
         function cerrar() { vivo = false; if (stream) stream.getTracks().forEach(function (t) { t.stop(); }); modal.remove(); }
         return new Promise(function (res, rej) {
             modal.querySelector('.btn-close').onclick = function () { cerrar(); rej(new Error('cancelado')); };
-            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }).then(function (s) {
+            abrirCamara({ facingMode: 'environment' }).then(function (s) {
                 stream = s; video.srcObject = s; return video.play();
             }).then(function () {
                 var det = null;
@@ -602,7 +633,7 @@
                         }
                     })();
                 });
-            }).catch(function (e) { cerrar(); rej(new Error('No se pudo abrir la cámara: ' + (e && e.message || e))); });
+            }).catch(function (e) { cerrar(); errorCamara(e).then(function (t) { rej(new Error(t)); }); });
         });
     }
     function escanearCamara() {
@@ -634,7 +665,7 @@
         soporte: soporte, lista: lista, opciones: opciones, guardarOpciones: guardarOpciones,
         agregar: agregar, actualizar: actualizar, quitar: quitar, estado: estado, predeterminada: predeterminada,
         imprimir: imprimir, prueba: prueba, abrirCajon: abrirCajon, escanearCamara: escanearCamara, escaneo: escaneo,
-        aviso: aviso,
+        aviso: aviso, abrirCamara: abrirCamara, errorCamara: errorCamara,
         detectados: function () {
             var out = [];
             var a = soporte.usb ? navigator.usb.getDevices().then(function (ds) { ds.forEach(function (d) { out.push({ clave: claveUsb(d), tipo: 'usb', nombre: nombreUsb(d) }); }); }) : Promise.resolve();
