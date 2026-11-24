@@ -81,11 +81,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($txt('texto', 5000) !== '' || $txt('temp', 10) !== '' || $txt('fc', 10) !== '' || $txt('ta', 15) !== '') {
             $pdo->prepare('INSERT INTO hosp_notas (consultorio_id, estancia_id, texto, temp, fc, fr, ta, creado_por, creado_en) VALUES (?,?,?,?,?,?,?,?,NOW())')
                 ->execute([$tid, $id, $txt('texto', 5000) ?: null, $txt('temp', 10) ?: null, $txt('fc', 10) ?: null, $txt('fr', 10) ?: null, $txt('ta', 15) ?: null, (int) $u['id']]);
+            $nid = (int) $pdo->lastInsertId();
+            try {
+                $pdo->prepare('UPDATE hosp_notas SET turno = ?, tipo = ? WHERE id = ?')
+                    ->execute([array_key_exists($_POST['turno'] ?? '', hosp_turnos()) ? $_POST['turno'] : hosp_turno_actual(),
+                               array_key_exists($_POST['tipo'] ?? '', hosp_tipos_nota()) ? $_POST['tipo'] : null, $nid]);
+            } catch (Throwable $ex) {}
             flash(t('Nota agregada.'));
         }
+    } elseif ($acc === 'cargo') {
+        // Cargo extra a la cuenta: medicamento, estudio, consulta, horas de internamiento de día…
+        $desc = $txt('descripcion', 255);
+        $cant = max(0.25, (float) ($_POST['cantidad'] ?? 1));
+        $precio = (float) ($_POST['precio'] ?? 0);
+        if ($desc === '' || $precio <= 0) flash(t('Escribe el concepto y su precio.'), 'warning');
+        else {
+            hosp_cargo(hosp_cuenta($e), $desc, $cant, $precio);
+            auditar('hosp_cargo', 'estancia', $id, $desc . ' · ' . $cant . ' x ' . $precio);
+            flash(t('Cargo agregado a la cuenta.'));
+        }
+        $dia = '&tab=cuenta#cuenta';
+    } elseif ($acc === 'cuarto' && has_role('admin', 'medico', 'recepcion')) {
+        // Cambio de cuarto: primero se cargan las noches en el cuarto anterior.
+        hosp_cargar($e);
+        $c = $pdo->prepare('SELECT * FROM hosp_cuartos WHERE id = ? AND consultorio_id = ?');
+        $c->execute([(int) ($_POST['cuarto_id'] ?? 0), $tid]);
+        if ($c = $c->fetch()) {
+            $tar = ($_POST['tarifa'] ?? '') !== '' ? max(0, (float) $_POST['tarifa']) : (float) $c['tarifa'];
+            $pdo->prepare('UPDATE hosp_estancias SET cuarto_id = ?, modalidad = ?, tarifa = ?, cama = ? WHERE id = ? AND consultorio_id = ?')
+                ->execute([(int) $c['id'], $c['modalidad'], $tar, $c['nombre'], $id, $tid]);
+            auditar('hosp_cuarto', 'estancia', $id, $c['nombre']);
+            flash(sprintf(t('Cambio a %s registrado.'), $c['nombre']));
+        }
+        $dia = '&tab=cuenta#cuenta';
+    } elseif ($acc === 'datos') {
+        $pdo->prepare('UPDATE hosp_estancias SET alta_estimada = ?, responsable = ?, responsable_tel = ?, responsable_parentesco = ? WHERE id = ? AND consultorio_id = ?')
+            ->execute([preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) ($_POST['alta_estimada'] ?? '')) ? $_POST['alta_estimada'] : null,
+                       $txt('responsable', 120) ?: null, $txt('responsable_tel', 40) ?: null, $txt('responsable_parentesco', 60) ?: null, $id, $tid]);
+        flash(t('Datos actualizados.'));
+    } elseif ($acc === 'visita') {
+        if ($txt('visitante', 120) === '') flash(t('Escribe quién visitó.'), 'warning');
+        else {
+            $f = strtotime(str_replace('T', ' ', (string) ($_POST['fecha'] ?? ''))) ?: time();
+            $pdo->prepare('INSERT INTO hosp_visitas (consultorio_id, estancia_id, fecha, visitante, parentesco, notas, registrado_por) VALUES (?,?,?,?,?,?,?)')
+                ->execute([$tid, $id, date('Y-m-d H:i:s', $f), $txt('visitante', 120), $txt('parentesco', 60) ?: null, $txt('notas', 255) ?: null, (int) $u['id']]);
+            flash(t('Visita registrada.'));
+        }
+        $dia = '&tab=visitas#cuenta';
     } elseif ($acc === 'alta' && $esClin) {
         $pdo->prepare("UPDATE hosp_estancias SET estado = 'alta', alta_en = NOW(), alta_notas = ? WHERE id = ? AND consultorio_id = ?")
             ->execute([$txt('alta_notas', 5000) ?: null, $id, $tid]);
+        // Cierra la cuenta: carga lo que faltaba hasta el día de alta.
+        try { if ($e2 = $cargar()) hosp_cargar($e2); } catch (Throwable $ex) {}
         auditar('hosp_alta', 'paciente', (int) $e['paciente_id'], 'Estancia #' . $id);
         flash(t('Alta registrada.'));
     } elseif ($acc === 'reabrir' && has_role('admin') && !$activa) {
@@ -94,6 +141,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     redirect('/hospitalizacion/estancia?id=' . $id . $dia);
 }
+
+if ($activa) { try { if (hosp_cargar($e)) $e = $cargar(); } catch (Throwable $ex) {} }
+$tab = in_array($_GET['tab'] ?? '', ['cuenta', 'visitas'], true) ? $_GET['tab'] : '';
+$cuenta = hosp_cuenta_resumen(!empty($e['factura_id']) ? (int) $e['factura_id'] : null);
+$cuartos = hosp_cuartos();
+$cuartoAct = null;
+foreach ($cuartos as $c) if ((int) $c['id'] === (int) ($e['cuarto_id'] ?? 0)) $cuartoAct = $c;
+$visitas = [];
+try {
+    $q = $pdo->prepare('SELECT v.*, u.nombre quien FROM hosp_visitas v LEFT JOIN usuarios u ON u.id = v.registrado_por WHERE v.consultorio_id = ? AND v.estancia_id = ? ORDER BY v.fecha DESC');
+    $q->execute([$tid, $id]);
+    $visitas = $q->fetchAll();
+} catch (Throwable $ex) {}
+$asist = [];
+try {
+    $q = $pdo->prepare('SELECT a.fecha, a.hora, a.nombre, s.asistio FROM hosp_asistencias s JOIN hosp_actividades a ON a.id = s.actividad_id
+                        WHERE s.consultorio_id = ? AND s.estancia_id = ? ORDER BY a.fecha DESC, a.hora DESC LIMIT 30');
+    $q->execute([$tid, $id]);
+    $asist = $q->fetchAll();
+} catch (Throwable $ex) {}
+$filtroNota = array_key_exists($_GET['nt'] ?? '', hosp_tipos_nota()) ? $_GET['nt'] : '';
 
 $indicaciones = $inds();
 $apl = hosp_aplicaciones($id);
@@ -183,6 +251,13 @@ include __DIR__ . '/../includes/header.php';
             <?php if ($e['medico']): ?> · <?= e($e['medico']) ?><?php endif; ?>
         </div>
         <?php if ($e['diagnostico'] || $e['motivo']): ?><div class="small mt-1"><b><?= et('Dx') ?>:</b> <?= e($e['diagnostico'] ?: '—') ?><?php if ($e['motivo']): ?> · <span class="text-muted"><?= e($e['motivo']) ?></span><?php endif; ?></div><?php endif; ?>
+        <div class="small mt-1 d-flex flex-wrap gap-3">
+            <?php if ($cuartoAct): ?><span><i class="bi bi-door-closed"></i> <?= e($cuartoAct['nombre']) ?><?= !empty($e['tarifa']) ? ' · ' . fmt_money($e['tarifa']) . ' ' . ($e['modalidad'] === 'noche' ? et('por noche') : ($e['modalidad'] === 'dia' ? et('por día') : '')) : '' ?></span><?php endif; ?>
+            <?php if (!empty($e['responsable'])): ?><span><i class="bi bi-people"></i> <?= e($e['responsable']) ?><?= $e['responsable_parentesco'] ? ' (' . e($e['responsable_parentesco']) . ')' : '' ?>
+                <?php if ($e['responsable_tel']): ?> · <a href="<?= e(wa_link($e['responsable_tel'], t('Hola') . ', ' . t('le escribimos de') . ' ' . marca_nombre() . '.')) ?>" target="_blank" rel="noopener"><i class="bi bi-whatsapp"></i> <?= e($e['responsable_tel']) ?></a><?php endif; ?></span><?php endif; ?>
+            <?php if (!empty($e['alta_estimada'])): ?><span class="<?= $activa && $e['alta_estimada'] < date('Y-m-d') ? 'text-danger fw-semibold' : '' ?>"><i class="bi bi-calendar-check"></i> <?= et('Alta estimada') ?> <?= fmt_fecha($e['alta_estimada']) ?></span><?php endif; ?>
+            <?php if ($cuenta['total'] > 0): ?><a href="?id=<?= $id ?>&tab=cuenta#cuenta" class="<?= $cuenta['saldo'] > 0 ? 'text-danger' : 'text-success' ?> fw-semibold text-decoration-none"><i class="bi bi-wallet2"></i> <?= $cuenta['saldo'] > 0 ? et('Saldo') . ' ' . fmt_money($cuenta['saldo']) : et('Cuenta liquidada') ?></a><?php endif; ?>
+        </div>
         <?php if (trim((string) $e['alergias']) !== ''): ?><div class="mt-1"><span class="badge text-bg-danger"><i class="bi bi-exclamation-triangle-fill"></i> <?= et('Alergias') ?>: <?= e($e['alergias']) ?></span></div><?php endif; ?>
     </div>
     <div class="d-flex flex-wrap gap-2 no-print">
@@ -316,20 +391,121 @@ include __DIR__ . '/../includes/header.php';
                     <div class="col-3"><input name="fr" class="form-control form-control-sm" maxlength="10" placeholder="FR"></div>
                     <div class="col-3"><input name="ta" class="form-control form-control-sm" maxlength="15" placeholder="TA"></div>
                 </div>
+                <div class="row g-2 mb-2">
+                    <div class="col-6"><select name="tipo" class="form-select form-select-sm"><?php foreach (hosp_tipos_nota() as $k => $l): ?><option value="<?= $k ?>"><?= et($l) ?></option><?php endforeach; ?></select></div>
+                    <div class="col-6"><select name="turno" class="form-select form-select-sm"><?php foreach (hosp_turnos() as $k => $l): ?><option value="<?= $k ?>" <?= hosp_turno_actual() === $k ? 'selected' : '' ?>><?= et('Turno') ?> <?= mb_strtolower(t($l)) ?></option><?php endforeach; ?></select></div>
+                </div>
                 <textarea name="texto" class="form-control mb-2" rows="2" placeholder="<?= et('Cómo sigue: evolución, cambios, pendientes…') ?>"></textarea>
                 <div class="text-end"><button class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> <?= et('Agregar nota') ?></button></div>
             </form>
             <?php endif; ?>
+            <?php if ($notas): ?>
+            <div class="d-flex flex-wrap gap-1 mb-3 no-print">
+                <a href="?id=<?= $id ?>" class="btn btn-sm <?= $filtroNota === '' ? 'btn-primary' : 'btn-light' ?>"><?= et('Todas') ?></a>
+                <?php foreach (hosp_tipos_nota() as $k => $l): ?><a href="?id=<?= $id ?>&nt=<?= $k ?>" class="btn btn-sm <?= $filtroNota === $k ? 'btn-primary' : 'btn-light' ?>"><?= et($l) ?></a><?php endforeach; ?>
+            </div>
+            <?php endif; ?>
             <?php if (!$notas): ?><p class="text-muted small mb-0"><?= et('Sin notas todavía.') ?></p><?php endif; ?>
-            <?php foreach ($notas as $n): ?>
+            <?php foreach ($notas as $n): if ($filtroNota && ($n['tipo'] ?? '') !== $filtroNota) continue; ?>
             <div class="border-start border-3 ps-3 mb-3" style="border-color:var(--brand)!important">
-                <div class="small text-muted"><?= date('d/m H:i', strtotime($n['creado_en'])) ?> · <?= e($n['quien'] ?? '') ?></div>
+                <div class="small text-muted"><?= date('d/m H:i', strtotime($n['creado_en'])) ?> · <?= e($n['quien'] ?? '') ?>
+                    <?php if (!empty($n['tipo'])): ?><span class="badge text-bg-light border ms-1"><?= et(hosp_tipos_nota()[$n['tipo']] ?? $n['tipo']) ?></span><?php endif; ?>
+                    <?php if (!empty($n['turno'])): ?><span class="badge text-bg-light border"><?= et(hosp_turnos()[$n['turno']] ?? $n['turno']) ?></span><?php endif; ?></div>
                 <?php $sv = array_filter(['T' => $n['temp'] ? $n['temp'] . ' °C' : '', 'FC' => $n['fc'], 'FR' => $n['fr'], 'TA' => $n['ta']]); if ($sv): ?>
                 <div class="d-flex flex-wrap gap-1 my-1"><?php foreach ($sv as $k => $v): ?><span class="badge text-bg-light border"><?= $k ?> <?= e($v) ?></span><?php endforeach; ?></div>
                 <?php endif; ?>
                 <?php if ($n['texto']): ?><div><?= nl2br(e($n['texto'])) ?></div><?php endif; ?>
             </div>
             <?php endforeach; ?>
+        </div></div>
+    </div>
+</div>
+
+<?php /* ── Cuenta del internado, visitas y actividades ───────────────── */ ?>
+<div class="row g-3 mt-1" id="cuenta">
+    <div class="col-lg-7">
+        <div class="card h-100<?= $tab === 'cuenta' ? ' border-primary' : '' ?>"><div class="card-body">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                <h2 class="h6 mb-0"><i class="bi bi-wallet2"></i> <?= et('Cuenta del internamiento') ?><?php if (!empty($cuenta['folio'])): ?> <span class="text-muted fw-normal small">· <?= e($cuenta['folio']) ?></span><?php endif; ?></h2>
+                <?php if (!empty($e['factura_id'])): ?>
+                <div class="d-flex gap-2 no-print">
+                    <a href="<?= BASE_URL ?>/facturacion/ver?id=<?= (int) $e['factura_id'] ?>" class="btn btn-sm btn-success"><i class="bi bi-cash-coin"></i> <?= et('Abonos y estado de cuenta') ?></a>
+                </div>
+                <?php endif; ?>
+            </div>
+            <div class="row g-2 text-center mb-3">
+                <div class="col-4"><div class="border rounded-3 p-2"><div class="small text-muted"><?= et('Cargos') ?></div><div class="fw-bold fs-5"><?= fmt_money($cuenta['total']) ?></div></div></div>
+                <div class="col-4"><div class="border rounded-3 p-2"><div class="small text-muted"><?= et('Abonado') ?></div><div class="fw-bold fs-5 text-success"><?= fmt_money($cuenta['abonado']) ?></div></div></div>
+                <div class="col-4"><div class="border rounded-3 p-2"><div class="small text-muted"><?= et('Saldo') ?></div><div class="fw-bold fs-5 <?= $cuenta['saldo'] > 0 ? 'text-danger' : 'text-success' ?>"><?= fmt_money($cuenta['saldo']) ?></div></div></div>
+            </div>
+            <?php if ($cuenta['items']): ?>
+            <div class="table-responsive" style="max-height:280px"><table class="table table-sm align-middle mb-2">
+                <thead><tr><th><?= et('Concepto') ?></th><th class="text-center"><?= et('Cant.') ?></th><th class="text-end"><?= et('Importe') ?></th></tr></thead>
+                <tbody><?php foreach (array_reverse($cuenta['items']) as $it): ?>
+                    <tr><td class="small"><?= e($it['descripcion']) ?></td><td class="text-center small"><?= rtrim(rtrim(number_format((float) $it['cantidad'], 2), '0'), '.') ?></td><td class="text-end small fw-semibold"><?= fmt_money($it['importe']) ?></td></tr>
+                <?php endforeach; ?></tbody>
+            </table></div>
+            <?php elseif (!$cuartoAct || empty($e['tarifa'])): ?>
+            <p class="small text-muted"><?= et('Sin cargos. Asigna un cuarto con tarifa para que las noches se carguen solas, o agrega cargos a mano.') ?></p>
+            <?php endif; ?>
+            <?php if ($activa): ?>
+            <form method="post" class="row g-2 no-print">
+                <?= csrf_field() ?><input type="hidden" name="id" value="<?= $id ?>"><input type="hidden" name="accion" value="cargo">
+                <div class="col-md-6"><input name="descripcion" class="form-control form-control-sm" maxlength="255" list="dlCargos" placeholder="<?= e(t('Concepto: medicamento, estudio, consulta, horas…')) ?>" required></div>
+                <div class="col-4 col-md-2"><input type="number" name="cantidad" class="form-control form-control-sm" step="0.25" min="0.25" value="1" title="<?= e(t('Cantidad u horas')) ?>"></div>
+                <div class="col-5 col-md-2"><input type="number" name="precio" class="form-control form-control-sm" step="0.01" min="0" placeholder="<?= e(t('Precio')) ?>" value="<?= ($e['modalidad'] ?? '') === 'hora' && !empty($e['tarifa']) ? e((string) (float) $e['tarifa']) : '' ?>" required></div>
+                <div class="col-3 col-md-2"><button class="btn btn-sm btn-primary w-100"><?= et('Cargar') ?></button></div>
+                <datalist id="dlCargos"><?php foreach (['Horas de internamiento de día', 'Consulta psiquiátrica', 'Sesión de psicoterapia', 'Medicamentos', 'Estudios de laboratorio', 'Lavandería', 'Alimentos de acompañante'] as $o): ?><option value="<?= e(t($o)) ?>"><?php endforeach; ?></datalist>
+            </form>
+            <?php if ($cuartos): ?>
+            <details class="mt-3 no-print"><summary class="small text-brand fw-semibold"><?= $cuartoAct ? et('Cambiar de cuarto') : et('Asignar cuarto') ?></summary>
+                <form method="post" class="row g-2 mt-1">
+                    <?= csrf_field() ?><input type="hidden" name="id" value="<?= $id ?>"><input type="hidden" name="accion" value="cuarto">
+                    <div class="col-md-6"><select name="cuarto_id" class="form-select form-select-sm"><?php foreach ($cuartos as $c): ?><option value="<?= (int) $c['id'] ?>" <?= $cuartoAct && (int) $cuartoAct['id'] === (int) $c['id'] ? 'selected' : '' ?>><?= e($c['nombre']) ?><?= (float) $c['tarifa'] > 0 ? ' · ' . fmt_money($c['tarifa']) : '' ?></option><?php endforeach; ?></select></div>
+                    <div class="col-6 col-md-3"><input type="number" step="0.01" min="0" name="tarifa" class="form-control form-control-sm" placeholder="<?= e(t('Tarifa del cuarto')) ?>"></div>
+                    <div class="col-6 col-md-3"><button class="btn btn-sm btn-outline-primary w-100"><?= et('Aplicar') ?></button></div>
+                    <div class="col-12 small text-muted"><?= et('Las noches anteriores se quedan con la tarifa del cuarto anterior.') ?></div>
+                </form>
+            </details>
+            <?php endif; ?>
+            <?php endif; ?>
+        </div></div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card mb-3"><div class="card-body">
+            <h2 class="h6 mb-3"><i class="bi bi-people"></i> <?= et('Familiar responsable y alta') ?></h2>
+            <form method="post" class="row g-2 no-print">
+                <?= csrf_field() ?><input type="hidden" name="id" value="<?= $id ?>"><input type="hidden" name="accion" value="datos">
+                <div class="col-7"><input name="responsable" class="form-control form-control-sm" maxlength="120" placeholder="<?= e(t('Nombre')) ?>" value="<?= e($e['responsable'] ?? '') ?>"></div>
+                <div class="col-5"><input name="responsable_parentesco" class="form-control form-control-sm" maxlength="60" placeholder="<?= e(t('Parentesco')) ?>" value="<?= e($e['responsable_parentesco'] ?? '') ?>"></div>
+                <div class="col-7"><input name="responsable_tel" class="form-control form-control-sm" maxlength="40" placeholder="<?= e(t('Teléfono')) ?>" value="<?= e($e['responsable_tel'] ?? '') ?>"></div>
+                <div class="col-5"><input type="date" name="alta_estimada" class="form-control form-control-sm" title="<?= e(t('Alta estimada')) ?>" value="<?= e($e['alta_estimada'] ?? '') ?>"></div>
+                <div class="col-12 text-end"><button class="btn btn-sm btn-outline-primary"><?= et('Guardar') ?></button></div>
+            </form>
+        </div></div>
+        <div class="card<?= $tab === 'visitas' ? ' border-primary' : '' ?>"><div class="card-body">
+            <h2 class="h6 mb-3"><i class="bi bi-person-walking"></i> <?= et('Visitas') ?> <span class="text-muted fw-normal small">· <?= count($visitas) ?></span></h2>
+            <?php if ($activa): ?>
+            <form method="post" class="row g-2 mb-3 no-print">
+                <?= csrf_field() ?><input type="hidden" name="id" value="<?= $id ?>"><input type="hidden" name="accion" value="visita">
+                <div class="col-7"><input name="visitante" class="form-control form-control-sm" maxlength="120" placeholder="<?= e(t('Quién visitó')) ?>" required></div>
+                <div class="col-5"><input name="parentesco" class="form-control form-control-sm" maxlength="60" placeholder="<?= e(t('Parentesco')) ?>"></div>
+                <div class="col-7"><input type="datetime-local" name="fecha" class="form-control form-control-sm" value="<?= date('Y-m-d\TH:i') ?>"></div>
+                <div class="col-5"><button class="btn btn-sm btn-primary w-100"><?= et('Registrar') ?></button></div>
+                <div class="col-12"><input name="notas" class="form-control form-control-sm" maxlength="255" placeholder="<?= e(t('Notas: cómo fue, qué trajeron…')) ?>"></div>
+            </form>
+            <?php endif; ?>
+            <?php foreach (array_slice($visitas, 0, 8) as $v): ?>
+            <div class="small py-1 border-bottom"><b><?= e($v['visitante']) ?></b><?= $v['parentesco'] ? ' · ' . e($v['parentesco']) : '' ?> <span class="text-muted">· <?= date('d/m H:i', strtotime($v['fecha'])) ?></span>
+                <?php if ($v['notas']): ?><div class="text-muted"><?= e($v['notas']) ?></div><?php endif; ?></div>
+            <?php endforeach; ?>
+            <?php if (!$visitas): ?><p class="small text-muted mb-0"><?= et('Sin visitas registradas.') ?></p><?php endif; ?>
+            <?php if ($asist): ?>
+            <h3 class="h6 mt-3 mb-2"><i class="bi bi-calendar2-week"></i> <?= et('Actividades') ?></h3>
+            <?php foreach (array_slice($asist, 0, 8) as $a): ?>
+            <div class="small d-flex justify-content-between py-1 border-bottom"><span><?= e($a['nombre']) ?> <span class="text-muted">· <?= date('d/m', strtotime($a['fecha'])) ?></span></span>
+                <span class="<?= $a['asistio'] ? 'text-success' : 'text-danger' ?>"><?= $a['asistio'] ? et('Asistió') : et('No asistió') ?></span></div>
+            <?php endforeach; endif; ?>
         </div></div>
     </div>
 </div>

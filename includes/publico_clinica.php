@@ -778,6 +778,42 @@ $nombresServ = array_slice(array_values(array_unique($nombresServ)), 0, 16);
 </section>
 <?php endif; ?>
 
+<!-- ===== ADMISIÓN: para quien busca ayuda para otra persona ===== -->
+<?php require_once __DIR__ . '/admisiones.php';
+if (admision_web_activa()): ?>
+<section class="adm-band" id="admision">
+    <div class="wrap">
+        <div class="adm-card" data-reveal="zoom">
+            <div class="adm-ic"><i class="bi bi-heart-pulse"></i></div>
+            <div class="adm-tx">
+                <h2><?= et('¿Hay alguien en tu vida que necesita acompañamiento?') ?></h2>
+                <p><?= et('Cuéntanos qué está pasando y nuestro equipo de admisión te orienta con calma y total confidencialidad, aunque la ayuda no sea para ti.') ?></p>
+            </div>
+            <div class="adm-cta">
+                <a href="<?= BASE_URL ?>/admision/solicitar?c=<?= rawurlencode($con['slug']) ?>" class="adm-btn"><i class="bi bi-send"></i> <?= et('Solicitar orientación') ?></a>
+                <?php if ($wa): ?><a href="<?= e($wa) ?>" target="_blank" rel="noopener" class="adm-btn2"><i class="bi bi-whatsapp"></i> <?= et('o escríbenos') ?></a><?php endif; ?>
+            </div>
+        </div>
+    </div>
+</section>
+<style>
+    .clx .adm-band { padding-top: 2rem; padding-bottom: 2rem; }
+    .clx .adm-card { display: flex; align-items: center; gap: 1.6rem; flex-wrap: wrap; padding: 2rem 2.2rem; border-radius: 28px; color: var(--on-cl);
+                     background: radial-gradient(500px 220px at 100% 0%, rgba(255,255,255,.18), transparent 70%), linear-gradient(135deg, var(--cl), var(--cl-d));
+                     box-shadow: 0 24px 60px color-mix(in srgb, var(--cl) 30%, transparent); }
+    .clx .adm-ic { width: 64px; height: 64px; flex: none; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; background: rgba(255,255,255,.16); }
+    .clx .adm-tx { flex: 1; min-width: 260px; }
+    .clx .adm-tx h2 { font-family: var(--font-display); font-weight: 700; letter-spacing: -.03em; font-size: clamp(1.4rem, 2.6vw, 1.9rem); margin: 0 0 .4rem; color: inherit; }
+    .clx .adm-tx p { margin: 0; opacity: .88; line-height: 1.5; }
+    .clx .adm-cta { display: flex; flex-direction: column; align-items: stretch; gap: .5rem; }
+    .clx .adm-btn { background: #fff; color: var(--cl); font-weight: 700; border-radius: 999px; padding: .85rem 1.5rem; text-decoration: none; text-align: center;
+                    box-shadow: 0 10px 24px rgba(0,0,0,.12); transition: transform .2s ease; }
+    .clx .adm-btn:hover { transform: translateY(-2px); color: var(--cl); }
+    .clx .adm-btn2 { color: inherit; text-align: center; font-size: .9rem; opacity: .9; text-decoration: none; }
+    @media (max-width: 575.98px) { .clx .adm-card { padding: 1.5rem; border-radius: 22px; } .clx .adm-cta { width: 100%; } }
+</style>
+<?php endif; ?>
+
 <!-- ===== CONTACTO ===== -->
 <?php
 $mapaSrc = mapa_embed_url(cfg('web_mapa', ''), (string) $dir);

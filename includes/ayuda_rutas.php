@@ -212,6 +212,21 @@ function ayuda_textos_rutas(): array
         'Para PHQ-9 y GAD-7 usa <b>Calcular</b>: marcas cada reactivo y el total se llena solo.',
         'Escribe el código CIE-10 y el nombre del diagnóstico se completa.',
     ], ['Si el reactivo 9 del PHQ-9 es positivo, el sistema te pide completar el tamizaje de riesgo.']);
+    $T['ruta:hospitalizacion/cuartos'] = $g('Cuartos y tarifas', 'Tus cuartos con su capacidad y cómo se cobran.', [
+        'Agrega cada cuarto (suite, habitación compartida, internamiento de día) con sus camas y su tarifa.',
+        'Elige cómo se cobra: por noche, por día de asistencia o por hora.',
+        'Al ingresar a un paciente, la tarifa se copia a su estancia: cambiar el precio después no altera lo ya pactado.',
+    ], ['Por noche: el día de ingreso cuenta y el de alta no (23 → 25 = 2 noches).']);
+    $T['ruta:hospitalizacion/actividades'] = $g('Programa del día', 'Actividades grupales con pase de lista.', [
+        'Programa la actividad (terapia grupal, yoga, danzaterapia…) y repítela de lunes a viernes por varias semanas.',
+        'Al terminar, marca quién asistió: queda en la estancia de cada paciente.',
+    ]);
+    $T['ruta:admisiones/index'] = $g('Admisiones', 'Solicitudes de atención, muchas veces de un familiar, antes de que exista el paciente.', [
+        'Las solicitudes de tu página llegan aquí y te avisamos por correo; las llamadas regístralas con "Registrar solicitud".',
+        'Escribe por WhatsApp con un clic: el mensaje ya va redactado.',
+        'Con "Siguiente paso" creas al paciente, agendas su valoración o lo ingresas a internamiento (con su familiar como responsable).',
+        'Cada nota que agregas mueve la solicitud a "Contactadas".',
+    ], ['Las urgentes aparecen primero con la etiqueta roja.']);
     $T['ruta:vacunacion/paciente'] = $g('Cartilla de vacunación', 'Las vacunas aplicadas y la próxima dosis de cada una.', [
         'Elige la vacuna y la fecha: la próxima dosis se calcula sola (puedes cambiarla).', 'Anota lote y dosis.', 'Imprime la cartilla para entregarla.',
     ]);

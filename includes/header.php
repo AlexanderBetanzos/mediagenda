@@ -200,6 +200,15 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
 
                 $clinico = $caja = $admin = $crece = $mas = [];
                 // Clínico
+                // Admisiones: solicitudes de atención (de la página o por teléfono) antes de
+                // que exista el paciente. Al frente en salud mental; en "más" en los demás giros.
+                if (modulo_activo('crm')) {
+                    require_once __DIR__ . '/admisiones.php';
+                    $nAdm = admisiones_nuevas();
+                    $it = '<li class="nav-item"><a class="nav-link' . nav_active('admisiones', $activo) . '" href="' . BASE_URL . '/admisiones/index"><i class="bi bi-person-plus"></i> '
+                        . et('Admisiones') . ($nAdm ? ' <span class="badge rounded-pill text-bg-danger ms-auto">' . $nAdm . '</span>' : '') . '</a></li>';
+                    if (in_array(giro_actual(), ['psiquiatria', 'psicologia', 'clinica'], true) || $nAdm) $clinico[] = $it; else $mas[] = $it;
+                }
                 if ($esClin && modulo_activo('plantillas')) $clinico[] = $li('plantillas', BASE_URL . '/plantillas/index', 'bi-file-earmark-text', t('Plantillas de consulta'));
                 if ($esClin && modulo_activo('documentos')) $clinico[] = $li('documentos', BASE_URL . '/documentos/index', 'bi-file-earmark-medical', t('Documentos'));
                 if (modulo_activo('expediente')) $clinico[] = $li('vacunacion', BASE_URL . '/vacunacion/index', 'bi-shield-plus', t('Vacunación'));

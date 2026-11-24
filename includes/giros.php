@@ -99,7 +99,11 @@ function giros(): array
                      'desc' => 'Nota psiquiátrica con examen mental, riesgo suicida, escalas y control de psicofármacos; psicología a un clic.',
                      'staff' => 'Tratantes', 'accesos' => ['psiquiatria', 'psicologia'],
                      'vocab' => ['Médicos' => 'Tratantes', 'Médico' => 'Tratante', 'Nuevo médico' => 'Nuevo tratante',
-                                 'médicos' => 'tratantes']],
+                                 'médicos' => 'tratantes',
+                                 // En salud mental se dice internamiento / programa residencial.
+                                 'Hospitalización' => 'Internamiento', 'Hospitalizados' => 'Internados',
+                                 'Hospitalizado' => 'Internado', 'hospitalizado' => 'internado', 'Ese paciente ya está hospitalizado.' => 'Ese paciente ya está internado.',
+                                 'No hay pacientes hospitalizados.' => 'No hay pacientes internados.']],
         'nutricion' => ['nombre' => 'Nutrición', 'icono' => 'bi-egg-fried', 'desc' => 'Valoración nutricional y curvas de crecimiento al frente.',
                      'staff' => 'Nutriólogos', 'accesos' => ['nutricion', 'crecimiento'],
                      'vocab' => ['Médicos' => 'Nutriólogos', 'Médico' => 'Nutriólogo', 'Nuevo médico' => 'Nuevo nutriólogo',
@@ -240,7 +244,7 @@ function giro_nivel(string $modulo, ?string $giro = null): string
         'odontograma'  => [['dental', 'clinica'],                                           ['psiquiatria', 'veterinaria', 'psicologia', 'oftalmologia', 'nutricion', 'pediatria', 'estetica', 'fisioterapia']],
         'crecimiento'  => [['pediatria', 'nutricion', 'medico', 'clinica'],                 ['psiquiatria', 'veterinaria', 'psicologia', 'oftalmologia', 'dental', 'estetica', 'fisioterapia']],
         'prenatal'     => [['medico', 'clinica'],                                           ['psiquiatria', 'veterinaria', 'psicologia', 'oftalmologia', 'dental', 'nutricion', 'pediatria', 'estetica', 'fisioterapia']],
-        'hospitalizacion' => [['clinica', 'veterinaria'],                                    ['psicologia', 'nutricion', 'oftalmologia', 'dental', 'estetica', 'fisioterapia']],
+        'hospitalizacion' => [['clinica', 'veterinaria', 'psiquiatria'],                                    ['psicologia', 'nutricion', 'oftalmologia', 'dental', 'estetica', 'fisioterapia']],
         'mapacorporal' => [['medico', 'clinica', 'estetica', 'fisioterapia'],               ['psiquiatria', 'veterinaria', 'psicologia', 'oftalmologia', 'dental']],
     ];
     if (!isset($tabla[$modulo])) return 'frente';
