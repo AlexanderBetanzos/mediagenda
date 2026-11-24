@@ -390,6 +390,7 @@ require_once __DIR__ . '/abonos.php';  // pagos parciales: saldo por cobrar
 require_once __DIR__ . '/giros.php';   // interfaz por giro (vocabulario y accesos)
 require_once __DIR__ . '/giro_kits.php';   // contenido propio de cada giro (plantillas, servicios, consentimientos)
 require_once __DIR__ . '/fisioterapia.php';   // historia clínica, notas SOAP y planes de ejercicio
+require_once __DIR__ . '/psiquiatria.php';   // examen mental, riesgo suicida, escalas y psicofármacos
 
 // Aplica la zona horaria configurada (si la tabla ya existe).
 date_default_timezone_set(cfg('zona_horaria', 'America/Mexico_City'));
@@ -943,7 +944,7 @@ function rol_label(string $rol): string
 {
     return t([
         'admin'     => 'Administrador',
-        'medico'    => 'Médico / Dentista',
+        'medico'    => 'Médico',   // el vocabulario del giro lo vuelve Odontólogo, Psicólogo, Tratante…
         'recepcion' => 'Recepción',
     ][$rol] ?? $rol);
 }
@@ -3144,6 +3145,20 @@ function resumen_verticales(int $pid): array
         if ($r['gad7'] !== null) { [$l] = gad7_nivel((int) $r['gad7']); $v[] = 'GAD-7 ' . (int) $r['gad7'] . ' (' . t($l) . ')'; }
         $out[] = ['icon'=>'bi-chat-heart','color'=>'#7c3aed','label'=>t('Psicología'),
                   'value'=>$v ? implode(' · ', $v) : t('sesión registrada'), 'url'=>'/psicologia/index?paciente_id=' . $pid];
+    }
+    // Psiquiatría: diagnóstico vigente, riesgo suicida y medicación activa.
+    if ($r = $one("SELECT COUNT(*) n FROM psiq_notas WHERE paciente_id=? AND consultorio_id=?", [$pid, $tid])) {
+        $nm = $one("SELECT COUNT(*) n FROM psiq_meds WHERE paciente_id=? AND consultorio_id=? AND fin IS NULL", [$pid, $tid]);
+        if ((int) $r['n'] > 0 || ($nm && (int) $nm['n'] > 0)) {
+            $dx = $one("SELECT dx_codigo, dx_texto FROM psiq_notas WHERE paciente_id=? AND consultorio_id=? AND (dx_codigo IS NOT NULL OR dx_texto IS NOT NULL) ORDER BY fecha DESC, id DESC LIMIT 1", [$pid, $tid]);
+            $rs = $one("SELECT riesgo_suicida FROM psiq_notas WHERE paciente_id=? AND consultorio_id=? AND riesgo_suicida IS NOT NULL ORDER BY fecha DESC, id DESC LIMIT 1", [$pid, $tid]);
+            $v = [];
+            if ($dx) $v[] = trim(($dx['dx_codigo'] ?? '') . ' ' . ($dx['dx_texto'] ?? ''));
+            if ($rs && in_array($rs['riesgo_suicida'], ['moderado', 'alto'], true)) $v[] = t('Riesgo suicida') . ' ' . mb_strtolower(t(psiq_riesgos()[$rs['riesgo_suicida']]));
+            if ($nm && (int) $nm['n'] > 0) $v[] = (int) $nm['n'] . ' ' . t('psicofármacos');
+            $out[] = ['icon'=>'bi-person-heart','color'=>($rs && $rs['riesgo_suicida'] === 'alto') ? '#dc2626' : '#6366f1','label'=>t('Psiquiatría'),
+                      'value'=>$v ? implode(' · ', $v) : t('registrado'), 'url'=>'/psiquiatria/index?paciente_id=' . $pid];
+        }
     }
     // Dental: tratamientos pendientes de la carta y último periodontograma.
     if ($r = $one("SELECT COUNT(DISTINCT diente, estado) n FROM odontograma_marcas WHERE paciente_id=? AND consultorio_id=? AND condicion='requerido'", [$pid, $tid])) {

@@ -262,7 +262,8 @@ function ayuda_textos(): array
         'titulo' => '¿Tienes tus pacientes en Excel o en otro sistema?',
         'intro'  => 'No los captures uno por uno: nosotros te ayudamos a pasar tu información a tu panel.',
         'pasos'  => [
-            'Junta lo que tengas: un Excel, un archivo exportado de tu sistema anterior o fotos de tus libretas.',
+            'Si tu sistema anterior (Nimbo, Doctoralia…) o tu Excel te da un archivo, súbelo tú mismo en <b>Pacientes → Importar</b>: reconoce las columnas solo y no duplica.',
+            'Si tienes fotos de libretas o un formato raro, junta lo que tengas.',
             'Escríbenos por <b>WhatsApp</b> o correo desde <b>Ayuda y soporte</b>.',
             'Te decimos qué columnas necesitamos (nombre, teléfono, fecha de nacimiento, alergias…) y lo cargamos por ti.',
             'Revisas que todo esté bien y listo: tus pacientes aparecen en tu panel.',
@@ -283,6 +284,12 @@ function ayuda_textos(): array
             'Sube la <b>serie fotográfica</b> desde el celular y compara antes / después con el deslizador.',
             'El <b>periodontograma</b> captura 6 sitios por diente con avance automático y calcula sangrado, placa y bolsas.',
             'Del plan sale el <b>presupuesto</b> con precios de tu catálogo; al registrar la nota de evolución, el tratamiento se marca realizado.',
+        ]],
+        'psiquiatria' => ['Tu panel de salud mental', 'Psiquiatría y psicología en la misma clínica, con agenda por tratante.', [
+            'En la ficha del paciente, <b>Psiquiatría</b> abre la nota con examen mental, riesgo suicida, escalas y diagnóstico CIE-10.',
+            'La <b>medicación</b> lleva su historial de ajustes y te avisa qué monitoreo pide cada fármaco.',
+            '<b>Psicología</b> está al lado para las sesiones de psicoterapia del mismo paciente.',
+            'Cada tratante tiene su agenda; recepción agenda, cobra y cierra su <b>corte de caja</b> al final del turno.',
         ]],
         'psicologia' => ['Tu panel de psicología', 'El panel habla de <b>sesiones</b> y pone tu nota psicológica a un clic.', [
             'En el expediente del paciente, el botón <b>Psicología</b> abre el registro de sesión.',

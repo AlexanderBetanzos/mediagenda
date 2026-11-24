@@ -38,9 +38,12 @@ include __DIR__ . '/../includes/header.php';
 ?>
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h1 class="h3 mb-0"><i class="bi bi-people text-brand"></i> <?= et('Pacientes') ?></h1>
-    <a href="<?= BASE_URL ?>/pacientes/create" class="btn btn-primary">
-        <i class="bi bi-plus-lg"></i> <?= et('Nuevo paciente') ?>
-    </a>
+    <div class="d-flex gap-2">
+        <?php if (has_role('admin')): ?><a href="<?= BASE_URL ?>/pacientes/importar" class="btn btn-light"><i class="bi bi-cloud-upload"></i> <span class="d-none d-sm-inline"><?= et('Importar') ?></span></a><?php endif; ?>
+        <a href="<?= BASE_URL ?>/pacientes/create" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> <?= et('Nuevo paciente') ?>
+        </a>
+    </div>
 </div>
 
 <?php /* Indicadores de la sección */ $__t = (int) tenant_id();

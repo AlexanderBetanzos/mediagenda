@@ -72,6 +72,30 @@ function giro_kit_plantillas(string $giro): array
                 'Chequeo cada 6 meses.'],
         ];
 
+    case 'psiquiatria':
+        $e = 'Psiquiatría';
+        return [
+            ['Valoración psiquiátrica inicial', $e, $g,
+                'Motivo de consulta (en palabras del paciente y del acompañante):',
+                "Padecimiento actual: inicio, curso, síntomas afectivos, ansiosos, psicóticos; sueño, apetito, funcionalidad.\nAntecedentes psiquiátricos, hospitalizaciones, intentos suicidas, consumo de sustancias, antecedentes familiares.\nExamen mental y tamizaje de riesgo (ver módulo Psiquiatría).",
+                'Diagnóstico CIE-10:', "Tratamiento farmacológico:\nPsicoterapia / referencia:\nEstudios de laboratorio:", '',
+                'Se explican diagnóstico, opciones de tratamiento, efectos adversos esperables y signos de alarma.'],
+            ['Seguimiento psiquiátrico', $e, $g,
+                'Consulta de seguimiento',
+                "Evolución desde la última cita. Apego al tratamiento y efectos adversos.\nEscalas aplicadas (PHQ-9 / GAD-7 / HAM-D / YMRS).",
+                'Diagnóstico y respuesta al tratamiento:', 'Ajustes de medicación. Próxima cita.', '',
+                ''],
+            ['Urgencia psiquiátrica / crisis', $e, $g,
+                'Atención en crisis',
+                "Motivo y desencadenante. Estado de conciencia, agitación, síntomas psicóticos, intoxicación.\nRiesgo suicida y heteroagresivo (tamizaje C-SSRS).",
+                'Impresión diagnóstica y nivel de riesgo:', "Intervención realizada. Plan de seguridad.\nReferencia a urgencias / hospitalización si aplica. Red de apoyo contactada.", '',
+                'Se informa al paciente y a su acompañante el plan y los signos de alarma.'],
+            ['Control de litio / estabilizador', $e, $g,
+                'Control de tratamiento con estabilizador del ánimo',
+                "Litemia / nivel sérico: ___  Creatinina: ___  TSH: ___\nTemblor, poliuria, síntomas gastrointestinales, peso.",
+                'Estado del ánimo (YMRS / HAM-D):', 'Ajuste de dosis y fecha del próximo nivel sérico.', '',
+                ''],
+        ];
     case 'psicologia':
         $e = 'Psicología';
         return [
@@ -339,6 +363,14 @@ function giro_kit_servicios(string $giro): array
             ['Certificado de salud', 'Documentos', 15, 0],
             ['Baño', 'Estética', 60, 0], ['Corte de pelo', 'Estética', 60, 0], ['Corte de uñas', 'Estética', 15, 0],
         ];
+    case 'psiquiatria':
+        return [
+            ['Valoración psiquiátrica inicial', 'Psiquiatría', 60, 0], ['Consulta de seguimiento (psiquiatría)', 'Psiquiatría', 30, 0],
+            ['Consulta psiquiátrica en línea', 'Psiquiatría', 30, 0], ['Atención en crisis', 'Psiquiatría', 60, 0],
+            ['Primera entrevista (psicología)', 'Psicología', 60, 0], ['Sesión de psicoterapia', 'Psicología', 50, 0],
+            ['Terapia de pareja', 'Psicología', 60, 0], ['Terapia familiar', 'Psicología', 75, 0],
+            ['Evaluación psicométrica', 'Evaluación', 90, 0], ['Informe / constancia', 'Documentos', 30, 0],
+        ];
     case 'psicologia':
         return [
             ['Primera entrevista', 'Evaluación', 60, 0], ['Sesión individual', 'Terapia', 50, 0],
@@ -429,6 +461,27 @@ function giro_kit_consentimientos(string $giro): array
             'Responsiva de vacunación (mascota)' =>
                 $tutor . 'la vacuna a aplicar y sus posibles reacciones (dolor local, decaimiento, fiebre leve y, en casos '
                 . 'raros, reacción alérgica). Declaro que mi mascota no presenta signos de enfermedad y autorizo su aplicación.',
+        ];
+    case 'psiquiatria':
+        return [
+            'Consentimiento informado para tratamiento psiquiátrico' =>
+                'Yo, {paciente}, acepto recibir atención psiquiátrica en {consultorio}. Se me explicaron en lenguaje claro mi '
+                . 'diagnóstico, las opciones de tratamiento (farmacológico y no farmacológico), sus beneficios, los efectos adversos '
+                . 'más frecuentes y los riesgos de no tratarme. Me comprometo a informar cualquier efecto adverso y a no suspender '
+                . 'ni modificar mis medicamentos sin indicación. Entiendo que la confidencialidad tiene límites cuando existe riesgo '
+                . 'para mi vida o la de terceros.',
+            'Consentimiento para psicofármacos de uso controlado' =>
+                'Yo, {paciente}, declaro que se me explicaron el uso, la dosis y el tiempo previsto del medicamento controlado que se '
+                . 'me receta en {consultorio}, así como sus riesgos de tolerancia, dependencia y sedación, y que no debo combinarlo '
+                . 'con alcohol ni conducir si me causa somnolencia. Me comprometo a usarlo solo como se me indicó.',
+            'Consentimiento para psicoterapia' =>
+                'Yo, {paciente}, acepto iniciar un proceso psicoterapéutico en {consultorio}. Se me explicaron el enfoque, la '
+                . 'frecuencia de las sesiones, los honorarios y la política de cancelación, y que la confidencialidad tiene límites '
+                . 'ante riesgo para mi vida o la de terceros, sospecha de maltrato o mandato judicial.',
+            'Consentimiento para atención de menores' =>
+                'Como madre, padre o tutor(a) de {paciente}, autorizo su atención en salud mental en {consultorio}. Se me informarán '
+                . 'el diagnóstico, el tratamiento y los avances; el contenido de las sesiones del menor es confidencial salvo '
+                . 'situaciones de riesgo, que se me comunicarán de inmediato.',
         ];
     case 'psicologia':
         return [

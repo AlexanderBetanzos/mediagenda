@@ -200,6 +200,18 @@ function ayuda_textos_rutas(): array
         'En cada sesión escribe el enfoque, las notas y las tareas para el paciente.', 'Si aplicaste escalas, captura el puntaje de PHQ-9 (depresión) y GAD-7 (ansiedad).',
         'Marca el nivel de riesgo. La gráfica muestra la evolución de las escalas.',
     ], ['Un riesgo <b>alto</b> se resalta en rojo en la lista de sesiones.']);
+    $T['ruta:psiquiatria/index'] = $g('Psiquiatría', 'Diagnóstico vigente, riesgo suicida, escalas y psicofármacos del paciente.', [
+        'Empieza con la <b>valoración inicial</b>; cada consulta después es una <b>nota de seguimiento</b> (el diagnóstico se arrastra solo).',
+        'En <b>Medicación</b> agrega cada fármaco; usa <b>Ajustar</b> para cambiar la dosis y <b>Suspender</b> con su motivo: así queda el historial completo.',
+        'La pestaña <b>Monitoreo</b> te dice qué estudios pide cada fármaco activo (litemia, BH con clozapina, perfil metabólico…).',
+        '<b>Resumen clínico</b> imprime diagnóstico, escalas y tratamiento para una interconsulta.',
+    ], ['Si la última evaluación marcó riesgo suicida moderado o alto, aparece un aviso arriba en la ficha.', 'Los medicamentos controlados se marcan en amarillo: requieren receta especial.']);
+    $T['ruta:psiquiatria/nota'] = $g('Nota psiquiátrica', 'Valoración inicial, seguimiento, urgencia o interconsulta.', [
+        'Llena el examen mental por dominios; el botón <b>Todo sin alteraciones</b> marca lo normal y solo cambias lo alterado.',
+        'Contesta el <b>tamizaje de riesgo suicida</b>: el nivel se calcula solo (puedes corregirlo con tu juicio clínico).',
+        'Para PHQ-9 y GAD-7 usa <b>Calcular</b>: marcas cada reactivo y el total se llena solo.',
+        'Escribe el código CIE-10 y el nombre del diagnóstico se completa.',
+    ], ['Si el reactivo 9 del PHQ-9 es positivo, el sistema te pide completar el tamizaje de riesgo.']);
     $T['ruta:vacunacion/paciente'] = $g('Cartilla de vacunación', 'Las vacunas aplicadas y la próxima dosis de cada una.', [
         'Elige la vacuna y la fecha: la próxima dosis se calcula sola (puedes cambiarla).', 'Anota lote y dosis.', 'Imprime la cartilla para entregarla.',
     ]);

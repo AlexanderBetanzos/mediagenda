@@ -27,6 +27,7 @@ function giros(): array
         'dental'       => ['/dental/index', 'Expediente dental', 'bi-clipboard2-heart'],
         'odontograma'  => ['/dental/carta', 'Carta dental', 'bi-emoji-smile'],
         'psicologia'   => ['/psicologia/index', 'Psicología', 'bi-chat-heart'],
+        'psiquiatria'  => ['/psiquiatria/index', 'Psiquiatría', 'bi-person-heart'],
         'nutricion'    => ['/nutricion/index', 'Nutrición', 'bi-egg-fried'],
         'crecimiento'  => ['/crecimiento/index', 'Crecimiento', 'bi-graph-up-arrow'],
         'oftalmologia' => ['/oftalmologia/index', 'Oftalmología', 'bi-eye'],
@@ -92,6 +93,13 @@ function giros(): array
                      'staff' => 'Psicólogos', 'accesos' => ['psicologia'],
                      'vocab' => $sesion + ['Médicos' => 'Psicólogos', 'Médico' => 'Psicólogo', 'Nuevo médico' => 'Nuevo psicólogo',
                                            'médicos' => 'psicólogos']],
+        // Clínica de salud mental: psicólogos y psiquiatras en la misma agenda.
+        // Se dice "tratante" porque el equipo no es solo de médicos.
+        'psiquiatria' => ['nombre' => 'Psiquiatría y salud mental', 'icono' => 'bi-person-heart',
+                     'desc' => 'Nota psiquiátrica con examen mental, riesgo suicida, escalas y control de psicofármacos; psicología a un clic.',
+                     'staff' => 'Tratantes', 'accesos' => ['psiquiatria', 'psicologia'],
+                     'vocab' => ['Médicos' => 'Tratantes', 'Médico' => 'Tratante', 'Nuevo médico' => 'Nuevo tratante',
+                                 'médicos' => 'tratantes']],
         'nutricion' => ['nombre' => 'Nutrición', 'icono' => 'bi-egg-fried', 'desc' => 'Valoración nutricional y curvas de crecimiento al frente.',
                      'staff' => 'Nutriólogos', 'accesos' => ['nutricion', 'crecimiento'],
                      'vocab' => ['Médicos' => 'Nutriólogos', 'Médico' => 'Nutriólogo', 'Nuevo médico' => 'Nuevo nutriólogo',
@@ -224,15 +232,16 @@ function giro_nivel(string $modulo, ?string $giro = null): string
     $g = $giro ?? giro_actual();
     $tabla = [
         //                frente                                                         nunca
-        'optica'       => [['oftalmologia', 'clinica'],                                     ['veterinaria', 'psicologia', 'dental', 'nutricion', 'fisioterapia']],
-        'imagenologia' => [['medico', 'clinica', 'veterinaria'],                            ['psicologia', 'nutricion']],
-        'laboratorio'  => [['medico', 'clinica', 'veterinaria', 'nutricion', 'pediatria', 'estetica'], ['psicologia']],
+        'optica'       => [['oftalmologia', 'clinica'],                                     ['psiquiatria', 'veterinaria', 'psicologia', 'dental', 'nutricion', 'fisioterapia']],
+        'imagenologia' => [['medico', 'clinica', 'veterinaria'],                            ['psiquiatria', 'psicologia', 'nutricion']],
+        'laboratorio'  => [['medico', 'clinica', 'veterinaria', 'nutricion', 'pediatria', 'estetica', 'psiquiatria'], ['psicologia']],
+        'psiquiatria'  => [['psiquiatria', 'clinica', 'medico'],                             ['veterinaria', 'dental', 'oftalmologia', 'estetica', 'fisioterapia', 'nutricion']],
         'farmacia'     => [['medico', 'clinica', 'veterinaria', 'dental', 'estetica', 'nutricion', 'oftalmologia', 'pediatria'], []],
-        'odontograma'  => [['dental', 'clinica'],                                           ['veterinaria', 'psicologia', 'oftalmologia', 'nutricion', 'pediatria', 'estetica', 'fisioterapia']],
-        'crecimiento'  => [['pediatria', 'nutricion', 'medico', 'clinica'],                 ['veterinaria', 'psicologia', 'oftalmologia', 'dental', 'estetica', 'fisioterapia']],
-        'prenatal'     => [['medico', 'clinica'],                                           ['veterinaria', 'psicologia', 'oftalmologia', 'dental', 'nutricion', 'pediatria', 'estetica', 'fisioterapia']],
+        'odontograma'  => [['dental', 'clinica'],                                           ['psiquiatria', 'veterinaria', 'psicologia', 'oftalmologia', 'nutricion', 'pediatria', 'estetica', 'fisioterapia']],
+        'crecimiento'  => [['pediatria', 'nutricion', 'medico', 'clinica'],                 ['psiquiatria', 'veterinaria', 'psicologia', 'oftalmologia', 'dental', 'estetica', 'fisioterapia']],
+        'prenatal'     => [['medico', 'clinica'],                                           ['psiquiatria', 'veterinaria', 'psicologia', 'oftalmologia', 'dental', 'nutricion', 'pediatria', 'estetica', 'fisioterapia']],
         'hospitalizacion' => [['clinica', 'veterinaria'],                                    ['psicologia', 'nutricion', 'oftalmologia', 'dental', 'estetica', 'fisioterapia']],
-        'mapacorporal' => [['medico', 'clinica', 'estetica', 'fisioterapia'],               ['veterinaria', 'psicologia', 'oftalmologia', 'dental']],
+        'mapacorporal' => [['medico', 'clinica', 'estetica', 'fisioterapia'],               ['psiquiatria', 'veterinaria', 'psicologia', 'oftalmologia', 'dental']],
     ];
     if (!isset($tabla[$modulo])) return 'frente';
     [$frente, $nunca] = $tabla[$modulo];
