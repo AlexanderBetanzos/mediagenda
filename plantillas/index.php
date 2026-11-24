@@ -3,7 +3,7 @@
 require_once __DIR__ . '/../includes/functions.php';
 require_login();
 require_modulo('plantillas');
-if (!has_role('medico', 'admin')) { http_response_code(403); die('Solo médico o admin.'); }
+if (!has_role('medico', 'admin')) { http_response_code(403); die(t('Esta sección es solo para el personal clínico y el administrador.')); }
 
 // Self-healing: asegura la columna de especialidad (por si aún no se corrió la migración).
 try { db()->exec("ALTER TABLE plantillas_consulta ADD COLUMN IF NOT EXISTS especialidad VARCHAR(80) DEFAULT NULL"); } catch (Throwable $e) {}

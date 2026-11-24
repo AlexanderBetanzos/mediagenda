@@ -131,7 +131,7 @@ include __DIR__ . '/../includes/header.php';
         <div class="col-md-5">
             <label class="form-label"><?= et('Especialidad') ?></label>
             <input type="text" name="especialidad" class="form-control" maxlength="120" value="<?= e($m['especialidad'] ?? '') ?>"
-                   placeholder="<?= e(t('Pediatría, Odontología…')) ?>">
+                   placeholder="<?= e(giro_ejemplos('especialidad')) ?>">
         </div>
         <div class="col-md-6">
             <label class="form-label"><?= et('Cédula profesional') ?></label>

@@ -106,7 +106,7 @@ $acento = color_acento();
         <div class="col-5 text-end">
             <div class="text-uppercase small text-muted fw-semibold"><?= et('Atiende') ?></div>
             <div class="fw-semibold"><?= e($pre['medico_nombre']) ?></div>
-            <div class="small text-muted"><?= e($pre['especialidad'] ?: t('Médico / Dentista')) ?></div>
+            <div class="small text-muted"><?= e($pre['especialidad'] ?: etiqueta_profesional()) ?></div>
         </div>
         <?php endif; ?>
     </div>

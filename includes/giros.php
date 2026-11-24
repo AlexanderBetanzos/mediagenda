@@ -122,8 +122,11 @@ function giros(): array
                                            'médicos' => 'fisioterapeutas']],
         'veterinaria' => ['nombre' => 'Veterinaria', 'icono' => 'bi-house-heart', 'desc' => 'Mascotas con especie, raza y tutor; vacunas y recordatorios le llegan al tutor.',
                      'staff' => 'Veterinarios', 'accesos' => ['vacunas', 'cirugia', 'dermatologia'], 'vocab' => $vet],
+        // Varias especialidades (médicos, psicólogos, dentistas…): título genérico.
         'clinica' => ['nombre' => 'Clínica u hospital', 'icono' => 'bi-hospital', 'desc' => 'Varias especialidades: todas las herramientas a la mano.',
-                     'staff' => 'Médicos', 'accesos' => [], 'vocab' => []],
+                     'staff' => 'Profesionales', 'accesos' => [],
+                     'vocab' => ['Médicos' => 'Profesionales', 'Médico' => 'Profesional', 'Nuevo médico' => 'Nuevo profesional',
+                                 'médicos' => 'profesionales']],
     ] + ['_accesos' => $A];
 }
 
@@ -163,12 +166,44 @@ function giro_muestra_especialidad(string $modulo): bool
     return in_array($modulo, ['cirugia', 'dermatologia', 'cardiologia', 'laboratorio', 'imagenologia', 'oftalmologia', 'traumatologia'], true);
 }
 
+/**
+ * Vocabulario del giro + frases derivadas: "médico" en minúscula cuando se
+ * refiere a la PERSONA ("tu médico", "cada médico", "Editar médico", "los
+ * médicos") se cambia por la profesión del giro. Los usos como adjetivo
+ * ("diagnóstico médico", "certificado médico") no llevan artículo delante y
+ * se quedan igual.
+ */
+function giro_vocab_mapa(string $g): array
+{
+    static $cache = [];
+    if (isset($cache[$g])) return $cache[$g];
+    $map = giros_lista()[$g]['vocab'] ?? [];
+    $S = $map['Médico'] ?? null;
+    $P = $map['Médicos'] ?? null;
+    $low = fn ($x) => mb_strtolower(mb_substr($x, 0, 1)) . mb_substr($x, 1);
+    if ($S) {
+        foreach (['el', 'del', 'al', 'un', 'tu', 'su', 'cada', 'este', 'otro', 'ese', 'elegir', 'Paciente y', 'Editar', 'Agregar', 'Foto del', 'Firma del', '='] as $a) {
+            $map[$a . ' médico'] ??= $a . ' ' . $low($S);
+            $uc = mb_strtoupper(mb_substr($a, 0, 1)) . mb_substr($a, 1);
+            if ($uc !== $a) $map[$uc . ' médico'] ??= $uc . ' ' . $low($S);
+        }
+    }
+    if ($P) {
+        foreach (['los', 'tus', 'sus', 'Todos los', 'todos los', 'hay', 'de', 'a tus', 'Recepción,'] as $a) {
+            $map[$a . ' médicos'] ??= $a . ' ' . $low($P);
+            $uc = mb_strtoupper(mb_substr($a, 0, 1)) . mb_substr($a, 1);
+            if ($uc !== $a) $map[$uc . ' médicos'] ??= $uc . ' ' . $low($P);
+        }
+    }
+    return $cache[$g] = $map;
+}
+
 /** Aplica el vocabulario del giro a un texto en español (lo llama t()). */
 function giro_vocab(string $s): string
 {
     static $re = [], $cache = [];
     $g = giro_actual();
-    $map = giros_lista()[$g]['vocab'] ?? [];
+    $map = giro_vocab_mapa($g);
     if (!$map || $s === '') return $s;
     if (isset($cache[$g][$s])) return $cache[$g][$s];
 
@@ -273,6 +308,36 @@ function giro_usa_tipo_dental(): bool
         } catch (Throwable $e) { $cache[$tid] = false; }
     }
     return $cache[$tid];
+}
+
+/**
+ * Cómo se llama quien atiende, en singular, según el giro: Tratante,
+ * Psicólogo, Odontólogo, Nutriólogo… En una clínica multiespecialidad, el
+ * genérico "Profesional". Usarlo en vez de escribir "Médico / Dentista".
+ */
+function etiqueta_profesional(bool $plural = false): string
+{
+    return t($plural ? 'Médicos' : 'Médico');   // el vocabulario del giro lo adapta (Tratante, Profesional…)
+}
+
+/** Ejemplos para los campos de texto según el giro (nunca "Limpieza dental" en psiquiatría). */
+function giro_ejemplos(string $campo): string
+{
+    $E = [
+        'medico'       => ['Consulta general, Certificado médico…', 'Consulta, Procedimientos…', 'Medicina general, Pediatría…'],
+        'dental'       => ['Limpieza dental, Consulta de valoración…', 'Preventivo, Endodoncia…', 'Odontología general, Ortodoncia…'],
+        'psicologia'   => ['Sesión individual, Terapia de pareja…', 'Terapia, Evaluación…', 'Psicología clínica, Terapia familiar…'],
+        'psiquiatria'  => ['Valoración psiquiátrica, Sesión de psicoterapia…', 'Psiquiatría, Psicología, Internamiento…', 'Psiquiatría, Psicología clínica…'],
+        'nutricion'    => ['Consulta nutricional, Plan de alimentación…', 'Consulta, Planes…', 'Nutrición clínica, Nutrición deportiva…'],
+        'pediatria'    => ['Consulta pediátrica, Control de niño sano…', 'Consulta, Vacunas…', 'Pediatría, Neonatología…'],
+        'oftalmologia' => ['Examen de la vista, Consulta oftalmológica…', 'Consulta, Óptica…', 'Oftalmología, Optometría…'],
+        'estetica'     => ['Aplicación de toxina, Peeling…', 'Faciales, Corporales…', 'Dermatología, Medicina estética…'],
+        'fisioterapia' => ['Sesión de fisioterapia, Valoración inicial…', 'Sesión, Valoración…', 'Fisioterapia, Rehabilitación deportiva…'],
+        'veterinaria'  => ['Consulta general, Vacuna antirrábica…', 'Consulta, Medicina preventiva…', 'Medicina veterinaria, Cirugía…'],
+        'clinica'      => ['Consulta de especialidad, Estudio…', 'Consulta, Procedimientos, Estudios…', 'Cardiología, Pediatría, Psicología…'],
+    ];
+    $i = ['servicio' => 0, 'categoria' => 1, 'especialidad' => 2][$campo] ?? 0;
+    return t(($E[giro_actual()] ?? $E['medico'])[$i]);
 }
 
 /** Tipo por defecto del giro ('medico' | 'dental'). */

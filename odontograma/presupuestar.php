@@ -9,7 +9,7 @@ require_once __DIR__ . '/../includes/odontograma.php';
 require_login();
 require_modulo('especialidades');
 require_modulo('presupuestos');
-if (!has_role('medico', 'admin')) { http_response_code(403); die('Solo médico o admin.'); }
+if (!has_role('medico', 'admin')) { http_response_code(403); die(t('Esta sección es solo para el personal clínico y el administrador.')); }
 verify_csrf();
 
 $pid = (int) ($_POST['paciente_id'] ?? 0);

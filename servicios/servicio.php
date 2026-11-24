@@ -81,7 +81,7 @@ $v = fn($k) => e((string) ($s[$k] ?? ''));
         <input type="hidden" name="id" value="<?= $id ?>">
         <div class="col-md-8">
             <label class="form-label"><?= et('Nombre') ?> *</label>
-            <input type="text" name="nombre" class="form-control" required value="<?= $v('nombre') ?>" placeholder="<?= et('Limpieza dental, Consulta de valoración…') ?>">
+            <input type="text" name="nombre" class="form-control" required value="<?= $v('nombre') ?>" placeholder="<?= e(giro_ejemplos('servicio')) ?>">
         </div>
         <div class="col-md-4">
             <label class="form-label"><?= et('Código') ?></label>
@@ -89,7 +89,7 @@ $v = fn($k) => e((string) ($s[$k] ?? ''));
         </div>
         <div class="col-md-5">
             <label class="form-label"><?= et('Categoría') ?></label>
-            <input type="text" name="categoria" class="form-control" value="<?= $v('categoria') ?>" placeholder="<?= et('Preventivo, Endodoncia…') ?>">
+            <input type="text" name="categoria" class="form-control" value="<?= $v('categoria') ?>" placeholder="<?= e(giro_ejemplos('categoria')) ?>">
         </div>
         <div class="col-md-4">
             <label class="form-label"><?= et('Precio') ?></label>
@@ -117,6 +117,7 @@ $v = fn($k) => e((string) ($s[$k] ?? ''));
             <div class="form-check form-switch"><input type="checkbox" class="form-check-input" id="publico" name="publico" value="1" <?= !empty($s['publico']) ? 'checked' : '' ?>><label class="form-check-label" for="publico"><?= et('Mostrar este servicio') ?></label></div>
             <div class="form-check form-switch"><input type="checkbox" class="form-check-input" id="mostrarPrecio" name="mostrar_precio" value="1" <?= !empty($s['mostrar_precio']) ? 'checked' : '' ?>><label class="form-check-label" for="mostrarPrecio"><?= et('Mostrar el precio') ?></label></div>
         </div>
+        <?php if (giro_usa_tipo_dental() || !empty($s['aplica_diente'])): ?>
         <div class="col-12">
             <div class="form-check">
                 <input type="checkbox" class="form-check-input" id="aplicaDiente" name="aplica_diente" value="1" <?= !empty($s['aplica_diente']) ? 'checked' : '' ?>>
@@ -126,6 +127,7 @@ $v = fn($k) => e((string) ($s[$k] ?? ''));
                 </label>
             </div>
         </div>
+        <?php endif; ?>
     </div>
     <div class="card-footer text-end">
         <a href="<?= BASE_URL ?>/servicios/index" class="btn btn-light"><?= et('Cancelar') ?></a>

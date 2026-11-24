@@ -75,7 +75,7 @@ include __DIR__ . '/../includes/header.php';
                     <?php endforeach; ?>
                 </select>
             </div>
-            <div class="col-md-4"><label class="form-label"><?= et('Especialidad') ?></label><input type="text" name="especialidad" class="form-control" value="<?= e($usr['especialidad'] ?? '') ?>" placeholder="<?= et('Solo médicos/dentistas') ?>"></div>
+            <div class="col-md-4"><label class="form-label"><?= et('Especialidad') ?></label><input type="text" name="especialidad" class="form-control" value="<?= e($usr['especialidad'] ?? '') ?>" placeholder="<?= e(t('Solo para quien atiende pacientes') . ' · ' . giro_ejemplos('especialidad')) ?>"></div>
             <div class="col-md-4"><label class="form-label"><?= et('Teléfono') ?></label><input type="text" name="telefono" class="form-control" value="<?= e($usr['telefono'] ?? '') ?>"></div>
             <div class="col-md-6"><label class="form-label"><?= et('Contraseña') ?> *</label><input type="password" name="password" class="form-control" required minlength="6"></div>
         </div>

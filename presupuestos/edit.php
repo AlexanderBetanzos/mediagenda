@@ -217,7 +217,7 @@ function celda_caras(int $i, string $seleccionadas): string
                 </select>
             </div>
             <div class="col-md-3">
-                <label class="form-label"><?= et('Médico / Dentista') ?></label>
+                <label class="form-label"><?= e(etiqueta_profesional()) ?></label>
                 <select name="medico_id" class="form-select">
                     <option value=""><?= et('— Sin asignar —') ?></option>
                     <?php foreach ($medicos as $m): ?>

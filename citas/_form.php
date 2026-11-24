@@ -23,7 +23,7 @@ $medicos = $medicos->fetchAll();
         </select>
     </div>
     <div class="col-md-6">
-        <label class="form-label"><?= et('Médico / Dentista') ?> *</label>
+        <label class="form-label"><?= e(etiqueta_profesional()) ?> *</label>
         <select name="medico_id" class="form-select" required>
             <option value=""><?= et('— Selecciona —') ?></option>
             <?php foreach ($medicos as $m): ?>
