@@ -17,8 +17,9 @@ include __DIR__ . '/../includes/header.php';
     <span class="small text-muted"><i class="bi bi-pc-display"></i> <?= et('Se configuran por computadora: lo que agregues aquí vale para este equipo y este navegador.') ?></span>
 </div>
 
-<div class="alert alert-warning d-none" id="dvNav">
-    <i class="bi bi-browser-chrome"></i> <?= et('Este navegador no puede conectarse directo a impresoras USB o Bluetooth. Usa Google Chrome o Microsoft Edge en la computadora. Mientras tanto puedes imprimir con "Impresora instalada en la PC".') ?>
+<div class="alert alert-warning d-none d-flex gap-2" id="dvNav">
+    <i class="bi bi-browser-chrome fs-5"></i>
+    <div><b id="dvNavT"></b><div class="small" id="dvNavD"></div></div>
 </div>
 
 <div class="row g-3">
@@ -26,22 +27,21 @@ include __DIR__ . '/../includes/header.php';
     <div class="card mb-3">
         <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
             <span class="fw-semibold"><i class="bi bi-printer"></i> <?= et('Impresoras de tickets') ?></span>
-            <div class="dropdown">
-                <button class="btn btn-primary btn-sm dropdown-toggle" data-bs-toggle="dropdown"><i class="bi bi-plus-lg"></i> <?= et('Agregar impresora') ?></button>
-                <ul class="dropdown-menu dropdown-menu-end" style="min-width:300px">
-                    <li><button class="dropdown-item py-2" data-add="usb" data-rol="impresora"><i class="bi bi-usb-symbol"></i> <b><?= et('USB') ?></b>
-                        <div class="small text-muted text-wrap"><?= et('Térmica conectada con cable USB.') ?></div></button></li>
-                    <li><button class="dropdown-item py-2" data-add="ble" data-rol="impresora"><i class="bi bi-bluetooth"></i> <b><?= et('Bluetooth') ?></b>
-                        <div class="small text-muted text-wrap"><?= et('Portátiles y de mostrador con Bluetooth (BLE).') ?></div></button></li>
-                    <li><button class="dropdown-item py-2" data-add="serial" data-rol="impresora"><i class="bi bi-plug"></i> <b><?= et('Puerto serie / COM') ?></b>
-                        <div class="small text-muted text-wrap"><?= et('Cable serie, USB-serie o Bluetooth ya emparejado en la PC.') ?></div></button></li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li><button class="dropdown-item py-2" data-add="sistema" data-rol="impresora"><i class="bi bi-pc-display-horizontal"></i> <b><?= et('Impresora instalada en la PC') ?></b>
-                        <div class="small text-muted text-wrap"><?= et('Cualquier impresora que ya tenga su controlador en esta computadora (de tickets, láser o de tinta). Se elige en el cuadro de impresión.') ?></div></button></li>
-                </ul>
+        </div>
+        <div class="card-body">
+            <div id="dvImp"></div>
+            <div class="small fw-semibold text-muted mt-3 mb-2" id="dvAddT"><?= et('Agregar impresora') ?></div>
+            <div class="dv-add">
+                <button type="button" class="dv-op" data-add="usb" data-rol="impresora"><i class="bi bi-usb-symbol"></i>
+                    <span><b><?= et('USB') ?></b><small><?= et('Térmica conectada con cable USB.') ?></small><em data-no></em></span></button>
+                <button type="button" class="dv-op" data-add="ble" data-rol="impresora"><i class="bi bi-bluetooth"></i>
+                    <span><b><?= et('Bluetooth') ?></b><small><?= et('Portátiles y de mostrador con Bluetooth (BLE).') ?></small><em data-no></em></span></button>
+                <button type="button" class="dv-op" data-add="serial" data-rol="impresora"><i class="bi bi-plug"></i>
+                    <span><b><?= et('Puerto serie / COM') ?></b><small><?= et('Cable serie, USB-serie o Bluetooth ya emparejado en la PC.') ?></small><em data-no></em></span></button>
+                <button type="button" class="dv-op" data-add="sistema" data-rol="impresora"><i class="bi bi-pc-display-horizontal"></i>
+                    <span><b><?= et('Instalada en la PC') ?></b><small><?= et('Cualquier impresora con su controlador en esta computadora (tickets, láser o tinta).') ?></small></span></button>
             </div>
         </div>
-        <div class="card-body" id="dvImp"></div>
     </div>
 
     <div class="card mb-3" id="dvDetCard" hidden>
@@ -120,6 +120,17 @@ include __DIR__ . '/../includes/header.php';
 </div>
 
 <style>
+.dv-add { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: .6rem; }
+.dv-op { display: flex; gap: .7rem; align-items: flex-start; text-align: left; border: 1px solid rgba(127,127,127,.22); background: transparent;
+         border-radius: 14px; padding: .75rem .85rem; color: inherit; transition: border-color .2s, background .2s; }
+.dv-op > .bi { font-size: 1.25rem; color: var(--brand); margin-top: .05rem; }
+.dv-op b { display: block; }
+.dv-op small { display: block; color: var(--bs-secondary-color, #64748b); line-height: 1.35; }
+.dv-op em { display: block; font-style: normal; font-size: .75rem; font-weight: 600; color: #b45309; margin-top: .25rem; }
+.dv-op em:empty { display: none; }
+.dv-op:hover:not(:disabled) { border-color: var(--brand); background: color-mix(in srgb, var(--brand) 6%, transparent); }
+.dv-op:disabled { opacity: .6; cursor: not-allowed; }
+.dv-op:disabled > .bi { color: inherit; }
 .dv-dev { border: 1px solid rgba(127,127,127,.2); border-radius: 14px; padding: .9rem 1rem; }
 .dv-dev + .dv-dev { margin-top: .75rem; }
 .dv-dev.pred { border-color: var(--brand); box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 12%, transparent); }
@@ -144,11 +155,26 @@ document.addEventListener('DOMContentLoaded', function () {
     var ESTADOS = { conectada: ['ok', 'Conectada'], detectada: ['ok', 'Detectada'], lista: ['ok', 'Lista'], reconectar: ['warn', 'Volver a vincular'], ausente: ['off', 'No conectada'] };
     function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 
-    if (!S.usb && !S.serial && !S.ble) document.getElementById('dvNav').classList.remove('d-none');
+    /* ¿Qué navegador es? Safari y Firefox no permiten USB, serie ni Bluetooth;
+       Brave los trae apagados. Se dice claro qué hacer en cada caso. */
+    var ua = navigator.userAgent, nav = navigator.brave ? 'Brave' : /Edg\//.test(ua) ? 'Edge' : /OPR\//.test(ua) ? 'Opera'
+        : /Firefox\//.test(ua) ? 'Firefox' : /Chrome\//.test(ua) ? 'Chrome' : /Safari\//.test(ua) ? 'Safari' : 'este navegador';
+    var movilApple = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    if (!S.usb || !S.ble || !S.serial) {
+        var falta = [!S.usb && 'USB', !S.ble && 'Bluetooth', !S.serial && 'puerto serie'].filter(Boolean).join(', ');
+        var como = movilApple ? 'En iPhone y iPad ningún navegador lo permite (Apple lo bloquea). Usa una computadora o un celular Android con Chrome.'
+            : nav === 'Brave' ? 'Brave los trae apagados. Ábrelo en Google Chrome o Microsoft Edge.'
+            : nav === 'Safari' || nav === 'Firefox' ? 'Ábrelo en Google Chrome o Microsoft Edge en esta misma computadora.'
+            : 'Actualiza el navegador o ábrelo en Google Chrome o Microsoft Edge.';
+        document.getElementById('dvNavT').textContent = nav + ' no permite conectar impresoras por ' + falta + '.';
+        document.getElementById('dvNavD').textContent = como + ' Mientras tanto, "Instalada en la PC" funciona aquí mismo.';
+        document.getElementById('dvNav').classList.remove('d-none');
+    }
     document.querySelectorAll('[data-add]').forEach(function (b) {
         var t = b.dataset.add;
         if ((t === 'usb' && !S.usb) || (t === 'serial' && !S.serial) || (t === 'ble' && !S.ble)) {
-            b.disabled = true; b.title = 'No disponible en este navegador';
+            b.disabled = true;
+            var em = b.querySelector('[data-no]'); if (em) em.textContent = 'No disponible en ' + nav + ' · usa Chrome o Edge';
         }
         b.addEventListener('click', function () {
             D.agregar(t, b.dataset.rol).then(function (d) {
@@ -192,7 +218,8 @@ document.addEventListener('DOMContentLoaded', function () {
         var l = D.lista(), imp = l.filter(function (d) { return d.rol === 'impresora'; }), esc_ = l.filter(function (d) { return d.rol === 'escaner'; });
         var box = document.getElementById('dvImp');
         box.innerHTML = imp.length ? imp.map(tarjeta).join('')
-            : '<div class="text-center text-muted py-4"><i class="bi bi-printer fs-2 d-block mb-2"></i>Todavía no hay impresoras en esta computadora.<br>Usa <b>Agregar impresora</b>: el navegador te muestra las que están conectadas por USB o Bluetooth para que elijas.</div>';
+            : '<div class="text-center text-muted py-3"><i class="bi bi-printer fs-2 d-block mb-2"></i>Todavía no hay impresoras en esta computadora.<br>Elige abajo cómo está conectada: el navegador te muestra las que encuentre para que escojas.</div>';
+        document.getElementById('dvAddT').textContent = imp.length ? 'Agregar otra impresora' : 'Agregar impresora';
         box.querySelectorAll('.dv-dev').forEach(function (el) {
             var clave = el.dataset.clave, d = l.find(function (x) { return x.clave === clave; });
             D.estado(d).then(function (s) { var e = ESTADOS[s] || ESTADOS.ausente, b = el.querySelector('[data-est]'); b.className = 'dv-est ' + e[0]; b.textContent = e[1]; });
