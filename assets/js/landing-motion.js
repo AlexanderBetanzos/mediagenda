@@ -44,13 +44,15 @@
                 en.target.querySelectorAll('[data-count]').forEach(function (c) { countUp(c, 1400); });
                 io.unobserve(en.target);
             });
-        }, { rootMargin: '0px 0px -12% 0px', threshold: 0.12 });
+        }, { rootMargin: '0px 0px -4% 0px', threshold: 0.04 });
 
         // Los hijos de un [data-stagger] entran uno tras otro.
         document.querySelectorAll('[data-stagger]').forEach(function (g) {
             Array.prototype.forEach.call(g.children, function (c, i) {
                 if (!c.hasAttribute('data-reveal')) c.setAttribute('data-reveal', '');
-                c.style.setProperty('--d', i);
+                // Escalonado por fila, no por posición absoluta: con 55 tarjetas
+                // la última esperaba 5 s y al bajar se veían pantallas vacías.
+                c.style.setProperty('--d', i < 6 ? i : i % 3);
             });
         });
         document.querySelectorAll('[data-reveal]').forEach(function (el) { io.observe(el); });

@@ -293,6 +293,27 @@ include __DIR__ . '/publico_header.php';
     .clx .sv { align-items: center; }
     @media (max-width: 575.98px) { .clx .sv .sf { width: 72px; height: 72px; } }
 
+    .clx .sv.oculto { display: none; }
+    .clx .sv-buscar { display: flex; align-items: center; gap: .6rem; max-width: 420px; margin: 0 auto 1.1rem; padding: 0 1rem; height: 48px;
+                      background: #fff; border: 1px solid var(--line); border-radius: 999px; box-shadow: 0 6px 18px rgba(15,30,60,.05); color: var(--mut); }
+    .clx .sv-buscar[hidden] { display: none; }
+    .clx .sv-buscar:focus-within { border-color: var(--cl); box-shadow: 0 0 0 4px color-mix(in srgb, var(--cl) 15%, transparent); }
+    .clx .sv-buscar input { flex: 1; border: 0; outline: 0; background: transparent; font-size: 1rem; color: var(--ink); min-width: 0; }
+    .clx .sv-todos { margin-top: 1.6rem; border: 1px solid color-mix(in srgb, var(--cl) 30%, transparent); background: #fff; color: var(--cl);
+                     font-weight: 650; border-radius: 999px; padding: .8rem 1.6rem; transition: background .2s, color .2s, transform .2s; }
+    .clx .sv-todos:hover { background: var(--cl); color: var(--on-cl); transform: translateY(-2px); }
+    .clx .sv-todos[hidden] { display: none; }
+    .clx .sv-vacio { text-align: center; color: var(--mut); margin-top: 1rem; }
+    .clx .sv-vacio[hidden] { display: none; }
+    @keyframes svAparece { from { opacity: 0; transform: translateY(12px); } }
+    .clx .sv.aparece { animation: svAparece .45s cubic-bezier(.22,1,.36,1) both; animation-delay: calc(var(--k, 0) * 35ms); }
+
+    /* Menú: la sección donde vas, marcada; las anclas no quedan bajo la barra fija */
+    html { scroll-padding-top: 84px; }
+    #pubnav .nav-link { position: relative; transition: color .2s ease; }
+    #pubnav .nav-link.activo { color: var(--cl, #2563eb) !important; font-weight: 600; }
+    #pubnav .nav-link.activo::after { content: ''; position: absolute; left: .5rem; right: .5rem; bottom: .15rem; height: 2px; border-radius: 2px; background: currentColor; }
+
     /* Ficha del servicio (hoja en celular, ventana en escritorio) */
     .sv-ficha { border: 0; padding: 0; width: min(560px, 100vw); max-height: min(92vh, 900px); border-radius: 24px; overflow: hidden;
                 box-shadow: 0 40px 100px rgba(15,30,60,.35); background: #fff; color: #0f172a; }
@@ -623,7 +644,10 @@ $nombresServ = array_slice(array_values(array_unique($nombresServ)), 0, 16);
             <?php endforeach; ?>
         </div>
         <?php endif; ?>
-        <div class="sv-grid" data-stagger>
+        <?php if ($nServicios > 12): ?>
+        <div class="sv-buscar" hidden><i class="bi bi-search"></i><input type="search" id="svQ" placeholder="<?= e(t('Buscar un servicio…')) ?>" aria-label="<?= e(t('Buscar un servicio…')) ?>"></div>
+        <?php endif; ?>
+        <div class="sv-grid" data-stagger data-max="9">
             <?php foreach ($servicios as $categoria => $items): foreach ($items as $s):
                 /* Cada tarjeta abre su ficha (como el catálogo de WhatsApp Business):
                    foto grande, precio, descripción completa, Agendar y WhatsApp. */
@@ -647,6 +671,10 @@ $nombresServ = array_slice(array_values(array_unique($nombresServ)), 0, 16);
             </a>
             <?php endforeach; endforeach; ?>
         </div>
+        <p class="sv-vacio" id="svVacio" hidden><?= et('No encontramos ese servicio.') ?> <?php if ($wa): ?><a href="<?= e($wa) ?>" target="_blank" rel="noopener"><?= et('Pregúntanos por WhatsApp') ?></a><?php endif; ?></p>
+        <?php if ($nServicios > 9): ?>
+        <div class="text-center"><button type="button" class="sv-todos" id="svTodos" hidden><?= sprintf(et('Ver los %d servicios'), $nServicios) ?> <i class="bi bi-chevron-down"></i></button></div>
+        <?php endif; ?>
     </div>
 </section>
 <?php endif; ?>
@@ -899,20 +927,67 @@ $hayDatos = $correo || $tel || $dir || $wa;
 <?php endif; ?>
 
 <script>
-/* Filtro de servicios por categoría. Sin JS las pastillas no aparecen y se
-   ven todos los servicios. */
+/* Servicios: categoría + búsqueda + "ver todos". Sin JS se ven todos.
+   Con muchos servicios se muestran 9 y el resto bajo "Ver los N servicios";
+   al buscar o elegir categoría se ve todo lo que coincide. */
 (function () {
-    var bar = document.querySelector('.sv-chips');
-    if (!bar) return;
-    bar.hidden = false;
-    var cards = document.querySelectorAll('.sv-grid .sv');
-    bar.addEventListener('click', function (e) {
+    var grid = document.querySelector('.sv-grid');
+    if (!grid) return;
+    var cards = Array.prototype.slice.call(grid.querySelectorAll('.sv')), max = +grid.dataset.max || 9;
+    var bar = document.querySelector('.sv-chips'), q = document.getElementById('svQ'), todos = document.getElementById('svTodos'), vacio = document.getElementById('svVacio');
+    var cat = '', texto = '', abierto = false;
+    var norm = function (s) { return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); };
+    var txt = cards.map(function (c) { return norm(c.textContent); });
+    if (bar) bar.hidden = false;
+    if (q) q.closest('.sv-buscar').hidden = false;
+    function pinta(animar) {
+        var filtrando = !!cat || !!texto, n = 0, visibles = 0;
+        cards.forEach(function (c, i) {
+            var ok = (!cat || c.getAttribute('data-cat') === cat) && (!texto || txt[i].indexOf(texto) >= 0);
+            var antes = !c.classList.contains('oculto') && !c.hidden;
+            c.hidden = !ok;
+            if (ok) n++;
+            var corta = ok && !filtrando && !abierto && n > max;
+            c.classList.toggle('oculto', corta);
+            if (ok && !corta) {
+                visibles++;
+                // La tarjeta que acaba de aparecer entra con un pequeño deslizamiento.
+                if (animar && !antes) { c.classList.remove('aparece'); void c.offsetWidth; c.style.setProperty('--k', Math.min(visibles, 12)); c.classList.add('aparece'); c.classList.add('is-in'); }
+            }
+        });
+        if (todos) todos.hidden = filtrando || abierto || n <= max;
+        if (vacio) vacio.hidden = n > 0;
+    }
+    if (bar) bar.addEventListener('click', function (e) {
         var b = e.target.closest('.sv-chip');
         if (!b) return;
         bar.querySelectorAll('.sv-chip').forEach(function (x) { x.classList.toggle('on', x === b); });
-        var cat = b.getAttribute('data-cat');
-        cards.forEach(function (c) { c.hidden = !!cat && c.getAttribute('data-cat') !== cat; });
+        cat = b.getAttribute('data-cat');
+        pinta(true);
     });
+    var tq;
+    if (q) q.addEventListener('input', function () { clearTimeout(tq); tq = setTimeout(function () { texto = norm(q.value.trim()); pinta(true); }, 120); });
+    if (todos) todos.addEventListener('click', function () { abierto = true; pinta(true); });
+    pinta(false);
+})();
+
+/* Menú: marca la sección que estás viendo. */
+(function () {
+    var links = Array.prototype.slice.call(document.querySelectorAll('#pubnav a.nav-link[href^="#"]'));
+    if (!links.length || !('IntersectionObserver' in window)) return;
+    var secs = links.map(function (a) { return document.querySelector(a.getAttribute('href')); }).filter(Boolean);
+    var io = new IntersectionObserver(function (en) {
+        en.forEach(function (x) {
+            if (!x.isIntersecting) return;
+            links.forEach(function (a) { a.classList.toggle('activo', a.getAttribute('href') === '#' + x.target.id); });
+        });
+    }, { rootMargin: '-45% 0px -50% 0px' });
+    secs.forEach(function (s) { io.observe(s); });
+    // En celular, al tocar un enlace se cierra el menú.
+    links.forEach(function (a) { a.addEventListener('click', function () {
+        var c = document.getElementById('pubnav');
+        if (c && c.classList.contains('show') && window.bootstrap) bootstrap.Collapse.getOrCreateInstance(c).hide();
+    }); });
 })();
 </script>
 
