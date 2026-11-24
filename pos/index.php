@@ -112,7 +112,7 @@ include __DIR__ . '/../includes/header.php';
     <div class="col-lg-7">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <span class="fw-semibold"><i class="bi bi-box-seam text-brand"></i> <?= et('Productos') ?></span>
+                <span class="fw-semibold"><i class="bi bi-boxes text-brand"></i> <?= et('Productos') ?></span>
                 <input type="search" id="buscar" class="form-control form-control-sm" style="max-width:220px" placeholder="<?= e(t('Buscar…')) ?>">
             </div>
             <div class="card-body">

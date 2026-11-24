@@ -230,7 +230,7 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
                 if (modulo_activo('facturacion') && $esAdm) $caja[] = $li('egresos', BASE_URL . '/egresos/index', 'bi-arrow-left-right', t('Egresos e ingresos'));
                 if (modulo_activo('farmacia') && giro_aplica('farmacia')) {
                     $pos = [$li('pos', BASE_URL . '/pos/index', 'bi-shop', t('Punto de venta')),
-                            $li('inventario', BASE_URL . '/inventario/index', 'bi-box-seam', t('Inventario'))];
+                            $li('inventario', BASE_URL . '/inventario/index', 'bi-boxes', t('Inventario'))];
                     if (giro_modulo_al_frente('farmacia')) array_push($caja, ...$pos); else array_push($mas, ...$pos);
                 }
                 // Administración (solo admin)
