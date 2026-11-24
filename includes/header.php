@@ -266,7 +266,7 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
                         $masAbierto = (bool) array_filter($mas, fn ($h) => str_contains($h, 'nav-link active')); ?>
                     <li class="nav-item">
                         <a class="nav-link nav-mas<?= $masAbierto ? '' : ' collapsed' ?>" data-bs-toggle="collapse" href="#navMas" role="button" aria-expanded="<?= $masAbierto ? 'true' : 'false' ?>">
-                            <i class="bi bi-grid-3x3-gap"></i> <?= et('Más herramientas') ?> <i class="bi bi-chevron-down ms-auto small nav-mas-ic"></i>
+                            <i class="bi bi-grid"></i> <?= et('Más herramientas') ?> <i class="bi bi-chevron-down ms-auto small nav-mas-ic"></i>
                         </a>
                         <ul class="nav flex-column collapse<?= $masAbierto ? ' show' : '' ?>" id="navMas"><?= implode('', $mas) ?></ul>
                     </li>

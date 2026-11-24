@@ -314,17 +314,18 @@ body.ui-clean .esp-tile, body.ui-clean .kpi3, body.ui-clean .ui-stat { transitio
    Antes los subelementos quedaban sueltos (con sangría y efecto al pasar
    el cursor recortados contra el borde del menú). Ahora van como grupo:
    línea guía a la izquierda, sangría y el padre marcado mientras está abierto. */
-body.ui-clean .sidebar #navMas { padding-left: 0 !important; margin: 2px 12px 6px 30px; border-left: 2px solid var(--c-bd); }
-body.ui-clean .sidebar #navMas .nav-link { margin: 1px 0 1px 8px !important; padding: .45rem .7rem !important; font-size: .86rem; }
+body.ui-clean .sidebar #navMas { padding-left: 0 !important; margin: 2px 12px 6px 33px; border-left: 1.5px solid var(--c-bd); }
+body.ui-clean .sidebar #navMas .nav-link { margin: 1px 0 1px 8px !important; padding: .5rem .7rem !important; }
 body.ui-clean .sidebar #navMas .nav-link:hover { transform: none; }
 body.ui-clean .sidebar #navMas .nav-link.active { box-shadow: none !important; }
 /* Sin recuadro al abrir: ni fondo ni contorno de foco (el clic dejaba una "cajita"). */
 body.ui-clean .sidebar .nav-mas, body.ui-clean .sidebar .nav-mas:focus, body.ui-clean .sidebar .nav-mas:focus-visible,
 body.ui-clean .sidebar .nav-mas:active, body.ui-clean .sidebar .nav-mas:not(.collapsed) { background: transparent !important; box-shadow: none !important; outline: none !important; }
 body.ui-clean .sidebar .nav-mas:hover { background: var(--c-hover) !important; }
-body.ui-clean .sidebar .nav-mas:not(.collapsed) { color: var(--c-txt) !important; font-weight: 600; }
+body.ui-clean .sidebar .nav-mas:not(.collapsed) { color: var(--c-txt) !important; }
+/* El ícono del grupo, gris como los demás (no en color de marca: parecía un botón distinto). */
+body.ui-clean .sidebar .nav-mas .bi:first-child, body.ui-clean .sidebar .nav-mas:hover .bi:first-child { color: var(--c-txt-2) !important; transform: none !important; }
 /* Teclado: un subrayado discreto en lugar del recuadro. */
 body.ui-clean .sidebar .nav-mas:focus-visible { text-decoration: underline; text-underline-offset: 3px; }
-body.ui-clean .sidebar .nav-mas:not(.collapsed) .bi:first-child { color: var(--g-brand) !important; }
 body.ui-clean .sidebar .nav-mas .nav-mas-ic { color: var(--c-txt-3) !important; transition: transform .25s ease !important; }
 body.ui-clean .sidebar .nav-mas:hover { transform: none; }
