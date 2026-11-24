@@ -1112,13 +1112,15 @@ $kpis[] = [t('Consultas (mes)'), number_format($consultasMes), 'bi-clipboard2-pu
 </div>
 
 <!-- ── Gráficas (fila 3): horas pico + tipo de paciente + top médicos ─ -->
+<?php $verTipo = es_veterinaria() || giro_usa_tipo_dental(); /* "Médico / Dental" solo donde aplica */ ?>
 <div class="row g-3 mb-4">
-    <div class="col-lg-<?= $topMedicos ? '6' : '8' ?>">
+    <div class="col-lg-<?= $topMedicos ? ($verTipo ? '6' : '9') : ($verTipo ? '8' : '12') ?>">
         <div class="card h-100">
             <div class="card-header fw-semibold"><i class="bi bi-clock text-brand"></i> <?= et('Horas pico (citas por hora)') ?></div>
             <div class="card-body"><div style="height:260px"><canvas id="chartHoras"></canvas></div></div>
         </div>
     </div>
+    <?php if ($verTipo): ?>
     <div class="col-lg-<?= $topMedicos ? '3' : '4' ?>">
         <div class="card h-100">
             <div class="card-header fw-semibold"><i class="bi bi-pie-chart text-brand"></i> <?= es_veterinaria() ? et('Mascotas por especie') : et('Pacientes por tipo') ?></div>
@@ -1128,6 +1130,7 @@ $kpis[] = [t('Consultas (mes)'), number_format($consultasMes), 'bi-clipboard2-pu
             </div>
         </div>
     </div>
+    <?php endif; ?>
     <?php if ($topMedicos): ?>
     <div class="col-lg-3">
         <div class="card h-100">

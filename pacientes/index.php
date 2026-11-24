@@ -57,7 +57,8 @@ echo ui_stats([
     <div class="col-sm-6 col-md-5">
         <input type="search" name="q" class="form-control" placeholder="<?= $vet ? et('Buscar por mascota, propietario, especie, raza o teléfono…') : et('Buscar por nombre, teléfono o correo…') ?>" value="<?= e($q) ?>">
     </div>
-    <div class="col-sm-4 col-md-3<?= $vet ? ' d-none' : '' ?>">
+    <?php $usaTipo = giro_usa_tipo_dental(); ?>
+    <div class="col-sm-4 col-md-3<?= ($vet || !$usaTipo) ? ' d-none' : '' ?>">
         <select name="tipo" class="form-select">
             <option value=""><?= et('Todos los tipos') ?></option>
             <option value="medico" <?= $tipo === 'medico' ? 'selected' : '' ?>><?= e(tipo_paciente_label('medico')) ?></option>
@@ -75,13 +76,13 @@ echo ui_stats([
         <table class="table table-hover align-middle mb-0">
             <thead class="table-light">
                 <tr>
-                    <th><?= et('Paciente') ?></th><th><?= et('Edad') ?></th><th><?= $vet ? et('Especie') : et('Tipo') ?></th>
+                    <th><?= et('Paciente') ?></th><th><?= et('Edad') ?></th><?php if ($vet || $usaTipo): ?><th><?= $vet ? et('Especie') : et('Tipo') ?></th><?php endif; ?>
                     <th><?= et('Teléfono') ?></th><th><?= et('Correo') ?></th><th class="text-end"><?= et('Acciones') ?></th>
                 </tr>
             </thead>
             <tbody>
             <?php if (!$pacientes): ?>
-                <tr><td colspan="6" class="text-center text-muted py-4"><?= et('No se encontraron pacientes.') ?></td></tr>
+                <tr><td colspan="<?= ($vet || $usaTipo) ? 6 : 5 ?>" class="text-center text-muted py-4"><?= et('No se encontraron pacientes.') ?></td></tr>
             <?php else: foreach ($pacientes as $p): ?>
                 <tr>
                     <td>
@@ -96,6 +97,7 @@ echo ui_stats([
                         </div>
                     </td>
                     <td><?= e(edad($p['fecha_nacimiento'])) ?></td>
+                    <?php if ($vet || $usaTipo): ?>
                     <td>
                         <?php if ($vet): ?>
                             <span class="small"><?= e(mascota_resumen($p) ?: '—') ?></span>
@@ -105,6 +107,7 @@ echo ui_stats([
                         </span>
                         <?php endif; ?>
                     </td>
+                    <?php endif; ?>
                     <td><?= e($p['telefono'] ?: '—') ?></td>
                     <td><?= e($p['email'] ?: '—') ?></td>
                     <td class="text-end text-nowrap">

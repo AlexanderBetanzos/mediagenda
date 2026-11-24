@@ -167,14 +167,18 @@ $v = fn(string $k) => e($p[$k] ?? '');
             <option value="O" <?= $sx === 'O' ? 'selected' : '' ?>><?= et('Otro') ?></option>
         </select>
     </div>
+    <?php $tp = $p['tipo'] ?? giro_tipo_paciente(); ?>
+    <?php if (giro_usa_tipo_dental()): ?>
     <div class="col-md-4">
         <label class="form-label"><?= et('Tipo de paciente') ?> *</label>
         <select name="tipo" class="form-select" required>
-            <?php $tp = $p['tipo'] ?? (giro()['tipo'] ?? 'medico'); ?>
             <option value="medico" <?= $tp === 'medico' ? 'selected' : '' ?>><?= e(tipo_paciente_label('medico')) ?></option>
             <option value="dental" <?= $tp === 'dental' ? 'selected' : '' ?>><?= e(tipo_paciente_label('dental')) ?></option>
         </select>
     </div>
+    <?php else: ?>
+    <input type="hidden" name="tipo" value="<?= e($tp) ?>">
+    <?php endif; ?>
     <div class="col-md-4">
         <label class="form-label"><?= et('Teléfono') ?></label>
         <input type="text" name="telefono" class="form-control" value="<?= $v('telefono') ?>">

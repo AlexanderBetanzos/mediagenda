@@ -84,6 +84,8 @@ $plantillas->execute([$tid]);
 $plantillas = $plantillas->fetchAll();
 
 $tipoLbl = ['general'=>t('General'),'medico'=>tipo_paciente_label('medico'),'dental'=>t('Dental')];
+// Fuera de odontología/clínica no se ofrece "Dental" (las que ya lo tengan se siguen mostrando).
+$tipoOpc = giro_usa_tipo_dental() ? $tipoLbl : array_filter($tipoLbl, fn ($k) => $k !== 'dental' || ($f['tipo'] ?? '') === 'dental', ARRAY_FILTER_USE_KEY);
 $v = fn($k) => e($f[$k] ?? '');
 
 $titulo = t('Plantillas de consulta');
@@ -109,7 +111,7 @@ include __DIR__ . '/../includes/header.php';
                     </div>
                     <div class="col-4"><label class="form-label"><?= et('Tipo') ?></label>
                         <select name="tipo" class="form-select">
-                            <?php foreach ($tipoLbl as $k=>$l): ?><option value="<?= $k ?>" <?= $f['tipo']===$k?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?>
+                            <?php foreach ($tipoOpc as $k=>$l): ?><option value="<?= $k ?>" <?= $f['tipo']===$k?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?>
                         </select>
                     </div>
                     <div class="col-12"><label class="form-label"><?= et('Motivo') ?></label><input type="text" name="motivo" class="form-control" value="<?= $v('motivo') ?>"></div>

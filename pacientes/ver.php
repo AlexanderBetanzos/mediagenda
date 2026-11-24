@@ -363,9 +363,11 @@ include __DIR__ . '/../includes/header.php';
         <?php else: ?>
         <h1 class="h3 mb-1">
             <?= e($p['nombre'].' '.$p['apellidos']) ?>
+            <?php if (giro_usa_tipo_dental()): ?>
             <span class="badge bg-<?= $p['tipo'] === 'dental' ? 'info' : 'primary' ?> align-middle">
                 <?= e(tipo_paciente_label($p['tipo'])) ?>
             </span>
+            <?php endif; ?>
         </h1>
         <span class="text-muted">
             <?= e(edad($p['fecha_nacimiento'])) ?> ·

@@ -252,6 +252,32 @@ function giro_nivel(string $modulo, ?string $giro = null): string
     return in_array($g, $frente, true) ? 'frente' : (in_array($g, $nunca, true) ? 'nunca' : 'mas');
 }
 
+/**
+ * ¿Se usa la distinción de paciente/cita "Médico / Dental"? Viene de cuando el
+ * sistema era para médicos y dentistas: solo tiene sentido en odontología y
+ * clínicas, o en medicina general si ya hay pacientes dentales. En psiquiatría,
+ * psicología, nutrición… se oculta y el tipo se asigna solo.
+ */
+function giro_usa_tipo_dental(): bool
+{
+    static $cache = [];
+    $g = giro_actual();
+    if (in_array($g, ['dental', 'clinica'], true)) return true;
+    if ($g !== 'medico') return false;
+    $tid = (int) tenant_id();
+    if (!isset($cache[$tid])) {
+        try {
+            $st = db()->prepare("SELECT 1 FROM pacientes WHERE consultorio_id = ? AND tipo = 'dental' LIMIT 1");
+            $st->execute([$tid]);
+            $cache[$tid] = (bool) $st->fetchColumn();
+        } catch (Throwable $e) { $cache[$tid] = false; }
+    }
+    return $cache[$tid];
+}
+
+/** Tipo por defecto del giro ('medico' | 'dental'). */
+function giro_tipo_paciente(): string { return (giro()['tipo'] ?? 'medico') === 'dental' ? 'dental' : 'medico'; }
+
 /** ¿El módulo se muestra (al frente o en "más") para este giro? */
 function giro_aplica(string $modulo): bool { return giro_nivel($modulo) !== 'nunca'; }
 

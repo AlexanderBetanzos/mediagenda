@@ -45,14 +45,18 @@ $medicos = $medicos->fetchAll();
         <label class="form-label"><?= et('Duración (min)') ?></label>
         <input type="number" name="duracion" class="form-control" min="5" step="5" value="<?= $val('duracion', '30') ?>">
     </div>
+    <?php $tp = $c['tipo'] ?? (giro_tipo_paciente() === 'dental' ? 'dental' : 'medica'); ?>
+    <?php if (giro_usa_tipo_dental()): ?>
     <div class="col-md-3">
         <label class="form-label"><?= et('Tipo') ?></label>
         <select name="tipo" class="form-select">
-            <?php $tp = $c['tipo'] ?? 'medica'; ?>
             <option value="medica" <?= $tp==='medica'?'selected':'' ?>><?= et('Médica') ?></option>
             <option value="dental" <?= $tp==='dental'?'selected':'' ?>><?= et('Dental') ?></option>
         </select>
     </div>
+    <?php else: ?>
+    <input type="hidden" name="tipo" value="<?= e($tp) ?>">
+    <?php endif; ?>
     <?php if (modulo_activo('telemedicina')): ?>
     <div class="col-md-3">
         <label class="form-label"><?= et('Modalidad') ?></label>
