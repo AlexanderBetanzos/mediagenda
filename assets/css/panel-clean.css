@@ -124,8 +124,17 @@ body.ui-clean .ss-ayuda { background: var(--g-brand) !important; border-radius: 
 body.ui-clean main { padding-top: 1.6rem !important; padding-bottom: 2rem !important; }
 @media (min-width: 768px) { body.ui-clean main { padding-left: 1.75rem !important; padding-right: 1.75rem !important; } }
 body.ui-clean footer.border-top { border: 0 !important; color: var(--c-txt-3) !important; }
-@media (min-width: 768px) { body.ui-clean footer { margin-left: 25%; } }
-@media (min-width: 992px) { body.ui-clean footer { margin-left: 16.6667%; } }
+/* Ancho FIJO del menú (como la referencia). Antes era el 25 % / 16.7 % de la
+   pantalla de Bootstrap (col-md-3 / col-lg-2): en monitores grandes salía de
+   más de 400 px. El contenido, el título de la barra y el pie se recorren igual. */
+@media (min-width: 768px) {
+    body.ui-clean { --side-w: 240px; }
+    body.ui-clean #sidebarMenu.sidebar { width: var(--side-w) !important; max-width: var(--side-w); flex: none; }
+    body.ui-clean main { flex: 0 0 auto; width: calc(100% - var(--side-w)) !important; max-width: none; margin-left: var(--side-w) !important; }
+    body.ui-clean .app-navbar > .col-md-3 { flex: 0 0 var(--side-w); width: var(--side-w) !important; max-width: var(--side-w); }
+    body.ui-clean footer { margin-left: var(--side-w); }
+}
+@media (min-width: 1400px) { body.ui-clean { --side-w: 256px; } }
 
 /* Tarjetas planas */
 body.ui-clean .card, body.ui-clean .ui-stat, body.ui-clean .dash-franja {
