@@ -161,7 +161,7 @@ $agAccion = $agAccion ?? '';
                 </div>
                 <div class="col-12">
                     <label class="form-label small fw-semibold"><?= et('Motivo (opcional)') ?></label>
-                    <input name="motivo" class="form-control" maxlength="255" placeholder="<?= e(t('Ej. Revisión general')) ?>">
+                    <input name="motivo" class="form-control" maxlength="255" placeholder="<?= e(t('Ej. Revisión general')) ?>" value="<?= e(mb_substr((string) ($_POST['motivo'] ?? $_GET['servicio'] ?? ''), 0, 255)) ?>">
                 </div>
             </div>
 

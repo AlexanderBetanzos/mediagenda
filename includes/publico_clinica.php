@@ -33,12 +33,21 @@ $reservar = agenda_online_activa();
 $urlAgendar = BASE_URL . '/agenda/reservar?c=' . rawurlencode($con['slug']);
 
 $servicios = [];
+asegurar_servicios_publicos();
 try {
-    $st = db()->prepare('SELECT nombre, categoria, precio FROM servicios
-                         WHERE consultorio_id = ? AND activo = 1 ORDER BY categoria, nombre');
+    // Con descripción, foto y los interruptores "mostrar en la página" / "mostrar precio".
+    $st = db()->prepare('SELECT id, nombre, categoria, precio, descripcion, foto, mostrar_precio FROM servicios
+                         WHERE consultorio_id = ? AND activo = 1 AND publico = 1 ORDER BY categoria, nombre');
     $st->execute([(int) $con['id']]);
     foreach ($st->fetchAll() as $s) { $servicios[$s['categoria'] ?: t('Servicios')][] = $s; }
-} catch (Throwable $e) {}
+} catch (Throwable $e) {
+    // Sin las columnas nuevas (sin permisos de ALTER): lo de siempre.
+    try {
+        $st = db()->prepare('SELECT id, nombre, categoria, precio FROM servicios WHERE consultorio_id = ? AND activo = 1 ORDER BY categoria, nombre');
+        $st->execute([(int) $con['id']]);
+        foreach ($st->fetchAll() as $s) { $servicios[$s['categoria'] ?: t('Servicios')][] = $s + ['descripcion' => null, 'foto' => null, 'mostrar_precio' => 1]; }
+    } catch (Throwable $e2) {}
+}
 
 // Equipo = el catálogo de médicos (rol 'medico'), igual que /medicos/index. NO
 // se incluye 'admin': el dueño/administrador es personal, no necesariamente un
@@ -125,7 +134,7 @@ include __DIR__ . '/publico_header.php';
        --on-cl es el texto legible encima (blanco u oscuro según el color). */
     body.lp { overflow-x: clip; }
     .pub-wrap { max-width: none; padding: 0; }
-    .clx { --cl: <?= $acento ?>; --cl-d: color-mix(in srgb, <?= $acento ?> 72%, #000);
+    .clx, .sv-ficha { --cl: <?= $acento ?>; --cl-d: color-mix(in srgb, <?= $acento ?> 72%, #000);
            --on-cl: <?= color_texto_sobre($acento) ?>;
            --tint: color-mix(in srgb, <?= $acento ?> 7%, #fff);
            --ink: #1d1d1f; --mut: #6e6e73; --line: rgba(0,0,0,.06);
@@ -276,7 +285,45 @@ include __DIR__ . '/publico_header.php';
     .clx .sv .go { flex: none; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center;
                    justify-content: center; background: var(--tint); color: var(--cl);
                    transition: background .25s ease, color .25s ease, transform .3s ease; }
-    .clx a.sv:hover .go { background: var(--cl); color: var(--on-cl); transform: translateX(3px); }
+    .clx a.sv:hover .go { background: var(--cl); color: var(--on-cl); transform: rotate(90deg); }
+    .clx .sv .sf { width: 84px; height: 84px; flex: none; border-radius: 16px; object-fit: cover; background: var(--tint); }
+    .clx .sv .ds { font-size: .86rem; color: var(--mut); line-height: 1.4; margin-top: .2rem;
+                   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .clx .sv .pm { font-family: var(--font-display); font-weight: 700; color: var(--cl); margin-top: .3rem; font-variant-numeric: tabular-nums; }
+    .clx .sv { align-items: center; }
+    @media (max-width: 575.98px) { .clx .sv .sf { width: 72px; height: 72px; } }
+
+    /* Ficha del servicio (hoja en celular, ventana en escritorio) */
+    .sv-ficha { border: 0; padding: 0; width: min(560px, 100vw); max-height: min(92vh, 900px); border-radius: 24px; overflow: hidden;
+                box-shadow: 0 40px 100px rgba(15,30,60,.35); background: #fff; color: #0f172a; }
+    .sv-ficha::backdrop { background: rgba(15,23,42,.55); backdrop-filter: blur(4px); }
+    .sv-ficha[open] { animation: svIn .35s cubic-bezier(.22,1,.36,1); }
+    @keyframes svIn { from { opacity: 0; transform: translateY(24px) scale(.98); } }
+    .sv-ficha .fx { display: flex; flex-direction: column; max-height: inherit; }
+    .sv-ficha .img { position: relative; background: var(--tint, #eef2ff); flex: none; }
+    .sv-ficha .img img { display: block; width: 100%; max-height: 52vh; object-fit: cover; }
+    .sv-ficha .img .ph { height: 180px; display: flex; align-items: center; justify-content: center; font-size: 3.4rem; color: var(--cl, #2563eb); }
+    .sv-ficha .x, .sv-ficha .lk { position: absolute; top: 12px; width: 40px; height: 40px; border-radius: 50%; border: 0;
+                background: rgba(15,23,42,.55); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+    .sv-ficha .x { left: 12px; } .sv-ficha .lk { right: 12px; }
+    .sv-ficha .bd { padding: 1.3rem 1.4rem 1.4rem; overflow-y: auto; }
+    .sv-ficha .ct { font-size: .74rem; font-weight: 650; letter-spacing: .08em; text-transform: uppercase; color: #64748b; }
+    .sv-ficha h3 { font-size: 1.35rem; font-weight: 700; letter-spacing: -.02em; margin: .2rem 0 .3rem; }
+    .sv-ficha .pr { font-size: 1.25rem; font-weight: 800; color: var(--cl, #2563eb); margin-bottom: .6rem; }
+    .sv-ficha .de { white-space: pre-line; color: #334155; line-height: 1.55; }
+    .sv-ficha .de.corta { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+    .sv-ficha .mas { border: 0; background: none; color: var(--cl, #2563eb); font-weight: 600; padding: 0; margin-top: .2rem; }
+    .sv-ficha .acc { display: grid; gap: .6rem; margin-top: 1.2rem; }
+    .sv-ficha .acc a { display: flex; align-items: center; justify-content: center; gap: .5rem; height: 50px; border-radius: 14px;
+                font-weight: 650; text-decoration: none; }
+    .sv-ficha .acc .ag { background: var(--cl, #2563eb); color: var(--on-cl, #fff); }
+    .sv-ficha .acc .wa { border: 1.5px solid #25d366; color: #128c4a; }
+    .sv-ficha .copiado { font-size: .8rem; color: #16a34a; text-align: center; margin-top: .5rem; }
+    @media (max-width: 575.98px) {
+        .sv-ficha { margin: auto 0 0; width: 100vw; max-width: 100vw; border-radius: 24px 24px 0 0; }
+        .sv-ficha[open] { animation-name: svUp; }
+        @keyframes svUp { from { transform: translateY(100%); } }
+    }
 
     /* ── Equipo ──────────────────────────────────────────────────────── */
     .clx .team { background: #fff; }
@@ -578,18 +625,26 @@ $nombresServ = array_slice(array_values(array_unique($nombresServ)), 0, 16);
         <?php endif; ?>
         <div class="sv-grid" data-stagger>
             <?php foreach ($servicios as $categoria => $items): foreach ($items as $s):
-                $tag = $reservar ? 'a' : 'div'; ?>
-            <<?= $tag ?> class="sv" data-cat="<?= e($categoria) ?>"<?= $reservar ? ' href="' . e($urlAgendar) . '"' : '' ?>>
-                <span class="si"><i class="bi <?= $catIcon((string) $categoria) ?>"></i></span>
+                /* Cada tarjeta abre su ficha (como el catálogo de WhatsApp Business):
+                   foto grande, precio, descripción completa, Agendar y WhatsApp. */
+                $precioTxt = ((float) $s['precio'] > 0 && !empty($s['mostrar_precio'])) ? fmt_money($s['precio']) : '';
+                $ficha = ['id' => (int) $s['id'], 'n' => $s['nombre'], 'c' => (string) $categoria, 'p' => $precioTxt,
+                          'd' => (string) ($s['descripcion'] ?? ''), 'f' => (string) ($s['foto'] ?? ''), 'i' => $catIcon((string) $categoria)]; ?>
+            <a class="sv<?= !empty($s['foto']) ? ' con-foto' : '' ?>" id="s-<?= (int) $s['id'] ?>" href="#s-<?= (int) $s['id'] ?>" data-cat="<?= e($categoria) ?>"
+               data-ficha="<?= e(json_encode($ficha, JSON_UNESCAPED_UNICODE)) ?>">
+                <?php if (!empty($s['foto'])): ?>
+                    <img class="sf" src="<?= e($s['foto']) ?>" alt="<?= e($s['nombre']) ?>" loading="lazy">
+                <?php else: ?>
+                    <span class="si"><i class="bi <?= $catIcon((string) $categoria) ?>"></i></span>
+                <?php endif; ?>
                 <span class="tx">
                     <span class="ct d-block"><?= e($categoria) ?></span>
                     <span class="n d-block"><?= e($s['nombre']) ?></span>
+                    <?php if (!empty($s['descripcion'])): ?><span class="ds d-block"><?= e($s['descripcion']) ?></span><?php endif; ?>
+                    <?php if ($precioTxt): ?><span class="pm d-block"><?= e($precioTxt) ?></span><?php endif; ?>
                 </span>
-                <?php if ((float) $s['precio'] > 0): ?>
-                    <span class="p"><small><?= et('Desde') ?></small><b><?= fmt_money($s['precio']) ?></b></span>
-                <?php endif; ?>
-                <?php if ($reservar): ?><span class="go" aria-hidden="true"><i class="bi bi-arrow-right"></i></span><?php endif; ?>
-            </<?= $tag ?>>
+                <span class="go" aria-hidden="true"><i class="bi bi-plus-lg"></i></span>
+            </a>
             <?php endforeach; endforeach; ?>
         </div>
     </div>
@@ -774,6 +829,73 @@ $hayDatos = $correo || $tel || $dir || $wa;
     <span class="small fw-semibold"><?= e($marca) ?></span>
     <a href="<?= e($urlAgendar) ?>" class="cl-barra-btn"><i class="bi bi-calendar-plus"></i> <?= et('Agendar cita') ?></a>
 </div>
+<?php endif; ?>
+
+<?php if ($servicios): ?>
+<dialog class="sv-ficha" id="svFicha" aria-labelledby="svfN">
+    <div class="fx">
+        <div class="img">
+            <div class="ph"><i class="bi"></i></div><img alt="" hidden>
+            <button type="button" class="x" data-cerrar aria-label="<?= e(t('Cerrar')) ?>"><i class="bi bi-arrow-left"></i></button>
+            <button type="button" class="lk" data-copiar aria-label="<?= e(t('Copiar enlace')) ?>" title="<?= e(t('Copiar enlace')) ?>"><i class="bi bi-link-45deg"></i></button>
+        </div>
+        <div class="bd">
+            <div class="ct" id="svfC"></div>
+            <h3 id="svfN"></h3>
+            <div class="pr" id="svfP"></div>
+            <div class="de" id="svfD"></div>
+            <button type="button" class="mas" id="svfMas" hidden><?= et('Leer más') ?></button>
+            <div class="acc">
+                <?php if ($reservar): ?><a class="ag" id="svfAg" href="<?= e($urlAgendar) ?>"><i class="bi bi-calendar-plus"></i> <?= et('Agendar este servicio') ?></a><?php endif; ?>
+                <?php if ($wa): ?><a class="wa" id="svfWa" href="<?= e($wa) ?>" target="_blank" rel="noopener"><i class="bi bi-whatsapp"></i> <?= et('Preguntar por WhatsApp') ?></a><?php endif; ?>
+            </div>
+            <div class="copiado" id="svfOk" hidden><?= et('Enlace copiado: compártelo por WhatsApp o redes.') ?></div>
+        </div>
+    </div>
+</dialog>
+<script>
+/* Ficha del servicio. Cada servicio tiene su enlace (#s-ID): al compartirlo,
+   la página abre directo en esa ficha, como un producto del catálogo. */
+(function () {
+    var dlg = document.getElementById('svFicha');
+    if (!dlg || !dlg.showModal) return;
+    var AG = <?= json_encode($reservar ? $urlAgendar : '') ?>, WA = <?= json_encode($wa ? preg_replace('/\?text=.*$/', '', $wa) : '') ?>;
+    var MARCA = <?= json_encode($marca, JSON_UNESCAPED_UNICODE) ?>;
+    var $ = function (id) { return document.getElementById(id); };
+    function abrir(a, sinHash) {
+        var f = JSON.parse(a.getAttribute('data-ficha'));
+        var img = dlg.querySelector('.img img'), ph = dlg.querySelector('.ph');
+        img.hidden = !f.f; ph.hidden = !!f.f;
+        if (f.f) { img.src = f.f; img.alt = f.n; } else ph.querySelector('i').className = 'bi ' + f.i;
+        $('svfC').textContent = f.c; $('svfN').textContent = f.n; $('svfP').textContent = f.p; $('svfP').hidden = !f.p;
+        var d = $('svfD'); d.textContent = f.d; d.classList.add('corta');
+        $('svfMas').hidden = f.d.length < 220;
+        if (!f.d) d.textContent = '';
+        if ($('svfAg')) $('svfAg').href = AG + '&servicio=' + encodeURIComponent(f.n);
+        if ($('svfWa')) $('svfWa').href = WA + '?text=' + encodeURIComponent('<?= e(t('Hola')) ?>, <?= e(t('me interesa')) ?>: ' + f.n + (f.p ? ' (' + f.p + ')' : '') + ' — ' + MARCA + '. ' + location.href.split('#')[0] + '#s-' + f.id);
+        $('svfOk').hidden = true;
+        dlg.dataset.id = f.id;
+        if (!sinHash) history.replaceState(null, '', '#s-' + f.id);
+        dlg.showModal();
+    }
+    document.addEventListener('click', function (e) {
+        var a = e.target.closest('.sv-grid a.sv[data-ficha]');
+        if (a) { e.preventDefault(); abrir(a); }
+    });
+    $('svfMas').addEventListener('click', function () { $('svfD').classList.remove('corta'); this.hidden = true; });
+    dlg.addEventListener('click', function (e) {
+        if (e.target === dlg || e.target.closest('[data-cerrar]')) dlg.close();
+        if (e.target.closest('[data-copiar]')) {
+            var url = location.href.split('#')[0] + '#s-' + dlg.dataset.id;
+            (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(function () { $('svfOk').hidden = false; }, function () { prompt('', url); });
+        }
+    });
+    dlg.addEventListener('close', function () { if (/^#s-\d+$/.test(location.hash)) history.replaceState(null, '', location.pathname + location.search); });
+    // Enlace compartido: abrir la ficha al cargar.
+    var m = location.hash.match(/^#s-(\d+)$/), a0 = m && document.getElementById('s-' + m[1]);
+    if (a0) setTimeout(function () { abrir(a0, true); }, 350);
+})();
+</script>
 <?php endif; ?>
 
 <script>

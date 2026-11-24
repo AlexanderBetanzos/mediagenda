@@ -1739,6 +1739,25 @@ function subir_imagen_marca(?array $f, string $prefijo): array
     return ['ok' => true, 'url' => BASE_URL . '/assets/logos/' . $nombre, 'error' => ''];
 }
 
+/**
+ * Columnas del catálogo para la página pública: descripción, foto, si se
+ * publica y si se enseña el precio. Se agregan solas la primera vez.
+ */
+function asegurar_servicios_publicos(): void
+{
+    static $hecho = false;
+    if ($hecho) return;
+    $hecho = true;
+    try {
+        if (db()->query("SHOW COLUMNS FROM servicios LIKE 'mostrar_precio'")->fetch()) return;
+        db()->exec("ALTER TABLE servicios
+            ADD COLUMN IF NOT EXISTS descripcion    TEXT DEFAULT NULL,
+            ADD COLUMN IF NOT EXISTS foto           VARCHAR(255) DEFAULT NULL,
+            ADD COLUMN IF NOT EXISTS publico        TINYINT(1) NOT NULL DEFAULT 1,
+            ADD COLUMN IF NOT EXISTS mostrar_precio TINYINT(1) NOT NULL DEFAULT 1");
+    } catch (Throwable $e) { /* sin permisos de ALTER: la página pública usa lo básico */ }
+}
+
 /* --------------------------------------------------------------------
  *  Reseñas de pacientes
  * ------------------------------------------------------------------ */

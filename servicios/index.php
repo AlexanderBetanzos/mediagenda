@@ -101,6 +101,10 @@ echo ui_stats([
                             </span>
                         <?php endif; ?>
                         <?php if (!$s['activo']): ?><span class="badge bg-secondary ms-1"><?= et('Inactivo') ?></span><?php endif; ?>
+                        <?php if (array_key_exists('publico', $s) && $s['activo']): ?>
+                            <i class="bi <?= $s['publico'] ? 'bi-globe2 text-success' : 'bi-eye-slash text-muted' ?> ms-1" title="<?= e($s['publico'] ? t('Visible en tu página pública') : t('Oculto en tu página pública')) ?>"></i>
+                        <?php endif; ?>
+                        <?php if (!empty($s['descripcion'])): ?><div class="small text-muted text-truncate" style="max-width:420px"><?= e($s['descripcion']) ?></div><?php endif; ?>
                     </td>
                     <td class="text-muted"><?= $s['categoria'] ? e($s['categoria']) : '—' ?></td>
                     <td class="text-muted"><?= $s['codigo'] ? e($s['codigo']) : '—' ?></td>
