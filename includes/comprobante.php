@@ -4,6 +4,7 @@
  * logo, nombre y datos del consultorio con su color, y reglas de impresión
  * que dejan solo la hoja.
  */
+require_once __DIR__ . '/recetas.php';
 
 function comprobante_estilos(): string
 {
@@ -75,7 +76,13 @@ function receta_documento(array $r, array $items, bool $conNotas = true): string
         $q->execute([(int) $r['paciente_id'], tenant_id()]);
         $extra['alergias'] = trim((string) $q->fetchColumn());
     } catch (Throwable $e) {}
-    $folio = 'R-' . str_pad((string) $r['id'], 5, '0', STR_PAD_LEFT);
+    $folio = receta_folio((int) $r['id']);
+    // Token para el QR de verificación (las recetas viejas lo reciben aquí).
+    $tok = '';
+    try { $tok = (string) ($r['token'] ?? '') ?: receta_token((int) $r['id'], (int) $r['consultorio_id']); } catch (Throwable $e) {}
+    $urlRx  = $tok !== '' ? receta_url_publica($tok) : '';
+    $conVia = false;
+    foreach ($items as $m) if (!empty($m['via'])) { $conVia = true; break; }
     ob_start(); ?>
 <div class="hoja-doc">
     <div class="franja"></div>
@@ -99,24 +106,48 @@ function receta_documento(array $r, array $items, bool $conNotas = true): string
 
         <div class="d-flex align-items-center gap-2 mb-2"><span class="acento" style="font-size:1.9rem;font-weight:800;font-family:Georgia,serif;line-height:1">℞</span><span class="doc-tipo"><?= et('Medicamentos') ?></span></div>
         <table class="tabla-doc">
-            <thead><tr><th class="text-start"><?= et('Medicamento') ?></th><th class="text-start"><?= et('Dosis') ?></th><th class="text-start"><?= et('Frecuencia') ?></th><th class="text-start"><?= et('Duración') ?></th></tr></thead>
+            <thead><tr><th class="text-start"><?= et('Medicamento') ?></th><th class="text-start"><?= et('Dosis') ?></th><?php if ($conVia): ?><th class="text-start"><?= et('Vía') ?></th><?php endif; ?><th class="text-start"><?= et('Frecuencia') ?></th><th class="text-start"><?= et('Duración') ?></th></tr></thead>
             <tbody>
             <?php foreach ($items as $i => $m): ?>
-                <tr><td><b><?= $i + 1 ?>.</b> <?= e($m['medicamento']) ?></td><td><?= e($m['dosis'] ?: '—') ?></td><td><?= e($m['frecuencia'] ?: '—') ?></td><td><?= e($m['duracion'] ?: '—') ?></td></tr>
+                <tr><td><b><?= $i + 1 ?>.</b> <?= e($m['medicamento']) ?></td><td><?= e($m['dosis'] ?: '—') ?></td><?php if ($conVia): ?><td><?= e(($m['via'] ?? '') ?: '—') ?></td><?php endif; ?><td><?= e($m['frecuencia'] ?: '—') ?></td><td><?= e($m['duracion'] ?: '—') ?></td></tr>
             <?php endforeach; ?>
             </tbody>
         </table>
         <?php if ($r['indicaciones']): ?><div class="caja-suave mt-3"><div class="doc-tipo mb-1"><?= et('Indicaciones') ?></div><?= nl2br(e($r['indicaciones'])) ?></div><?php endif; ?>
         <?php if ($conNotas && !empty($r['notas'])): ?><p class="small text-muted mt-2 mb-0"><?= nl2br(e($r['notas'])) ?></p><?php endif; ?>
 
-        <div class="text-center mt-5 pt-3">
-            <div style="border-top:1px solid #334155;width:260px;margin:0 auto"></div>
-            <div class="small mt-1"><b><?= e($r['med_nombre']) ?></b><?= $extra['cedula'] !== '' ? ' · ' . et('Céd. Prof.') . ' ' . e($extra['cedula']) : '' ?></div>
-            <div class="small text-muted"><?= et('Firma') ?></div>
+        <div class="rx-cierre mt-5 pt-3">
+            <?php if ($urlRx !== ''): ?>
+            <div class="rx-qr">
+                <div class="rx-qr-img" data-qr="<?= e($urlRx) ?>" role="img" aria-label="<?= e(t('Código QR para verificar la receta')) ?>"></div>
+                <div class="small"><b><?= et('Verifica esta receta') ?></b><br><span class="text-muted"><?= et('Escanea el código con la cámara del celular.') ?></span></div>
+            </div>
+            <?php endif; ?>
+            <div class="rx-firma text-center">
+                <div style="border-top:1px solid #334155;width:260px;max-width:100%;margin:0 auto"></div>
+                <div class="small mt-1"><b><?= e($r['med_nombre']) ?></b><?= $extra['cedula'] !== '' ? ' · ' . et('Céd. Prof.') . ' ' . e($extra['cedula']) : '' ?></div>
+                <div class="small text-muted"><?= et('Firma') ?></div>
+            </div>
         </div>
         <div class="pie-doc"><?= e(marca_nombre()) ?><?= cfg('telefono') ? ' · ' . e(cfg('telefono')) : '' ?> · <?= $folio ?></div>
     </div>
 </div>
-<?php
+<?php if ($urlRx !== ''): ?>
+<style>
+.hoja-doc .rx-cierre{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap}
+.hoja-doc .rx-qr{display:flex;align-items:center;gap:10px;max-width:260px;line-height:1.3}
+.hoja-doc .rx-qr-img{width:88px;height:88px;flex:none}
+.hoja-doc .rx-qr-img svg{width:100%;height:100%;display:block}
+.hoja-doc .rx-firma{flex:1;min-width:220px}
+</style>
+<script src="<?= BASE_URL ?>/assets/js/vendor/qrcode.min.js"></script>
+<script>
+document.querySelectorAll('.rx-qr-img[data-qr]').forEach(function (el) {
+    if (el.firstChild || typeof qrcode !== 'function') return;
+    var q = qrcode(0, 'M'); q.addData(el.dataset.qr); q.make();
+    el.innerHTML = q.createSvgTag({ cellSize: 3, margin: 0, scalable: true });
+});
+</script>
+<?php endif;
     return (string) ob_get_clean();
 }

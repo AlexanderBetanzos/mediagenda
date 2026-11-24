@@ -7,7 +7,7 @@ require_modulo('recetas');
 $id = (int) ($_GET['id'] ?? 0);
 $stmt = db()->prepare(
     'SELECT r.*, p.nombre AS pac_nombre, p.apellidos AS pac_ape, p.fecha_nacimiento,
-            COALESCE(p.foto_mime, p.foto) AS pac_foto,
+            COALESCE(p.foto_mime, p.foto) AS pac_foto, p.telefono AS pac_tel,
             u.nombre AS med_nombre, u.especialidad
      FROM recetas r
      JOIN pacientes p ON p.id = r.paciente_id
@@ -22,6 +22,12 @@ $items = db()->prepare('SELECT * FROM receta_items WHERE receta_id = ?');
 $items->execute([$id]);
 $items = $items->fetchAll();
 
+// Enlace público de la receta (el mismo que lleva el QR) y mensaje de WhatsApp.
+$r['token'] = receta_token($id);
+$urlRx = receta_url_publica($r['token']);
+$msgWa = t('Hola') . ' ' . $r['pac_nombre'] . ', ' . t('aquí está tu receta de') . ' ' . marca_nombre() . ' (' . receta_folio($id) . '):' . "\n" . $urlRx;
+$waUrl = wa_link($r['pac_tel'] ?? null, $msgWa) ?: wa_compartir($msgWa);
+
 $titulo = t('Receta') . ' #' . $id;
 $activo = 'recetas';
 include __DIR__ . '/../includes/header.php';
@@ -32,8 +38,24 @@ include __DIR__ . '/../includes/header.php';
         <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/recetas/index"><?= et('Recetas') ?></a></li>
         <li class="breadcrumb-item active"><?= et('Receta') ?> #<?= $id ?></li>
     </ol></nav>
-    <button onclick="window.print()" class="btn btn-primary"><i class="bi bi-printer"></i> <?= et('Imprimir') ?></button>
+    <div class="d-flex flex-wrap gap-2 justify-content-end">
+        <?php if (has_role('medico', 'admin')): ?>
+        <a href="<?= BASE_URL ?>/recetas/create?desde=<?= $id ?>" class="btn btn-outline-secondary" title="<?= e(t('Nueva receta con los mismos medicamentos')) ?>"><i class="bi bi-arrow-repeat"></i> <?= et('Repetir') ?></a>
+        <?php endif; ?>
+        <button type="button" class="btn btn-outline-secondary" id="rxCopiar" data-url="<?= e($urlRx) ?>"><i class="bi bi-link-45deg"></i> <span><?= et('Copiar enlace') ?></span></button>
+        <a href="<?= e($waUrl) ?>" target="_blank" rel="noopener" class="btn btn-success"><i class="bi bi-whatsapp"></i> <?= et('Enviar por WhatsApp') ?></a>
+        <button onclick="window.print()" class="btn btn-primary"><i class="bi bi-printer"></i> <?= et('Imprimir') ?></button>
+    </div>
 </div>
+<script>
+document.getElementById('rxCopiar').addEventListener('click', function () {
+    var b = this, s = b.querySelector('span'), t = s.textContent;
+    navigator.clipboard.writeText(b.dataset.url).then(function () {
+        s.textContent = <?= json_encode(t('¡Copiado!'), JSON_UNESCAPED_UNICODE) ?>;
+        setTimeout(function () { s.textContent = t; }, 1600);
+    });
+});
+</script>
 
 <?= receta_documento($r, $items) ?>
 <?php include __DIR__ . '/../includes/footer.php'; ?>

@@ -30,7 +30,10 @@ include __DIR__ . '/../includes/header.php';
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h1 class="h3 mb-0"><i class="bi bi-capsule text-info"></i> <?= et('Recetas') ?></h1>
     <?php if (has_role('medico', 'admin')): ?>
-    <a href="<?= BASE_URL ?>/recetas/create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> <?= et('Nueva receta') ?></a>
+    <div class="d-flex gap-2">
+        <a href="<?= BASE_URL ?>/recetas/medicamentos" class="btn btn-outline-secondary"><i class="bi bi-journal-medical"></i> <span class="d-none d-sm-inline"><?= et('Medicamentos y favoritas') ?></span></a>
+        <a href="<?= BASE_URL ?>/recetas/create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> <?= et('Nueva receta') ?></a>
+    </div>
     <?php endif; ?>
 </div>
 
@@ -73,6 +76,7 @@ echo ui_stats([
                     <td class="text-end text-nowrap">
                         <a href="<?= BASE_URL ?>/recetas/ver?id=<?= $r['id'] ?>" class="btn btn-sm btn-outline-secondary" title="<?= et('Ver/Imprimir') ?>"><i class="bi bi-printer"></i></a>
                         <?php if (has_role('medico', 'admin')): ?>
+                        <a href="<?= BASE_URL ?>/recetas/create?desde=<?= $r['id'] ?>" class="btn btn-sm btn-outline-secondary" title="<?= et('Repetir receta') ?>"><i class="bi bi-arrow-repeat"></i></a>
                         <form action="<?= BASE_URL ?>/recetas/delete" method="post" class="d-inline" onsubmit="return confirm('¿Eliminar esta receta?');">
                             <?= csrf_field() ?><input type="hidden" name="id" value="<?= $r['id'] ?>">
                             <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>

@@ -53,10 +53,11 @@
                         <li><i class="bi bi-check2-circle"></i><span>Nombre, especialidad y cédula profesional del médico <span class="opt">(desde su perfil)</span></span></li>
                         <li><i class="bi bi-check2-circle"></i><span>Membrete con nombre y domicilio del consultorio <span class="opt">(desde Configuración)</span></span></li>
                         <li><i class="bi bi-check2-circle"></i><span>Nombre y edad del paciente, con sus <b>alergias</b> resaltadas</span></li>
-                        <li><i class="bi bi-check2-circle"></i><span>Medicamento, dosis, frecuencia y duración del tratamiento</span></li>
+                        <li><i class="bi bi-check2-circle"></i><span>Medicamento, dosis, vía de administración, frecuencia y duración</span></li>
                         <li><i class="bi bi-check2-circle"></i><span>Folio y fecha de emisión</span></li>
                         <li><i class="bi bi-check2-circle"></i><span>Espacio para tu firma autógrafa, con nombre y cédula</span></li>
-                        <li><i class="bi bi-check2-circle"></i><span>Copia guardada en el expediente y visible en el portal del paciente</span></li>
+                        <li><i class="bi bi-check2-circle"></i><span>Código <b>QR</b> para que la farmacia compruebe que la receta existe en tu sistema</span></li>
+                        <li><i class="bi bi-check2-circle"></i><span>Copia en el expediente, en el portal del paciente y lista para mandar por WhatsApp</span></li>
                     </ul>
                 </div>
             </div>

@@ -90,11 +90,22 @@ function ayuda_textos_rutas(): array
     /* ───────────── Recetas, cobros, caja ───────────── */
     $T['ruta:recetas/create'] = $g('Cómo hacer una receta', 'Receta con tu marca, lista para imprimir o mandar.', [
         'Elige al paciente: verás sus <b>alergias</b> y enfermedades crónicas a la derecha.',
-        'Agrega cada medicamento con dosis, frecuencia y duración.',
+        '¿Recetas lo mismo seguido? Toca una <b>favorita</b> arriba de los medicamentos y se llena sola.',
+        'Escribe el medicamento y elígelo de la lista: la dosis, vía, frecuencia y duración que ya usaste se llenan solas.',
         'Si un medicamento coincide con una alergia registrada, aparece un aviso: revísalo antes de guardar.',
         'Escribe las indicaciones generales y da clic en <b>Guardar receta</b>.',
     ], ['Desde la receta guardada la imprimes o la compartes; el paciente también la ve en su portal.']);
-    $T['ruta:recetas/ver'] = $g('Receta', 'La receta lista para imprimir o compartir.', ['Usa <b>Imprimir</b> para sacarla en papel o guardarla como PDF.']);
+    $T['ruta:recetas/ver'] = $g('Receta', 'La receta lista para imprimir o compartir.', [
+        'Usa <b>Imprimir</b> para sacarla en papel o guardarla como PDF.',
+        '<b>Enviar por WhatsApp</b> le manda al paciente el enlace de su receta.',
+        'El <b>código QR</b> impreso abre una página donde la farmacia comprueba que la receta existe en tu sistema.',
+        '<b>Repetir</b> crea una receta nueva con los mismos medicamentos.',
+    ]);
+    $T['ruta:recetas/medicamentos'] = $g('Medicamentos y favoritas', 'Tu catálogo para recetar más rápido.', [
+        'Cada medicamento que recetas se guarda aquí solo, con la dosis que usaste.',
+        'Marca con la <b>estrella</b> los que más usas: salen primero al recetar.',
+        'En <b>Recetas favoritas</b> ves las recetas completas que guardaste para reutilizar.',
+    ]);
     $T['ruta:facturacion/create'] = $g('Cómo registrar un cobro', 'Lo que el paciente pagó (o debe), con sus conceptos.', [
         'Elige al paciente y la fecha.',
         'Agrega conceptos: <b>Agregar del catálogo</b> trae el precio de tus servicios; también puedes escribir uno libre.',
