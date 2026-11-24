@@ -191,6 +191,7 @@ include __DIR__ . '/../includes/header.php';
     <li class="nav-item"><button class="nav-link <?= $tab === 'notas' ? 'active' : '' ?>" data-bs-toggle="tab" data-bs-target="#tNotas" type="button"><i class="bi bi-journal-text"></i> <?= et('Notas') ?> <span class="badge bg-secondary-subtle text-body"><?= count($notas) ?></span></button></li>
     <li class="nav-item"><button class="nav-link <?= $tab === 'meds' ? 'active' : '' ?>" data-bs-toggle="tab" data-bs-target="#tMeds" type="button"><i class="bi bi-capsule"></i> <?= et('Medicación') ?> <span class="badge bg-secondary-subtle text-body"><?= count($activas) ?></span></button></li>
     <li class="nav-item"><button class="nav-link <?= $tab === 'mon' ? 'active' : '' ?>" data-bs-toggle="tab" data-bs-target="#tMon" type="button"><i class="bi bi-clipboard2-check"></i> <?= et('Monitoreo') ?><?php if ($mon): ?> <span class="badge bg-warning-subtle text-body"><?= count($mon) ?></span><?php endif; ?></button></li>
+    <li class="nav-item ms-auto d-flex align-items-center pe-2"><?= ayuda_btn('psiq.medicacion') ?></li>
 </ul>
 <div class="tab-content card border-top-0 rounded-top-0 mb-4">
     <!-- Notas -->

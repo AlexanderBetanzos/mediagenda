@@ -230,7 +230,61 @@ function ayuda_textos_rutas(): array
     $T['ruta:vacunacion/paciente'] = $g('Cartilla de vacunación', 'Las vacunas aplicadas y la próxima dosis de cada una.', [
         'Elige la vacuna y la fecha: la próxima dosis se calcula sola (puedes cambiarla).', 'Anota lote y dosis.', 'Imprime la cartilla para entregarla.',
     ]);
-    $T['ruta:hospitalizacion/estancia'] = 'page:hospitalizacion';
+    $T['ruta:hospitalizacion/estancia'] = $g('Estancia del paciente', 'Todo lo de un internado: kardex, notas por turno, visitas, familiar responsable y su cuenta.', [
+        '<b>Lo que toca</b>: las dosis pendientes de las últimas 24 h y las próximas 2 h. Márcalas como <b>Aplicada</b> u <b>Omitida</b>.',
+        'Agrega <b>indicaciones</b> (medicamento, dosis, vía y cada cuántas horas) y el kardex programa las dosis solo.',
+        'En <b>Evolución y signos</b> elige el tipo de nota (enfermería, médica, psicología) y el turno; filtra por tipo arriba de la lista.',
+        'En la <b>Cuenta</b> ves cargos, abonado y saldo. Agrega extras (medicamentos, estudios, horas) y registra abonos con <b>Abonos y estado de cuenta</b>.',
+        'Registra cada <b>visita</b> y mantén al día al <b>familiar responsable</b> y la <b>alta estimada</b>.',
+        'Al terminar, <b>Dar de alta</b>: se carga lo que faltaba en la cuenta y queda el resumen para casa.',
+    ], ['Las noches se cargan solas con la tarifa pactada al ingresar.', '"Cambiar de cuarto" respeta la tarifa anterior para las noches ya pasadas.', 'Usa "Imprimir kardex" para la hoja del turno.']);
+    $T['hosp.cuenta'] = $g('Cuenta del internamiento', 'Una sola cuenta por estancia que se va llenando sola.', [
+        'Cada noche (o cada día, en internamiento de día) se carga la tarifa pactada al ingresar.',
+        'Agrega cargos extra con su cantidad y precio: medicamentos, estudios, consultas u horas.',
+        'Los abonos se registran en <b>Abonos y estado de cuenta</b> y entran al corte de caja de quien cobra.',
+    ], ['El saldo también aparece arriba, junto al nombre del paciente.']);
+    $T['hosp.cuartos'] = 'ruta:hospitalizacion/cuartos';
+    $T['psiq.riesgo'] = $g('Tamizaje de riesgo suicida', 'Seis preguntas con la estructura de la C-SSRS; el nivel se calcula solo.', [
+        'Haz la 1 y la 2. Si la 2 es "Sí", continúa con la 3, 4 y 5. La 6 pregunta por conductas en los últimos 3 meses.',
+        'Sí en la 4, 5 o 6 = riesgo <b>alto</b>; sí en la 3 = <b>moderado</b>; sí en la 1 o 2 = <b>bajo</b>.',
+        'Si tu juicio clínico es distinto, elige el nivel en "Riesgo suicida (juicio clínico)": manda sobre el tamizaje.',
+        'Anota factores de riesgo, protectores y el plan de seguridad acordado.',
+    ], ['Un riesgo moderado o alto queda como aviso arriba de la ficha de Psiquiatría.', 'Es una herramienta de apoyo: no sustituye la valoración clínica.']);
+    $T['psiq.escalas'] = $g('Escalas', 'Captura los puntajes y su interpretación sale sola; la gráfica muestra la evolución.', [
+        '<b>PHQ-9</b> (depresión) y <b>GAD-7</b> (ansiedad): usa <b>Calcular</b> y marca cada reactivo de 0 a 3; el total se llena solo.',
+        '<b>HAM-D</b> (depresión heteroaplicada), <b>YMRS</b> (manía) y <b>AUDIT</b> (alcohol): escribe el total.',
+        'Deja vacías las que no aplicaste.',
+    ], ['Si el reactivo 9 del PHQ-9 es positivo, el sistema te pide completar el tamizaje de riesgo.']);
+    $T['psiq.medicacion'] = $g('Medicación y monitoreo', 'El historial completo de psicofármacos del paciente.', [
+        '<b>Agregar medicamento</b>: escribe el fármaco (se sugiere de la lista), dosis, frecuencia e indicación.',
+        '<b>Ajustar</b> cambia la dosis y guarda el esquema anterior en el historial con su motivo.',
+        '<b>Suspender</b> lo cierra con su motivo (remisión, efectos adversos, falta de respuesta…).',
+        'La pestaña <b>Monitoreo</b> lista los estudios que pide cada familia de fármacos activos (litemia, BH con clozapina, perfil metabólico…).',
+    ], ['Los controlados (benzodiacepinas, estimulantes, hipnóticos) se marcan en amarillo: requieren receta especial.', 'El monitoreo es una guía de referencia; el criterio clínico manda.']);
+    $T['ruta:pacientes/importar'] = $g('Importar pacientes', 'Pasa tus pacientes de otro sistema (Nimbo, Doctoralia, Excel) sin capturarlos uno por uno.', [
+        'En tu sistema anterior busca la opción de <b>exportar pacientes</b>. Si te da un Excel, ábrelo y usa Archivo → Guardar como → <b>CSV UTF-8</b>.',
+        'Sube el archivo: el sistema reconoce las columnas por su nombre (nombre, apellidos, celular, correo, fecha de nacimiento…).',
+        'Revisa a qué campo va cada columna y corrige si hace falta; las que dejes en "No importar" se ignoran.',
+        'Da clic en <b>Importar</b>: al final ves cuántos entraron y qué filas se saltaron y por qué.',
+    ], ['No se duplica a nadie: si ya existe alguien con el mismo nombre y la misma fecha de nacimiento, correo o teléfono, se salta.',
+        '¿Prefieres que lo hagamos nosotros? Escríbenos desde Ayuda y soporte.']);
+    $T['ruta:pagos/index'] = $g('Mi suscripción', 'Tu plan, tu próximo cobro y cómo cambiar de plan.', [
+        'Arriba ves tu plan actual y la fecha del próximo cobro.',
+        'Para cambiar de plan elige el nuevo y confirma el pago con tarjeta (Mercado Pago).',
+        'Lo que incluye cada plan aparece en su tarjeta.',
+    ], ['Si algo no está en tu plan, el sistema te avisa y te trae aquí.']);
+    $T['ruta:telemedicina/consulta'] = 'ruta:telemedicina/sala';
+    $T['admision.siguiente'] = $g('Siguiente paso de una solicitud', 'Convierte la solicitud en atención real.', [
+        '<b>Agendar valoración</b>: crea al paciente (si no existe) y abre la agenda con él elegido.',
+        '<b>Ingresar a internamiento</b>: crea al paciente y abre el ingreso con el familiar como responsable.',
+        '<b>Crear paciente</b>: solo da de alta su ficha; quien solicitó queda como contacto de emergencia.',
+        'También puedes moverla de etapa a mano (por ejemplo, a "No procede").',
+    ]);
+    $T['servicio.publico'] = $g('Tus servicios en tu página', 'Cómo se ve este servicio para tus pacientes.', [
+        'Con <b>Mostrar este servicio</b> apagado, no aparece en tu página (sigue disponible en presupuestos y cobros).',
+        'La <b>foto</b> y la <b>descripción</b> salen en su ficha, que se abre al tocar la tarjeta.',
+        'Si apagas <b>Mostrar el precio</b>, el paciente ve el servicio sin precio y puede preguntar por WhatsApp.',
+    ]);
 
     /* ───────────── Óptica, laboratorio, ultrasonido, inventario ───────────── */
     $T['ruta:optica/graduacion'] = $g('Graduación', 'La receta oftálmica, igual que en papel: una fila por ojo.', [

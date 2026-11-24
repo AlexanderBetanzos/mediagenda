@@ -179,7 +179,8 @@ $hace = function (string $f): string {
                 <?php if ($wa): ?><a href="<?= e($wa) ?>" target="_blank" rel="noopener" class="btn btn-sm btn-success"><i class="bi bi-whatsapp"></i> <?= et('Escribir') ?></a><?php endif; ?>
                 <?php if ($a['telefono']): ?><a href="tel:<?= e(preg_replace('/\s+/', '', $a['telefono'])) ?>" class="btn btn-sm btn-light"><i class="bi bi-telephone"></i> <?= e($a['telefono']) ?></a><?php endif; ?>
                 <?php if ($a['email']): ?><a href="mailto:<?= e($a['email']) ?>" class="btn btn-sm btn-light"><i class="bi bi-envelope"></i></a><?php endif; ?>
-                <div class="dropdown ms-auto">
+                <div class="dropdown ms-auto d-flex align-items-center gap-1">
+                    <?= ayuda_btn('admision.siguiente') ?>
                     <button class="btn btn-sm btn-primary dropdown-toggle" data-bs-toggle="dropdown"><?= et('Siguiente paso') ?></button>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <?php foreach ([['cita', 'bi-calendar-plus', 'Agendar valoración'], ['internar', 'bi-hospital', 'Ingresar a internamiento'], ['', 'bi-person-plus', $a['paciente_id'] ? 'Abrir su ficha' : 'Crear paciente']] as [$ir, $ic, $lb]):

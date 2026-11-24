@@ -38,7 +38,8 @@ function ayuda_textos(): array
                 '<b>Por cobrar</b>: las facturas pendientes, de la más vieja a la más nueva.',
                 '<b>Tus cortes de hoy</b>: al terminar tu turno, cierra tu corte de caja.',
             ],
-            'tips'   => ['Las tarjetas son atajos: da clic en cualquiera para ir al detalle.'],
+            'tips'   => [
+                '¿Vienes de otro sistema (Nimbo, Doctoralia, Excel)? Usa <b>Importar</b>, junto a Nuevo paciente: sube el CSV y no se duplica nadie.','Las tarjetas son atajos: da clic en cualquiera para ir al detalle.'],
         ],
 
         'page:pacientes' => [
@@ -159,8 +160,16 @@ function ayuda_textos(): array
         ],
         'page:servicios' => [
             'titulo' => 'Catálogo de servicios',
-            'intro'  => 'Tus servicios con su precio. Salen en tu página pública y en presupuestos y cobros.',
-            'pasos'  => ['Agrega nombre, categoría y precio.', 'Desactiva los que ya no ofreces (no se borran).'],
+            'intro'  => 'Tus servicios con su precio. Salen en tu página pública (con foto y descripción) y en presupuestos y cobros.',
+            'pasos'  => [
+                'Da clic en <b>Nuevo servicio</b>: nombre, categoría, precio y duración.',
+                'Agrega una <b>descripción</b> y una <b>foto</b>: así se ve en tu página, como en el catálogo de WhatsApp.',
+                'Con <b>Mostrar en mi página</b> decides si el público lo ve; con <b>Mostrar el precio</b>, si ve cuánto cuesta.',
+                'En tu página, cada servicio abre su ficha con <b>Agendar este servicio</b> y <b>Preguntar por WhatsApp</b>.',
+                'Desactiva los que ya no ofreces (no se borran).',
+            ],
+            'tips'   => ['El 🌐 junto al nombre indica que se ve en tu página; el ojo tachado, que está oculto.',
+                         'Cada servicio tiene su propio enlace para compartir: ábrelo en tu página y toca el ícono de enlace.'],
         ],
         'page:pos' => [
             'titulo' => 'Punto de venta',
@@ -183,15 +192,22 @@ function ayuda_textos(): array
             ],
         ],
         'page:usuarios' => [
-            'titulo' => 'Usuarios',
-            'intro'  => 'Quién entra al sistema y qué puede ver.',
-            'pasos'  => ['<b>Administrador</b>: todo.', '<b>Médico</b>: su agenda y sus pacientes.', '<b>Recepción</b>: agenda, pacientes y cobros.'],
+            'titulo' => 'Personal',
+            'intro'  => 'Quién entra al sistema y qué puede ver. Cada persona tiene su propio usuario y su propio corte de caja.',
+            'pasos'  => [
+                'Da clic en <b>Nuevo usuario</b>: nombre, correo, contraseña y rol.',
+                '<b>Administrador</b>: todo, incluida la configuración y los reportes.',
+                '<b>Médico</b>: su agenda, sus pacientes, el expediente y el kardex.',
+                '<b>Recepción</b>: agenda de todos, pacientes, cobros, admisiones y su corte de caja.',
+                'Desactiva a quien ya no trabaja contigo: su historial se conserva.',
+            ],
+            'tips'   => ['Quien tenga rol <b>Médico</b> aparece también en <b>Médicos</b> y en la agenda; ahí completas su horario, cédula y foto.'],
         ],
         'page:configuracion' => [
             'titulo' => 'Configuración',
             'intro'  => 'Tu marca, tu página pública, la interfaz de tu especialidad y los recordatorios.',
             'pasos'  => [
-                '<b>Interfaz de tu especialidad</b>: adapta el lenguaje y las herramientas del panel.',
+                '<b>Interfaz de tu especialidad</b>: adapta el lenguaje y las herramientas del panel (por ejemplo, <b>Psiquiatría y salud mental</b> pone Internamiento y Admisiones al frente).',
                 '<b>Marca</b>: nombre, logo y color. Salen en recetas, comprobantes y tu página.',
                 '<b>Agenda en línea</b>: deja que tus pacientes se agenden solos.',
                 '<b>Recordatorios por WhatsApp</b>: el mensaje que reciben antes de su cita.',
@@ -220,14 +236,17 @@ function ayuda_textos(): array
         ],
         'page:hospitalizacion' => [
             'titulo' => 'Hospitalización',
-            'intro'  => 'Pacientes internados con su kardex: qué medicamento toca, a qué hora y quién lo aplicó.',
+            'intro'  => 'Quién está internado, en qué cuarto, sus dosis pendientes y su cuenta. Sirve para hospital, programa residencial e internamiento de día.',
             'pasos'  => [
-                '<b>Ingresar paciente</b>: elige al paciente, la cama o área y el motivo (también desde su ficha → "Más acciones" → Hospitalizar).',
-                'En la estancia agrega las <b>indicaciones</b>: medicamento, dosis, vía y cada cuántas horas; el kardex programa las dosis solo.',
-                'En <b>Lo que toca</b> marca cada dosis como <b>Aplicada</b> u <b>Omitida</b>; queda quién y a qué hora. Las atrasadas se ven en rojo.',
-                'Registra la evolución y los signos; al terminar, <b>Dar de alta</b> con el resumen para casa.',
+                '<b>Primera vez</b>: entra a <b>Cuartos y tarifas</b> y da de alta tus cuartos (o usa el botón de ejemplo) con sus camas y su precio por noche, por día o por hora.',
+                '<b>Ingresar paciente</b>: elige al paciente, el cuarto (verás las camas libres), el motivo, el familiar responsable y la fecha estimada de alta.',
+                'En el <b>mapa de cuartos</b> ves quién está en cada uno; con <b>Ingresar aquí</b> abres el ingreso con ese cuarto ya elegido.',
+                'Toca a un paciente para abrir su estancia: kardex de medicamentos, notas por turno, visitas y su <b>cuenta</b>.',
+                'En <b>Programa del día</b> agendas las actividades grupales (terapia grupal, yoga…) y pasas lista.',
             ],
-            'tips'   => ['Suspender una indicación detiene sus dosis siguientes sin borrar lo ya registrado.', 'Usa "Imprimir kardex" para la hoja del turno.'],
+            'tips'   => ['La cuenta se carga sola cada noche con la tarifa pactada al ingresar: no tienes que capturar los días.',
+                         'Las tarjetas en rojo tienen dosis atrasadas.',
+                         'Si llega una solicitud de un familiar, usa <b>Admisiones</b>: desde ahí lo ingresas con el responsable ya capturado.'],
         ],
         'page:laboratorio' => [
             'titulo' => 'Laboratorio',

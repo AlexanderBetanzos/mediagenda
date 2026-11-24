@@ -120,7 +120,7 @@ include __DIR__ . '/../includes/header.php';
 <?php if ($cuartos): ?>
 <div class="card mb-4"><div class="card-body">
     <div class="d-flex justify-content-between align-items-center mb-2">
-        <h2 class="h6 mb-0"><i class="bi bi-door-closed"></i> <?= et('Cuartos') ?></h2>
+        <h2 class="h6 mb-0 d-flex align-items-center gap-1"><i class="bi bi-door-closed"></i> <?= et('Cuartos') ?> <?= ayuda_btn('hosp.cuartos') ?></h2>
         <span class="small text-muted"><?= et('Toca un cuarto libre para ingresar a alguien ahí') ?></span>
     </div>
     <div class="hc-grid">

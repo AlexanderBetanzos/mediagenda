@@ -121,7 +121,7 @@ include __DIR__ . '/../includes/header.php';
 
 <div class="card mb-3">
     <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <span><?= et('Riesgo suicida (tamizaje C-SSRS)') ?></span>
+        <span class="d-flex align-items-center gap-1"><?= et('Riesgo suicida (tamizaje C-SSRS)') ?> <?= ayuda_btn('psiq.riesgo') ?></span>
         <span id="csNivel" class="badge bg-secondary"><?= et('Sin evaluar') ?></span>
     </div>
     <div class="card-body">
@@ -159,7 +159,7 @@ include __DIR__ . '/../includes/header.php';
 </div>
 
 <div class="card mb-3">
-    <div class="card-header"><?= et('Escalas') ?></div>
+    <div class="card-header d-flex align-items-center gap-1"><?= et('Escalas') ?> <?= ayuda_btn('psiq.escalas') ?></div>
     <div class="card-body">
         <div class="row g-2">
             <?php foreach (psiq_escalas() as $k => [$nom, $mide, $max]): ?>

@@ -426,7 +426,7 @@ include __DIR__ . '/../includes/header.php';
     <div class="col-lg-7">
         <div class="card h-100<?= $tab === 'cuenta' ? ' border-primary' : '' ?>"><div class="card-body">
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-                <h2 class="h6 mb-0"><i class="bi bi-wallet2"></i> <?= et('Cuenta del internamiento') ?><?php if (!empty($cuenta['folio'])): ?> <span class="text-muted fw-normal small">· <?= e($cuenta['folio']) ?></span><?php endif; ?></h2>
+                <h2 class="h6 mb-0"><i class="bi bi-wallet2"></i> <?= et('Cuenta del internamiento') ?> <?= ayuda_btn('hosp.cuenta') ?><?php if (!empty($cuenta['folio'])): ?> <span class="text-muted fw-normal small">· <?= e($cuenta['folio']) ?></span><?php endif; ?></h2>
                 <?php if (!empty($e['factura_id'])): ?>
                 <div class="d-flex gap-2 no-print">
                     <a href="<?= BASE_URL ?>/facturacion/ver?id=<?= (int) $e['factura_id'] ?>" class="btn btn-sm btn-success"><i class="bi bi-cash-coin"></i> <?= et('Abonos y estado de cuenta') ?></a>

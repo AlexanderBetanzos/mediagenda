@@ -113,7 +113,7 @@ $v = fn($k) => e((string) ($s[$k] ?? ''));
             <div class="form-text"><?= et('Cuadrada o horizontal, hasta 2 MB.') ?></div>
         </div>
         <div class="col-md-5">
-            <label class="form-label"><?= et('En tu página pública') ?></label>
+            <label class="form-label d-flex align-items-center gap-1"><?= et('En tu página pública') ?> <?= ayuda_btn('servicio.publico') ?></label>
             <div class="form-check form-switch"><input type="checkbox" class="form-check-input" id="publico" name="publico" value="1" <?= !empty($s['publico']) ? 'checked' : '' ?>><label class="form-check-label" for="publico"><?= et('Mostrar este servicio') ?></label></div>
             <div class="form-check form-switch"><input type="checkbox" class="form-check-input" id="mostrarPrecio" name="mostrar_precio" value="1" <?= !empty($s['mostrar_precio']) ? 'checked' : '' ?>><label class="form-check-label" for="mostrarPrecio"><?= et('Mostrar el precio') ?></label></div>
         </div>
