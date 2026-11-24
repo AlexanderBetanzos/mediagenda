@@ -200,7 +200,9 @@ $v = fn(string $k) => e($p[$k] ?? '');
     <div class="row g-3">
     <div class="col-md-3">
         <label class="form-label">CURP</label>
-        <input type="text" name="curp" class="form-control text-uppercase" maxlength="18" value="<?= $v('curp') ?>" placeholder="<?= et('18 caracteres') ?>">
+        <input type="text" name="curp" id="curpIn" class="form-control text-uppercase" maxlength="18" value="<?= $v('curp') ?>" placeholder="<?= et('18 caracteres') ?>"
+               autocomplete="off" data-id="<?= (int) ($p['id'] ?? 0) ?>">
+        <div class="small mt-1" id="curpMsg"></div>
     </div>
     <div class="col-md-3">
         <label class="form-label">RFC</label>
@@ -291,6 +293,63 @@ $v = fn(string $k) => e($p[$k] ?? '');
 </div><!-- /.pf-grid -->
 
 <script>
+/* CURP: valida formato y dígito verificador (algoritmo de RENAPO), llena la
+   fecha de nacimiento y el sexo si están vacíos, dice el estado de nacimiento
+   y avisa si ya hay un paciente con esa CURP. Solo avisa: no bloquea guardar
+   (hay pacientes extranjeros o con CURP provisional). */
+(function () {
+    var inp = document.getElementById('curpIn'), msg = document.getElementById('curpMsg');
+    if (!inp) return;
+    var EDOS = { AS:'Aguascalientes', BC:'Baja California', BS:'Baja California Sur', CC:'Campeche', CL:'Coahuila', CM:'Colima',
+        CS:'Chiapas', CH:'Chihuahua', DF:'Ciudad de México', DG:'Durango', GT:'Guanajuato', GR:'Guerrero', HG:'Hidalgo', JC:'Jalisco',
+        MC:'Estado de México', MN:'Michoacán', MS:'Morelos', NT:'Nayarit', NL:'Nuevo León', OC:'Oaxaca', PL:'Puebla', QT:'Querétaro',
+        QR:'Quintana Roo', SP:'San Luis Potosí', SL:'Sinaloa', SR:'Sonora', TC:'Tabasco', TS:'Tamaulipas', TL:'Tlaxcala', VZ:'Veracruz',
+        YN:'Yucatán', ZS:'Zacatecas', NE:'nacido en el extranjero' };
+    var RE = /^[A-Z][AEIOUX][A-Z]{2}(\d{2})(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])([HMX])([A-Z]{2})[B-DF-HJ-NP-TV-Z]{3}([A-Z\d])(\d)$/;
+    var DIC = '0123456789ABCDEFGHIJKLMNÑOPQRSTUVWXYZ';
+    function digito(c) {
+        var s = 0;
+        for (var i = 0; i < 17; i++) s += DIC.indexOf(c.charAt(i)) * (18 - i);
+        return (10 - (s % 10)) % 10;
+    }
+    function pinta(cls, html) { msg.className = 'small mt-1 ' + cls; msg.innerHTML = html; }
+    var ultima = '';
+    function revisar(llenar) {
+        var c = inp.value.toUpperCase().replace(/[^A-ZÑ0-9]/g, '');
+        if (inp.value !== c) inp.value = c;
+        if (c.length < 18) { pinta('text-muted', c.length ? (18 - c.length) + ' caracteres más' : ''); ultima = ''; return; }
+        var m = c.match(RE);
+        if (!m || !EDOS[m[5]]) { pinta('text-danger', '<i class="bi bi-exclamation-triangle"></i> El formato de esta CURP no es válido. Revísala.'); return; }
+        if (digito(c) !== +m[7]) { pinta('text-danger', '<i class="bi bi-exclamation-triangle"></i> El último dígito no coincide: probablemente hay una letra o número mal escrito.'); return; }
+        var anio = (/\d/.test(m[6]) ? 1900 : 2000) + +m[1];
+        var fecha = anio + '-' + m[2] + '-' + m[3];
+        var partes = [];
+        if (llenar) {
+            var fn = document.querySelector('input[name="fecha_nacimiento"]');
+            if (fn && !fn.value) { fn.value = fecha; fn.dispatchEvent(new Event('change', { bubbles: true })); partes.push('fecha de nacimiento'); }
+            var sx = document.querySelector('select[name="sexo"]');
+            var val = m[4] === 'H' ? 'M' : m[4] === 'M' ? 'F' : 'O';
+            if (sx && !sx.value && sx.querySelector('option[value="' + val + '"]')) { sx.value = val; sx.dispatchEvent(new Event('change', { bubbles: true })); partes.push('sexo'); }
+        }
+        pinta('text-success', '<i class="bi bi-check-circle"></i> CURP válida · ' + (m[5] === 'NE' ? 'Nacido en el extranjero' : 'Nació en ' + EDOS[m[5]])
+            + (partes.length ? ' · llené ' + partes.join(' y ') : ''));
+        if (c === ultima) return;
+        ultima = c;
+        fetch('<?= BASE_URL ?>/pacientes/curp?curp=' + c + '&id=' + (inp.dataset.id || 0), { credentials: 'same-origin' })
+            .then(function (r) { return r.json(); })
+            .then(function (r) {
+                if (!r.existe) return;
+                var a = document.createElement('div');
+                a.className = 'text-warning-emphasis mt-1';
+                a.innerHTML = '<i class="bi bi-person-exclamation"></i> Ya tienes un paciente con esta CURP: ';
+                var l = document.createElement('a'); l.href = r.url; l.textContent = r.nombre; a.appendChild(l);
+                msg.appendChild(a);
+            }).catch(function () {});
+    }
+    inp.addEventListener('input', function () { revisar(true); });
+    if (inp.value) revisar(false);
+})();
+
 (function () {
     // Foto del paciente: subir del dispositivo o tomar con la cámara (mismo input[name=foto]).
     var input = document.getElementById('fotoInput');

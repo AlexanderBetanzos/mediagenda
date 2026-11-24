@@ -554,6 +554,7 @@ function require_login(): void
         // dentro. El redirect al login ya es suficientemente claro.
         redirect('/auth/login');
     }
+    sesion_inactividad();
     // Si el código llegó antes que la migración, el esquema se crea aquí en vez
     // de dejar el sitio caído (fotos) o el módulo invisible (agenda en línea).
     asegurar_esquema_fotos();
@@ -565,6 +566,39 @@ function require_login(): void
     if (!defined('ALLOW_INACTIVE') && !es_superadmin() && tenant_bloqueado()) {
         redirect('/auth/suscripcion');
     }
+}
+
+/**
+ * Minutos sin actividad tras los que se cierra la sesión (NOM-024: los
+ * sistemas de expediente deben cerrar sesiones desatendidas). Lo elige cada
+ * consultorio en Configuración; 0 = nunca (no recomendado).
+ */
+function sesion_minutos(): int
+{
+    $m = (int) cfg('sesion_inactividad_min', '60');
+    return in_array($m, [0, 15, 30, 60, 120, 240], true) ? $m : 60;
+}
+
+/** Cierra la sesión si pasó el tiempo sin actividad; si no, renueva la marca. */
+function sesion_inactividad(): void
+{
+    $min = sesion_minutos();
+    $ahora = time();
+    $ultimo = (int) ($_SESSION['ultimo_mov'] ?? $ahora);
+    if ($min > 0 && $ahora - $ultimo > $min * 60) {
+        auditar('sesion_expirada', null, null, 'Sin actividad por más de ' . $min . ' min');
+        $_SESSION = [];
+        session_regenerate_id(true);
+        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) || str_contains($_SERVER['HTTP_ACCEPT'] ?? '', 'application/json')) {
+            http_response_code(401);
+            header('Content-Type: application/json');
+            exit('{"error":"sesion_expirada"}');
+        }
+        flash(t('Tu sesión se cerró por inactividad para proteger los datos de tus pacientes. Vuelve a entrar.'), 'info');
+        redirect('/auth/login');
+    }
+    // Las consultas automáticas de fondo (?sinmov=1) no cuentan como actividad.
+    if (empty($_GET['sinmov'])) $_SESSION['ultimo_mov'] = $ahora;
 }
 
 /** Exige súper-administrador (panel de gestión de consultorios). */

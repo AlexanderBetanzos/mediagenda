@@ -101,6 +101,11 @@ function ayuda_textos_rutas(): array
         'El <b>código QR</b> impreso abre una página donde la farmacia comprueba que la receta existe en tu sistema.',
         '<b>Repetir</b> crea una receta nueva con los mismos medicamentos.',
     ]);
+    $T['ruta:auditoria/index'] = $g('Bitácora', 'Quién entró, qué expedientes abrió y qué cambió.', [
+        'Filtra por fechas, por persona o por tipo (entradas, expedientes abiertos, altas, cambios, borrados).',
+        'Da clic en el nombre de un paciente para abrir su expediente.',
+        'Los registros no se pueden editar ni borrar: así sirven como evidencia.',
+    ], ['El cierre de sesión por inactividad se ajusta en Configuración → Seguridad de la sesión.']);
     $T['ruta:dispositivos/index'] = $g('Impresoras y escáneres', 'Conecta la impresora de tickets y el lector de esta computadora.', [
         '<b>Agregar impresora</b>: elige USB, Bluetooth o puerto serie y el navegador te muestra las que están conectadas.',
         'Si tu impresora ya está instalada en Windows o Mac, agrégala como <b>Impresora instalada en la PC</b>.',

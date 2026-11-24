@@ -32,6 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Regenerar id de sesión para evitar fijación.
         session_regenerate_id(true);
         $_SESSION['usuario'] = $datos;
+        $_SESSION['ultimo_mov'] = time();
         auditar('login', null, null, null, $datos['consultorio_id'], $datos);
         flash('¡Bienvenido(a), ' . $user['nombre'] . '!');
         redirect('/dashboard');

@@ -100,6 +100,31 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
         .ss-horario { display: flex; gap: .4rem; margin-top: .6rem; font-size: .7rem; opacity: .5; }
     </style>
     <?= meta_pixel_head(false) /* solo eventos encolados, sin PageView */ ?>
+    <?php /* App instalable (PWA): manifiesto con la marca del consultorio. */ ?>
+    <link rel="manifest" href="<?= BASE_URL ?>/manifest" crossorigin="use-credentials">
+    <meta name="theme-color" content="<?= e(color_acento()) ?>">
+    <link rel="apple-touch-icon" href="<?= BASE_URL ?>/assets/img/app-180.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="<?= e(marca_nombre()) ?>">
+    <script>
+    /* "Instalar como app" aparece en el menú del usuario solo cuando el navegador lo ofrece. */
+    var pwaEvt = null;
+    addEventListener('beforeinstallprompt', function (e) {
+        e.preventDefault(); pwaEvt = e;
+        var it = document.getElementById('pwaItem'); if (it) it.hidden = false;
+    });
+    addEventListener('DOMContentLoaded', function () {
+        var b = document.getElementById('pwaBtn');
+        if (b) b.addEventListener('click', function () {
+            if (!pwaEvt) return;
+            pwaEvt.prompt();
+            pwaEvt.userChoice.finally(function () { pwaEvt = null; document.getElementById('pwaItem').hidden = true; });
+        });
+    });
+    addEventListener('appinstalled', function () { var it = document.getElementById('pwaItem'); if (it) it.hidden = true; });
+    </script>
+    <script>if ('serviceWorker' in navigator) addEventListener('load', function () { navigator.serviceWorker.register('<?= BASE_URL ?>/sw.js', { scope: '<?= BASE_URL ?>/' }).catch(function () {}); });</script>
 </head>
 <body class="ui-glass ui-clean">
 <nav class="navbar navbar-dark app-navbar sticky-top flex-md-nowrap p-0">
@@ -168,6 +193,7 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
                     <small class="text-muted"><?= e(rol_label($u['rol'])) ?></small>
                 </li>
                 <li><hr class="dropdown-divider"></li>
+                <li id="pwaItem" hidden><button type="button" class="dropdown-item" id="pwaBtn"><i class="bi bi-phone me-2"></i><?= et('Instalar como app') ?></button></li>
                 <li><a class="dropdown-item" href="<?= BASE_URL ?>/auth/logout"><i class="bi bi-box-arrow-right me-2"></i><?= et('Cerrar sesión') ?></a></li>
             </ul>
         </div>
@@ -242,6 +268,7 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
                     $admin[] = $li('usuarios', BASE_URL . '/usuarios/index', 'bi-person-badge', t('Personal'));
                     if (modulo_activo('presupuestos')) $admin[] = $li('servicios', BASE_URL . '/servicios/index', 'bi-tags', t('Catálogo de servicios'));
                     $admin[] = $li('configuracion', BASE_URL . '/configuracion/index', 'bi-gear', t('Configuración'));
+                    $mas[]   = $li('auditoria', BASE_URL . '/auditoria/index', 'bi-journal-text', t('Bitácora'));
                     $admin[] = $li('suscripcion', BASE_URL . '/pagos/index', 'bi-stars', t('Mi suscripción'));
                 }
                 // Tu página y reseñas

@@ -57,6 +57,50 @@
 <script src="<?= asset('assets/js/vendor/qrcode.min.js') ?>"></script>
 <script src="<?= asset('assets/js/dispositivos.js') ?>"></script>
 <script src="<?= asset('assets/js/flow.js') ?>"></script>
+<script src="<?= asset('assets/js/cie10.js') ?>"></script>
+<?php if (sesion_minutos() > 0): ?>
+<!-- Cierre por inactividad: aviso un minuto antes. Si otra pestaña mantuvo la
+     sesión viva, se pregunta al servidor cuánto queda antes de cerrar. -->
+<div id="sesAviso" hidden style="position:fixed;inset:0;z-index:3000;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center;padding:16px">
+    <div style="background:var(--bs-body-bg,#fff);color:inherit;border-radius:18px;max-width:400px;width:100%;padding:1.4rem;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+        <i class="bi bi-hourglass-split text-brand" style="font-size:2rem"></i>
+        <h5 class="fw-bold mt-2"><?= et('¿Sigues ahí?') ?></h5>
+        <p class="text-muted small mb-3"><?= et('Por seguridad, tu sesión se cerrará en') ?> <b id="sesSeg">60</b> <?= et('segundos.') ?></p>
+        <button type="button" class="btn btn-primary w-100" id="sesSeguir"><?= et('Seguir conectado') ?></button>
+    </div>
+</div>
+<script>
+(function () {
+    var MS = <?= sesion_minutos() ?> * 60000, base = '<?= BASE_URL ?>', aviso = document.getElementById('sesAviso');
+    var tAviso, tCierre, tCuenta;
+    function programar(ms) {
+        clearTimeout(tAviso); clearTimeout(tCierre); clearInterval(tCuenta);
+        tAviso = setTimeout(revisar, Math.max(1000, ms - 60000));
+    }
+    function revisar() {
+        fetch(base + '/auth/ping?sinmov=1', { credentials: 'same-origin', headers: { Accept: 'application/json' } })
+            .then(function (r) { if (r.status === 401) throw 0; return r.json(); })
+            .then(function (r) {
+                if (r.restan == null) return;
+                if (r.restan > 65) { programar(r.restan * 1000); return; }   // otra pestaña la mantuvo viva
+                mostrar(r.restan);
+            }).catch(function () { location.reload(); });
+    }
+    function mostrar(seg) {
+        aviso.hidden = false;
+        var n = Math.max(1, Math.round(seg)), out = document.getElementById('sesSeg');
+        out.textContent = n;
+        tCuenta = setInterval(function () { n--; out.textContent = Math.max(0, n); if (n <= 0) { clearInterval(tCuenta); location.reload(); } }, 1000);
+    }
+    document.getElementById('sesSeguir').onclick = function () {
+        fetch(base + '/auth/ping', { credentials: 'same-origin', headers: { Accept: 'application/json' } })
+            .then(function (r) { if (r.status === 401) throw 0; aviso.hidden = true; programar(MS); })
+            .catch(function () { location.reload(); });
+    };
+    programar(MS);
+})();
+</script>
+<?php endif; ?>
 <script>
 /* Guarda la preferencia de tema del usuario y la aplica al instante. */
 function setTema(pref) {

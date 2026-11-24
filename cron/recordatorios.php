@@ -8,6 +8,10 @@
  * Cómo programarlo:
  *   - Por CLI (recomendado):   php /ruta/cron/recordatorios.php
  *   - Por URL (cron de hosting): https://tu-sitio/cron/recordatorios.php?key=TOKEN
+ *
+ * Cada hora (para el aviso "2 horas antes"):  agrega  --cada-hora  (CLI) o
+ * &cada_hora=1 (URL). Así el recordatorio del día anterior solo sale entre
+ * 9:00 y 20:59 —no a medianoche— y en cada corrida salen los de 2 horas antes.
  *     (define CRON_TOKEN en el archivo de secretos / variables de entorno).
  */
 require_once __DIR__ . '/../includes/recordatorios.php';
@@ -23,7 +27,16 @@ if (!$cli) {
     header('Content-Type: text/plain; charset=utf-8');
 }
 
-$r = recordatorios_enviar(null, function ($linea) { echo $linea . "\n"; });
+$eco = function ($linea) { echo $linea . "\n"; };
+$cadaHora = $cli ? in_array('--cada-hora', $argv ?? [], true) : !empty($_GET['cada_hora']);
+$hora = (int) date('G');
 
-echo "Total: {$r['procesadas']} citas procesadas, {$r['correos']} correos, "
-   . "{$r['whatsapp']} WhatsApp (mañana = {$r['fecha']})\n";
+if (!$cadaHora || ($hora >= 9 && $hora < 21)) {
+    $r = recordatorios_enviar(null, $eco);
+    echo "Total: {$r['procesadas']} citas procesadas, {$r['correos']} correos, "
+       . "{$r['whatsapp']} WhatsApp (mañana = {$r['fecha']})\n";
+}
+if ($cadaHora) {
+    $r2 = recordatorios_2h($eco);
+    echo "2 horas antes: {$r2['procesadas']} citas, {$r2['correos']} correos, {$r2['whatsapp']} WhatsApp\n";
+}

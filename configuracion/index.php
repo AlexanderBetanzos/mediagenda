@@ -76,6 +76,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'pais_lada'              => preg_replace('/\D/', '', $_POST['pais_lada'] ?? '') ?: '52',
         'recordatorio_plantilla' => trim($_POST['recordatorio_plantilla'] ?? ''),
         'recordatorio_auto'      => !empty($_POST['recordatorio_auto']) ? '1' : '0',
+        'recordatorio_2h'        => !empty($_POST['recordatorio_2h']) ? '1' : '0',
+        'sesion_inactividad_min' => in_array((int) ($_POST['sesion_inactividad_min'] ?? 60), [0, 15, 30, 60, 120, 240], true) ? (string) (int) $_POST['sesion_inactividad_min'] : '60',
         'agenda_online'          => !empty($_POST['agenda_online']) ? '1' : '0',
         'agenda_online_dias'     => (string) max(1, min(180, (int) ($_POST['agenda_online_dias'] ?? 30))),
         'agenda_online_duracion' => (string) max(10, min(180, (int) ($_POST['agenda_online_duracion'] ?? 30))),
@@ -390,6 +392,25 @@ include __DIR__ . '/../includes/header.php';
                 <label class="form-check-label" for="recordatorio_auto"><?= et('Enviar recordatorio por') ?> <strong><?= et('correo') ?></strong> <?= et('a los pacientes con cita al día siguiente') ?></label>
             </div>
             <div class="form-text"><?= et('Se envía una vez al día') ?> (<?= et('requiere el cron') ?> <code>cron/recordatorios.php</code>).</div>
+            <div class="form-check form-switch mt-3">
+                <input class="form-check-input" type="checkbox" role="switch" id="recordatorio_2h" name="recordatorio_2h" value="1" <?= cfg('recordatorio_2h', '0') === '1' ? 'checked' : '' ?>>
+                <label class="form-check-label" for="recordatorio_2h"><?= et('Mandar un segundo recordatorio unas') ?> <strong><?= et('2 horas antes') ?></strong> <?= et('de la cita (correo y, si está activo, WhatsApp)') ?></label>
+            </div>
+            <div class="form-text"><?= et('Para este aviso el cron debe correr cada hora. El recordatorio del día anterior sale entre 9:00 y 21:00.') ?></div>
+        </div>
+    </div>
+
+    <!-- Seguridad de la sesión -->
+    <div class="card mb-4">
+        <div class="card-header fw-semibold"><i class="bi bi-shield-lock text-brand"></i> <?= et('Seguridad de la sesión') ?></div>
+        <div class="card-body">
+            <label class="form-label" for="sesion_inactividad_min"><?= et('Cerrar la sesión tras este tiempo sin actividad') ?></label>
+            <select name="sesion_inactividad_min" id="sesion_inactividad_min" class="form-select" style="max-width:260px">
+                <?php foreach ([15 => '15 minutos', 30 => '30 minutos', 60 => '1 hora', 120 => '2 horas', 240 => '4 horas', 0 => 'Nunca (no recomendado)'] as $mv => $ml): ?>
+                <option value="<?= $mv ?>" <?= sesion_minutos() === $mv ? 'selected' : '' ?>><?= et($ml) ?></option>
+                <?php endforeach; ?>
+            </select>
+            <div class="form-text"><?= et('Protege los expedientes si alguien deja la computadora abierta. Un minuto antes aparece un aviso para seguir conectado.') ?></div>
         </div>
     </div>
 

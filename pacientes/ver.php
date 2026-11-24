@@ -77,6 +77,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'consu
         trim($_POST['notas'] ?? '') ?: null,
     ]);
     $consulta_id = (int) db()->lastInsertId();
+    // Códigos CIE-10 elegidos en el diagnóstico, aparte, para reportes por diagnóstico.
+    try {
+        require_once __DIR__ . '/../includes/cie10.php';
+        if ($cods = cie10_extraer($_POST['diagnostico'] ?? null)) {
+            db()->prepare('UPDATE consultas SET cie10 = ? WHERE id = ? AND consultorio_id = ?')->execute([$cods, $consulta_id, tenant_id()]);
+        }
+    } catch (Throwable $e) { /* el catálogo nunca debe impedir guardar la consulta */ }
     auditar('crear', 'consulta', $consulta_id, 'Paciente #' . $id);
 
     // Adjunto opcional ligado a esta consulta.

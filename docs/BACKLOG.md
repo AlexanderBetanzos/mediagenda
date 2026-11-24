@@ -275,4 +275,11 @@ e incapacidades · OCR de INE/CURP. → la mayoría cuelgan de **Flujo de sala**
 
 ---
 
-_Última actualización: 2026-07-09._
+### Paquete NOM-024 / flujo (2026-11-24)
+- ✅ CIE-10: catálogo global `cie10` (importa `sql/data/cie10_mx.csv`, fuente SSA/HJM datos.gob.mx CC BY 4.0), autocompletado en todo campo `diagnostico` (`assets/js/cie10.js`), códigos guardados en `consultas.cie10`. ⬜ Falta subir el CSV.
+- ✅ CURP: valida formato y dígito verificador, llena fecha de nacimiento y sexo, dice estado y avisa duplicados (`pacientes/curp.php`).
+- ✅ Segundo recordatorio 2 h antes (`recordatorios_2h()`, cron con `--cada-hora`).
+- ✅ App instalable (PWA): `manifest.php`, `sw.js` sin caché de datos clínicos, `offline.html`, "Instalar como app".
+- ✅ Cierre de sesión por inactividad configurable con aviso + bitácora visible (`auditoria/`).
+
+_Última actualización: 2026-11-24._

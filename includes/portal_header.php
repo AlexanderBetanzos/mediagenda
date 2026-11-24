@@ -37,6 +37,13 @@ $ini = mb_strtoupper(mb_substr((string) ($pac['nombre'] ?? ''), 0, 1) . mb_subst
     <link href="<?= asset('assets/css/style.css') ?>" rel="stylesheet">
     <link href="<?= asset('assets/css/portal.css') ?>" rel="stylesheet">
     <style>:root{--brand:<?= $acento ?>;--brand-dark:color-mix(in srgb,<?= $acento ?> 78%,#000);--brand-light:color-mix(in srgb,<?= $acento ?> 12%,#fff);--brand-ink:<?= color_texto_sobre($acento) ?>}</style>
+    <?php /* App instalable (PWA): manifiesto con la marca del consultorio. */ ?>
+    <link rel="manifest" href="<?= BASE_URL ?>/manifest?app=portal" crossorigin="use-credentials">
+    <link rel="apple-touch-icon" href="<?= BASE_URL ?>/assets/img/app-180.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="<?= e(marca_nombre()) ?>">
+    <script>if ('serviceWorker' in navigator) addEventListener('load', function () { navigator.serviceWorker.register('<?= BASE_URL ?>/sw.js', { scope: '<?= BASE_URL ?>/' }).catch(function () {}); });</script>
 </head>
 <body class="portal">
 <header class="pt-top">
