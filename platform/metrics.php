@@ -112,19 +112,49 @@ foreach ($riskRows as $r) {
 /* ── Tráfico del sitio (pageviews) — es global (sin consultorio), solo dueño ── */
 $hasViews = 0; $visHoy = $vis7 = $vis30 = $uniq30 = 0;
 $visLabels = $visData = []; $topModules = []; $byArea = []; $areaTotal = 1;
+$verTodas = !empty($_GET['todas']);
+$pvF = ''; $intVis = $intIps = []; $excl30 = 0; $esteMarcado = false;
 if ($esDueno) {
     ensure_pageviews_table();
-    $hasViews = (int) $pdo->query("SELECT COUNT(*) FROM pageviews")->fetchColumn();
-    $visHoy   = (int) $pdo->query("SELECT COUNT(*) FROM pageviews WHERE area<>'plataforma' AND DATE(created_at)=CURDATE()")->fetchColumn();
-    $vis7     = (int) $pdo->query("SELECT COUNT(*) FROM pageviews WHERE area<>'plataforma' AND created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)")->fetchColumn();
-    $vis30    = (int) $pdo->query("SELECT COUNT(*) FROM pageviews WHERE area<>'plataforma' AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)")->fetchColumn();
-    $uniq30   = (int) $pdo->query("SELECT COUNT(DISTINCT visitor) FROM pageviews WHERE area<>'plataforma' AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)")->fetchColumn();
+    /* Marcar / desmarcar ESTE navegador como del equipo (cookie de 2 años). */
+    if (isset($_GET['marcar'])) {
+        $on = $_GET['marcar'] === '1';
+        setcookie('viz_interno', $on ? '1' : '', ['expires' => $on ? time() + 63072000 : time() - 3600, 'path' => '/',
+            'secure' => !empty($_SERVER['HTTPS']) || ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https', 'httponly' => true, 'samesite' => 'Lax']);
+        if ($on && preg_match('/^[a-f0-9]{32}$/', $_COOKIE['viz'] ?? '')) {
+            // Lo que este navegador ya visitó también deja de contar.
+            $pdo->prepare("UPDATE pageviews SET actor_type = 'interno' WHERE visitor = ? AND actor_type = 'guest'")->execute([$_COOKIE['viz']]);
+        }
+        redirect('/platform/metrics#trafico');
+    }
+    $esteMarcado = ($_COOKIE['viz_interno'] ?? '') === '1';
 
-    $viewsByDay = $pdo->query("SELECT DATE(created_at) d, COUNT(*) n FROM pageviews WHERE area<>'plataforma' AND created_at >= DATE_SUB(CURDATE(), INTERVAL 29 DAY) GROUP BY d")->fetchAll(PDO::FETCH_KEY_PAIR);
+    /* Visitas internas = navegadores (cookie "viz") que alguna vez entraron a la
+       consola de plataforma o se marcaron como del equipo, y las IP desde las
+       que se entró a la consola en los últimos 60 días (p. ej. el celular en el
+       mismo wifi). Sirve también hacia atrás: las visitas viejas de esos
+       navegadores dejan de contar. */
+    $intVis = $pdo->query("SELECT DISTINCT visitor FROM pageviews WHERE actor_type IN ('platform','interno') AND visitor IS NOT NULL")->fetchAll(PDO::FETCH_COLUMN);
+    $intIps = $pdo->query("SELECT DISTINCT ip FROM pageviews WHERE actor_type IN ('platform','interno') AND ip <> '' AND created_at >= DATE_SUB(NOW(), INTERVAL 60 DAY)")->fetchAll(PDO::FETCH_COLUMN);
+    $cond = [];
+    if ($intVis) $cond[] = 'COALESCE(visitor, \'\') IN (' . implode(',', array_map([$pdo, 'quote'], $intVis)) . ')';
+    if ($intIps) $cond[] = 'COALESCE(ip, \'\') IN (' . implode(',', array_map([$pdo, 'quote'], $intIps)) . ')';
+    $cond[] = "actor_type IN ('platform','interno')";
+    $sqlInterno = '(' . implode(' OR ', $cond) . ')';
+    $excl30 = (int) $pdo->query("SELECT COUNT(*) FROM pageviews WHERE area<>'plataforma' AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) AND $sqlInterno")->fetchColumn();
+    if (!$verTodas) $pvF = " AND NOT $sqlInterno";
+
+    $hasViews = (int) $pdo->query("SELECT COUNT(*) FROM pageviews")->fetchColumn();
+    $visHoy   = (int) $pdo->query("SELECT COUNT(*) FROM pageviews WHERE area<>'plataforma'$pvF AND DATE(created_at)=CURDATE()")->fetchColumn();
+    $vis7     = (int) $pdo->query("SELECT COUNT(*) FROM pageviews WHERE area<>'plataforma'$pvF AND created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)")->fetchColumn();
+    $vis30    = (int) $pdo->query("SELECT COUNT(*) FROM pageviews WHERE area<>'plataforma'$pvF AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)")->fetchColumn();
+    $uniq30   = (int) $pdo->query("SELECT COUNT(DISTINCT visitor) FROM pageviews WHERE area<>'plataforma'$pvF AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)")->fetchColumn();
+
+    $viewsByDay = $pdo->query("SELECT DATE(created_at) d, COUNT(*) n FROM pageviews WHERE area<>'plataforma'$pvF AND created_at >= DATE_SUB(CURDATE(), INTERVAL 29 DAY) GROUP BY d")->fetchAll(PDO::FETCH_KEY_PAIR);
     for ($i = 29; $i >= 0; $i--) { $d = date('Y-m-d', strtotime("-$i day")); $visLabels[] = date('d/m', strtotime($d)); $visData[] = (int) ($viewsByDay[$d] ?? 0); }
 
-    $topModules = $pdo->query("SELECT area, path, COUNT(*) n, COUNT(DISTINCT visitor) u FROM pageviews WHERE area<>'plataforma' AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) GROUP BY area, path ORDER BY n DESC LIMIT 12")->fetchAll();
-    $byArea = $pdo->query("SELECT area, COUNT(*) n FROM pageviews WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) GROUP BY area ORDER BY n DESC")->fetchAll();
+    $topModules = $pdo->query("SELECT area, path, COUNT(*) n, COUNT(DISTINCT visitor) u FROM pageviews WHERE area<>'plataforma'$pvF AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) GROUP BY area, path ORDER BY n DESC LIMIT 12")->fetchAll();
+    $byArea = $pdo->query("SELECT area, COUNT(*) n FROM pageviews WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)$pvF GROUP BY area ORDER BY n DESC")->fetchAll();
     $areaTotal = array_sum(array_column($byArea, 'n')) ?: 1;
 }
 
@@ -263,9 +293,28 @@ include __DIR__ . '/_head.php';
 <!-- ── Tráfico del sitio (global, solo dueño) ────────────────────────── -->
 <?php if ($esDueno): ?>
 <div class="d-flex align-items-center gap-2 mt-4 mb-2">
-    <h2 class="h4 fw-bold mb-0"><i class="bi bi-graph-up-arrow text-brand"></i> <?= et('Tráfico del sitio') ?></h2>
+    <h2 class="h4 fw-bold mb-0" id="trafico"><i class="bi bi-graph-up-arrow text-brand"></i> <?= et('Tráfico del sitio') ?></h2>
     <span class="text-muted small"><?= et('visitas a las páginas · sin contar la consola de plataforma') ?></span>
 </div>
+
+<div class="card mb-3"><div class="card-body d-flex flex-wrap align-items-center gap-3">
+    <div class="flex-grow-1" style="min-width:260px">
+        <?php if ($verTodas): ?>
+        <b><i class="bi bi-people"></i> <?= et('Mostrando todas las visitas, incluidas las tuyas.') ?></b>
+        <?php else: ?>
+        <b><i class="bi bi-person-check text-success"></i> <?= et('Solo visitas de personas ajenas.') ?></b>
+        <?php endif; ?>
+        <div class="small text-muted"><?= et('No cuentan los navegadores con los que has entrado a esta consola ni la red (IP) desde la que entraste en los últimos 60 días.') ?>
+            <?= number_format($excl30) ?> <?= et('visitas tuyas o de tu equipo en 30 días') ?> · <?= count($intVis) ?> <?= et('navegadores') ?> · <?= count($intIps) ?> <?= et('redes') ?>.</div>
+        <div class="small mt-1"><?= $esteMarcado
+            ? '<span class="text-success"><i class="bi bi-check-circle"></i> ' . et('Este navegador está marcado como tuyo.') . '</span> <a href="?marcar=0" class="text-muted">' . et('Quitar marca') . '</a>'
+            : '<i class="bi bi-info-circle"></i> ' . et('¿Revisas el sitio desde otro celular o navegador? Abre esta página ahí una vez para que tampoco cuente.') ?></div>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <?php if (!$esteMarcado): ?><a href="?marcar=1" class="btn btn-sm btn-outline-primary"><i class="bi bi-bookmark-check"></i> <?= et('Marcar este navegador como mío') ?></a><?php endif; ?>
+        <a href="<?= $verTodas ? '?' : '?todas=1' ?>#trafico" class="btn btn-sm btn-outline-secondary"><?= $verTodas ? et('Ocultar mis visitas') : et('Ver también las mías') ?></a>
+    </div>
+</div></div>
 
 <?php if (!$hasViews): ?>
 <div class="alert alert-info d-flex align-items-center gap-2">

@@ -912,6 +912,8 @@ function track_pageview(string $area): void
         }
         $path = trim(str_replace(BASE_URL, '', (string) ($_SERVER['SCRIPT_NAME'] ?? '')), '/') ?: 'index.php';
         $actor = platform_admin() ? 'platform' : (is_logged_in() ? 'admin' : (current_paciente() ? 'member' : 'guest'));
+        // Navegador marcado como del equipo (botón en /platform/metrics): nunca cuenta como visita ajena.
+        if (($_COOKIE['viz_interno'] ?? '') === '1' && $actor === 'guest') $actor = 'interno';
         $ip = (string) ($_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '');
         if (strpos($ip, ',') !== false) $ip = trim(explode(',', $ip)[0]);
         $ref = (string) ($_SERVER['HTTP_REFERER'] ?? '');
