@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Demo Bien Vita</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<style>
+:root{--b:#2563eb;--b2:#3b82f6;--bg:#f5f7fb;--card:#fff;--bd:#e9edf3;--tx:#0f172a;--tx2:#64748b;--tx3:#94a3b8;--ok:#16a34a;--warn:#f59e0b;--bad:#dc2626;--vio:#7c3aed}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1920px;height:1080px;overflow:hidden;background:var(--bg);font-family:Inter,system-ui,sans-serif;color:var(--tx);-webkit-font-smoothing:antialiased}
+[data-in]{opacity:0;visibility:hidden}
+*,*::before,*::after{transition:none!important}
+.abs{position:absolute}
+/* ---------- Portada y cierre ---------- */
+.full{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+      background:radial-gradient(1200px 700px at 15% -10%,rgba(37,99,235,.22),transparent 60%),radial-gradient(900px 600px at 105% 110%,rgba(124,58,237,.16),transparent 60%),#0b1220;color:#fff;z-index:50}
+.logo{display:flex;align-items:center;gap:16px;font-size:34px;font-weight:800;letter-spacing:-.02em}
+.logo i{width:64px;height:64px;border-radius:18px;background:linear-gradient(160deg,#60a5fa,var(--b));display:flex;align-items:center;justify-content:center;font-size:34px;box-shadow:0 18px 40px rgba(37,99,235,.45)}
+.h-big{font-size:92px;font-weight:800;letter-spacing:-.045em;line-height:1.02;margin-top:46px}
+.h-sub{font-size:34px;color:rgba(255,255,255,.72);margin-top:26px;font-weight:500}
+.chips{display:flex;gap:14px;margin-top:46px}
+.chip{padding:12px 22px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);font-size:22px;font-weight:600}
+.chip i{color:#93c5fd;margin-right:8px}
+/* ---------- App ---------- */
+.side{position:absolute;left:0;top:0;bottom:0;width:260px;background:#fff;border-right:1px solid var(--bd);z-index:5}
+.brand{display:flex;align-items:center;gap:12px;height:76px;padding:0 22px}
+.brand i{width:42px;height:42px;border-radius:12px;background:rgba(37,99,235,.1);color:var(--b);display:flex;align-items:center;justify-content:center;font-size:22px}
+.brand b{display:block;font-size:18px;font-weight:800;letter-spacing:-.02em}.brand small{font-size:10px;letter-spacing:.14em;color:var(--b);font-weight:700}
+.nav{position:relative;margin-top:12px}
+.nav .sec{font-size:10px;letter-spacing:.12em;color:var(--tx3);font-weight:700;padding:14px 26px 6px}
+.nav a{position:relative;z-index:2;display:flex;align-items:center;gap:12px;height:44px;margin:0 14px;padding:0 14px;border-radius:11px;font-size:15px;font-weight:500;color:#334155;transition:color .3s}
+.nav a i{color:var(--tx2);font-size:17px;width:20px;text-align:center;transition:color .3s}
+.nav a.on{color:#fff;font-weight:600}.nav a.on i{color:#fff}
+.pill{position:absolute;left:14px;right:14px;height:44px;border-radius:11px;background:var(--b);box-shadow:0 8px 20px rgba(37,99,235,.32);z-index:1}
+.help{position:absolute;left:14px;right:14px;bottom:18px;border-radius:14px;padding:16px;background:rgba(37,99,235,.06);border:1px solid rgba(37,99,235,.14);font-size:13px}
+.help b{display:block;font-size:14px;margin-bottom:4px}
+.top{position:absolute;left:260px;right:0;top:0;height:76px;background:#fff;border-bottom:1px solid var(--bd);display:flex;align-items:center;padding:0 34px;gap:22px;z-index:4}
+.top h1{font-size:22px;font-weight:700;letter-spacing:-.02em;min-width:280px}
+.srch{margin-left:auto;width:380px;height:42px;border-radius:11px;background:var(--bg);border:1px solid var(--bd);display:flex;align-items:center;gap:10px;padding:0 14px;color:var(--tx3);font-size:14px}
+.usr{display:flex;align-items:center;gap:12px;font-size:14px}.usr .av{width:40px;height:40px;border-radius:50%;background:var(--b);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;box-shadow:0 0 0 3px rgba(37,99,235,.15)}
+.usr small{display:block;color:var(--tx2);font-size:12px}
+.demo-tag{position:absolute;right:34px;top:96px;z-index:6;font-size:13px;font-weight:700;color:#b45309;background:#fff4e0;border:1px solid #fde3b3;padding:6px 12px;border-radius:999px}
+.main{position:absolute;left:260px;top:76px;right:0;bottom:0;padding:34px 40px}
+.scene{position:absolute;inset:34px 40px 0}
+.card{background:#fff;border:1px solid var(--bd);border-radius:16px;box-shadow:0 1px 2px rgba(15,23,42,.03)}
+.ttl{font-size:30px;font-weight:800;letter-spacing:-.03em;display:flex;align-items:center;gap:14px}
+.ttl .ic{width:48px;height:48px;border-radius:13px;background:rgba(37,99,235,.1);color:var(--b);display:flex;align-items:center;justify-content:center;font-size:22px}
+.sub{color:var(--tx2);font-size:16px;margin:6px 0 0 62px}
+.btn{display:inline-flex;align-items:center;gap:8px;height:42px;padding:0 18px;border-radius:10px;font-weight:600;font-size:15px;border:1px solid var(--bd);background:#fff;transition:transform .2s,box-shadow .2s}
+.btn.p{background:var(--b);border-color:var(--b);color:#fff;box-shadow:0 6px 16px rgba(37,99,235,.28)}
+.btn.press{transform:scale(.95)}
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;padding:4px 10px;border-radius:999px}
+.b-blue{background:#e8efff;color:#1d4ed8}.b-green{background:#e7f8ee;color:#15803d}.b-amber{background:#fff4e0;color:#b45309}.b-gray{background:#eef1f5;color:#475569}.b-vio{background:#f1eaff;color:#6d28d9}.b-red{background:#fdecec;color:#b91c1c}
+.caption{position:absolute;left:0;right:0;margin:0 auto;width:max-content;bottom:38px;z-index:40;display:flex;align-items:center;gap:16px;padding:16px 30px 16px 16px;border-radius:999px;
+         background:rgba(15,23,42,.92);color:#fff;font-size:24px;font-weight:600;box-shadow:0 20px 50px rgba(15,23,42,.35);white-space:nowrap}
+.caption .n{width:44px;height:44px;border-radius:50%;background:var(--b);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px}
+.caption span.l{color:rgba(255,255,255,.6);font-weight:500}
+/* Agenda */
+.cal{position:absolute;top:100px;left:0;right:0;bottom:120px;display:grid;grid-template-columns:80px repeat(3,1fr);gap:0}
+.cal .hd{height:74px;display:flex;align-items:center;gap:12px;padding:0 16px;border-bottom:1px solid var(--bd);font-weight:700;font-size:16px}
+.cal .hd .av{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:15px}
+.cal .hd small{display:block;color:var(--tx2);font-weight:500;font-size:13px}
+.col{position:relative;border-left:1px solid var(--bd)}
+.hrs div{height:118px;font-size:13px;color:var(--tx3);padding:6px 12px 0 0;text-align:right;border-top:1px solid #f1f4f8}
+.slotline{position:absolute;left:0;right:0;border-top:1px solid #f1f4f8}
+.ap{position:absolute;left:10px;right:10px;border-radius:12px;padding:12px 14px;font-size:14px;border-left:4px solid var(--c);background:color-mix(in srgb,var(--c) 9%,#fff)}
+.ap b{display:block;font-size:15px}.ap small{color:var(--tx2)}
+.ap .badge{position:absolute;right:10px;top:10px}
+/* Tabla */
+.tbl{width:100%;border-collapse:collapse;font-size:16px}
+.tbl th{font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--tx3);text-align:left;padding:14px 20px;background:#fafbfd;border-bottom:1px solid var(--bd)}
+.tbl td{padding:16px 20px;border-bottom:1px solid #f0f2f6}
+.tbl tr.hl td{background:rgba(37,99,235,.045)}
+.avs{width:38px;height:38px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;margin-right:12px;vertical-align:middle;background:#eef2ff;color:var(--b)}
+/* Modal */
+.veil{position:absolute;inset:0;background:rgba(15,23,42,.32);z-index:20}
+.modal{position:absolute;left:50%;top:130px;width:640px;margin-left:-320px;z-index:21;border-radius:20px;background:#fff;box-shadow:0 40px 100px rgba(15,23,42,.3);padding:30px}
+.fld{border:1px solid var(--bd);border-radius:11px;height:48px;display:flex;align-items:center;padding:0 16px;font-size:16px;margin-top:6px}
+.lbl{font-size:13px;color:var(--tx2);font-weight:600;margin-top:16px}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px}
+.seg div{height:52px;border-radius:11px;border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;gap:8px;font-weight:600;transition:all .25s}
+.seg div.on{border-color:var(--b);background:rgba(37,99,235,.08);color:var(--b);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+.toast{position:absolute;right:40px;top:110px;z-index:30;background:#0f172a;color:#fff;border-radius:14px;padding:16px 22px;font-size:17px;font-weight:600;display:flex;gap:12px;align-items:center;box-shadow:0 20px 50px rgba(15,23,42,.3)}
+.toast i{color:#4ade80;font-size:22px}
+/* Psiquiatría */
+.grid2{position:absolute;top:110px;left:0;right:0;bottom:120px;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto 1fr;gap:22px}
+.ch{padding:18px 22px 6px;font-weight:700;font-size:17px;display:flex;justify-content:space-between;align-items:center}
+.cb{padding:8px 22px 20px}
+.em{display:grid;grid-template-columns:1fr 1fr;gap:10px 18px}
+.em div{font-size:13px;color:var(--tx2);font-weight:600}
+.em div span{display:block;margin-top:4px;height:38px;border:1px solid var(--bd);border-radius:9px;padding:0 12px;display:flex;align-items:center;color:var(--tx);font-weight:500;font-size:14.5px;transition:all .3s}
+.em div span.ok{border-color:#bbf7d0;background:#f0fdf4}
+.q{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #f0f2f6;font-size:14.5px}
+.yn{display:flex;gap:6px}.yn i{font-style:normal;width:46px;height:30px;border-radius:8px;border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--tx2);transition:all .25s}
+.yn i.si{background:#fdecec;border-color:#fca5a5;color:#b91c1c}.yn i.no{background:#eef1f5;border-color:#cbd5e1;color:#334155}
+.dots{display:flex;gap:8px;margin:10px 0}.dots i{width:34px;height:34px;border-radius:9px;border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;font-style:normal;font-weight:700;color:#fff;transition:all .25s}
+.dots i.f{background:var(--vio);border-color:var(--vio)}
+.med{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid #f0f2f6}
+.med b{font-size:17px}.med small{display:block;color:var(--tx2)}
+/* Corte */
+.cg{position:absolute;top:110px;left:0;right:0;bottom:120px;display:grid;grid-template-columns:1.05fr 1fr;gap:22px}
+.row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #f0f2f6;font-size:16px}
+.met{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px}
+.met .card{padding:18px}.met small{color:var(--tx2);font-size:13px;font-weight:600}.met b{display:block;font-size:28px;font-weight:800;letter-spacing:-.03em;margin-top:4px}
+.met .ic{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:18px}
+.eq{font-size:17px}.eq .row b{font-variant-numeric:tabular-nums}
+.big{font-size:40px;font-weight:800;letter-spacing:-.03em}
+.stamp{position:absolute;right:60px;bottom:180px;z-index:15;transform:rotate(-8deg);border:4px solid var(--ok);color:var(--ok);border-radius:16px;padding:14px 26px;font-size:30px;font-weight:800;letter-spacing:.02em;background:rgba(255,255,255,.9)}
+.stamp small{display:block;font-size:15px;font-weight:600}
+/* Import */
+.drop{border:2px dashed #c7d2fe;border-radius:18px;background:rgba(37,99,235,.03);height:150px;display:flex;align-items:center;justify-content:center;gap:18px;font-size:19px;color:var(--tx2)}
+.file{display:flex;align-items:center;gap:14px;background:#fff;border:1px solid var(--bd);border-radius:14px;padding:14px 20px;box-shadow:0 10px 30px rgba(15,23,42,.08);color:var(--tx);font-weight:600}
+.file i{font-size:30px;color:#16a34a}
+.map .r{display:grid;grid-template-columns:1fr 40px 1fr 40px;align-items:center;padding:12px 20px;border-bottom:1px solid #f0f2f6;font-size:16px}
+.map .r .to{border:1px solid #bbf7d0;background:#f0fdf4;border-radius:9px;padding:8px 12px;font-weight:600}
+.bar{height:14px;border-radius:99px;background:#eef1f5;overflow:hidden}.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--b2),var(--b));border-radius:99px}
+/* Cursor */
+#cur{position:absolute;z-index:100;width:34px;height:34px;pointer-events:none}
+#cur svg{filter:drop-shadow(0 4px 8px rgba(0,0,0,.3))}
+#rip{position:absolute;z-index:99;width:60px;height:60px;margin:-30px 0 0 -30px;border-radius:50%;border:3px solid var(--b);opacity:0}
+</style>
+</head>
+<body>
+
+<!-- ================= APP SHELL ================= -->
+<div id="app" data-in="4.6" data-out="66.2" data-d=".6" data-fx="none" class="abs" style="inset:0">
+  <div class="side">
+    <div class="brand"><i class="bi bi-person-heart"></i><div><b>Clínica Bien Vita</b><small>PANEL</small></div></div>
+    <div class="nav">
+      <div class="pill" id="pill"></div>
+      <div class="sec">PRINCIPAL</div>
+      <a><i class="bi bi-grid-1x2"></i>Dashboard</a>
+      <a><i class="bi bi-calendar-week"></i>Agenda</a>
+      <a><i class="bi bi-people"></i>Pacientes</a>
+      <a><i class="bi bi-folder2-open"></i>Expediente</a>
+      <div class="sec">CAJA Y COBROS</div>
+      <a><i class="bi bi-receipt"></i>Cobros</a>
+      <a><i class="bi bi-cash-stack"></i>Corte de caja</a>
+      <div class="sec">ADMINISTRACIÓN</div>
+      <a><i class="bi bi-person-vcard"></i>Tratantes</a>
+      <a><i class="bi bi-person-badge"></i>Personal</a>
+    </div>
+    <div class="help"><b><i class="bi bi-headset" style="color:var(--b)"></i> ¿Necesitas ayuda?</b>Soporte en español por WhatsApp</div>
+  </div>
+  <div class="top">
+    <h1 id="ttop" data-txt="16|Citas de hoy;28|Psiquiatría;44|Corte de caja;56|Importar pacientes">Agenda</h1>
+    <div class="srch"><i class="bi bi-search"></i>Buscar pacientes…</div>
+    <i class="bi bi-bell" style="font-size:20px;color:var(--tx2)"></i>
+    <div class="usr"><span class="av" id="avu" data-txt="28|AS;44|MR;56|AD">MR</span><div><b id="un" data-txt="28|Dr. Andrés Salgado;44|Mariana Ruiz;56|Administración">Mariana Ruiz</b><small id="ur" data-txt="28|Psiquiatría;44|Recepción;56|Administrador">Recepción</small></div></div>
+  </div>
+  <div class="demo-tag"><i class="bi bi-info-circle"></i> Datos de ejemplo</div>
+
+  <div class="main">
+    <!-- ===== 1. AGENDA (5-16) ===== -->
+    <div class="scene" data-in="5" data-out="15.6" data-fx="none" data-d=".4">
+      <div class="ttl"><span class="ic"><i class="bi bi-calendar-week"></i></span>Agenda · lunes 23 de noviembre</div>
+      <div class="sub">Recepción ve y agenda a todos los tratantes en una sola pantalla.</div>
+      <div class="card cal" style="padding:0;overflow:hidden">
+        <div class="hd" style="border-left:0"></div>
+        <div class="hd"><span class="av" style="background:#7c3aed">LM</span><div>Psic. Laura Méndez<small>Psicología</small></div></div>
+        <div class="hd"><span class="av" style="background:#0d9488">DR</span><div>Psic. Diego Ruiz<small>Psicología</small></div></div>
+        <div class="hd"><span class="av" style="background:#2563eb">AS</span><div>Dr. Andrés Salgado<small>Psiquiatría</small></div></div>
+        <div class="hrs"><div>9:00</div><div>10:00</div><div>11:00</div><div>12:00</div><div>13:00</div></div>
+        <div class="col">
+          <div class="ap" style="--c:#7c3aed;top:8px;height:96px" data-in="6.0" data-fx="pop"><b>Mariana López</b><small>Sesión individual · 50 min</small><span class="badge b-green">Confirmada</span></div>
+          <div class="ap" style="--c:#7c3aed;top:244px;height:96px" data-in="6.4" data-fx="pop"><b>Jorge Castillo</b><small>Terapia de pareja · 60 min</small><span class="badge b-blue">Programada</span></div>
+          <div class="ap" style="--c:#7c3aed;top:362px;height:96px" data-in="6.8" data-fx="pop"><b>Paula Herrera</b><small>Sesión en línea</small><span class="badge b-vio"><i class="bi bi-camera-video"></i> En línea</span></div>
+        </div>
+        <div class="col">
+          <div class="ap" style="--c:#0d9488;top:126px;height:96px" data-in="6.2" data-fx="pop"><b>Iván Torres</b><small>Primera entrevista · 60 min</small><span class="badge b-green">Confirmada</span></div>
+          <div class="ap" style="--c:#0d9488;top:362px;height:96px" data-in="7.0" data-fx="pop"><b>Elena Vargas</b><small>Sesión adolescente</small><span class="badge b-blue">Programada</span></div>
+        </div>
+        <div class="col">
+          <div class="ap" style="--c:#2563eb;top:126px;height:70px" data-in="6.6" data-fx="pop"><b>Sofía Ramírez</b><small>Seguimiento · 30 min</small><span class="badge b-green">Confirmada</span></div>
+          <div class="ap" style="--c:#2563eb;top:244px;height:96px" data-in="7.2" data-fx="pop"><b>Raúl Medina</b><small>Valoración inicial · 60 min</small><span class="badge b-blue">Programada</span></div>
+          <div id="apNew" class="ap" style="--c:#2563eb;top:362px;height:70px;" data-in="10.6" data-fx="pop"><b>Nuevo paciente: Ana Díaz</b><small>Seguimiento · 30 min</small><span class="badge b-blue" data-txt="12.6|WhatsApp enviado ✓" data-cls="12.6|b-green">Programada</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 2. COBRO EN RECEPCIÓN (16-28) ===== -->
+    <div class="scene" data-in="16" data-out="27.6" data-fx="none" data-d=".4">
+      <div class="ttl"><span class="ic"><i class="bi bi-door-open"></i></span>Citas de hoy · sala de espera</div>
+      <div class="sub">Recepción marca la llegada, el tratante atiende y recepción cobra al salir.</div>
+      <div class="card" style="position:absolute;top:110px;left:0;right:0;overflow:hidden">
+        <table class="tbl">
+          <tr><th>Hora</th><th>Paciente</th><th>Tratante</th><th>Estado</th><th>Pago</th><th></th></tr>
+          <tr><td>9:00</td><td><span class="avs">ML</span>Mariana López</td><td>Psic. Laura Méndez</td><td><span class="badge b-vio">Atendida</span></td><td><span class="badge b-green"><i class="bi bi-check2"></i> Pagado</span></td><td></td></tr>
+          <tr><td>10:00</td><td><span class="avs">IT</span>Iván Torres</td><td>Psic. Diego Ruiz</td><td><span class="badge b-amber">En consulta</span></td><td><span class="badge b-gray">Pendiente</span></td><td></td></tr>
+          <tr data-add="17:hl"><td>10:00</td><td><span class="avs">SR</span>Sofía Ramírez</td><td>Dr. Andrés Salgado</td>
+              <td><span class="badge b-green" data-txt="16.8|Llegó;18.2|En consulta;19.6|Atendida" data-cls="18.2|b-amber;19.6|b-vio">Confirmada</span></td>
+              <td><span class="badge b-gray" data-txt="25.4|✓ Pagado · tarjeta" data-cls="25.4|b-green">Pendiente</span></td>
+              <td><span class="btn p" id="bCobrar" data-add="20.9:press,21.1:x" style="height:38px"><i class="bi bi-cash-coin"></i> Cobrar</span></td></tr>
+          <tr><td>11:00</td><td><span class="avs">JC</span>Jorge Castillo</td><td>Psic. Laura Méndez</td><td><span class="badge b-blue">Programada</span></td><td><span class="badge b-gray">Pendiente</span></td><td></td></tr>
+          <tr><td>11:00</td><td><span class="avs">RM</span>Raúl Medina</td><td>Dr. Andrés Salgado</td><td><span class="badge b-blue">Programada</span></td><td><span class="badge b-gray">Pendiente</span></td><td></td></tr>
+        </table>
+      </div>
+      <div class="veil" data-in="21.2" data-out="25.6" data-fx="none" data-d=".3"></div>
+      <div class="modal" data-in="21.3" data-out="25.6" data-fx="pop" data-d=".35">
+        <div style="font-size:22px;font-weight:800;letter-spacing:-.02em">Registrar cobro</div>
+        <div style="color:var(--tx2);margin-top:4px">Sofía Ramírez · Dr. Andrés Salgado</div>
+        <div class="lbl">Servicio</div><div class="fld">Consulta de seguimiento (psiquiatría)<span style="margin-left:auto;font-weight:700">$900.00</span></div>
+        <div class="lbl">Método de pago</div>
+        <div class="seg"><div data-add="22.2:on,23.5:off" id="mEf"><i class="bi bi-cash"></i> Efectivo</div><div data-add="23.5:on" id="mTj"><i class="bi bi-credit-card"></i> Tarjeta</div><div><i class="bi bi-bank"></i> Transferencia</div></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:26px">
+          <div><div class="lbl" style="margin:0">Total</div><div style="font-size:34px;font-weight:800;letter-spacing:-.03em">$900.00</div></div>
+          <span id="mReg" class="btn p" data-add="24.9:press" style="height:52px;padding:0 26px;font-size:17px"><i class="bi bi-check-lg"></i> Registrar cobro</span>
+        </div>
+      </div>
+      <div class="toast" data-in="25.4" data-out="27.4" data-fx="left"><i class="bi bi-check-circle-fill"></i>Cobro registrado · Folio B-0142 · entra al corte de Mariana</div>
+    </div>
+
+    <!-- ===== 3. PSIQUIATRÍA (28-44) ===== -->
+    <div class="scene" data-in="28" data-out="43.6" data-fx="none" data-d=".4">
+      <div class="ttl"><span class="ic"><i class="bi bi-person-heart"></i></span>Sofía Ramírez · 34 años <span class="badge b-blue" style="font-size:14px">F32.1 · Episodio depresivo moderado</span></div>
+      <div class="sub">Nota de seguimiento: examen mental, riesgo suicida, escalas y medicación.</div>
+      <div class="grid2">
+        <div class="card"><div class="ch">Examen mental <span class="btn" data-add="30.0:press" style="height:34px;font-size:13px" id="bNormal"><i class="bi bi-check2-all"></i> Todo sin alteraciones</span></div>
+          <div class="cb em">
+            <div>Apariencia<span data-txt="30.3|Adecuada" data-add="30.3:ok">—</span></div><div>Actitud<span data-txt="30.4|Cooperadora" data-add="30.4:ok">—</span></div>
+            <div>Conciencia<span data-txt="30.5|Alerta" data-add="30.5:ok">—</span></div><div>Orientación<span data-txt="30.6|Orientada en 3 esferas" data-add="30.6:ok">—</span></div>
+            <div>Afecto<span data-txt="30.7|Eutímico;31.6|Deprimido">—</span></div><div>Pensamiento<span data-txt="30.8|Coherente y congruente" data-add="30.8:ok">—</span></div>
+            <div>Sensopercepción<span data-txt="30.9|Sin alteraciones" data-add="30.9:ok">—</span></div><div>Juicio / insight<span data-txt="31.0|Conservado · presente" data-add="31.0:ok">—</span></div>
+          </div></div>
+        <div class="card"><div class="ch">Riesgo suicida · tamizaje C-SSRS <span class="badge b-gray" data-txt="34.4|Riesgo bajo" data-cls="34.4|b-blue" style="font-size:14px">Sin evaluar</span></div>
+          <div class="cb">
+            <div class="q">1. ¿Ha deseado estar muerta o dormir y no despertar?<span class="yn"><i id="cs1" data-add="32.2:si">Sí</i><i>No</i></span></div>
+            <div class="q">2. ¿Ha tenido pensamientos de quitarse la vida?<span class="yn"><i>Sí</i><i id="cs2" data-add="32.7:no">No</i></span></div>
+            <div class="q" style="opacity:.5">3. ¿Ha pensado en cómo lo haría?<span class="yn"><i>Sí</i><i id="cs3" data-add="33.1:no">No</i></span></div>
+            <div class="q" style="opacity:.5">4–5. ¿Intención o plan?<span class="yn"><i>Sí</i><i id="cs4" data-add="33.5:no">No</i></span></div>
+            <div class="q">6. ¿Alguna conducta en los últimos 3 meses?<span class="yn"><i>Sí</i><i id="cs6" data-add="33.9:no">No</i></span></div>
+          </div></div>
+        <div class="card"><div class="ch">PHQ-9 · calculadora <span><b class="big" style="font-size:30px" data-count="12" data-at="35" data-dur="1.6">0</b><span style="color:var(--tx3)"> / 27</span> <span class="badge b-amber" data-in="36.7" data-fx="pop">Moderada</span></span></div>
+          <div class="cb"><div class="dots" id="dots">
+            <i data-add="35.0:f">2</i><i data-add="35.2:f">2</i><i data-add="35.4:f">1</i><i data-add="35.6:f">2</i><i data-add="35.8:f">1</i><i data-add="36.0:f">2</i><i data-add="36.2:f">1</i><i data-add="36.4:f">1</i><i data-add="36.6:f">0</i></div>
+            <div style="font-size:13px;color:var(--tx2);margin-top:4px">Evolución PHQ-9</div>
+            <svg width="100%" height="110" viewBox="0 0 700 110" preserveAspectRatio="none" style="margin-top:6px">
+              <polyline points="20,15 240,40 470,58 680,70" fill="none" stroke="#7c3aed" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" data-draw="40.0,42.2" stroke-dasharray="800" stroke-dashoffset="800"/>
+              <g fill="#7c3aed" font-size="15" font-family="Inter" font-weight="700">
+                <text x="20" y="100" data-in="40.0">18</text><text x="232" y="100" data-in="40.7">15</text><text x="462" y="100" data-in="41.4">14</text><text x="664" y="100" data-in="42.0">12</text></g>
+            </svg></div></div>
+        <div class="card"><div class="ch">Medicación psiquiátrica <span id="bAjus" class="btn" data-add="37.6:press" style="height:34px;font-size:13px"><i class="bi bi-sliders"></i> Ajustar dosis</span></div>
+          <div class="cb">
+            <div class="med"><div><b>Sertralina <span data-txt="38.4|100 mg" style="color:var(--b)">50 mg</span></b><small>Cada 24 h (mañana) · ISRS · Depresión</small></div><span class="badge b-green">Activo</span></div>
+            <div class="med" data-in="38.8" style="color:var(--tx2)"><div><b style="font-size:15px;font-weight:600">Historial: Sertralina 50 mg</b><small>01/10 → 23/11 · Ajuste: respuesta parcial</small></div><i class="bi bi-clock-history"></i></div>
+            <div class="med" style="border:0"><div><b>Clonazepam 0.5 mg</b><small>Por razón necesaria · Benzodiacepina</small></div><span class="badge b-amber">Controlado</span></div>
+          </div></div>
+      </div>
+    </div>
+
+    <!-- ===== 4. CORTE DE CAJA (44-56) ===== -->
+    <div class="scene" data-in="44" data-out="55.6" data-fx="none" data-d=".4">
+      <div class="ttl"><span class="ic"><i class="bi bi-cash-stack"></i></span>Corte de caja · Mariana Ruiz (Recepción)</div>
+      <div class="sub">Al terminar su turno, la recepcionista cuenta el efectivo y cierra su corte.</div>
+      <div class="cg">
+        <div class="card" style="padding:8px 24px">
+          <div class="ch" style="padding-left:0">Cobros del turno <span class="badge b-blue" data-txt="44.6|1 cobro;45.0|2 cobros;45.4|3 cobros;45.8|4 cobros;46.2|5 cobros;46.6|6 cobros">0 cobros</span></div>
+          <div class="row" data-in="44.6" data-fx="left"><span>A-0137 · Mariana López</span><span>Efectivo</span><b>$900.00</b></div>
+          <div class="row" data-in="45.0" data-fx="left"><span>A-0138 · Paula Herrera</span><span>Transferencia</span><b>$900.00</b></div>
+          <div class="row" data-in="45.4" data-fx="left"><span>A-0139 · Iván Torres</span><span>Efectivo</span><b>$1,000.00</b></div>
+          <div class="row" data-in="45.8" data-fx="left"><span>B-0142 · Sofía Ramírez</span><span>Tarjeta</span><b>$900.00</b></div>
+          <div class="row" data-in="46.2" data-fx="left"><span>B-0143 · Raúl Medina</span><span>Tarjeta</span><b>$1,800.00</b></div>
+          <div class="row" data-in="46.6" data-fx="left"><span>A-0140 · Jorge Castillo</span><span>Efectivo</span><b>$800.00</b></div>
+          <div class="row" data-in="47.2" style="border:0;font-size:19px"><span style="font-weight:700">Total del turno</span><b style="font-size:24px">$6,300.00</b></div>
+        </div>
+        <div>
+          <div class="met">
+            <div class="card"><div class="ic" style="background:#e7f8ee;color:#16a34a"><i class="bi bi-cash"></i></div><small>Efectivo</small><b>$<span data-count="2700" data-at="46.8" data-dur="1.2" data-fmt="n">0</span></b></div>
+            <div class="card"><div class="ic" style="background:#e8efff;color:#2563eb"><i class="bi bi-credit-card"></i></div><small>Tarjeta</small><b>$<span data-count="2700" data-at="47.0" data-dur="1.2" data-fmt="n">0</span></b></div>
+            <div class="card"><div class="ic" style="background:#f1eaff;color:#7c3aed"><i class="bi bi-bank"></i></div><small>Transferencia</small><b>$<span data-count="900" data-at="47.2" data-dur="1.2" data-fmt="n">0</span></b></div>
+          </div>
+          <div class="card eq" style="padding:10px 24px 18px">
+            <div class="row"><span>Fondo inicial</span><b>$500.00</b></div>
+            <div class="row"><span>+ Efectivo cobrado</span><b>$2,700.00</b></div>
+            <div class="row"><span>− Retiros y egresos</span><b>$0.00</b></div>
+            <div class="row"><span style="font-weight:700">= Efectivo esperado</span><b style="font-size:22px">$3,200.00</b></div>
+            <div class="lbl">Efectivo contado</div>
+            <div id="inCont" class="fld" style="font-size:24px;font-weight:700;height:58px;border-color:var(--b);box-shadow:0 0 0 4px rgba(37,99,235,.12)">$<span data-type="3,200.00" data-at="49.4" data-cps="7"></span><span id="caret" style="width:2px;height:28px;background:var(--b);margin-left:2px"></span></div>
+            <div class="row" style="border:0;margin-top:8px"><span style="font-weight:700">Diferencia</span><span data-in="51.0" data-fx="pop"><span class="badge b-green" style="font-size:17px;padding:6px 14px"><i class="bi bi-check-circle-fill"></i> $0.00 · cuadra</span></span></div>
+            <div style="text-align:right;margin-top:10px"><span id="bCerrar" class="btn p" data-add="52.6:press" style="height:52px;padding:0 26px;font-size:17px"><i class="bi bi-lock"></i> Cerrar mi corte</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="stamp" data-in="53.0" data-fx="pop" data-d=".3">CORTE CERRADO<small>Lunes 23/11 · 14:05 · comprobante listo para imprimir</small></div>
+    </div>
+
+    <!-- ===== 5. MIGRACIÓN (56-66) ===== -->
+    <div class="scene" data-in="56" data-out="65.8" data-fx="none" data-d=".4">
+      <div class="ttl"><span class="ic"><i class="bi bi-cloud-upload"></i></span>Importar pacientes desde Nimbo</div>
+      <div class="sub">Exporta tus pacientes de Nimbo en Excel/CSV y súbelos: las columnas se reconocen solas y no se duplican.</div>
+      <div style="position:absolute;top:110px;left:0;width:560px">
+        <div class="drop" id="drop" style="position:relative"><span data-in="56.4" data-out="57.4" data-fx="none" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:18px"><i class="bi bi-cloud-arrow-up" style="font-size:34px"></i> Arrastra tu archivo CSV</span>
+          <div class="file" data-in="57.4" data-fx="pop"><i class="bi bi-filetype-csv"></i><div>pacientes_nimbo.csv<div style="font-size:13px;color:var(--tx2);font-weight:500">7 columnas detectadas</div></div></div></div>
+        <div class="card" style="margin-top:22px;padding:22px" data-in="62.6">
+          <div style="font-weight:700;font-size:17px">Importando…</div>
+          <div class="bar" style="margin:14px 0"><i data-bar="62.8,64.4"></i></div>
+          <div data-in="64.4" data-fx="pop" style="display:flex;align-items:center;gap:12px;font-size:19px;font-weight:700"><i class="bi bi-check-circle-fill" style="color:var(--ok);font-size:28px"></i> Pacientes importados · sin duplicados</div>
+        </div>
+      </div>
+      <div class="card map" style="position:absolute;top:110px;left:600px;right:0" data-in="58" data-fx="up">
+        <div class="ch">Columnas del archivo → campos de la ficha <span id="bImp" class="btn p" data-add="62.2:press" style="height:40px"><i class="bi bi-cloud-upload"></i> Importar</span></div>
+        <div class="r" data-in="58.4" data-fx="left"><span>Nombre</span><i class="bi bi-arrow-right" style="color:var(--tx3)"></i><span class="to">Nombre(s)</span><i class="bi bi-check-circle-fill" style="color:var(--ok);text-align:right"></i></div>
+        <div class="r" data-in="58.8" data-fx="left"><span>Apellido paterno</span><i class="bi bi-arrow-right" style="color:var(--tx3)"></i><span class="to">Apellido paterno</span><i class="bi bi-check-circle-fill" style="color:var(--ok);text-align:right"></i></div>
+        <div class="r" data-in="59.2" data-fx="left"><span>Apellido materno</span><i class="bi bi-arrow-right" style="color:var(--tx3)"></i><span class="to">Apellido materno</span><i class="bi bi-check-circle-fill" style="color:var(--ok);text-align:right"></i></div>
+        <div class="r" data-in="59.6" data-fx="left"><span>Fecha nac.</span><i class="bi bi-arrow-right" style="color:var(--tx3)"></i><span class="to">Fecha de nacimiento</span><i class="bi bi-check-circle-fill" style="color:var(--ok);text-align:right"></i></div>
+        <div class="r" data-in="60.0" data-fx="left"><span>Celular</span><i class="bi bi-arrow-right" style="color:var(--tx3)"></i><span class="to">Teléfono</span><i class="bi bi-check-circle-fill" style="color:var(--ok);text-align:right"></i></div>
+        <div class="r" data-in="60.4" data-fx="left"><span>Correo</span><i class="bi bi-arrow-right" style="color:var(--tx3)"></i><span class="to">Correo</span><i class="bi bi-check-circle-fill" style="color:var(--ok);text-align:right"></i></div>
+        <div class="r" data-in="60.8" data-fx="left" style="border:0"><span>Alergias</span><i class="bi bi-arrow-right" style="color:var(--tx3)"></i><span class="to">Alergias</span><i class="bi bi-check-circle-fill" style="color:var(--ok);text-align:right"></i></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= CAPTIONS ================= -->
+<div class="caption" data-in="5.4" data-out="15.4"><span class="n">1</span>Agenda para varios tratantes <span class="l">· psicología y psiquiatría</span></div>
+<div class="caption" data-in="16.4" data-out="27.4"><span class="n">2</span>Recepción registra el cobro <span class="l">· efectivo, tarjeta o transferencia</span></div>
+<div class="caption" data-in="28.4" data-out="43.4"><span class="n">3</span>Expediente de psiquiatría <span class="l">· riesgo, escalas y psicofármacos</span></div>
+<div class="caption" data-in="44.4" data-out="55.4"><span class="n">4</span>Corte de caja diario <span class="l">· cuadra solo y queda cerrado</span></div>
+<div class="caption" data-in="56.4" data-out="65.6"><span class="n">5</span>Migración desde Nimbo <span class="l">· sin capturar a mano</span></div>
+
+<!-- ================= PORTADA ================= -->
+<div class="full" data-in="0" data-out="4.6" data-fx="none" data-d=".6">
+  <div class="logo" data-in=".2"><i class="bi bi-heart-pulse-fill"></i>MediAgenda</div>
+  <div class="h-big" data-in=".6">Clínica Bien Vita</div>
+  <div class="h-sub" data-in="1.1">De la cita al corte de caja, en un solo sistema</div>
+  <div class="chips">
+    <div class="chip" data-in="1.7"><i class="bi bi-calendar-week"></i>Agenda por tratante</div>
+    <div class="chip" data-in="1.95"><i class="bi bi-person-heart"></i>Psicología y psiquiatría</div>
+    <div class="chip" data-in="2.2"><i class="bi bi-cash-stack"></i>Cobro y corte diario</div>
+  </div>
+</div>
+
+<!-- ================= CIERRE ================= -->
+<div class="full" data-in="66" data-fx="none" data-d=".6">
+  <div class="logo" data-in="66.4"><i class="bi bi-heart-pulse-fill"></i>MediAgenda</div>
+  <div class="h-big" data-in="66.8" style="font-size:80px">Todo lo que pidió Bien Vita,<br>funcionando hoy.</div>
+  <div class="chips" style="flex-wrap:wrap;justify-content:center;max-width:1400px">
+    <div class="chip" data-in="67.6"><i class="bi bi-check-lg"></i>Expediente clínico</div>
+    <div class="chip" data-in="67.85"><i class="bi bi-check-lg"></i>Agenda de psicología y psiquiatría</div>
+    <div class="chip" data-in="68.1"><i class="bi bi-check-lg"></i>Cobros en recepción</div>
+    <div class="chip" data-in="68.35"><i class="bi bi-check-lg"></i>Corte de caja diario</div>
+    <div class="chip" data-in="68.6"><i class="bi bi-check-lg"></i>Migración desde Nimbo</div>
+  </div>
+  <div class="h-sub" data-in="69.4" style="margin-top:54px;color:#fff;font-weight:700">Agendemos una demo en vivo con sus datos</div>
+  <div class="h-sub" data-in="69.8" style="margin-top:10px;font-size:26px">mediagenda.com.mx</div>
+</div>
+
+<div id="rip"></div>
+<div id="cur"><svg width="34" height="34" viewBox="0 0 24 24"><path d="M4 2l15 9-6.5 1.5L9 19z" fill="#0f172a" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg></div>
+
+<script>
+const DUR = 74;
+const ease = x => { x = Math.min(1, Math.max(0, x)); return 1 - Math.pow(1 - x, 3); };
+const easeIO = x => { x = Math.min(1, Math.max(0, x)); return x < .5 ? 4*x*x*x : 1 - Math.pow(-2*x + 2, 3) / 2; };
+const fmtN = n => Math.round(n).toLocaleString('en-US');
+
+// Pastilla del menú: [segundo, índice del ítem]
+const navA = [...document.querySelectorAll('.nav a')];
+const pillStops = [[5, 1], [16, 1], [28, 3], [44, 5], [56, 2]];
+// Cursor: [segundo, x, y, clic]
+const CUR = [
+  [4.6, 1500, 900], [9.4, 1500, 900], ['#apNew', 10.3, 1], [11.5, 1500, 860],
+  [19.8, 1700, 560], ['#bCobrar', 20.9, 1], ['#mEf', 22.0], ['#mTj', 23.5, 1], ['#mReg', 24.9, 1], [26.4, 1300, 860],
+  [29.4, 1050, 420], ['#bNormal', 30.0, 1], [31.6, 1300, 560], ['#cs1', 32.2, 1], ['#cs2', 32.7, 1], ['#cs3', 33.1, 1], ['#cs4', 33.5, 1], ['#cs6', 33.9, 1],
+  ['#dots', 35.0], ['#dots', 36.6], ['#bAjus', 37.6, 1], [39.4, 1500, 900],
+  [48.8, 1500, 860], ['#inCont', 49.3, 1], ['#bCerrar', 52.6, 1], [54.4, 1500, 980],
+  ['#drop', 57.0], [61.6, 1700, 330], ['#bImp', 62.2, 1], [64.6, 1400, 900], [66.0, 1400, 900]
+].map(c => typeof c[0] === 'string' ? [c[1], c[0], null, c[2]] : c);
+const pos = (a, b) => { if (typeof a !== 'string') return [a, b]; const r = document.querySelector(a).getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; };
+
+function render(t) {
+  document.querySelectorAll('[data-in]').forEach(el => {
+    const a = +el.dataset.in, b = el.dataset.out ? +el.dataset.out : 1e9, d = +(el.dataset.d || .5);
+    const p = ease((t - a) / d), q = ease((t - b) / d), v = p * (1 - q), fx = el.dataset.fx || 'up';
+    el.style.opacity = v;
+    el.style.visibility = v <= .001 ? 'hidden' : 'visible';
+    if (fx === 'pop') el.style.transform = `scale(${.86 + .14 * p})`;
+    else if (fx === 'left') el.style.transform = `translateX(${(1 - p) * -28}px)`;
+    else if (fx === 'up') el.style.transform = `translateY(${(1 - p) * 22 - q * 10}px)`;
+  });
+  document.querySelectorAll('[data-add]').forEach(el => {
+    const st = {};
+    el.dataset.add.split(',').forEach(s => { const [tt, c] = s.split(':'); if (!(c in st)) st[c] = false; if (t >= +tt) st[c] = c !== 'off'; if (c === 'off' && t >= +tt) st.on = false; });
+    for (const c in st) if (c !== 'off') el.classList.toggle(c, st[c]);
+  });
+  document.querySelectorAll('[data-cls]').forEach(el => {
+    if (el.dataset.c0 === undefined) el.dataset.c0 = el.className;
+    let cur = el.dataset.c0;
+    el.dataset.cls.split(';').forEach(s => { const [tt, c] = s.split('|'); if (t >= +tt) cur = el.dataset.c0.replace(/\bb-[a-z]+\b/, c); });
+    if (el.className !== cur) el.className = cur;
+  });
+  document.querySelectorAll('[data-txt]').forEach(el => {
+    if (el.dataset.t0 === undefined) el.dataset.t0 = el.textContent;
+    let cur = el.dataset.t0;
+    el.dataset.txt.split(';').forEach(s => { const i = s.indexOf('|'); if (t >= +s.slice(0, i)) cur = s.slice(i + 1); });
+    if (el.textContent !== cur) el.textContent = cur;
+  });
+  document.querySelectorAll('[data-count]').forEach(el => {
+    const p = ease((t - +el.dataset.at) / +(el.dataset.dur || 1));
+    el.textContent = fmtN(+el.dataset.count * p);
+  });
+  document.querySelectorAll('[data-type]').forEach(el => {
+    const n = Math.max(0, Math.floor((t - +el.dataset.at) * +(el.dataset.cps || 10)));
+    el.textContent = el.dataset.type.slice(0, n);
+  });
+  document.querySelectorAll('[data-bar]').forEach(el => { const [a, b] = el.dataset.bar.split(',').map(Number); el.style.width = (easeIO((t - a) / (b - a)) * 100) + '%'; });
+  document.querySelectorAll('[data-draw]').forEach(el => { const [a, b] = el.dataset.draw.split(',').map(Number); el.setAttribute('stroke-dashoffset', 800 * (1 - easeIO((t - a) / (b - a)))); });
+  const caret = document.getElementById('caret'); caret.style.opacity = (Math.floor(t * 2) % 2) ? 0 : 1;
+
+  // Pastilla del menú, deslizándose entre ítems
+  const pill = document.getElementById('pill'), nav = pill.parentElement;
+  const topOf = i => navA[i].offsetTop;
+  let y = topOf(pillStops[0][1]);
+  for (let i = 1; i < pillStops.length; i++) {
+    const [ts, idx] = pillStops[i], prev = topOf(pillStops[i - 1][1]);
+    if (t >= ts) y = prev + (topOf(idx) - prev) * easeIO((t - ts) / .5);
+  }
+  pill.style.top = y + 'px';
+  navA.forEach((a, i) => a.classList.toggle('on', Math.abs(topOf(i) - y) < 8));
+
+  // Cursor
+  const cur = document.getElementById('cur'), rip = document.getElementById('rip');
+  let [x, yy] = pos(CUR[0][1], CUR[0][2]),  clickAge = 99, cx = 0, cy = 0;
+  for (let i = 0; i < CUR.length; i++) {
+    const [ts, ax, ay, ck] = CUR[i]; const [px, py] = pos(ax, ay);
+    if (t >= ts) { x = px; yy = py; if (ck) { clickAge = t - ts; cx = px; cy = py; } }
+    else { const pc = CUR[i - 1] || CUR[0], ps = pc[0], [ppx, ppy] = pos(pc[1], pc[2]); const p = easeIO((t - ps) / Math.min(.9, ts - ps)); x = ppx + (px - ppx) * p; yy = ppy + (py - ppy) * p; break; }
+  }
+  const showCur = t > 5 && t < 65.8;
+  cur.style.opacity = showCur ? 1 : 0;
+  cur.style.left = x + 'px'; cur.style.top = yy + 'px';
+  cur.style.transform = clickAge < .18 ? 'scale(.85)' : 'scale(1)';
+  rip.style.left = cx + 'px'; rip.style.top = cy + 'px';
+  rip.style.opacity = showCur && clickAge < .5 ? (1 - clickAge / .5) * .8 : 0;
+  rip.style.transform = `scale(${.4 + clickAge * 2})`;
+}
+window.render = render; window.DUR = DUR;
+// Vista previa en navegador: reproducir en tiempo real (?play)
+if (location.search.includes('play')) { const t0 = performance.now(); (function f() { render(((performance.now() - t0) / 1000) % DUR); requestAnimationFrame(f); })(); }
+else render(+(new URLSearchParams(location.search).get('t') || 0));
+</script>
+</body>
+</html>
