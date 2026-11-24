@@ -329,3 +329,8 @@ body.ui-clean .sidebar .nav-mas .bi:first-child, body.ui-clean .sidebar .nav-mas
 body.ui-clean .sidebar .nav-mas:focus-visible { text-decoration: underline; text-underline-offset: 3px; }
 body.ui-clean .sidebar .nav-mas .nav-mas-ic { color: var(--c-txt-3) !important; transition: transform .25s ease !important; }
 body.ui-clean .sidebar .nav-mas:hover { transform: none; }
+/* Durante la animación de abrir/cerrar, Bootstrap pone la altura del grupo casi
+   en 0; como .nav usa flex-wrap: wrap, el 2.º elemento se pasaba a una columna
+   a la derecha ("la cajita de Inventario"). Una sola columna y sin desbordes. */
+.sidebar #navMas, .sidebar #navMas.collapsing { flex-wrap: nowrap !important; overflow: hidden !important; }
+.sidebar #navMas > .nav-item { flex: none; width: 100%; }
