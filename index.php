@@ -388,6 +388,7 @@ track_pageview('publico');
     </div>
 </section>
 
+<?php include __DIR__ . '/includes/landing/normativa.php'; ?>
 <?php include __DIR__ . '/includes/landing/destacados.php'; ?>
 <?php include __DIR__ . '/includes/landing/todo.php'; ?>
 
