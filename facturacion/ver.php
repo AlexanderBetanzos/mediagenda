@@ -30,6 +30,34 @@ $parcial = $f['estado'] === 'pendiente' && $abonado > 0;
     default                      => ['Pendiente', '#d97706'],
 };
 
+/* Ticket para impresora térmica (assets/js/dispositivos.js arma el ESC/POS). */
+$tk = [
+    'encabezado' => marca_nombre(),
+    'datos'      => array_values(array_filter([
+        cfg('razon_social') && cfg('razon_social') !== marca_nombre() ? cfg('razon_social') : '',
+        cfg('rfc') ? 'RFC ' . cfg('rfc') : '', (string) cfg('direccion'), cfg('telefono') ? 'Tel. ' . cfg('telefono') : '',
+    ])),
+    'titulo'     => t('Comprobante de pago'),
+    'subtitulo'  => [$f['folio'] . ' · ' . fmt_fecha($f['fecha']) . ' ' . date('H:i'), t('Cliente') . ': ' . trim($f['pac_nombre'] . ' ' . $f['pac_ape'])],
+    'lineas'     => [],
+    'despues'    => [],
+    'pie'        => ['', t('¡Gracias por su preferencia!')],
+    'abrirCajon' => $f['estado'] === 'pagada' && stripos((string) $f['metodo_pago'], 'efectivo') !== false,
+];
+foreach ($items as $it) {
+    $tk['lineas'][] = [((float) $it['cantidad'] != 1 ? rtrim(rtrim(number_format((float) $it['cantidad'], 2, '.', ''), '0'), '.') . ' x ' : '') . $it['descripcion'],
+                       fmt_money($it['importe'])];
+}
+if ((float) ($f['descuento'] ?? 0) > 0) {
+    $tk['lineas'][] = '---';
+    $tk['lineas'][] = [t('Subtotal'), fmt_money($f['subtotal'])];
+    $tk['lineas'][] = [t('Descuento'), '-' . fmt_money($f['descuento'])];
+}
+$tk['total'] = [t('TOTAL'), fmt_money($total)];
+if ($f['estado'] === 'pagada' && $f['metodo_pago']) $tk['despues'][] = [t('Pagado con'), $f['metodo_pago']];
+if ($abonado > 0 && $f['estado'] !== 'pagada') { $tk['despues'][] = [t('Abonado'), fmt_money($abonado)]; $tk['despues'][] = [t('Saldo'), fmt_money($saldo)]; }
+if ($f['estado'] === 'cancelada') $tk['despues'][] = '*** ' . t('CANCELADO') . ' ***';
+
 $titulo = t('Cobro') . ' ' . $f['folio'];
 $activo = 'facturacion';
 include __DIR__ . '/../includes/header.php';
@@ -42,9 +70,25 @@ echo comprobante_estilos();
     </ol></nav>
     <div class="d-flex gap-2">
         <a href="<?= BASE_URL ?>/pacientes/ver?id=<?= (int) $f['paciente_id'] ?>" class="btn btn-outline-secondary"><i class="bi bi-person"></i> <?= et('Ficha') ?></a>
+        <button type="button" class="btn btn-outline-primary" id="btnTicket" data-ticket="<?= e(json_encode($tk, JSON_UNESCAPED_UNICODE)) ?>"><i class="bi bi-receipt"></i> <?= et('Ticket') ?></button>
         <button onclick="window.print()" class="btn btn-primary"><i class="bi bi-printer"></i> <?= et('Imprimir') ?></button>
     </div>
 </div>
+<?php if (!empty($_GET['ticket'])): ?>
+<script>
+/* Recién cobrado en Punto de venta: si esta PC tiene impresora y la opción
+   "imprimir al cobrar", sale el ticket solo (y el cajón, si es efectivo). */
+document.addEventListener('DOMContentLoaded', function () {
+    var D = window.MediosDisp, b = document.getElementById('btnTicket');
+    if (!D || !D.predeterminada() || !b) return;
+    var o = D.opciones(), doc = JSON.parse(b.getAttribute('data-ticket'));
+    doc.abrirCajon = doc.abrirCajon && o.cajonEfectivo;
+    if (o.imprimirAlCobrar) D.imprimir(doc).catch(function (e) { D.aviso(<?= json_encode(t('No se pudo imprimir'), JSON_UNESCAPED_UNICODE) ?>, e.message); });
+    else if (doc.abrirCajon) D.abrirCajon().catch(function () {});
+    history.replaceState(null, '', location.pathname + '?id=<?= $id ?>');
+});
+</script>
+<?php endif; ?>
 
 <div class="row g-4 justify-content-center">
 <div class="col-xl-8">

@@ -101,6 +101,12 @@ function ayuda_textos_rutas(): array
         'El <b>código QR</b> impreso abre una página donde la farmacia comprueba que la receta existe en tu sistema.',
         '<b>Repetir</b> crea una receta nueva con los mismos medicamentos.',
     ]);
+    $T['ruta:dispositivos/index'] = $g('Impresoras y escáneres', 'Conecta la impresora de tickets y el lector de esta computadora.', [
+        '<b>Agregar impresora</b>: elige USB, Bluetooth o puerto serie y el navegador te muestra las que están conectadas.',
+        'Si tu impresora ya está instalada en Windows o Mac, agrégala como <b>Impresora instalada en la PC</b>.',
+        'Imprime un <b>ticket de prueba</b> para revisar los acentos y el QR; si salen raros, cambia la opción de Acentos.',
+        'Los lectores USB o Bluetooth tipo teclado no se agregan: conéctalos y escanea en cualquier pantalla.',
+    ], ['Se configura en cada computadora y navegador. Funciona en Google Chrome y Microsoft Edge.']);
     $T['ruta:recetas/medicamentos'] = $g('Medicamentos y favoritas', 'Tu catálogo para recetar más rápido.', [
         'Cada medicamento que recetas se guarda aquí solo, con la dosis que usaste.',
         'Marca con la <b>estrella</b> los que más usas: salen primero al recetar.',

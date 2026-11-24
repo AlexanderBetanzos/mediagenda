@@ -233,6 +233,9 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
                             $li('inventario', BASE_URL . '/inventario/index', 'bi-boxes', t('Inventario'))];
                     if (giro_modulo_al_frente('farmacia')) array_push($caja, ...$pos); else array_push($mas, ...$pos);
                 }
+                // Impresoras y escáneres de esta computadora (recepción también los usa).
+                $itDisp = $li('dispositivos', BASE_URL . '/dispositivos/index', 'bi-printer', t('Impresoras y escáneres'));
+                if (modulo_activo('facturacion')) $caja[] = $itDisp; else $mas[] = $itDisp;
                 // Administración (solo admin)
                 if ($esAdm) {
                     $admin[] = $li('medicos', BASE_URL . '/medicos/index', 'bi-person-vcard', t('Médicos'));

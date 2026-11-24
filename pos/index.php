@@ -78,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     registrar_cobro($fid);   // entra en el cierre de caja de quien vendió
     auditar('crear', 'venta_pos', $fid, $folio . ' · ' . fmt_money($subtotal));
     flash('Venta cobrada · ' . $folio . ' · ' . fmt_money($subtotal));
-    redirect('/facturacion/ver?id=' . $fid);
+    redirect('/facturacion/ver?id=' . $fid . '&ticket=1');   // ticket y cajón, si esta PC los tiene
 }
 
 /* ── Datos para la vista ────────────────────────────────────────────── */
@@ -86,7 +86,7 @@ $verInv = modulo_activo('farmacia');
 $productos = [];
 if ($verInv) {
     $st = $pdo->prepare(
-        "SELECT p.id, p.nombre, p.precio, p.categoria,
+        "SELECT p.id, p.nombre, p.precio, p.categoria, p.sku,
                 COALESCE((SELECT SUM(CASE WHEN m.tipo='salida' THEN -m.cantidad ELSE m.cantidad END)
                           FROM inventario_movimientos m WHERE m.producto_id = p.id), 0) AS stock
          FROM productos p WHERE p.consultorio_id = ? AND p.activo = 1 ORDER BY p.nombre"
@@ -116,13 +116,36 @@ include __DIR__ . '/../includes/header.php';
                 <input type="search" id="buscar" class="form-control form-control-sm" style="max-width:220px" placeholder="<?= e(t('Buscar…')) ?>">
             </div>
             <div class="card-body">
+                <?php if ($productos): ?>
+                <div class="pos-scan mb-3">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-upc-scan"></i></span>
+                        <input type="text" id="scan" class="form-control" data-escaner autocomplete="off" autofocus
+                               placeholder="<?= e(t('Escanea el código de barras o escríbelo y pulsa Enter')) ?>">
+                        <button type="button" class="btn btn-outline-secondary" data-disp-camara title="<?= e(t('Escanear con la cámara')) ?>"><i class="bi bi-camera"></i></button>
+                    </div>
+                    <div id="scanMsg" class="small mt-1"></div>
+                    <div id="linkBox" class="border rounded-3 p-2 mt-2" hidden>
+                        <div class="small mb-2"><i class="bi bi-upc-scan"></i> <?= et('El código') ?> <b id="linkCode"></b> <?= et('no está registrado. ¿De qué producto es?') ?></div>
+                        <div class="d-flex gap-2">
+                            <select id="linkProd" class="form-select form-select-sm">
+                                <option value=""><?= et('— Elige el producto —') ?></option>
+                                <?php foreach ($productos as $p): ?><option value="<?= (int) $p['id'] ?>"><?= e($p['nombre']) ?><?= $p['sku'] ? ' (' . e($p['sku']) . ')' : '' ?></option><?php endforeach; ?>
+                            </select>
+                            <button type="button" id="linkOk" class="btn btn-sm btn-primary text-nowrap"><?= et('Vincular y agregar') ?></button>
+                            <button type="button" id="linkNo" class="btn btn-sm btn-link text-muted"><?= et('Cancelar') ?></button>
+                        </div>
+                        <div class="form-text"><?= et('La próxima vez que escanees este código se reconocerá solo.') ?></div>
+                    </div>
+                </div>
+                <?php endif; ?>
                 <?php if (!$productos): ?>
                     <p class="text-muted mb-0"><?= $verInv ? et('No hay productos activos. Agrega productos en Inventario o usa un concepto libre.') : et('Inventario no disponible en tu plan. Usa un concepto libre.') ?></p>
                 <?php else: ?>
                 <div class="row g-2" id="catalogo">
                     <?php foreach ($productos as $p): ?>
                         <div class="col-6 col-md-4 prod" data-nombre="<?= e(mb_strtolower($p['nombre'])) ?>">
-                            <button type="button" class="btn btn-light w-100 h-100 text-start p-2 add-prod"
+                            <button type="button" class="btn btn-light w-100 h-100 text-start p-2 add-prod" data-sku="<?= e((string) $p['sku']) ?>"
                                     data-id="<?= (int) $p['id'] ?>" data-nombre="<?= e($p['nombre']) ?>" data-precio="<?= (float) $p['precio'] ?>">
                                 <div class="fw-semibold small text-truncate"><?= e($p['nombre']) ?></div>
                                 <div class="d-flex justify-content-between align-items-center mt-1">
@@ -235,6 +258,45 @@ include __DIR__ . '/../includes/header.php';
             n.style.display = n.dataset.nombre.indexOf(q) !== -1 ? '' : 'none';
         });
     };
+    /* Lector de código de barras: el campo de arriba recibe la lectura (o lo
+       que se teclee + Enter); si el foco está en otro lado, llega como evento. */
+    var porSku = {};
+    document.querySelectorAll('.add-prod').forEach(function (b) { if (b.dataset.sku) porSku[b.dataset.sku.trim().toLowerCase()] = b; });
+    var $scan = document.getElementById('scan'), $msg = document.getElementById('scanMsg'), $link = document.getElementById('linkBox'), pendiente = '';
+    function msg(t, ok) { if (!$msg) return; $msg.className = 'small mt-1 ' + (ok ? 'text-success' : 'text-danger'); $msg.textContent = t; clearTimeout(msg._t); msg._t = setTimeout(function () { $msg.textContent = ''; }, 2500); }
+    function porCodigo(cod) {
+        cod = String(cod || '').trim(); if (!cod) return;
+        var b = porSku[cod.toLowerCase()];
+        if (b) { add(b.dataset.id, b.dataset.nombre, b.dataset.precio); msg('+1 ' + b.dataset.nombre, true); if ($scan) $scan.focus(); return; }
+        if (!$link) return;
+        pendiente = cod; document.getElementById('linkCode').textContent = cod; $link.hidden = false;
+        document.getElementById('linkProd').focus();
+    }
+    if ($scan) $scan.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter') return;
+        e.preventDefault(); var c = $scan.value; $scan.value = ''; porCodigo(c);
+    });
+    document.addEventListener('medios:escaneo', function (e) { e.preventDefault(); porCodigo(e.detail.codigo); });
+    if ($link) {
+        document.getElementById('linkNo').onclick = function () { $link.hidden = true; pendiente = ''; $scan.focus(); };
+        document.getElementById('linkOk').onclick = function () {
+            var pid = document.getElementById('linkProd').value, cod = pendiente;
+            if (!pid || !cod) return;
+            var body = new URLSearchParams({ accion: 'vincular', codigo: cod, producto_id: pid, csrf: <?= json_encode(csrf_token()) ?> });
+            fetch(<?= json_encode(BASE_URL . '/dispositivos/codigo') ?>, { method: 'POST', body: body, credentials: 'same-origin' })
+                .then(function (r) { return r.json(); })
+                .then(function (r) {
+                    if (!r.ok) { msg(r.error || 'No se pudo vincular.'); return; }
+                    var b = document.querySelector('.add-prod[data-id="' + pid + '"]');
+                    if (b) { b.dataset.sku = cod; porSku[cod.toLowerCase()] = b; }
+                    $link.hidden = true; pendiente = '';
+                    porCodigo(cod);
+                }).catch(function () { msg('No se pudo vincular.'); });
+        };
+    }
+    var inicial = new URLSearchParams(location.search).get('codigo');
+    if (inicial) porCodigo(inicial);
+
     // Serializa el carrito en inputs ocultos al enviar.
     $form.addEventListener('submit', function () {
         cart.forEach(function (x, i) {

@@ -51,6 +51,11 @@
          consultorio: "13/07/2026" ordenado como texto quedaría mal. */ ?>
 <script>window.APP_FORMATO_FECHA = <?= json_encode(cfg('formato_fecha', 'd/m/Y')) ?>;</script>
 <script src="<?= asset('assets/js/tabla-orden.js') ?>"></script>
+<?php /* Impresoras de tickets y escáneres (USB, serie, Bluetooth, cámara). Va
+         ANTES de flow.js para que una ráfaga del lector no dispare el atajo "/". */ ?>
+<script>window.MEDIOS_DISP = <?= json_encode(['base' => BASE_URL, 'csrf' => csrf_token(), 'marca' => marca_nombre(), 'urlBase' => url_absoluta('/')], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) ?>;</script>
+<script src="<?= asset('assets/js/vendor/qrcode.min.js') ?>"></script>
+<script src="<?= asset('assets/js/dispositivos.js') ?>"></script>
 <script src="<?= asset('assets/js/flow.js') ?>"></script>
 <script>
 /* Guarda la preferencia de tema del usuario y la aplica al instante. */
