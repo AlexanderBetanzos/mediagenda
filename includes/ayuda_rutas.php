@@ -123,6 +123,11 @@ function ayuda_textos_rutas(): array
         'Da clic en <b>Enviar la siguiente</b>: se abre WhatsApp con el mensaje listo y solo le das enviar.',
         'Cada cita queda marcada como enviada para que sepas por dónde vas.',
     ], ['Usa el WhatsApp abierto en esa computadora o celular. No gasta saldo.']);
+    $T['ruta:migrar/index'] = $g('Migrar desde otro sistema', 'Trae todo desde Nimbo, Doctoralia o Excel en cuatro pasos.', [
+        'Pide a tu sistema anterior la exportación (hay un texto listo para copiar).',
+        'Importa en orden: <b>pacientes</b>, <b>citas</b>, <b>historial</b> y <b>documentos</b>.',
+        'En cada paso revisas a qué campo va cada columna antes de importar; nada se duplica.',
+    ], ['Da de alta a tus médicos con el mismo nombre que usaban antes para que se asignen solos.']);
     $T['ruta:dispositivos/index'] = $g('Impresoras y escáneres', 'Conecta la impresora de tickets y el lector de esta computadora.', [
         '<b>Agregar impresora</b>: elige USB, Bluetooth o puerto serie y el navegador te muestra las que están conectadas.',
         'Si tu impresora ya está instalada en Windows o Mac, agrégala como <b>Impresora instalada en la PC</b>.',

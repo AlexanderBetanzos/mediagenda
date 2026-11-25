@@ -268,6 +268,7 @@ include __DIR__ . '/../includes/header.php';
             </ol>
             <div class="small text-muted"><?= et('No se duplican pacientes: si ya existe uno con el mismo nombre y la misma fecha de nacimiento, correo o teléfono, se salta.') ?></div>
             <hr>
+            <div class="small mb-1"><i class="bi bi-box-arrow-in-down"></i> <?= et('¿También traes citas, historial o documentos?') ?> <a href="<?= BASE_URL ?>/migrar/index"><?= et('Migración completa') ?></a></div>
             <div class="small"><?= et('¿Prefieres que lo hagamos nosotros?') ?> <a href="<?= BASE_URL ?>/soporte/index"><?= et('Escríbenos') ?></a></div>
         </div></div>
     </div>
