@@ -25,7 +25,8 @@ function ayuda_textos_rutas(): array
         '<b>Más acciones</b> agrupa cobros, estudios (laboratorio, ultrasonido, vacunas) y las herramientas de especialidad.',
         'En <b>Nueva consulta</b> registras la visita: motivo, signos vitales, exploración, diagnóstico y tratamiento.',
         'Abajo están sus consultas anteriores, medicamentos actuales, archivos, citas y documentos firmados.',
-    ], ['Los resúmenes de especialidad (dental, fisioterapia, nutrición…) aparecen solos en la ficha cuando el paciente tiene registros.']);
+    ], ['Los resúmenes de especialidad (dental, fisioterapia, nutrición…) aparecen solos en la ficha cuando el paciente tiene registros.',
+        'Las notas no se editan: corrige con <b>Nota aclaratoria</b>, firma con tu e.firma e imprime con el botón de impresora. La guía completa está en mediagenda.com.mx/ayuda/expediente-clinico.']);
     $T['paciente.consulta'] = $g('Cómo registrar una consulta',
         'La nota de la visita. Solo el motivo es obligatorio; lo demás llénalo según el caso.', [
         'Si tienes plantillas, elige una en <b>Plantilla</b> y se rellenan los campos; después ajústalos.',

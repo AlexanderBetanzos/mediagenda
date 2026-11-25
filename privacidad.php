@@ -13,7 +13,7 @@
 require_once __DIR__ . '/includes/functions.php';
 
 $marca       = 'MediOS';
-$actualizado = '13 de octubre de 2026';
+$actualizado = '24 de noviembre de 2026';
 $correo      = SOPORTE_EMAIL;
 $wa          = SOPORTE_WHATSAPP;
 $waTexto     = preg_replace('/^52/', '', $wa);
@@ -119,8 +119,9 @@ $waTexto     = preg_replace('/^52/', '', $wa);
             con IA, se envía el texto que dictó o pegó para devolverlo ordenado en los campos de la consulta.</li>
         <li><strong>Jitsi</strong> (videoconsulta): la llamada se realiza en el servidor de videollamadas que tenga
             configurado el consultorio (por omisión, meet.jit.si).</li>
-        <li><strong>Meta</strong>: medición de anuncios (sección 5) y, si el consultorio conecta su propia cuenta de
-            WhatsApp Business, el envío de avisos a sus pacientes desde el número del consultorio.</li>
+        <li><strong>Meta</strong>: medición de anuncios (sección 5) y el envío de recordatorios por WhatsApp a pacientes,
+            ya sea desde el número del consultorio (si conecta su propia cuenta de WhatsApp Business) o desde el número
+            de la plataforma (WhatsApp incluido), con el nombre del paciente, la fecha y hora de la cita y el médico.</li>
         <li><strong>Autoridades</strong>, cuando una ley o una orden judicial lo exija.</li>
     </ul>
     <p>Las transferencias a estos proveedores son necesarias para prestar el servicio que contrataste, por lo que
@@ -128,7 +129,8 @@ $waTexto     = preg_replace('/^52/', '', $wa);
 
     <h2>7. Cómo protegemos la información</h2>
     <p>La información viaja cifrada (HTTPS), las contraseñas se guardan cifradas, cada consultorio está aislado de los
-    demás, el acceso se controla por roles y los cambios importantes quedan registrados en una bitácora.</p>
+    demás, el acceso se controla por roles, hay verificación en dos pasos y todo lo que se guarda queda registrado en
+    una bitácora. El detalle está en la página de <a href="<?= BASE_URL ?>/seguridad">Seguridad</a>.</p>
 
     <h2>8. Conservación y cancelación</h2>
     <p>Conservamos los datos mientras la cuenta esté activa. Si cancelas, conservas el acceso hasta el final del
