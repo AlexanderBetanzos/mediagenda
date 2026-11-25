@@ -36,6 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $pass         = $_POST['password'] ?? '';
 
     if ($nombre === '') $errores[] = t('El nombre es obligatorio.');
+    if ($pass !== '' && ($err = password_politica($pass, (string) ($_POST['email'] ?? '')))) $errores[] = $err;
 
     if ($acceso) {
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -195,7 +196,7 @@ include __DIR__ . '/../includes/header.php';
                             <span class="text-muted small">(<?= et('en blanco = no cambiar') ?>)</span>
                         <?php endif; ?>
                     </label>
-                    <input type="password" name="password" class="form-control" minlength="6" autocomplete="new-password">
+                    <input type="password" name="password" class="form-control" minlength="10" autocomplete="new-password">
                 </div>
             </div>
         </div>

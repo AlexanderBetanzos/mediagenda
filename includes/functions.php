@@ -488,6 +488,72 @@ function auditar(string $accion, ?string $entidad = null, ?int $entidad_id = nul
 }
 
 /* --------------------------------------------------------------------
+ *  Bitácora inalterable: sello SHA-256 encadenado por consultorio
+ *  (cada registro incluye el sello del anterior; cambiar o borrar uno
+ *  rompe la cadena desde ahí). Se sella en lote: al abrir la bitácora y
+ *  en el cron horario.
+ * ------------------------------------------------------------------ */
+function asegurar_auditoria_sello(): bool
+{
+    static $ok = null;
+    if ($ok !== null) return $ok;
+    try {
+        if (!db()->query("SHOW COLUMNS FROM auditoria LIKE 'sello'")->fetch()) {
+            db()->exec('ALTER TABLE auditoria ADD COLUMN sello CHAR(64) NULL, ADD COLUMN sello_prev CHAR(64) NULL');
+        }
+        return $ok = true;
+    } catch (Throwable $e) { return $ok = false; }
+}
+
+function auditoria_canon(array $r): string
+{
+    return implode('|', [$r['id'], (int) $r['consultorio_id'], (string) $r['usuario_id'], (string) $r['usuario_nombre'], $r['accion'],
+        (string) $r['entidad'], (string) $r['entidad_id'], (string) $r['detalle'], (string) $r['ip'], $r['creado_en']]);
+}
+
+/** Sella los registros pendientes de un consultorio (0 = registros sin consultorio). */
+function auditoria_sellar(int $cid, int $max = 20000): int
+{
+    if (!asegurar_auditoria_sello()) return 0;
+    $pdo = db();
+    $lock = 'aud_sello_' . $cid;
+    $pdo->query('SELECT GET_LOCK(' . $pdo->quote($lock) . ', 10)');
+    try {
+        $w = $cid ? 'consultorio_id = ' . $cid : '(consultorio_id IS NULL OR consultorio_id = 0)';
+        $prev = (string) ($pdo->query("SELECT sello FROM auditoria WHERE $w AND sello IS NOT NULL ORDER BY id DESC LIMIT 1")->fetchColumn() ?: str_repeat('0', 64));
+        $st = $pdo->query("SELECT id, consultorio_id, usuario_id, usuario_nombre, accion, entidad, entidad_id, detalle, ip, creado_en FROM auditoria
+                           WHERE $w AND sello IS NULL ORDER BY id LIMIT " . (int) $max);
+        $up = $pdo->prepare('UPDATE auditoria SET sello = ?, sello_prev = ? WHERE id = ? AND sello IS NULL');
+        $n = 0;
+        foreach ($st->fetchAll() as $r) {
+            $s = hash('sha256', $prev . '|' . auditoria_canon($r));
+            $up->execute([$s, $prev, $r['id']]);
+            $prev = $s; $n++;
+        }
+        return $n;
+    } finally {
+        $pdo->query('SELECT RELEASE_LOCK(' . $pdo->quote($lock) . ')');
+    }
+}
+
+/** Recorre la cadena completa. ['ok'=>bool, 'total'=>n, 'roto'=>id|null]. */
+function auditoria_verificar(int $cid): array
+{
+    if (!asegurar_auditoria_sello()) return ['ok' => true, 'total' => 0, 'roto' => null];
+    $w = $cid ? 'consultorio_id = ' . $cid : '(consultorio_id IS NULL OR consultorio_id = 0)';
+    $st = db()->query("SELECT id, consultorio_id, usuario_id, usuario_nombre, accion, entidad, entidad_id, detalle, ip, creado_en, sello, sello_prev
+                       FROM auditoria WHERE $w AND sello IS NOT NULL ORDER BY id");
+    $prev = str_repeat('0', 64); $n = 0;
+    while ($r = $st->fetch()) {
+        if ($r['sello_prev'] !== $prev || !hash_equals($r['sello'], hash('sha256', $prev . '|' . auditoria_canon($r)))) {
+            return ['ok' => false, 'total' => $n, 'roto' => (int) $r['id']];
+        }
+        $prev = $r['sello']; $n++;
+    }
+    return ['ok' => true, 'total' => $n, 'roto' => null];
+}
+
+/* --------------------------------------------------------------------
  *  Mensajes flash
  * ------------------------------------------------------------------ */
 
@@ -1500,6 +1566,25 @@ function guardar_archivo_expediente(?array $f, int $paciente_id, int $usuario_id
  * Devuelve un mapa columna => valor (listo para INSERT/UPDATE), compartido
  * por pacientes/create.php y edit.php para no duplicar la lista.
  */
+/**
+ * Política de contraseñas del personal (SGSI): mínimo 10 caracteres, con
+ * letras y números, distinta del correo y fuera de la lista de las más
+ * usadas. Devuelve el motivo del rechazo o null si es aceptable.
+ */
+function password_politica(string $pass, string $email = ''): ?string
+{
+    if (mb_strlen($pass) < 10) return t('La contraseña debe tener al menos 10 caracteres.');
+    if (!preg_match('/\pL/u', $pass) || !preg_match('/\d/', $pass)) return t('La contraseña debe combinar letras y números.');
+    $l = mb_strtolower($pass);
+    $usuario = mb_strtolower((string) strtok($email, '@'));
+    if ($usuario !== '' && strlen($usuario) >= 4 && str_contains($l, $usuario)) return t('La contraseña no debe contener tu correo.');
+    foreach (['1234567890', 'contrasena', 'contraseña', 'password', 'qwerty', 'consultorio', 'mediagenda', 'medios', 'doctor', 'clinica', '12345678', 'abc123'] as $x) {
+        if (str_contains($l, $x)) return t('Esa contraseña es muy fácil de adivinar. Usa una frase o combinación propia.');
+    }
+    if (preg_match('/(.)\1{4,}/u', $pass)) return t('La contraseña no debe repetir el mismo carácter tantas veces.');
+    return null;
+}
+
 /* --------------------------------------------------------------------
  *  Identificación del paciente (NOM-024, Tabla 1: datos mínimos)
  * ------------------------------------------------------------------ */

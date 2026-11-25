@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (trim($usr['nombre'] ?? '') === '') $errores[] = 'El nombre es obligatorio.';
     if (!filter_var($usr['email'] ?? '', FILTER_VALIDATE_EMAIL)) $errores[] = 'Correo no válido.';
-    if (strlen($usr['password'] ?? '') < 6) $errores[] = 'La contraseña debe tener al menos 6 caracteres.';
+    if ($err = password_politica((string) ($usr['password'] ?? ''), (string) ($usr['email'] ?? ''))) $errores[] = $err;
     if (!in_array($usr['rol'] ?? '', ['admin','medico','recepcion'], true)) $errores[] = 'Rol no válido.';
 
     // ¿correo duplicado?
@@ -77,7 +77,7 @@ include __DIR__ . '/../includes/header.php';
             </div>
             <div class="col-md-4"><label class="form-label"><?= et('Especialidad') ?></label><input type="text" name="especialidad" class="form-control" value="<?= e($usr['especialidad'] ?? '') ?>" placeholder="<?= e(t('Solo para quien atiende pacientes') . ' · ' . giro_ejemplos('especialidad')) ?>"></div>
             <div class="col-md-4"><label class="form-label"><?= et('Teléfono') ?></label><input type="text" name="telefono" class="form-control" value="<?= e($usr['telefono'] ?? '') ?>"></div>
-            <div class="col-md-6"><label class="form-label"><?= et('Contraseña') ?> *</label><input type="password" name="password" class="form-control" required minlength="6"></div>
+            <div class="col-md-6"><label class="form-label"><?= et('Contraseña') ?> *</label><input type="password" name="password" class="form-control" required minlength="10"></div>
         </div>
     </div>
     <div class="card-footer bg-white text-end">

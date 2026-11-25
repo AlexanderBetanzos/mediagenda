@@ -30,3 +30,6 @@ assets/logos/*
 
 # Llave para cifrar los CSD (se genera sola en el servidor)
 config/app.key
+
+# Respaldos cifrados de la base (se generan en el servidor)
+respaldos/

@@ -8,6 +8,9 @@ require_once __DIR__ . '/../includes/functions.php';
 require_role('admin');
 
 $tid = (int) tenant_id();
+// Sella lo pendiente y verifica la cadena completa de este consultorio.
+auditoria_sellar($tid);
+$cadena = auditoria_verificar($tid);
 $f = [
     'usuario' => (int) ($_GET['usuario'] ?? 0),
     'tipo'    => (string) ($_GET['tipo'] ?? ''),
@@ -106,6 +109,14 @@ include __DIR__ . '/../includes/header.php';
     <span class="small text-muted"><?= et('Quién entró, qué expedientes abrió y qué cambió. Los registros no se pueden editar ni borrar.') ?></span>
 </div>
 
+<?php if ($cadena['ok']): ?>
+<div class="alert alert-light border small py-2"><i class="bi bi-shield-check text-success"></i>
+    <?= et('Bitácora íntegra') ?>: <?= sprintf(et('%s registros sellados y verificados; ninguno se ha modificado ni borrado.'), number_format($cadena['total'])) ?></div>
+<?php else: ?>
+<div class="alert alert-danger small py-2"><i class="bi bi-shield-exclamation"></i>
+    <?= et('La cadena de la bitácora no coincide a partir del registro') ?> #<?= (int) $cadena['roto'] ?>.
+    <?= et('Un registro se modificó o se borró fuera del sistema. Avísanos de inmediato para revisarlo.') ?></div>
+<?php endif; ?>
 <form method="get" class="card mb-3"><div class="card-body row g-2 align-items-end">
     <div class="col-6 col-md-2"><label class="form-label small"><?= et('Desde') ?></label><input type="date" name="desde" class="form-control form-control-sm" value="<?= e($f['desde']) ?>"></div>
     <div class="col-6 col-md-2"><label class="form-label small"><?= et('Hasta') ?></label><input type="date" name="hasta" class="form-control form-control-sm" value="<?= e($f['hasta']) ?>"></div>

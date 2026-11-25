@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $h = (string) $st->fetchColumn();
         $n1 = (string) ($_POST['nueva'] ?? ''); $n2 = (string) ($_POST['nueva2'] ?? '');
         if (!password_verify((string) ($_POST['actual'] ?? ''), $h)) flash('Tu contraseña actual no es correcta.', 'danger');
-        elseif (strlen($n1) < 8) flash('La nueva contraseña debe tener al menos 8 caracteres.', 'danger');
+        elseif ($ep = password_politica($n1, (string) ($u['email'] ?? ''))) flash($ep, 'danger');
         elseif ($n1 !== $n2) flash('Las contraseñas nuevas no coinciden.', 'danger');
         else {
             db()->prepare('UPDATE usuarios SET password_hash = ? WHERE id = ?')->execute([password_hash($n1, PASSWORD_DEFAULT), $uid]);
@@ -168,8 +168,8 @@ include __DIR__ . '/../includes/header.php';
         <div class="card"><div class="card-header"><i class="bi bi-key"></i> <?= et('Cambiar contraseña') ?></div><div class="card-body">
             <form method="post" class="row g-2" autocomplete="off"><?= csrf_field() ?><input type="hidden" name="accion" value="password">
                 <div class="col-md-4"><input type="password" name="actual" class="form-control" placeholder="<?= e(t('Actual')) ?>" required autocomplete="current-password"></div>
-                <div class="col-md-4"><input type="password" name="nueva" class="form-control" placeholder="<?= e(t('Nueva (8+ caracteres)')) ?>" required minlength="8" autocomplete="new-password"></div>
-                <div class="col-md-4"><input type="password" name="nueva2" class="form-control" placeholder="<?= e(t('Repite la nueva')) ?>" required minlength="8" autocomplete="new-password"></div>
+                <div class="col-md-4"><input type="password" name="nueva" class="form-control" placeholder="<?= e(t('Nueva (10+, letras y números)')) ?>" required minlength="10" autocomplete="new-password"></div>
+                <div class="col-md-4"><input type="password" name="nueva2" class="form-control" placeholder="<?= e(t('Repite la nueva')) ?>" required minlength="10" autocomplete="new-password"></div>
                 <div class="col-12"><button class="btn btn-outline-primary"><?= et('Actualizar contraseña') ?></button></div>
             </form>
         </div></div>

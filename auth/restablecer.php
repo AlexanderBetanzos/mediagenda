@@ -10,7 +10,7 @@ if ($u && $_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
     $p1 = (string) ($_POST['password'] ?? '');
     $p2 = (string) ($_POST['password2'] ?? '');
-    if (mb_strlen($p1) < 8) $error = t('La contraseña debe tener al menos 8 caracteres.');
+    if ($e1 = password_politica($p1, (string) ($u['email'] ?? ''))) $error = $e1;
     elseif ($p1 !== $p2)   $error = t('Las contraseñas no coinciden.');
     else {
         $pdo = db();
@@ -40,10 +40,10 @@ auth_pagina(t('Nueva contraseña'), 'recuperar', function () use ($u, $token, $e
         <form method="post">
             <?= csrf_field() ?><input type="hidden" name="t" value="<?= e($token) ?>">
             <label class="form-label"><?= et('Nueva contraseña') ?></label>
-            <input type="password" name="password" class="form-control mb-1" minlength="8" required autofocus autocomplete="new-password">
-            <div class="form-text mb-3"><?= et('Mínimo 8 caracteres.') ?></div>
+            <input type="password" name="password" class="form-control mb-1" minlength="10" required autofocus autocomplete="new-password">
+            <div class="form-text mb-3"><?= et('Mínimo 10 caracteres, con letras y números.') ?></div>
             <label class="form-label"><?= et('Repítela') ?></label>
-            <input type="password" name="password2" class="form-control mb-4" minlength="8" required autocomplete="new-password">
+            <input type="password" name="password2" class="form-control mb-4" minlength="10" required autocomplete="new-password">
             <button class="btn btn-primary w-100 py-2"><i class="bi bi-check2"></i> <?= et('Guardar contraseña') ?></button>
         </form>
     <?php endif; ?>

@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (trim($usr['nombre']) === '') $errores[] = 'El nombre es obligatorio.';
     if (!filter_var($usr['email'], FILTER_VALIDATE_EMAIL)) $errores[] = 'Correo no válido.';
     if (!in_array($usr['rol'], ['admin','medico','recepcion'], true)) $errores[] = 'Rol no válido.';
-    if (($usr['password'] ?? '') !== '' && strlen($usr['password']) < 6) $errores[] = 'La nueva contraseña debe tener al menos 6 caracteres.';
+    if (($usr['password'] ?? '') !== '' && ($err = password_politica((string) $usr['password'], (string) ($usr['email'] ?? '')))) $errores[] = $err;
 
     if (!$errores) {
         $chk = db()->prepare('SELECT 1 FROM usuarios WHERE email = ? AND id <> ?');
@@ -75,7 +75,7 @@ include __DIR__ . '/../includes/header.php';
             </div>
             <div class="col-md-4"><label class="form-label"><?= et('Especialidad') ?></label><input type="text" name="especialidad" class="form-control" value="<?= e($usr['especialidad'] ?? '') ?>"></div>
             <div class="col-md-4"><label class="form-label"><?= et('Teléfono') ?></label><input type="text" name="telefono" class="form-control" value="<?= e($usr['telefono'] ?? '') ?>"></div>
-            <div class="col-md-6"><label class="form-label"><?= et('Nueva contraseña') ?></label><input type="password" name="password" class="form-control" minlength="6" placeholder="<?= et('Dejar en blanco para no cambiarla') ?>"></div>
+            <div class="col-md-6"><label class="form-label"><?= et('Nueva contraseña') ?></label><input type="password" name="password" class="form-control" minlength="10" placeholder="<?= et('Dejar en blanco para no cambiarla') ?>"></div>
         </div>
     </div>
     <div class="card-footer bg-white text-end">

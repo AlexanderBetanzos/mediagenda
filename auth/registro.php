@@ -58,8 +58,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = t('El correo no es válido.');
     } elseif (strlen(preg_replace('/\D/', '', $f['telefono'])) < 7) {
         $error = t('El teléfono no es válido.');
-    } elseif (strlen($pass) < 8) {
-        $error = t('La contraseña debe tener al menos 8 caracteres.');
+    } elseif ($ep = password_politica($pass, $f['email'])) {
+        $error = $ep;
     } elseif ($pass !== $pass2) {
         $error = t('Las contraseñas no coinciden.');
     } else {
@@ -262,14 +262,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="col-sm-6">
                         <label class="form-label"><?= et('Contraseña') ?></label>
                         <div class="input-group">
-                            <input type="password" name="password" id="pw1" class="form-control" required minlength="8" placeholder="<?= et('Mín. 8 caracteres') ?>">
+                            <input type="password" name="password" id="pw1" class="form-control" required minlength="10" placeholder="<?= et('Mín. 10, letras y números') ?>">
                             <button type="button" class="btn btn-outline-secondary toggle-pw" data-target="pw1" tabindex="-1" aria-label="<?= et('Mostrar u ocultar contraseña') ?>"><i class="bi bi-eye"></i></button>
                         </div>
                     </div>
                     <div class="col-sm-6">
                         <label class="form-label"><?= et('Confirmar') ?></label>
                         <div class="input-group">
-                            <input type="password" name="password2" id="pw2" class="form-control" required minlength="8" placeholder="<?= et('Repite la contraseña') ?>">
+                            <input type="password" name="password2" id="pw2" class="form-control" required minlength="10" placeholder="<?= et('Repite la contraseña') ?>">
                             <button type="button" class="btn btn-outline-secondary toggle-pw" data-target="pw2" tabindex="-1" aria-label="<?= et('Mostrar u ocultar contraseña') ?>"><i class="bi bi-eye"></i></button>
                         </div>
                     </div>

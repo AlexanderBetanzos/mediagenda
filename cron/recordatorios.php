@@ -40,3 +40,25 @@ if ($cadaHora) {
     $r2 = recordatorios_2h($eco);
     echo "2 horas antes: {$r2['procesadas']} citas, {$r2['correos']} correos, {$r2['whatsapp']} WhatsApp\n";
 }
+
+// --- SGSI: bitácora sellada y respaldo diario verificado ---
+try {
+    $cids = db()->query('SELECT DISTINCT COALESCE(consultorio_id, 0) FROM auditoria WHERE sello IS NULL')->fetchAll(PDO::FETCH_COLUMN);
+    $sel = 0; foreach ($cids as $c) $sel += auditoria_sellar((int) $c);
+    echo "Bitácora: $sel registros sellados\n";
+} catch (Throwable $e) { echo 'Bitácora: ' . $e->getMessage() . "\n"; }
+try {
+    require_once __DIR__ . '/../includes/respaldos.php';
+    asegurar_respaldos();
+    $hoy = (int) db()->query("SELECT COUNT(*) FROM respaldos WHERE origen = 'cron' AND DATE(creado_en) = CURDATE()")->fetchColumn();
+    // Uno al día, de madrugada si el cron es horario (o en la corrida diaria).
+    if (!$hoy && (!$cadaHora || $hora >= 2)) {
+        $r = respaldo_crear('cron');
+        $v = respaldo_verificar((int) $r['id']);
+        auditar('respaldo_crear', 'respaldo', (int) $r['id'], $r['archivo'] . ' · ' . ($v['ok'] ? 'verificado' : 'FALLÓ la verificación'), null, ['nombre' => 'cron']);
+        echo 'Respaldo: ' . $r['archivo'] . ' · ' . $v['detalle'] . "\n";
+    }
+} catch (Throwable $e) {
+    auditar('respaldo_error', 'respaldo', null, mb_substr($e->getMessage(), 0, 200), null, ['nombre' => 'cron']);
+    echo 'Respaldo: ERROR ' . $e->getMessage() . "\n";
+}
