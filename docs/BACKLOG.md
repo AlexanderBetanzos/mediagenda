@@ -275,6 +275,9 @@ e incapacidades · OCR de INE/CURP. → la mayoría cuelgan de **Flujo de sala**
 
 ---
 
+### Cuestionarios previos (2026-11-25)
+- ✅ El paciente responde antes de llegar desde el enlace de su cita (correo de la cita, recordatorio, página de la cita). Constructor con plantillas, por médico y por primera vez/subsecuente; "Pasar al expediente" con validación del médico (`cuestionarios/`, `agenda/cuestionario.php`, `includes/cuestionarios.php`). Plan Profesional y Clínica (`agenda_online`).
+
 ### Paquete NOM-024 / flujo (2026-11-24)
 - ✅ CIE-10: catálogo global `cie10` (importa `sql/data/cie10_mx.csv`, fuente SSA/HJM datos.gob.mx CC BY 4.0), autocompletado en todo campo `diagnostico` (`assets/js/cie10.js`), códigos guardados en `consultas.cie10`. ⬜ Falta subir el CSV.
 - ✅ CURP: valida formato y dígito verificador, llena fecha de nacimiento y sexo, dice estado y avisa duplicados (`pacientes/curp.php`).

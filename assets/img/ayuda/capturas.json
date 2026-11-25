@@ -74,5 +74,15 @@
             "inventario-sucursales.webp",
             "Inventario con existencias por sucursal, traspasos y alertas de stock y caducidad."
         ]
+    ],
+    "cuestionarios-previos": [
+        [
+            "cuestionario-paciente.webp",
+            "Lo que ve el paciente: el cuestionario de su cita, desde el enlace del correo, sin contraseña."
+        ],
+        [
+            "cuestionario-respuesta.webp",
+            "Lo que ve el médico: cada respuesta con el campo del expediente al que va, y el botón Pasar al expediente."
+        ]
     ]
 }
