@@ -50,7 +50,7 @@ include __DIR__ . '/../includes/header.php';
 </div>
 
 <?php $__t = (int) tenant_id();
-$__venta = 0.0; try { $q = db()->prepare("SELECT COALESCE(SUM(total),0) FROM facturas WHERE consultorio_id = ? AND estado = 'pagada' AND fecha = CURDATE() AND notas = 'Venta en punto de venta'"); $q->execute([$__t]); $__venta = (float) $q->fetchColumn(); } catch (Throwable $e) {}
+$__venta = 0.0; try { $__qv = db()->prepare("SELECT COALESCE(SUM(total),0) FROM facturas WHERE consultorio_id = ? AND estado = 'pagada' AND fecha = CURDATE() AND notas = 'Venta en punto de venta'"); $__qv->execute([$__t]); $__venta = (float) $__qv->fetchColumn(); } catch (Throwable $e) {}
 echo ui_stats([
     [t('Productos activos'), ui_cuenta("SELECT COUNT(*) FROM productos WHERE consultorio_id = ? AND activo = 1", [$__t]), 'bi-boxes', 'var(--brand)'],
     [t('Con stock bajo'), (int) $nBajo, 'bi-exclamation-triangle', '#ef4444', null, $nBajo > 0],
