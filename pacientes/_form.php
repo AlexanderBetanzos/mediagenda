@@ -199,8 +199,41 @@ $v = fn(string $k) => e($p[$k] ?? '');
     </div>
     <div class="col-12">
         <label class="form-label"><?= et('Dirección') ?></label>
-        <input type="text" name="direccion" class="form-control" value="<?= $v('direccion') ?>">
+        <input type="text" name="direccion" class="form-control" value="<?= $v('direccion') ?>" placeholder="<?= e(t('Calle, número, colonia, C.P.')) ?>">
     </div>
+    <div class="col-md-4">
+        <label class="form-label"><?= et('Entidad de residencia') ?></label>
+        <select name="res_entidad" id="resEnt" class="form-select">
+            <option value="">—</option>
+            <?php foreach (entidades_inegi() as $k => [$l]): if ($k === 'NE') continue; ?><option value="<?= $k ?>" <?= ($p['res_entidad'] ?? '') === (string) $k ? 'selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?>
+        </select>
+    </div>
+    <div class="col-md-4">
+        <label class="form-label"><?= et('Municipio') ?></label>
+        <select name="res_municipio" id="resMun" class="form-select" data-val="<?= $v('res_municipio') ?>"><option value="">—</option></select>
+    </div>
+    <div class="col-md-4">
+        <label class="form-label"><?= et('Localidad') ?></label>
+        <select name="res_localidad" id="resLoc" class="form-select" data-val="<?= $v('res_localidad') ?>"><option value="">—</option></select>
+    </div>
+    <script>
+    (function () {
+        var ent = document.getElementById('resEnt'), mun = document.getElementById('resMun'), loc = document.getElementById('resLoc');
+        if (!ent) return;
+        function llenar(sel, c, padre, val) {
+            sel.innerHTML = '<option value="">—</option>';
+            if (!padre) return;
+            fetch('<?= BASE_URL ?>/catalogos/buscar?c=' + c + '&padre=' + padre, { credentials: 'same-origin' }).then(function (r) { return r.json(); }).then(function (r) {
+                if (!r.r.length) { sel.innerHTML = '<option value=""><?= e(t('Catálogo INEGI aún no cargado')) ?></option>'; return; }
+                r.r.forEach(function (x) { var o = document.createElement('option'); o.value = x[0]; o.textContent = x[1]; if (x[0] === val) o.selected = true; sel.appendChild(o); });
+            }).catch(function () {});
+        }
+        ent.addEventListener('change', function () { llenar(mun, 'municipios', ent.value, ''); loc.innerHTML = '<option value="">—</option>'; });
+        mun.addEventListener('change', function () { llenar(loc, 'localidades', mun.value, ''); });
+        if (ent.value) llenar(mun, 'municipios', ent.value, mun.dataset.val);
+        if (mun.dataset.val) llenar(loc, 'localidades', mun.dataset.val, loc.dataset.val);
+    })();
+    </script>
 
     <!-- Identificación -->
     </div>

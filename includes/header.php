@@ -274,6 +274,7 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
                     $admin[] = $li('configuracion', BASE_URL . '/configuracion/index', 'bi-gear', t('Configuración'));
                     $admin[] = $li('mensajes', BASE_URL . '/mensajes/index', 'bi-whatsapp', t('Mensajes de WhatsApp'));
                     $admin[] = $li('auditoria', BASE_URL . '/auditoria/index', 'bi-journal-text', t('Bitácora'));
+                    $mas[]   = $li('giis', BASE_URL . '/expediente/giis', 'bi-diagram-3', t('Reporte DGIS'));
                     $mas[]   = $li('migrar', BASE_URL . '/migrar/index', 'bi-box-arrow-in-down', t('Migrar desde otro sistema'));
                     $admin[] = $li('suscripcion', BASE_URL . '/pagos/index', 'bi-stars', t('Mi suscripción'));
                 }

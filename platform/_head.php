@@ -61,6 +61,8 @@ if ($esSuper) {
     $platLinks[] = ['timbres', 'timbres', 'bi-wallet2', et('Créditos')];
     $platLinks[] = ['respaldos', 'respaldos', 'bi-database-check', et('Respaldos')];
     $platLinks[] = ['sgsi', 'sgsi', 'bi-shield-lock', et('SGSI')];
+    $platLinks[] = ['catalogos', 'catalogos', 'bi-journal-bookmark', et('Catálogos')];
+    $platLinks[] = ['giis', 'giis', 'bi-diagram-3', et('GIIS')];
     $platLinks[] = ['ajustes', 'ajustes', 'bi-gear',   et('Ajustes')];
 }
 ?>
