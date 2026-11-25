@@ -246,7 +246,12 @@ include __DIR__ . '/_head.php';
                     <td class="fw-semibold text-uppercase small"><?= e($planNombre[$c['plan']] ?? $c['plan']) ?></td>
                     <td><span class="badge rounded-pill text-bg-<?= $badge[$c['estado']] ?? 'secondary' ?>"><?= et(ucfirst($c['estado'])) ?></span></td>
                     <td class="small">
-                        <?php if ($c['estado'] === 'trial'): ?>
+                        <?php if ($c['estado'] === 'trial' && !empty($c['trial_inicio']) && $c['trial_fin'] < $c['trial_inicio']): ?>
+                            <?php /* Básico/Clínica no traen prueba: el registro deja trial_fin un día
+                                     antes del alta y manda a pagar. No es una prueba vencida, es un
+                                     pago que nunca se completó. */ ?>
+                            <span class="badge bg-warning text-dark" title="<?= e(t('Eligió un plan sin prueba gratis y no completó el pago en Mercado Pago.')) ?>"><?= et('Pago pendiente') ?></span>
+                        <?php elseif ($c['estado'] === 'trial'): ?>
                             <?= fmt_fecha($c['trial_fin']) ?>
                             <span class="badge bg-<?= $dias < 0 ? 'danger' : ($dias <= 3 ? 'warning' : 'secondary') ?>"><?= $dias < 0 ? et('vencida') : $dias . ' ' . et('días') ?></span>
                         <?php else: ?><span class="text-muted">—</span><?php endif; ?>
