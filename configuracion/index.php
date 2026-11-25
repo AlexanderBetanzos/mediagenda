@@ -67,6 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'whatsapp'      => trim($_POST['whatsapp'] ?? ''),
         'email'         => trim($_POST['email'] ?? ''),
         'rfc'           => trim($_POST['rfc'] ?? ''),
+        'clues'         => strtoupper(preg_replace('/[^A-Za-z0-9]/', '', (string) ($_POST['clues'] ?? ''))),
         // Regional
         'moneda'        => in_array($_POST['moneda'] ?? '', $monedas, true) ? $_POST['moneda'] : 'MXN',
         'zona_horaria'  => in_array($_POST['zona_horaria'] ?? '', $zonas, true) ? $_POST['zona_horaria'] : 'America/Mexico_City',
@@ -275,6 +276,11 @@ include __DIR__ . '/../includes/header.php';
             <div class="col-md-4">
                 <label class="form-label"><?= et('RFC / Id. fiscal') ?></label>
                 <input type="text" name="rfc" class="form-control" value="<?= e(cfg('rfc')) ?>">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label"><?= et('CLUES') ?> <span class="text-muted fw-normal small"><?= et('(opcional)') ?></span></label>
+                <input type="text" name="clues" class="form-control text-uppercase" maxlength="11" value="<?= e(cfg('clues')) ?>" placeholder="DFSSA001234">
+                <div class="form-text"><?= et('Clave Única de Establecimientos de Salud, si tu consultorio la tiene. Sale en el membrete del expediente.') ?></div>
             </div>
             <div class="col-md-7">
                 <label class="form-label"><?= et('Dirección') ?></label>

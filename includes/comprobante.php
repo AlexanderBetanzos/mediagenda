@@ -42,7 +42,7 @@ function comprobante_membrete(string $tipo, string $folio, string $fechaTxt, str
     $logo = cfg('marca_logo');
     $datos = array_filter([
         cfg('razon_social') && cfg('razon_social') !== marca_nombre() ? e(cfg('razon_social')) : '',
-        cfg('rfc') ? 'RFC ' . e(cfg('rfc')) : '',
+        trim((cfg('rfc') ? 'RFC ' . e(cfg('rfc')) : '') . (cfg('rfc') && cfg('clues') ? ' · ' : '') . (cfg('clues') ? 'CLUES ' . e(cfg('clues')) : '')),
         e(cfg('direccion')),
         trim(e(cfg('telefono')) . (cfg('telefono') && cfg('email') ? ' · ' : '') . e(cfg('email'))),
     ]);

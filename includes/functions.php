@@ -569,6 +569,21 @@ function require_login(): void
     if (!defined('ALLOW_INACTIVE') && !es_superadmin() && tenant_bloqueado()) {
         redirect('/auth/suscripcion');
     }
+    // El consultorio puede exigir verificación en dos pasos a todo su personal.
+    if (!es_superadmin() && cfg('exigir_2fa') === '1') {
+        if (!isset($_SESSION['usuario']['totp'])) {
+            try {
+                $q = db()->prepare('SELECT COALESCE(totp_activo,0) FROM usuarios WHERE id = ?');
+                $q->execute([(int) ($_SESSION['usuario']['id'] ?? 0)]);
+                $_SESSION['usuario']['totp'] = (int) $q->fetchColumn();
+            } catch (Throwable $e) { $_SESSION['usuario']['totp'] = 1; }   // sin columna aún: no bloquear
+        }
+        $script = str_replace('\\', '/', (string) ($_SERVER['SCRIPT_FILENAME'] ?? ''));
+        if (!$_SESSION['usuario']['totp'] && !preg_match('#/(usuarios/seguridad|auth/logout|auth/ping)\.php$#', $script)) {
+            flash('Tu consultorio pide verificación en dos pasos. Actívala para continuar.', 'warning');
+            redirect('/usuarios/seguridad#dos-pasos');
+        }
+    }
     // Bitácora completa: todo lo que se guarda queda registrado, aunque la
     // pantalla no llame a auditar() con una acción propia.
     static $bitacora = false;

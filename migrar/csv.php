@@ -8,6 +8,7 @@
  * existe, se puede crear. No duplica (misma cita o misma consulta).
  */
 require_once __DIR__ . '/../includes/migrar.php';
+require_once __DIR__ . '/../includes/ece.php';
 require_login();
 require_role('admin');
 
@@ -91,7 +92,7 @@ if (($_POST['accion'] ?? '') === 'importar' && $ruta) {
 
     $pacs = new MigPacientes();
     $pdo = db();
-    $ok = 0; $nuevos = 0; $saltos = [];
+    $ok = 0; $nuevos = 0; $saltos = []; $sellar = [];
     $dupCita = $pdo->prepare('SELECT 1 FROM citas WHERE consultorio_id = ? AND paciente_id = ? AND fecha = ? AND hora = ? LIMIT 1');
     $dupCons = $pdo->prepare('SELECT 1 FROM consultas WHERE consultorio_id = ? AND paciente_id = ? AND DATE(fecha) = ? AND COALESCE(motivo,\'\') = ? LIMIT 1');
     $pdo->beginTransaction();
@@ -154,10 +155,12 @@ if (($_POST['accion'] ?? '') === 'importar' && $ruta) {
                     ->execute([$tid, $pid, $med, $fecha . ' ' . ($hora ?: '12:00:00'), $motivo ?: null, $v['exploracion'] ?? null, $v['diagnostico'] ?? null,
                                $v['tratamiento'] ?? null, $v['receta'] ?? null, $num('peso'), $est, isset($v['presion']) ? mb_substr($v['presion'], 0, 20) : null,
                                $num('temperatura'), trim(($v['notas'] ?? '') . "\n[" . t('Importada de') . ' ' . ($imp['nombre'] ?? 'CSV') . ']')]);
+                $sellar[] = (int) $pdo->lastInsertId();
             }
             $ok++;
         }
         $pdo->commit();
+        foreach ($sellar as $sid) ece_sellar($sid);   // sello de integridad desde la importación
     } catch (Throwable $e) {
         $pdo->rollBack();
         $errores[] = t('No se pudo importar') . ': ' . $e->getMessage();

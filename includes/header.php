@@ -193,6 +193,8 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
                     <small class="text-muted"><?= e(rol_label($u['rol'])) ?></small>
                 </li>
                 <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="<?= BASE_URL ?>/usuarios/seguridad"><i class="bi bi-shield-lock me-2"></i><?= et('Seguridad de mi cuenta') ?></a></li>
+                <?php if (in_array($u['rol'], ['medico', 'admin'], true)): ?><li><a class="dropdown-item" href="<?= BASE_URL ?>/usuarios/efirma"><i class="bi bi-pen me-2"></i><?= et('Mi firma electrónica') ?></a></li><?php endif; ?>
                 <li id="pwaItem" hidden><button type="button" class="dropdown-item" id="pwaBtn"><i class="bi bi-phone me-2"></i><?= et('Instalar como app') ?></button></li>
                 <li><a class="dropdown-item" href="<?= BASE_URL ?>/auth/logout"><i class="bi bi-box-arrow-right me-2"></i><?= et('Cerrar sesión') ?></a></li>
             </ul>

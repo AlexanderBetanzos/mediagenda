@@ -128,6 +128,21 @@ function ayuda_textos_rutas(): array
         'Importa en orden: <b>pacientes</b>, <b>citas</b>, <b>historial</b> y <b>documentos</b>.',
         'En cada paso revisas a qué campo va cada columna antes de importar; nada se duplica.',
     ], ['Da de alta a tus médicos con el mismo nombre que usaban antes para que se asignen solos.']);
+    $T['ruta:usuarios/efirma'] = $g('Mi firma electrónica', 'Firma tus notas clínicas con tu e.firma del SAT.', [
+        'Sube tu archivo <b>.cer</b> y tu <b>.key</b> y escribe tu contraseña para comprobar que son tuyos.',
+        'En el expediente, cada nota que escribiste tiene el botón <b>Firmar con e.firma</b>.',
+        'Tu contraseña nunca se guarda: se pide cada vez que firmas.',
+    ], ['Es la e.firma (antes FIEL), no el sello digital (CSD) de facturación.']);
+    $T['ruta:usuarios/seguridad'] = $g('Seguridad de mi cuenta', 'Verificación en dos pasos, contraseña y tus accesos.', [
+        'Activa la <b>verificación en dos pasos</b>: escaneas un QR con Google Authenticator o Authy y al entrar te pedimos el código.',
+        'Guarda tus <b>códigos de respaldo</b>: sirven si pierdes el celular.',
+        'Revisa <b>tus últimos accesos</b>; si ves uno que no reconoces, cambia tu contraseña.',
+    ], ['El administrador puede exigir la verificación en dos pasos a todo el personal.']);
+    $T['ruta:expediente/imprimir'] = $g('Imprimir expediente', 'Expediente completo, resumen clínico o una nota.', [
+        'Elige <b>Expediente completo</b> o <b>Resumen clínico</b> arriba.',
+        'Da clic en <b>Imprimir / PDF</b>; en el diálogo puedes guardarlo como PDF.',
+        'Cada nota muestra su sello de integridad y, si se firmó, los datos de la e.firma.',
+    ], ['Cada impresión queda registrada en la Bitácora.']);
     $T['ruta:dispositivos/index'] = $g('Impresoras y escáneres', 'Conecta la impresora de tickets y el lector de esta computadora.', [
         '<b>Agregar impresora</b>: elige USB, Bluetooth o puerto serie y el navegador te muestra las que están conectadas.',
         'Si tu impresora ya está instalada en Windows o Mac, agrégala como <b>Impresora instalada en la PC</b>.',

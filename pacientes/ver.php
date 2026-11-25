@@ -1,7 +1,9 @@
 <?php
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/ia.php';
+require_once __DIR__ . '/../includes/ece.php';
 require_login();
+asegurar_ece();
 
 $u  = current_user();
 $id = (int) ($_GET['id'] ?? $_POST['paciente_id'] ?? 0);
@@ -56,8 +58,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'consu
     $stmt = db()->prepare(
         'INSERT INTO consultas
          (consultorio_id, paciente_id, medico_id, motivo, exploracion, diagnostico, tratamiento, receta,
-          peso, estatura, presion, temperatura, glucosa, frecuencia_cardiaca, saturacion, frecuencia_respiratoria, notas)
-         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
+          peso, estatura, presion, temperatura, glucosa, frecuencia_cardiaca, saturacion, frecuencia_respiratoria, notas, pronostico)
+         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
     );
     $stmt->execute([
         tenant_id(), $id, $u['id'],
@@ -75,6 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'consu
         $numOrNull('saturacion'),
         $numOrNull('frecuencia_respiratoria'),
         trim($_POST['notas'] ?? '') ?: null,
+        trim($_POST['pronostico'] ?? '') ?: null,
     ]);
     $consulta_id = (int) db()->lastInsertId();
     // Códigos CIE-10 elegidos en el diagnóstico, aparte, para reportes por diagnóstico.
@@ -84,6 +87,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'consu
             db()->prepare('UPDATE consultas SET cie10 = ? WHERE id = ? AND consultorio_id = ?')->execute([$cods, $consulta_id, tenant_id()]);
         }
     } catch (Throwable $e) { /* el catálogo nunca debe impedir guardar la consulta */ }
+    // Sello de integridad (NOM-024): se calcula ya con el CIE-10 guardado.
+    ece_sellar($consulta_id);
     auditar('crear', 'consulta', $consulta_id, 'Paciente #' . $id);
 
     // Adjunto opcional ligado a esta consulta.
@@ -93,6 +98,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'consu
     } else {
         flash('Consulta agregada al expediente.');
     }
+    redirect('/pacientes/ver?id=' . $id);
+}
+
+/* --- Firmar una nota con la e.firma de su autor. --- */
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'firmar_consulta') {
+    verify_csrf();
+    $cid = (int) ($_POST['consulta_id'] ?? 0);
+    try {
+        ece_firmar($cid, (int) $u['id'], (string) ($_POST['efirma_pass'] ?? ''));
+        auditar('firmar', 'consulta', $cid, 'Paciente #' . $id);
+        flash('Nota firmada con tu e.firma.');
+    } catch (Throwable $e) {
+        auditar('firmar_fallido', 'consulta', $cid, mb_substr($e->getMessage(), 0, 120));
+        flash($e->getMessage(), 'danger');
+    }
+    redirect('/pacientes/ver?id=' . $id);
+}
+
+/* --- Nota aclaratoria: la nota original no se toca (NOM-004). --- */
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'aclarar_consulta') {
+    verify_csrf();
+    if (!has_role('medico', 'admin')) { http_response_code(403); die('Sin permiso.'); }
+    $cid = (int) ($_POST['consulta_id'] ?? 0);
+    try {
+        ece_aclarar($cid, (int) $u['id'], (string) ($_POST['texto'] ?? ''));
+        auditar('aclarar', 'consulta', $cid, 'Paciente #' . $id);
+        flash('Nota aclaratoria agregada. La nota original se conserva tal cual.');
+    } catch (Throwable $e) { flash($e->getMessage(), 'danger'); }
     redirect('/pacientes/ver?id=' . $id);
 }
 
@@ -213,9 +246,12 @@ if ($qExp !== '') {
     array_push($parExp, $like, $like, $like, $like, $like, $like);
 }
 $sqlExp .= ' ORDER BY co.fecha DESC';
+ece_sellar_pendientes($id);   // notas guardadas antes de que existiera el sello
 $cons = db()->prepare($sqlExp);
 $cons->execute($parExp);
 $cons = $cons->fetchAll();
+$aclaraciones = ece_aclaraciones(array_column($cons, 'id'));
+$miEfirma = has_role('medico', 'admin') ? ece_efirma((int) $u['id']) : null;
 
 // Total real (para no decir "Expediente (2)" cuando hay 40 y estás filtrando).
 $totCons = db()->prepare('SELECT COUNT(*) FROM consultas WHERE paciente_id = ? AND consultorio_id = ?');
@@ -756,6 +792,7 @@ echo ui_stats($__est); ?>
                                 <?php endif; ?>
                             </ul>
                         </div>
+                        <a href="<?= BASE_URL ?>/expediente/imprimir?id=<?= $id ?>" target="_blank" class="btn btn-outline-secondary btn-sm" title="<?= e(t('Imprimir expediente o resumen clínico')) ?>"><i class="bi bi-printer"></i></a>
                         <button class="btn btn-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#formConsulta">
                             <i class="bi bi-plus-lg"></i> <?= et('Nueva consulta') ?>
                         </button>
@@ -862,6 +899,9 @@ echo ui_stats($__est); ?>
                                 <div class="col-md-6"><label class="form-label"><?= et('Diagnóstico') ?></label><textarea name="diagnostico" class="form-control" rows="2"></textarea></div>
                                 <div class="col-md-6"><label class="form-label"><?= et('Tratamiento') ?></label><textarea name="tratamiento" class="form-control" rows="2"></textarea></div>
                                 <div class="col-md-6"><label class="form-label"><?= et('Receta') ?></label><textarea name="receta" class="form-control" rows="2"></textarea></div>
+                                <div class="col-md-6"><label class="form-label"><?= et('Pronóstico') ?></label>
+                                    <input type="text" name="pronostico" class="form-control" list="dlPronostico" placeholder="<?= e(t('Bueno, reservado, malo para la función…')) ?>">
+                                    <datalist id="dlPronostico"><?php foreach (['Bueno para la vida y la función', 'Bueno', 'Favorable', 'Reservado a evolución', 'Malo'] as $op): ?><option value="<?= e(t($op)) ?>"><?php endforeach; ?></datalist></div>
                                 <div class="col-12"><label class="form-label"><?= et('Notas') ?></label><textarea name="notas" class="form-control" rows="2"></textarea></div>
                                 <div class="col-md-7">
                                     <label class="form-label"><?= et('Adjuntar archivo') ?> <span class="text-muted fw-normal"><?= et('(opcional)') ?></span></label>
@@ -1008,7 +1048,7 @@ echo ui_stats($__est); ?>
                     <div class="card mb-3">
                         <div class="card-header bg-white d-flex justify-content-between">
                             <span class="fw-semibold"><i class="bi bi-file-medical text-brand"></i> <?= fmt_fecha($c['fecha']) ?> · <?= date('H:i', strtotime($c['fecha'])) ?></span>
-                            <span class="text-muted small"><?= e($c['med_nombre']) ?></span>
+                            <span class="text-muted small d-flex align-items-center gap-2 flex-wrap justify-content-end"><?= ece_insignias($c) ?> <?= e($c['med_nombre']) ?></span>
                         </div>
                         <div class="card-body">
                             <?php if ($c['motivo']): ?><p class="mb-2"><strong><?= et('Motivo:') ?></strong> <?= e($c['motivo']) ?></p><?php endif; ?>
@@ -1027,8 +1067,8 @@ echo ui_stats($__est); ?>
                                 <p class="mb-2"><span class="badge bg-light text-dark border me-1"><?= implode('</span> <span class="badge bg-light text-dark border me-1">', array_map('e', $vitales)) ?></span></p>
                             <?php endif; ?>
                             <div class="row">
-                                <?php foreach (['exploracion'=>'Exploración','diagnostico'=>'Diagnóstico','tratamiento'=>'Tratamiento','receta'=>'Receta'] as $k=>$lbl):
-                                    if ($c[$k]): ?>
+                                <?php foreach (['exploracion'=>'Exploración','diagnostico'=>'Diagnóstico','tratamiento'=>'Tratamiento','receta'=>'Receta','pronostico'=>'Pronóstico'] as $k=>$lbl):
+                                    if (!empty($c[$k])): ?>
                                     <div class="col-md-6 mb-2"><strong><?= et($lbl) ?>:</strong><br><?= nl2br(e($c[$k])) ?></div>
                                 <?php endif; endforeach; ?>
                             </div>
@@ -1042,9 +1082,46 @@ echo ui_stats($__est); ?>
                                 <?php endforeach; ?>
                             </div>
                             <?php endif; ?>
+                            <?php foreach ($aclaraciones[(int) $c['id']] ?? [] as $ac): ?>
+                            <div class="mt-2 p-2 rounded small" style="background:rgba(217,119,6,.08);border-left:3px solid #d97706">
+                                <div class="fw-semibold"><i class="bi bi-chat-square-text"></i> <?= et('Nota aclaratoria') ?> · <?= e(fmt_fecha($ac['creado_en'])) ?> <?= e(date('H:i', strtotime($ac['creado_en']))) ?> · <?= e($ac['med_nombre'] ?? '') ?></div>
+                                <?= nl2br(e($ac['texto'])) ?>
+                            </div>
+                            <?php endforeach; ?>
+                            <?php if (has_role('medico', 'admin')): ?>
+                            <div class="mt-2 pt-2 border-top d-flex flex-wrap gap-2 align-items-center small">
+                                <?php if (empty($c['firma']) && (int) $c['medico_id'] === (int) $u['id']): ?>
+                                    <?php if ($miEfirma): ?>
+                                    <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#mFirmar" data-cid="<?= (int) $c['id'] ?>"><i class="bi bi-pen"></i> <?= et('Firmar con e.firma') ?></button>
+                                    <?php else: ?>
+                                    <a href="<?= BASE_URL ?>/usuarios/efirma" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pen"></i> <?= et('Configura tu e.firma para firmar') ?></a>
+                                    <?php endif; ?>
+                                <?php endif; ?>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#acl<?= (int) $c['id'] ?>"><i class="bi bi-chat-square-text"></i> <?= et('Nota aclaratoria') ?></button>
+                                <a href="<?= BASE_URL ?>/expediente/imprimir?id=<?= $id ?>&consulta=<?= (int) $c['id'] ?>" target="_blank" class="btn btn-sm btn-outline-secondary"><i class="bi bi-printer"></i> <?= et('Imprimir nota') ?></a>
+                            </div>
+                            <form method="post" class="collapse mt-2" id="acl<?= (int) $c['id'] ?>">
+                                <?= csrf_field() ?><input type="hidden" name="accion" value="aclarar_consulta"><input type="hidden" name="consulta_id" value="<?= (int) $c['id'] ?>">
+                                <textarea name="texto" class="form-control form-control-sm mb-1" rows="2" required placeholder="<?= e(t('Corrección o dato adicional. La nota original no se modifica.')) ?>"></textarea>
+                                <button class="btn btn-sm btn-primary"><?= et('Agregar aclaración') ?></button>
+                            </form>
+                            <?php endif; ?>
                         </div>
                     </div>
                 <?php endforeach; endif; ?>
+                <?php if ($miEfirma): ?>
+                <div class="modal fade" id="mFirmar" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-sm"><form method="post" class="modal-content" autocomplete="off">
+                    <?= csrf_field() ?><input type="hidden" name="accion" value="firmar_consulta"><input type="hidden" name="consulta_id" id="mFirmarId">
+                    <div class="modal-header"><h5 class="modal-title"><i class="bi bi-pen"></i> <?= et('Firmar nota') ?></h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                    <div class="modal-body">
+                        <p class="small text-muted"><?= et('Se firmará con tu e.firma, certificado') ?> <code><?= e($miEfirma['no_cert']) ?></code>. <?= et('Después de firmar, la nota ya no puede cambiar.') ?></p>
+                        <label class="form-label"><?= et('Contraseña de tu e.firma') ?></label>
+                        <input type="password" name="efirma_pass" class="form-control" required autocomplete="new-password">
+                    </div>
+                    <div class="modal-footer"><button class="btn btn-success w-100"><i class="bi bi-pen"></i> <?= et('Firmar') ?></button></div>
+                </form></div></div>
+                <script>document.getElementById('mFirmar').addEventListener('show.bs.modal', function (e) { if (e.relatedTarget) document.getElementById('mFirmarId').value = e.relatedTarget.dataset.cid; });</script>
+                <?php endif; ?>
             </div>
 
             <!-- Medicamentos actuales -->

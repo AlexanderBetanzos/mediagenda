@@ -4,10 +4,11 @@
  * el enlace que se manda por WhatsApp.
  *
  * PÁGINA PÚBLICA: sin sesión. El token (128 bits, aleatorio, en la propia
- * receta) es la credencial, igual que en agenda/confirmar. Quien la abre ya
- * tiene la receta en la mano o en su chat, así que se muestra completa; lo que
- * agrega es la confirmación de que el consultorio la emitió y sigue vigente
- * en su sistema (si el consultorio la elimina, el enlace deja de validarla).
+ * receta) es la credencial, igual que en agenda/confirmar. Cualquiera con el
+ * QR ve que la receta existe (folio, fecha, médico y cédula); los
+ * MEDICAMENTOS y los datos del paciente solo se muestran después de escribir
+ * la fecha de nacimiento del paciente (5 intentos por sesión). Si el
+ * consultorio la elimina, el enlace deja de validarla.
  */
 require_once __DIR__ . '/includes/functions.php';
 require_once __DIR__ . '/includes/comprobante.php';
@@ -60,6 +61,18 @@ try {
 
 $dias = max(0, (int) floor((time() - strtotime((string) $r['fecha'])) / 86400));
 
+// Segundo factor del QR: la fecha de nacimiento del paciente abre el contenido.
+$kOk = 'rx_ok_' . $token; $kInt = 'rx_int_' . $token;
+$errFn = '';
+$verContenido = empty($r['fecha_nacimiento']) || !empty($_SESSION[$kOk]);
+if (!$verContenido && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf();
+    $_SESSION[$kInt] = ($_SESSION[$kInt] ?? 0) + 1;
+    if ($_SESSION[$kInt] > 5) $errFn = t('Demasiados intentos. Pide la receta directamente al paciente o al consultorio.');
+    elseif ((string) ($_POST['fn'] ?? '') === (string) $r['fecha_nacimiento']) { $_SESSION[$kOk] = 1; $verContenido = true; }
+    else $errFn = t('La fecha no coincide.');
+}
+
 $titulo = t('Receta') . ' ' . receta_folio((int) $r['id']);
 include __DIR__ . '/includes/publico_header.php';
 ?>
@@ -89,10 +102,23 @@ include __DIR__ . '/includes/publico_header.php';
         </dl>
     </div>
 </div>
+<?php if ($verContenido): ?>
 <div class="d-flex justify-content-end mb-3 no-print" style="max-width:820px;margin:0 auto">
     <button onclick="window.print()" class="btn btn-outline-secondary btn-sm"><i class="bi bi-printer"></i> <?= et('Imprimir / Guardar PDF') ?></button>
 </div>
 <?= receta_documento($r, $items, false) ?>
+<?php else: ?>
+<div class="card" style="max-width:460px;margin:0 auto"><div class="card-body p-4">
+    <div class="text-center mb-3"><i class="bi bi-lock text-brand" style="font-size:1.8rem"></i>
+        <div class="fw-semibold"><?= et('Para ver los medicamentos, confirma la fecha de nacimiento del paciente') ?></div>
+        <div class="small text-muted"><?= et('Así protegemos la información de salud de quien no tenga la receta en la mano.') ?></div></div>
+    <?php if ($errFn): ?><div class="alert alert-danger py-2 small"><?= e($errFn) ?></div><?php endif; ?>
+    <form method="post"><?= csrf_field() ?>
+        <input type="date" name="fn" class="form-control form-control-lg mb-2" required>
+        <button class="btn btn-primary w-100"><?= et('Ver receta') ?></button>
+    </form>
+</div></div>
+<?php endif; ?>
 <p class="text-center small text-muted mt-3 no-print" style="max-width:820px;margin:0 auto">
     <?= et('Esta verificación confirma que la receta existe en el sistema del consultorio. La validez para surtirla la determina la farmacia conforme a la normativa aplicable.') ?>
 </p>

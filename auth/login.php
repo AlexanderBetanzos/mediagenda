@@ -7,40 +7,70 @@ if (is_logged_in()) {
 }
 
 $error = '';
+require_once __DIR__ . '/../includes/totp.php';
+
+/** Abre la sesión ya verificada (contraseña y, si aplica, segundo paso). */
+$entrar = function (array $datos, string $nombre): void {
+    session_regenerate_id(true);   // evita fijación de sesión
+    unset($_SESSION['2fa_pend']);
+    $_SESSION['usuario'] = $datos;
+    $_SESSION['ultimo_mov'] = time();
+    auditar('login', null, null, null, $datos['consultorio_id'], $datos);
+    flash('¡Bienvenido(a), ' . $nombre . '!');
+    redirect('/dashboard');
+};
+
+$pend = $_SESSION['2fa_pend'] ?? null;
+if ($pend && ($pend['exp'] ?? 0) < time()) { unset($_SESSION['2fa_pend']); $pend = null; }
+if (isset($_GET['cancelar2fa'])) { unset($_SESSION['2fa_pend']); redirect('/auth/login'); }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
-    $email = trim($_POST['email'] ?? '');
-    $pass  = $_POST['password'] ?? '';
+    if (login_bloqueado()) {
+        $error = t('Demasiados intentos fallidos desde esta conexión. Espera 15 minutos y vuelve a intentarlo.');
+    } elseif ($pend && isset($_POST['codigo'])) {
+        // Segundo paso: código de la app autenticadora o de respaldo.
+        if (totp_verificar_usuario((int) $pend['datos']['id'], (string) $_POST['codigo'])) {
+            auditar('2fa_ok', null, null, null, $pend['datos']['consultorio_id'], $pend['datos']);
+            $entrar($pend['datos'], $pend['datos']['nombre']);
+        }
+        auditar('2fa_fallido', null, null, null, $pend['datos']['consultorio_id'], $pend['datos']);
+        $error = t('El código no es correcto. Revisa la hora de tu celular o usa un código de respaldo.');
+    } else {
+        $email = trim($_POST['email'] ?? '');
+        $pass  = $_POST['password'] ?? '';
 
-    $stmt = db()->prepare('SELECT * FROM usuarios WHERE email = ? AND activo = 1 LIMIT 1');
-    $stmt->execute([$email]);
-    $user = $stmt->fetch();
+        $stmt = db()->prepare('SELECT * FROM usuarios WHERE email = ? AND activo = 1 LIMIT 1');
+        $stmt->execute([$email]);
+        $user = $stmt->fetch();
 
-    // Un médico de catálogo sin contraseña no inicia sesión (password_hash NULL);
-    // password_verify con hash vacío ya devuelve false, pero se explicita.
-    if ($user && !empty($user['password_hash']) && password_verify($pass, $user['password_hash'])) {
-        $datos = [
-            'id'             => (int) $user['id'],
-            'nombre'         => $user['nombre'],
-            'email'          => $user['email'],
-            'rol'            => $user['rol'],
-            'consultorio_id' => (int) $user['consultorio_id'],
-            'es_superadmin'  => (int) ($user['es_superadmin'] ?? 0),
-        ];
-
-        // Regenerar id de sesión para evitar fijación.
-        session_regenerate_id(true);
-        $_SESSION['usuario'] = $datos;
-        $_SESSION['ultimo_mov'] = time();
-        auditar('login', null, null, null, $datos['consultorio_id'], $datos);
-        flash('¡Bienvenido(a), ' . $user['nombre'] . '!');
-        redirect('/dashboard');
+        // Un médico de catálogo sin contraseña no inicia sesión (password_hash NULL);
+        // password_verify con hash vacío ya devuelve false, pero se explicita.
+        if ($user && !empty($user['password_hash']) && password_verify($pass, $user['password_hash'])) {
+            $datos = [
+                'id'             => (int) $user['id'],
+                'nombre'         => $user['nombre'],
+                'email'          => $user['email'],
+                'rol'            => $user['rol'],
+                'consultorio_id' => (int) $user['consultorio_id'],
+                'es_superadmin'  => (int) ($user['es_superadmin'] ?? 0),
+            ];
+            asegurar_totp();
+            $t2 = totp_usuario($datos['id']);
+            if ($t2 && (int) $t2['totp_activo'] === 1) {
+                // Contraseña correcta, falta el segundo paso: aún no hay sesión.
+                $_SESSION['2fa_pend'] = ['datos' => $datos, 'exp' => time() + 300];
+                $pend = $_SESSION['2fa_pend'];
+            } else {
+                $entrar($datos, $user['nombre']);
+            }
+        } else {
+            auditar('login_fallido', null, null, 'email: ' . mb_substr($email, 0, 120),
+                    $user ? (int) $user['consultorio_id'] : null,
+                    $user ? ['id' => (int) $user['id'], 'nombre' => $user['nombre']] : ['nombre' => $email]);
+            $error = t('Correo o contraseña incorrectos.');
+        }
     }
-    auditar('login_fallido', null, null, 'email: ' . mb_substr($email, 0, 120),
-            $user ? (int) $user['consultorio_id'] : null,
-            $user ? ['id' => (int) $user['id'], 'nombre' => $user['nombre']] : ['nombre' => $email]);
-    $error = t('Correo o contraseña incorrectos.');
 }
 ?>
 <!doctype html>
@@ -79,6 +109,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="alert alert-danger py-2"><?= e($error) ?></div>
             <?php endif; ?>
 
+            <?php if ($pend): ?>
+            <form method="post" autocomplete="off">
+                <?= csrf_field() ?>
+                <div class="text-center mb-3"><i class="bi bi-shield-lock text-brand" style="font-size:2rem"></i>
+                    <div class="fw-semibold"><?= et('Verificación en dos pasos') ?></div>
+                    <div class="small text-muted"><?= et('Escribe el código de 6 dígitos de tu app autenticadora, o uno de tus códigos de respaldo.') ?></div></div>
+                <input type="text" name="codigo" class="form-control form-control-lg text-center mb-3" inputmode="numeric" autocomplete="one-time-code" maxlength="9" required autofocus placeholder="123456" style="letter-spacing:.3em">
+                <button class="btn btn-primary w-100 py-2"><?= et('Verificar y entrar') ?></button>
+                <div class="text-center mt-3"><a href="?cancelar2fa=1" class="small text-muted"><?= et('Cancelar') ?></a></div>
+            </form>
+            <?php else: ?>
             <form method="post" novalidate>
                 <?= csrf_field() ?>
                 <div class="mb-3">
@@ -102,6 +143,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
                 <button class="btn btn-primary w-100 py-2"><i class="bi bi-box-arrow-in-right"></i> <?= et('Entrar') ?></button>
             </form>
+            <?php endif; ?>
 
             <div class="text-center mt-4 pt-3 border-top">
                 <p class="mb-2 small text-muted"><?= et('¿Aún no tienes cuenta?') ?></p>
