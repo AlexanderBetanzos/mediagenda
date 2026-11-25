@@ -84,10 +84,7 @@ $activo = 'cuestionarios';
 include __DIR__ . '/../includes/header.php';
 ?>
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-    <div>
-        <h1 class="h3 mb-0"><i class="bi bi-clipboard2-pulse text-brand"></i> <?= et('Cuestionarios previos') ?></h1>
-        <div class="text-muted small"><?= et('Tus pacientes responden antes de llegar; tú lo revisas y lo pasas al expediente con un clic.') ?></div>
-    </div>
+    <h1 class="h3 mb-0"><i class="bi bi-clipboard2-pulse text-brand"></i> <?= et('Cuestionarios previos') ?></h1>
     <?php if ($esAdm): ?><a href="<?= BASE_URL ?>/cuestionarios/editar" class="btn btn-primary"><i class="bi bi-plus-lg"></i> <?= et('Nuevo cuestionario') ?></a><?php endif; ?>
 </div>
 
