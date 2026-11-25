@@ -371,9 +371,13 @@ function ayuda_textos_rutas(): array
     $T['ruta:crm/campanas'] = $g('Campañas por WhatsApp', 'Mensajes a un grupo de pacientes, sin riesgo de bloqueo.', [
         'Elige el segmento (por ejemplo, sin visita en 6 meses).', 'Escribe el mensaje.', 'Se genera la lista: manda cada mensaje con su botón, uno por uno.',
     ]);
-    $T['ruta:resenas/index'] = $g('Reseñas', 'Las opiniones de tus pacientes en tu página.', [
-        'Invita a reseñar una cita atendida.', 'Responde en público para agradecer o aclarar.', 'Oculta solo reseñas abusivas (insultos, spam): se pide un motivo.',
-    ]);
+    $T['ruta:resenas/index'] = $g('Reseñas y satisfacción', 'Encuestas automáticas, NPS y las opiniones de tus pacientes en tu página.', [
+        'Con <b>Encuesta automática</b> encendida, cada paciente atendido recibe su encuesta por correo (y por WhatsApp con WhatsApp incluido) unas horas después de su cita.',
+        'La encuesta pide estrellas, 4 aspectos (puntualidad, trato, explicación, instalaciones) y qué tan probable es que te recomiende (NPS).',
+        'Si alguien califica 3 estrellas o menos, aparece en <b>Pacientes insatisfechos por atender</b> y te llega un correo: contáctalo y márcala como atendida.',
+        'Quien califica 4 o 5 estrellas recibe la invitación a dejar su opinión también en Google (pon tu enlace de Google).',
+        'Responde en público para agradecer o aclarar. Oculta solo reseñas abusivas (insultos, spam): se pide un motivo.',
+    ], ['El NPS va de -100 a 100: arriba de 50 es excelente. Revisa los aspectos más bajos para saber qué mejorar.']);
     $T['ruta:soporte/index'] = $g('Ayuda y soporte', 'Cómo contactarnos cuando necesites ayuda.', ['Escríbenos por WhatsApp o correo: te ayudamos a configurar, migrar datos o resolver dudas.']);
     $T['ruta:feedback/index'] = $g('Sugerencias', 'Cuéntanos qué mejorar del sistema.', ['Escribe tu comentario o sugerencia y envíalo. Puedes ver tus envíos anteriores.']);
     $T['ruta:usuarios/create'] = $g('Nuevo usuario', 'Dale acceso al sistema a alguien de tu equipo.', [

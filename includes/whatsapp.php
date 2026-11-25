@@ -51,6 +51,8 @@ function wa_plat_token():     string { return plataforma_cfg('wa_plat_token'); }
 function wa_plat_phone_id():  string { return plataforma_cfg('wa_plat_phone_id'); }
 function wa_plat_plantilla(): string { return plataforma_cfg('wa_plat_plantilla'); }
 function wa_plat_idioma():    string { return plataforma_cfg('wa_plat_idioma') ?: 'es_MX'; }
+/** Plantilla de la encuesta de satisfacción: {{1}} paciente {{2}} consultorio {{3}} enlace. */
+function wa_plat_plantilla_encuesta(): string { return plataforma_cfg('wa_plat_plantilla_encuesta'); }
 function wa_plat_configurado(): bool
 {
     return wa_plat_token() !== '' && wa_plat_phone_id() !== '' && wa_plat_plantilla() !== '';
@@ -234,9 +236,9 @@ function wa_recordatorio_cita(string $telefono, string $paciente, string $fecha,
  * Plantilla de la plataforma (6 variables, en este orden):
  *   {{1}} paciente {{2}} consultorio {{3}} fecha {{4}} hora {{5}} médico {{6}} enlace
  */
-function wa_enviar_plataforma(string $telefono, array $params, string $detalle): array
+function wa_enviar_plataforma(string $telefono, array $params, string $detalle, ?string $plantilla = null): array
 {
-    $plantilla = wa_plat_plantilla();
+    $plantilla = $plantilla ?: wa_plat_plantilla();
     $tel = tel_e164($telefono);
     if ($tel === '') {
         wa_log($telefono, $plantilla, false, 'teléfono inválido');

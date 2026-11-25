@@ -51,6 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'wa_plat_phone_id'  => preg_replace('/\D/', '', (string) ($_POST['wa_plat_phone_id'] ?? '')),
             'wa_plat_plantilla' => preg_replace('/[^a-z0-9_]/', '', strtolower((string) ($_POST['wa_plat_plantilla'] ?? ''))),
             'wa_plat_idioma'    => preg_replace('/[^A-Za-z_]/', '', (string) ($_POST['wa_plat_idioma'] ?? 'es_MX')) ?: 'es_MX',
+            'wa_plat_plantilla_encuesta' => preg_replace('/[^a-z0-9_]/', '', strtolower((string) ($_POST['wa_plat_plantilla_encuesta'] ?? ''))),
         ];
         $tok = trim((string) ($_POST['wa_plat_token'] ?? ''));
         if ($tok !== '') $pares['wa_plat_token'] = $tok;   // vacío = no tocar
@@ -165,6 +166,8 @@ include __DIR__ . '/_head.php';
             <div class="col-md-7"><label class="form-label small">Token permanente</label><input name="wa_plat_token" class="form-control" placeholder="<?= wa_plat_token() !== '' ? 'Guardado. Escribe uno nuevo solo para cambiarlo.' : 'EAAG…' ?>"></div>
             <div class="col-md-8"><label class="form-label small">Plantilla aprobada</label><input name="wa_plat_plantilla" class="form-control" placeholder="recordatorio_cita_consultorio" value="<?= e(wa_plat_plantilla()) ?>"></div>
             <div class="col-md-4"><label class="form-label small">Idioma</label><input name="wa_plat_idioma" class="form-control" value="<?= e(wa_plat_idioma()) ?>"></div>
+            <div class="col-md-8"><label class="form-label small">Plantilla de encuesta de satisfacción (opcional)</label><input name="wa_plat_plantilla_encuesta" class="form-control" placeholder="encuesta_consulta" value="<?= e(wa_plat_plantilla_encuesta()) ?>">
+                <div class="form-text">3 variables: {{1}} paciente · {{2}} consultorio · {{3}} enlace. Ej.: "Hola {{1}}, gracias por visitar {{2}}. ¿Cómo te fue? Califica tu consulta aquí: {{3}}"</div></div>
             <div class="col-12"><div class="alert alert-info small mb-2">
                 Crea en WhatsApp Manager una plantilla de categoría <b>Utilidad</b> con <b>6 variables</b>, en este orden:
                 <div class="font-monospace mt-2 p-2 rounded" style="background:rgba(127,127,127,.12)">Hola {{1}}, te recordamos tu cita en {{2}} el {{3}} a las {{4}} con {{5}}. Confirma o cambia tu cita aquí: {{6}}</div>

@@ -10,7 +10,9 @@
  * que la decisión no sea invisible.
  */
 require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/encuestas.php';
 require_login();
+asegurar_encuestas();
 if (!has_role('admin')) { http_response_code(403); die('Solo el administrador.'); }
 
 $u = current_user();
@@ -49,6 +51,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         flash('Respuesta guardada. Se ve junto a la reseña en tu página.');
         redirect('/resenas/index');
     }
+    if ($accion === 'config') {
+        $g = trim((string) ($_POST['google_resenas_url'] ?? ''));
+        guardar_cfg([
+            'encuesta_auto'      => !empty($_POST['encuesta_auto']) ? '1' : '0',
+            'encuesta_horas'     => (string) max(1, min(48, (int) ($_POST['encuesta_horas'] ?? 2))),
+            'google_resenas_url' => preg_match('#^https://#', $g) ? mb_substr($g, 0, 300) : '',
+        ]);
+        auditar('encuesta_config', 'configuracion');
+        flash('Encuestas configuradas.');
+        redirect('/resenas/index');
+    }
+    if ($accion === 'cerrar_alerta') {
+        db()->prepare('UPDATE resenas SET alerta_cerrada_en = NOW(), alerta_nota = ? WHERE id = ? AND consultorio_id = ?')
+            ->execute([mb_substr(trim((string) ($_POST['nota'] ?? '')), 0, 300) ?: null, $id, tenant_id()]);
+        auditar('encuesta_alerta_cerrada', 'resena', $id);
+        flash('Alerta atendida.');
+        redirect('/resenas/index#alertas');
+    }
     if ($accion === 'invitar') {
         $tok = resena_invitar((int) ($_POST['cita_id'] ?? 0));
         if ($tok === '') {
@@ -76,6 +96,8 @@ $lista->execute([tenant_id()]);
 $lista = $lista->fetchAll();
 
 $ocultas = count(array_filter($lista, fn($r) => $r['estado'] === 'oculta'));
+$met = encuestas_metricas(90);
+$alertas = array_filter($lista, fn ($r) => encuesta_es_alerta($r) && empty($r['alerta_cerrada_en']));
 
 /* Citas atendidas sin invitación: es de donde salen reseñas nuevas. */
 $sinInvitar = db()->prepare(
@@ -122,6 +144,66 @@ include __DIR__ . '/../includes/header.php';
         <div class="stat-label"><?= et('Ocultas') ?></div>
         <div class="stat-num mt-2" style="color:<?= $ocultas ? '#f59e0b' : 'inherit' ?>"><?= $ocultas ?></div>
     </div></div></div>
+</div>
+
+<?php if ($alertas): ?>
+<div class="card mb-3 border-danger" id="alertas">
+    <div class="card-header fw-semibold text-danger"><i class="bi bi-exclamation-octagon"></i> <?= et('Pacientes insatisfechos por atender') ?> (<?= count($alertas) ?>)</div>
+    <ul class="list-group list-group-flush">
+    <?php foreach ($alertas as $a): $waA = wa_link($a['pac_tel'], t('Hola') . ' ' . $a['pac_nombre'] . ', ' . t('gracias por tu opinión sobre tu consulta. Nos gustaría saber más para mejorar, ¿podemos platicar?')); ?>
+        <li class="list-group-item">
+            <div class="d-flex flex-wrap justify-content-between gap-2">
+                <div><b><?= e($a['pac_nombre'] . ' ' . $a['pac_ape']) ?></b> · <span style="color:#f5a524"><?= resena_estrellas((float) $a['estrellas']) ?></span>
+                    <?= $a['nps'] !== null ? ' · ' . et('Recomendación') . ' ' . (int) $a['nps'] . '/10' : '' ?>
+                    <div class="small text-muted"><?= $a['cita_fecha'] ? fmt_fecha($a['cita_fecha']) : '' ?><?= $a['med_nombre'] ? ' · ' . e($a['med_nombre']) : '' ?></div>
+                    <?php if ($a['comentario']): ?><div class="small mt-1">“<?= e($a['comentario']) ?>”</div><?php endif; ?></div>
+                <div class="d-flex gap-2 align-items-start flex-wrap">
+                    <?php if ($waA): ?><a href="<?= e($waA) ?>" target="_blank" rel="noopener" class="btn btn-sm btn-success"><i class="bi bi-whatsapp"></i> <?= et('Contactar') ?></a><?php endif; ?>
+                    <form method="post" class="d-flex gap-1"><?= csrf_field() ?><input type="hidden" name="accion" value="cerrar_alerta"><input type="hidden" name="id" value="<?= (int) $a['id'] ?>">
+                        <input name="nota" class="form-control form-control-sm" placeholder="<?= e(t('¿Qué se hizo?')) ?>" style="width:180px"><button class="btn btn-sm btn-outline-secondary"><?= et('Atendida') ?></button></form>
+                </div>
+            </div>
+        </li>
+    <?php endforeach; ?>
+    </ul>
+</div>
+<?php endif; ?>
+
+<div class="row g-3 mb-3">
+    <div class="col-lg-8"><div class="card h-100">
+        <div class="card-header fw-semibold"><i class="bi bi-graph-up text-brand"></i> <?= et('Satisfacción · últimos 90 días') ?></div>
+        <div class="card-body">
+            <div class="row g-3 text-center mb-3">
+                <div class="col-4"><div class="small text-muted"><?= et('NPS') ?></div><div class="fs-3 fw-bold" style="color:<?= $met['nps_valor'] === null ? 'inherit' : ($met['nps_valor'] >= 50 ? '#16a34a' : ($met['nps_valor'] >= 0 ? '#d97706' : '#dc2626')) ?>"><?= $met['nps_valor'] ?? '—' ?></div><div class="small text-muted"><?= et('de -100 a 100') ?></div></div>
+                <div class="col-4"><div class="small text-muted"><?= et('Respondieron') ?></div><div class="fs-3 fw-bold"><?= $met['tasa'] !== null ? $met['tasa'] . '%' : '—' ?></div><div class="small text-muted"><?= (int) $met['respondidas'] ?> / <?= (int) $met['enviadas'] ?></div></div>
+                <div class="col-4"><div class="small text-muted"><?= et('Promedio') ?></div><div class="fs-3 fw-bold"><?= $met['prom'] ? number_format($met['prom'], 1) : '—' ?></div><div class="small text-muted"><?= et('estrellas') ?></div></div>
+            </div>
+            <?php foreach (encuesta_aspectos() as $k => $l): $v = $met[$k] !== null ? (float) $met[$k] : null; ?>
+            <div class="d-flex align-items-center gap-2 small mb-1">
+                <span style="width:220px"><?= et($l) ?></span>
+                <div class="progress flex-grow-1" style="height:8px"><div class="progress-bar" style="width:<?= $v ? $v / 5 * 100 : 0 ?>%;background:<?= $v === null ? '#ccc' : ($v >= 4.3 ? '#16a34a' : ($v >= 3.5 ? '#d97706' : '#dc2626')) ?>"></div></div>
+                <span style="width:34px" class="text-end"><?= $v ? number_format($v, 1) : '—' ?></span>
+            </div>
+            <?php endforeach; ?>
+            <?php if ($met['medicos']): ?>
+            <table class="table table-sm mt-3 mb-0 small"><thead><tr><th><?= et('Médico') ?></th><th class="text-end"><?= et('Respuestas') ?></th><th class="text-end"><?= et('Estrellas') ?></th><th class="text-end"><?= et('Recomendación') ?></th></tr></thead>
+                <tbody><?php foreach ($met['medicos'] as $m): ?><tr><td><?= e($m['nombre']) ?></td><td class="text-end"><?= (int) $m['n'] ?></td><td class="text-end"><?= number_format($m['prom'], 1) ?></td><td class="text-end"><?= $m['nps'] !== null ? number_format($m['nps'], 1) : '—' ?></td></tr><?php endforeach; ?></tbody></table>
+            <?php endif; ?>
+        </div>
+    </div></div>
+    <div class="col-lg-4"><form method="post" class="card h-100"><?= csrf_field() ?><input type="hidden" name="accion" value="config">
+        <div class="card-header fw-semibold"><i class="bi bi-send-check text-brand"></i> <?= et('Encuesta automática') ?></div>
+        <div class="card-body">
+            <div class="form-check form-switch mb-2"><input class="form-check-input" type="checkbox" role="switch" name="encuesta_auto" value="1" id="eAuto" <?= cfg('encuesta_auto', '1') === '1' ? 'checked' : '' ?>>
+                <label class="form-check-label" for="eAuto"><?= et('Enviarla sola después de cada consulta atendida') ?></label></div>
+            <div class="input-group input-group-sm mb-2"><input type="number" name="encuesta_horas" min="1" max="48" class="form-control" value="<?= (int) cfg('encuesta_horas', '2') ?>"><span class="input-group-text"><?= et('horas después de la cita') ?></span></div>
+            <div class="small text-muted mb-3"><?= et('Sale por correo y, con WhatsApp incluido, también por WhatsApp (gasta 1 mensaje).') ?></div>
+            <label class="form-label small"><?= et('Enlace para reseñar en Google (opcional)') ?></label>
+            <input name="google_resenas_url" class="form-control form-control-sm mb-1" value="<?= e(cfg('google_resenas_url')) ?>" placeholder="https://g.page/r/…/review">
+            <div class="small text-muted mb-3"><?= et('A quien califique con 4 o 5 estrellas se le invita a dejar su opinión también en Google.') ?></div>
+            <button class="btn btn-sm btn-primary"><?= et('Guardar') ?></button>
+        </div>
+    </form></div>
 </div>
 
 <?php if ($ocultas): ?>

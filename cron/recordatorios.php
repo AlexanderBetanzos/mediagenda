@@ -41,6 +41,15 @@ if ($cadaHora) {
     echo "2 horas antes: {$r2['procesadas']} citas, {$r2['correos']} correos, {$r2['whatsapp']} WhatsApp\n";
 }
 
+// --- Encuestas de satisfacción (X horas después de cada consulta atendida) ---
+if (!$cadaHora || ($hora >= 9 && $hora < 21)) {
+    try {
+        require_once __DIR__ . '/../includes/encuestas.php';
+        $en = encuestas_enviar($eco);
+        echo "Encuestas: {$en['enviadas']} ({$en['correos']} correos, {$en['whatsapp']} WhatsApp)\n";
+    } catch (Throwable $e) { echo 'Encuestas: ' . $e->getMessage() . "\n"; }
+}
+
 // --- SGSI: bitácora sellada y respaldo diario verificado ---
 try {
     $cids = db()->query('SELECT DISTINCT COALESCE(consultorio_id, 0) FROM auditoria WHERE sello IS NULL')->fetchAll(PDO::FETCH_COLUMN);

@@ -9,6 +9,8 @@
  * El token identifica la reseña Y el consultorio: el tenant sale de ahí.
  */
 require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/encuestas.php';
+asegurar_encuestas();
 
 $token = preg_replace('/[^a-f0-9]/', '', (string) ($_GET['t'] ?? $_POST['t'] ?? ''));
 if (strlen($token) !== 32) { http_response_code(404); die('Enlace no válido.'); }
@@ -42,8 +44,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$yaRespondio) {
                 SET estrellas = ?, comentario = ?, estado = 'publicada', respondida_en = NOW()
               WHERE token = ? AND estrellas IS NULL"
         )->execute([$estrellas, mb_substr($comentario, 0, 1000) ?: null, $token]);
-        auditar('resena_recibida', 'resena', (int) $r['id'], $estrellas . ' estrellas',
+        // Aspectos (1–5) y recomendación (0–10): opcionales.
+        $asp = [];
+        foreach (array_keys(encuesta_aspectos()) as $k) { $x = (int) ($_POST[$k] ?? 0); $asp[$k] = $x >= 1 && $x <= 5 ? $x : null; }
+        $nps = isset($_POST['nps']) && $_POST['nps'] !== '' && (int) $_POST['nps'] >= 0 && (int) $_POST['nps'] <= 10 ? (int) $_POST['nps'] : null;
+        db()->prepare('UPDATE resenas SET puntualidad = ?, trato = ?, explicacion = ?, instalaciones = ?, nps = ? WHERE token = ?')
+            ->execute([$asp['puntualidad'], $asp['trato'], $asp['explicacion'], $asp['instalaciones'], $nps, $token]);
+        auditar('resena_recibida', 'resena', (int) $r['id'], $estrellas . ' estrellas' . ($nps !== null ? ' · NPS ' . $nps : ''),
                 (int) $r['consultorio_id']);
+        $r['estrellas'] = $estrellas; $r['nps'] = $nps; $r['comentario'] = $comentario;
+        if (encuesta_es_alerta($r)) encuesta_avisar_alerta($r, $r['pac_nombre']);
         $gracias = true;
         $yaRespondio = true;
     }
@@ -79,7 +89,18 @@ include __DIR__ . '/../includes/publico_header.php';
                     <i class="bi bi-heart-fill text-success" style="font-size:2rem"></i>
                 </span>
                 <h1 class="h4"><?= et('¡Gracias por tu opinión!') ?></h1>
+                <?php if (encuesta_es_alerta($r)): ?>
+                <p class="text-muted"><?= et('Lamentamos que tu experiencia no haya sido la mejor. El consultorio ya recibió tu comentario y se pondrá en contacto contigo.') ?></p>
+                <?php else: ?>
                 <p class="text-muted"><?= et('La acabamos de publicar en nuestra página. Nos ayuda a mejorar y a que otros pacientes nos conozcan.') ?></p>
+                <?php if (($g = (string) cfg('google_resenas_url')) !== '' && (int) $r['estrellas'] >= 4): ?>
+                <div class="border rounded-3 p-3 my-3">
+                    <div class="fw-semibold mb-1"><?= et('¿Nos ayudas con 10 segundos más?') ?></div>
+                    <div class="small text-muted mb-2"><?= et('Copia tu opinión y déjala también en Google: es lo que más ayuda a que otros pacientes nos encuentren.') ?></div>
+                    <a href="<?= e($g) ?>" target="_blank" rel="noopener" class="btn btn-outline-primary" onclick="try{navigator.clipboard.writeText(<?= e(json_encode((string) $r['comentario'])) ?>)}catch(e){}"><i class="bi bi-google"></i> <?= et('Calificar en Google') ?></a>
+                </div>
+                <?php endif; ?>
+                <?php endif; ?>
                 <?php if ($slug = (tenant()['slug'] ?? '')): ?>
                     <a href="<?= e(micrositio_url($slug)) ?>" class="btn btn-primary mt-2">
                         <?= et('Ver la página de') ?> <?= e($marca) ?>
@@ -122,6 +143,31 @@ include __DIR__ . '/../includes/publico_header.php';
                     <?php endforeach; ?>
                 </div>
                 <p class="text-center text-muted small mb-4"><?= et('Toca las estrellas para calificar') ?></p>
+
+                <div class="mb-4">
+                    <div class="small fw-semibold mb-2"><?= et('¿Cómo calificas…? (opcional)') ?></div>
+                    <?php foreach (encuesta_aspectos() as $k => $l): ?>
+                    <div class="d-flex justify-content-between align-items-center gap-2 mb-1 flex-wrap">
+                        <span class="small"><?= et($l) ?></span>
+                        <div class="btn-group btn-group-sm" role="group">
+                            <?php foreach ([1 => '😞', 2 => '🙁', 3 => '😐', 4 => '🙂', 5 => '😍'] as $n => $em): ?>
+                            <input type="radio" class="btn-check" name="<?= $k ?>" id="<?= $k . $n ?>" value="<?= $n ?>">
+                            <label class="btn btn-outline-secondary" for="<?= $k . $n ?>" title="<?= $n ?>"><?= $em ?></label>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+                <div class="mb-4">
+                    <div class="small fw-semibold mb-2"><?= et('¿Qué tan probable es que nos recomiendes con un familiar o amigo?') ?></div>
+                    <div class="d-flex flex-wrap gap-1 justify-content-center">
+                        <?php for ($n = 0; $n <= 10; $n++): ?>
+                        <input type="radio" class="btn-check" name="nps" id="nps<?= $n ?>" value="<?= $n ?>">
+                        <label class="btn btn-sm btn-outline-<?= $n <= 6 ? 'secondary' : ($n <= 8 ? 'warning' : 'success') ?>" style="min-width:2.3rem" for="nps<?= $n ?>"><?= $n ?></label>
+                        <?php endfor; ?>
+                    </div>
+                    <div class="d-flex justify-content-between small text-muted mt-1"><span><?= et('Nada probable') ?></span><span><?= et('Muy probable') ?></span></div>
+                </div>
 
                 <label class="form-label"><?= et('Cuéntanos (opcional)') ?></label>
                 <textarea name="comentario" class="form-control mb-2" rows="4" maxlength="1000"
