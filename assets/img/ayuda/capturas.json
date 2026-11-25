@@ -1,1 +1,16 @@
-{}
+{
+    "introduccion": [["dashboard.webp", "El dashboard: citas de hoy, próxima cita, ingresos del mes y médicos."]],
+    "migrar": [["migrar.webp", "Migrar desde otro sistema: los cuatro pasos y la carta para pedir tu información."]],
+    "busqueda-de-pacientes": [["pacientes-lista.webp", "La lista de pacientes con su búsqueda por nombre, teléfono o correo."]],
+    "ficha-del-paciente": [["ficha-paciente.webp", "La ficha del paciente: resumen, datos clínicos y la evolución de sus signos vitales."]],
+    "introduccion-agenda": [["agenda-citas.webp", "La agenda de citas con filtros por fecha, médico, estado y sucursal."]],
+    "calendario": [["calendario.webp", "El calendario en vista de mes; arrastra una cita para reagendarla."]],
+    "horarios": [["horarios-sucursal.webp", "Horario semanal de un médico, con la sucursal en la que atiende cada rango."]],
+    "sala-de-espera": [["sala-de-espera.webp", "La sala de espera: por llegar, en espera, en consulta y atendidas hoy."]],
+    "recetas": [["receta.webp", "Una receta con tu membrete, diagnóstico CIE-10 y QR de verificación."]],
+    "cobros": [["cobros.webp", "Cobros del mes: lo cobrado, lo pendiente y el ticket promedio."]],
+    "sucursales": [
+        ["sucursales.webp", "Sucursales y recursos: cada consultorio, cuarto, sillón o equipo con su sede."],
+        ["agenda-en-linea-sucursal.webp", "En la agenda en línea el paciente elige la sucursal y solo ve los horarios con un recurso libre."]
+    ]
+}
