@@ -153,12 +153,14 @@ function trial_dias_oferta(): int
 
 /**
  * ¿Este plan incluye prueba gratis sin tarjeta?
- * Hoy solo Profesional: es el plan que se quiere empujar, y regalar la prueba
- * en los tres quita la razón para subir de Básico.
+ * Desde nov-2026, los tres planes: quien elegía Básico o Clínica caía directo
+ * al pago, no pagaba y volvía a registrarse con otro correo para probar el
+ * Profesional (cuentas duplicadas). Ahora todos prueban 15 días con el plan
+ * que eligieron y pagan al terminar.
  */
 function plan_con_prueba(string $clave): bool
 {
-    return $clave === 'profesional';
+    return true;
 }
 
 /** Texto del botón de un plan en la landing, según lo que ese plan hace de verdad. */

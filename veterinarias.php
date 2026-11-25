@@ -258,7 +258,7 @@ html.motion .vt-dia.is-in .vt-paso-ic { transform: none; opacity: 1; }
         <div class="text-center mb-5" data-reveal>
             <span class="vt-eyebrow"><?= et('Planes') ?></span>
             <h2 class="vt-h2 mt-3"><?= et('Precios claros, con IVA incluido') ?></h2>
-            <p class="text-muted"><?= sprintf(et('Prueba el plan Profesional %d días gratis, sin tarjeta.'), trial_dias_oferta()) ?></p>
+            <p class="text-muted"><?= sprintf(et('Prueba cualquier plan %d días gratis, sin tarjeta.'), trial_dias_oferta()) ?></p>
         </div>
         <div class="row g-4 justify-content-center" data-stagger>
             <?php foreach (planes_mp() as $k => $pl): ?>

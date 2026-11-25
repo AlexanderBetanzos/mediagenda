@@ -139,7 +139,7 @@ $desde = '$' . number_format(min(array_column(planes_mp(), 'precio')), 0);
         <div class="text-center mb-5" data-reveal>
             <span class="es-eyebrow">Planes</span>
             <h2 class="es-h2 mt-3">Precios claros, con IVA incluido</h2>
-            <p class="text-muted">Prueba el plan Profesional <?= trial_dias_oferta() ?> días gratis, sin tarjeta.</p>
+            <p class="text-muted">Prueba cualquier plan <?= trial_dias_oferta() ?> días gratis, sin tarjeta.</p>
         </div>
         <div class="row g-4 justify-content-center" data-stagger>
             <?php foreach (planes_mp() as $k => $pl): ?>

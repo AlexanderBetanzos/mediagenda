@@ -12,8 +12,7 @@ if (is_logged_in()) {
 
 // La regla de quién tiene prueba vive en functions.php (plan_con_prueba),
 // porque la landing la necesita para rotular sus botones:
-//  - Profesional (o registro sin plan)  -> prueba de 15 días, sin tarjeta.
-//  - Básico / Clínica                   -> sin prueba, pago inmediato.
+//  - Cualquier plan (o registro sin plan) -> prueba de 15 días, sin tarjeta.
 $plan  = preg_replace('/[^a-z]/', '', (string) ($_GET['plan'] ?? $_POST['plan'] ?? ''));
 $planes = planes_mp();
 if (!isset($planes[$plan])) $plan = 'profesional';   // sin plan o inválido = Profesional
@@ -190,7 +189,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <i class="bi bi-gift"></i> <?= trial_dias_oferta() ?> días gratis · acceso completo · sin tarjeta
                     </span>
                     <h1 class="h4 mb-1"><?= et('Crea tu consultorio en') ?> <?= e(APP_NAME) ?></h1>
-                    <p class="text-muted small mb-0"><?= trial_dias_oferta() ?> días de prueba del plan <strong>Profesional</strong>: pacientes, citas, expediente, recetas, facturación y reportes.</p>
+                    <p class="text-muted small mb-0"><?= trial_dias_oferta() ?> días de prueba del plan <strong><?= e($planes[$plan]['nombre']) ?></strong>: pacientes, citas, expediente, recetas, facturación y reportes.</p>
                 <?php endif; ?>
             </div>
 
