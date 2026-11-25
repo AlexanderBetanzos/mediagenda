@@ -262,13 +262,15 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
                 // Impresoras y escáneres de esta computadora (recepción también los usa).
                 $itDisp = $li('dispositivos', BASE_URL . '/dispositivos/index', 'bi-printer', t('Impresoras y escáneres'));
                 if (modulo_activo('facturacion')) $caja[] = $itDisp; else $mas[] = $itDisp;
+                // Facturación electrónica (CFDI): timbres y datos fiscales, solo admin.
+                if ($esAdm) $caja[] = $li('timbres', BASE_URL . '/timbres/index', 'bi-patch-check', t('Facturación electrónica'));
                 // Administración (solo admin)
                 if ($esAdm) {
                     $admin[] = $li('medicos', BASE_URL . '/medicos/index', 'bi-person-vcard', t('Médicos'));
                     $admin[] = $li('usuarios', BASE_URL . '/usuarios/index', 'bi-person-badge', t('Personal'));
                     if (modulo_activo('presupuestos')) $admin[] = $li('servicios', BASE_URL . '/servicios/index', 'bi-tags', t('Catálogo de servicios'));
                     $admin[] = $li('configuracion', BASE_URL . '/configuracion/index', 'bi-gear', t('Configuración'));
-                    $mas[]   = $li('auditoria', BASE_URL . '/auditoria/index', 'bi-journal-text', t('Bitácora'));
+                    $admin[] = $li('auditoria', BASE_URL . '/auditoria/index', 'bi-journal-text', t('Bitácora'));
                     $admin[] = $li('suscripcion', BASE_URL . '/pagos/index', 'bi-stars', t('Mi suscripción'));
                 }
                 // Tu página y reseñas

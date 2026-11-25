@@ -30,7 +30,7 @@ switch ($f['tipo']) {
     case 'acceso': $where[] = "a.accion IN ('login','logout','login_fallido','sesion_expirada','2fa_ok','2fa_fallido','reset_solicitado','reset_hecho')"; break;
     case 'ver':    $where[] = "a.accion = 'ver'"; break;
     case 'crear':  $where[] = "(a.accion = 'crear' OR a.accion LIKE '%alta%' OR a.accion LIKE 'subir%')"; break;
-    case 'editar': $where[] = "(a.accion = 'editar' OR a.accion LIKE '%_estado' OR a.accion LIKE '%editar%')"; break;
+    case 'editar': $where[] = "(a.accion IN ('editar','cambio_auto') OR a.accion LIKE '%_estado' OR a.accion LIKE '%editar%')"; break;
     case 'borrar': $where[] = "(a.accion IN ('borrar','eliminar','borrar_bloqueado') OR a.accion LIKE '%borr%' OR a.accion LIKE '%elimin%')"; break;
 }
 if ($f['q'] !== '') {
@@ -82,6 +82,15 @@ function aud_frase(array $r, array $pacs): array
         'eliminar'         => ['bi-trash', '#dc2626', 'Eliminó ' . ($quien ?: $obj)],
         'borrar_bloqueado' => ['bi-shield-lock', '#d97706', 'Intentó borrar ' . ($quien ?: $obj) . ' (bloqueado: tiene historial)'],
     ];
+    if ($ac === 'cambio_auto') {
+        $mods = ['citas' => 'la agenda', 'pacientes' => 'pacientes', 'expediente' => 'el expediente', 'recetas' => 'recetas',
+                 'facturacion' => 'facturación', 'presupuestos' => 'presupuestos', 'corte' => 'el corte de caja', 'egresos' => 'egresos e ingresos',
+                 'configuracion' => 'la configuración', 'usuarios' => 'el personal', 'medicos' => 'médicos', 'servicios' => 'el catálogo de servicios',
+                 'inventario' => 'el inventario', 'pos' => 'el punto de venta', 'laboratorio' => 'laboratorio', 'timbres' => 'facturación electrónica',
+                 'documentos' => 'documentos', 'plantillas' => 'plantillas', 'vacunacion' => 'vacunación', 'hospitalizacion' => 'hospitalización'];
+        $m = $mods[$ent] ?? str_replace('_', ' ', $ent);
+        return ['bi-pencil-square', '#64748b', 'Guardó cambios en ' . $m . ($r['entidad_id'] ? ' (#' . $r['entidad_id'] . ')' : '')];
+    }
     if (isset($map[$ac])) return $map[$ac];
     $txt = ucfirst(str_replace('_', ' ', $ac)) . ($obj ? ' · ' . $obj : '');
     $col = preg_match('/borr|elimin|cancel/', $ac) ? '#dc2626' : (preg_match('/login|portal/', $ac) ? '#0891b2' : '#64748b');

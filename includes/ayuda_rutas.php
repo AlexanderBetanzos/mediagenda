@@ -104,8 +104,15 @@ function ayuda_textos_rutas(): array
     $T['ruta:auditoria/index'] = $g('Bitácora', 'Quién entró, qué expedientes abrió y qué cambió.', [
         'Filtra por fechas, por persona o por tipo (entradas, expedientes abiertos, altas, cambios, borrados).',
         'Da clic en el nombre de un paciente para abrir su expediente.',
+        'Todo lo que alguien guarda en el sistema queda registrado, con la hora y desde qué IP.',
         'Los registros no se pueden editar ni borrar: así sirven como evidencia.',
     ], ['El cierre de sesión por inactividad se ajusta en Configuración → Seguridad de la sesión.']);
+    $T['ruta:timbres/index'] = $g('Facturación electrónica', 'Tus timbres para facturar ante el SAT y tus datos fiscales.', [
+        'Arriba ves cuántas facturas puedes timbrar hoy: las incluidas en tu plan este mes y las de tus paquetes.',
+        'Elige un <b>paquete</b> y paga con Mercado Pago; los timbres se suman solos cuando se confirma el pago.',
+        'En <b>Tus datos fiscales</b> captura RFC, razón social, régimen y código postal como en tu Constancia de Situación Fiscal.',
+        'Sube tu <b>CSD</b> (.cer, .key y contraseña). No es la e.firma: se tramita gratis en el portal del SAT.',
+    ], ['Cada factura timbrada usa 1 timbre. Si el SAT la rechaza, el timbre regresa a tu saldo.']);
     $T['ruta:dispositivos/index'] = $g('Impresoras y escáneres', 'Conecta la impresora de tickets y el lector de esta computadora.', [
         '<b>Agregar impresora</b>: elige USB, Bluetooth o puerto serie y el navegador te muestra las que están conectadas.',
         'Si tu impresora ya está instalada en Windows o Mac, agrégala como <b>Impresora instalada en la PC</b>.',

@@ -23,6 +23,12 @@ define('BASE_URL', '');                          // '' si el sitio va en la raí
 // quien la tenga puede leer rutas del servidor y fragmentos de consultas.
 define('APP_DEBUG_TOKEN', '');                   // p. ej. 'k7Fq2xR9vT4mZ8pL'
 
+// --- Facturación electrónica: llave para cifrar los CSD ---
+// 64 caracteres al azar; NO la cambies después o habrá que volver a subir los CSD.
+// Genérala con:  php -r "echo bin2hex(random_bytes(32));"
+// Si no la defines, se crea sola en config/app.key la primera vez.
+define('APP_KEY', '');
+
 // --- Mercado Pago (opcional; vacío = pagos deshabilitados) ---
 // Pruebas: usa las credenciales de PRUEBA (Access Token que empieza con TEST-).
 // Producción: las credenciales productivas. Panel: https://www.mercadopago.com.mx/developers

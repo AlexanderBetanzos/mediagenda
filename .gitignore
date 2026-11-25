@@ -27,3 +27,6 @@ uploads/pacientes/*
 # Logos subidos por cada consultorio (no versionar el contenido)
 assets/logos/*
 !assets/logos/.gitkeep
+
+# Llave para cifrar los CSD (se genera sola en el servidor)
+config/app.key

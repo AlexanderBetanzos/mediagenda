@@ -466,6 +466,7 @@ function client_ip(): ?string
 function auditar(string $accion, ?string $entidad = null, ?int $entidad_id = null,
                  ?string $detalle = null, ?int $tenant_id = null, ?array $actor = null): void
 {
+    $GLOBALS['__auditado'] = true;   // bitacora_auto() ya no necesita registrar esta petición
     try {
         $u = $actor ?? current_user();
         db()->prepare(
@@ -568,6 +569,34 @@ function require_login(): void
     if (!defined('ALLOW_INACTIVE') && !es_superadmin() && tenant_bloqueado()) {
         redirect('/auth/suscripcion');
     }
+    // Bitácora completa: todo lo que se guarda queda registrado, aunque la
+    // pantalla no llame a auditar() con una acción propia.
+    static $bitacora = false;
+    if (!$bitacora && ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
+        $bitacora = true;
+        register_shutdown_function('bitacora_auto');
+    }
+}
+
+/**
+ * Registro automático de cualquier POST con sesión que no dejó su propia
+ * huella en la bitácora (acción 'cambio_auto'). Guarda la pantalla, la
+ * acción del formulario y el id afectado; nunca el contenido (datos clínicos).
+ */
+function bitacora_auto(): void
+{
+    if (!empty($GLOBALS['__auditado']) || !is_logged_in()) return;
+    $err = error_get_last();
+    if ($err && in_array($err['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR], true)) return;
+    $ruta = (string) parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
+    $base = rtrim(BASE_URL, '/');
+    if ($base !== '' && str_starts_with($ruta, $base)) $ruta = substr($ruta, strlen($base));
+    $ruta = preg_replace('/\.php$/', '', trim($ruta, '/')) ?: 'dashboard';
+    if (preg_match('#^(auth/ping|cie10/|dispositivos/codigo)#', $ruta)) return;   // consultas, no cambios
+    $modulo = explode('/', $ruta)[0];
+    $sub = $_POST['accion'] ?? $_POST['action'] ?? $_POST['op'] ?? '';
+    $id = (int) ($_POST['id'] ?? $_GET['id'] ?? $_POST['paciente_id'] ?? $_GET['paciente_id'] ?? 0);
+    auditar('cambio_auto', $modulo, $id ?: null, $ruta . (is_string($sub) && $sub !== '' ? ' · ' . mb_substr($sub, 0, 40) : ''));
 }
 
 /**
