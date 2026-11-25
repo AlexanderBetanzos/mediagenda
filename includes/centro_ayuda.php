@@ -98,6 +98,7 @@ function ca_secciones(): array
         ['administracion', 'Administración', 'bi-gear', [
             ['configuracion', 'Configuración', ['page:configuracion'], 'Datos del consultorio, marca, recordatorios y seguridad.'],
             ['medicos', 'Médicos', ['page:medicos', 'ruta:medicos/edit'], 'Cédula, especialidad, foto y horarios.'],
+            ['sucursales', 'Sucursales y recursos', ['ruta:sucursales/index'], 'Agenda por sede, consultorio, cuarto, sillón o equipo.'],
             ['personal-y-roles', 'Personal y roles', ['page:usuarios', 'ruta:usuarios/create', 'ruta:usuarios/edit'], 'Usuarios y permisos de tu equipo.'],
             ['mensajes-whatsapp', 'Mensajes de WhatsApp', ['ruta:mensajes/index'], 'WhatsApp incluido: saldo y paquetes.'],
             ['bitacora', 'Bitácora', ['ruta:auditoria/index'], 'Quién entró, qué vio y qué cambió.'],

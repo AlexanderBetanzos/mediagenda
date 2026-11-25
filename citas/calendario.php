@@ -28,6 +28,12 @@ include __DIR__ . '/../includes/header.php';
             <?php endforeach; ?>
         </select>
         <?php endif; ?>
+        <?php require_once __DIR__ . '/../includes/sucursales.php'; $calRecs = recursos(sucursal_actual() ?: null); if ($calRecs): ?>
+        <select id="filtroRecurso" class="form-select form-select-sm" style="width:auto">
+            <option value=""><?= et('Todos los recursos') ?></option>
+            <?php foreach ($calRecs as $r): ?><option value="<?= (int) $r['id'] ?>"><?= e($r['nombre']) ?></option><?php endforeach; ?>
+        </select>
+        <?php endif; ?>
         <a href="<?= BASE_URL ?>/citas/index" class="btn btn-sm btn-outline-secondary"><i class="bi bi-list-ul"></i> <?= et('Lista') ?></a>
         <a href="<?= BASE_URL ?>/citas/sala" class="btn btn-sm btn-outline-secondary"><i class="bi bi-hourglass-split"></i> <?= et('Sala') ?></a>
         <?php if (has_role('admin', 'medico')): ?>
@@ -67,7 +73,8 @@ include __DIR__ . '/../includes/header.php';
         nowIndicator: true, editable: true, eventStartEditable: true, eventDurationEditable: false,
         height: 'auto',
         events: function (info, ok, fail) {
-            const qs = new URLSearchParams({ start: info.startStr, end: info.endStr, medico: medico() });
+            const fr = document.getElementById('filtroRecurso');
+            const qs = new URLSearchParams({ start: info.startStr, end: info.endStr, medico: medico(), recurso: fr ? fr.value : '' });
             fetch(BASE + '/citas/feed?' + qs).then(r => r.json()).then(ok).catch(fail);
         },
         eventDidMount: function (arg) {
@@ -85,6 +92,8 @@ include __DIR__ . '/../includes/header.php';
     });
     cal.render();
     if (filtro) filtro.addEventListener('change', () => cal.refetchEvents());
+    const filtroR = document.getElementById('filtroRecurso');
+    if (filtroR) filtroR.addEventListener('change', () => cal.refetchEvents());
 })();
 </script>
 

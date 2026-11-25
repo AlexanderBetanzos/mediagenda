@@ -9,6 +9,8 @@ $pacientes = $pacientes->fetchAll();
 $medicos   = db()->prepare("SELECT id, nombre, especialidad FROM usuarios WHERE rol='medico' AND activo=1 AND consultorio_id = ? ORDER BY nombre");
 $medicos->execute([tenant_id()]);
 $medicos = $medicos->fetchAll();
+require_once __DIR__ . '/../includes/sucursales.php';
+$fSucs = sucursales(); $fRecs = recursos();
 ?>
 <div class="row g-3">
     <div class="col-md-6">
@@ -33,6 +35,29 @@ $medicos = $medicos->fetchAll();
             <?php endforeach; ?>
         </select>
     </div>
+    <?php if ($fSucs): ?>
+    <div class="col-md-6">
+        <label class="form-label"><?= et('Sucursal') ?></label>
+        <select name="sucursal_id" class="form-select" id="fSuc">
+            <option value=""><?= et('Según el horario del médico') ?></option>
+            <?php foreach ($fSucs as $s): ?><option value="<?= (int) $s['id'] ?>" <?= (int) ($c['sucursal_id'] ?? (sucursal_actual() ?: 0)) === (int) $s['id'] ? 'selected' : '' ?>><?= e($s['nombre']) ?></option><?php endforeach; ?>
+        </select>
+    </div>
+    <?php endif; ?>
+    <?php if ($fRecs): ?>
+    <div class="col-md-6">
+        <label class="form-label"><?= et('Recurso') ?> <span class="text-muted fw-normal small">(<?= et('consultorio, cuarto, sillón…') ?>)</span></label>
+        <select name="recurso_id" class="form-select" id="fRec">
+            <option value=""><?= et('Asignar el primero libre') ?></option>
+            <?php foreach ($fRecs as $r): ?><option value="<?= (int) $r['id'] ?>" data-suc="<?= (int) $r['sucursal_id'] ?>" <?= (int) ($c['recurso_id'] ?? 0) === (int) $r['id'] ? 'selected' : '' ?>><?= e($r['nombre']) ?><?= $r['sucursal'] ? ' · ' . e($r['sucursal']) : '' ?></option><?php endforeach; ?>
+        </select>
+    </div>
+    <script>
+    (function () { var s = document.getElementById('fSuc'), r = document.getElementById('fRec'); if (!s || !r) return;
+        function f() { [].forEach.call(r.options, function (o) { if (!o.value) return; var ds = o.dataset.suc; o.hidden = !!(s.value && ds !== '0' && ds !== s.value); if (o.hidden && o.selected) r.value = ''; }); }
+        s.addEventListener('change', f); f(); })();
+    </script>
+    <?php endif; ?>
     <div class="col-md-3">
         <label class="form-label"><?= et('Fecha') ?> *</label>
         <input type="date" name="fecha" class="form-control" required value="<?= $val('fecha', date('Y-m-d')) ?>">

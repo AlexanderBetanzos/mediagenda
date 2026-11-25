@@ -42,6 +42,30 @@ $agMedicos = db()->prepare(
 $agMedicos->execute([(int) $con['id']]);
 $agMedicos = $agMedicos->fetchAll();
 
+/* Sucursales: con más de una, el paciente elige primero dónde quiere su cita y
+   solo ve a los médicos que atienden ahí. */
+require_once __DIR__ . '/sucursales.php';
+asegurar_sucursales();
+$agSucs = sucursales((int) $con['id']);
+$agSucId = (int) ($_GET['s'] ?? $_POST['sucursal_id'] ?? 0);
+if (count($agSucs) === 1) $agSucId = (int) $agSucs[0]['id'];
+if ($agSucId && !in_array($agSucId, array_map(fn ($x) => (int) $x['id'], $agSucs), true)) $agSucId = 0;
+$agElegirSucursal = count($agSucs) > 1 && !$agSucId;
+if ($agSucId) {
+    $q = db()->prepare('SELECT DISTINCT medico_id FROM medico_horarios WHERE consultorio_id = ? AND (sucursal_id = ? OR sucursal_id IS NULL)');
+    $q->execute([(int) $con['id'], $agSucId]);
+    $enSuc = array_map('intval', $q->fetchAll(PDO::FETCH_COLUMN));
+    $agMedicos = array_values(array_filter($agMedicos, fn ($m) => in_array((int) $m['id'], $enSuc, true)));
+} elseif ($agElegirSucursal) {
+    $agMedicos = [];
+}
+/** ¿Ese horario sirve en la sucursal elegida y queda un recurso libre? */
+$agHuecoValido = function (int $med, string $fecha, string $h) use (&$agSucId, &$duracion): bool {
+    $sf = sucursal_de_franja($med, $fecha, $h);
+    if ($agSucId && $sf && $sf !== $agSucId) return false;
+    return recurso_asignar($agSucId ?: $sf, $fecha, $h, $duracion) !== null;
+};
+
 $agMedId = (int) ($_GET['m'] ?? $_POST['medico_id'] ?? 0);
 if (!$agMedId && count($agMedicos) === 1) { $agMedId = (int) $agMedicos[0]['id']; }
 
@@ -51,12 +75,13 @@ $agFecha = max($agFecha, date('Y-m-d'));
 $agFecha = min($agFecha, date('Y-m-d', strtotime("+$agMaxDias days")));
 
 $agHuecos = ($agMedId && $agFecha) ? agenda_huecos($agMedId, $agFecha, $duracion) : [];
+$agHuecos = array_values(array_filter($agHuecos, fn ($h) => $agHuecoValido($agMedId, $agFecha, $h)));
 
 // Días de la semana que atiende el médico (0=domingo), para pintar el calendario.
 $agDiasLab = [];
 if ($agMedId) {
     $st = db()->prepare('SELECT DISTINCT dia_semana FROM medico_horarios
-                         WHERE medico_id = ? AND consultorio_id = ?');
+                         WHERE medico_id = ? AND consultorio_id = ?' . ($agSucId ? ' AND (sucursal_id = ' . (int) $agSucId . ' OR sucursal_id IS NULL)' : ''));
     $st->execute([$agMedId, tenant_id()]);
     $agDiasLab = array_map('intval', $st->fetchAll(PDO::FETCH_COLUMN));
 }
@@ -81,7 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'reser
         $agError = t('El teléfono debe tener exactamente 10 dígitos (solo números).');
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $agError = t('Escribe un correo válido: ahí te enviamos la confirmación y tu acceso al portal.');
-    } elseif (!agenda_hora_disponible($agMedId, $agFecha, $hora, $duracion)) {
+    } elseif (!agenda_hora_disponible($agMedId, $agFecha, $hora, $duracion) || !$agHuecoValido($agMedId, $agFecha, $hora)) {
         // Se revalida SOLO por conflicto real (otra cita a esa hora), no por
         // "ya pasó la hora": si el paciente tardó en llenar el formulario, su
         // horario no debe invalidarse por eso.
@@ -117,6 +142,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'reser
             )->execute([(int) $con['id'], (int) $pac, $agMedId, $agFecha, $hora, $duracion,
                         mb_substr($motivo, 0, 255) ?: null, $token]);
             $citaId = (int) $pdo->lastInsertId();
+            // Sucursal y recurso (el primero libre de la sucursal).
+            $cSuc = $agSucId ?: sucursal_de_franja($agMedId, $agFecha, $hora);
+            $cRec = recurso_asignar($cSuc, $agFecha, $hora, $duracion);
+            if ($cSuc || $cRec) $pdo->prepare('UPDATE citas SET sucursal_id = ?, recurso_id = ? WHERE id = ?')->execute([$cSuc ?: null, $cRec ?: null, $citaId]);
             $pdo->commit();
         } catch (Throwable $e) {
             $pdo->rollBack();

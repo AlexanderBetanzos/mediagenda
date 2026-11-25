@@ -19,6 +19,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($c['medico_id'])   || !pertenece_al_tenant('usuarios', (int) $c['medico_id']))    $errores[] = 'Selecciona un médico.';
     if (empty($c['fecha']))       $errores[] = 'Indica la fecha.';
     if (empty($c['hora']))        $errores[] = 'Indica la hora.';
+    if (!$errores) {
+        require_once __DIR__ . '/../includes/sucursales.php';
+        [$cSuc, $cRec, $errRec] = cita_resolver_recurso($c, $id);
+        if ($errRec) $errores[] = $errRec;
+    }
 
     if (!$errores) {
         $stmt = db()->prepare(
@@ -32,6 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ($c['modalidad'] ?? '') === 'en_linea' ? 'en_linea' : 'presencial',
             $id, tenant_id(),
         ]);
+        db()->prepare('UPDATE citas SET sucursal_id = ?, recurso_id = ? WHERE id = ? AND consultorio_id = ?')->execute([$cSuc, $cRec, $id, tenant_id()]);
         flash('Cita actualizada.');
         redirect('/citas/index?desde=' . urlencode($c['fecha']));
     }

@@ -106,7 +106,7 @@ function trial_dias_restantes(): ?int
 function pertenece_al_tenant(string $tabla, int $id): bool
 {
     $permitidas = ['pacientes', 'usuarios', 'citas', 'consultas', 'recetas', 'facturas', 'archivos', 'productos',
-                   'servicios', 'presupuestos', 'hosp_estancias'];
+                   'servicios', 'presupuestos', 'hosp_estancias', 'recursos', 'sucursales'];
     if ($id <= 0 || !in_array($tabla, $permitidas, true)) return false;
     $st = db()->prepare("SELECT 1 FROM $tabla WHERE id = ? AND consultorio_id = ?");
     $st->execute([$id, tenant_id()]);

@@ -17,8 +17,14 @@ $medico = $_GET['medico'] ?? '';
 $where  = ['c.consultorio_id = ?', 'c.fecha BETWEEN ? AND ?'];
 $params = [tenant_id(), $ini, $fin];
 if ($medico !== '' && ctype_digit($medico)) { $where[] = 'c.medico_id = ?'; $params[] = (int) $medico; }
+require_once __DIR__ . '/../includes/sucursales.php';
+asegurar_sucursales();
+$fSuc = sucursales() ? sucursal_actual() : 0;
+if ($fSuc) { $where[] = '(c.sucursal_id = ? OR c.sucursal_id IS NULL)'; $params[] = $fSuc; }
+$fRec = (int) ($_GET['recurso'] ?? 0);
+if ($fRec) { $where[] = 'c.recurso_id = ?'; $params[] = $fRec; }
 
-$sql = "SELECT c.id, c.fecha, c.hora, c.duracion, c.estado, c.tipo, c.motivo, c.paciente_id,
+$sql = "SELECT c.id, c.fecha, c.hora, c.duracion, c.estado, c.tipo, c.motivo, c.paciente_id, c.recurso_id,
                p.nombre AS pac_nombre, p.apellidos AS pac_ape, u.nombre AS med_nombre
         FROM citas c
         JOIN pacientes p ON p.id = c.paciente_id
@@ -41,7 +47,7 @@ foreach ($st as $c) {
     $fin_ev = date('Y-m-d\TH:i:s', strtotime($inicio) + $dur * 60);
     $eventos[] = [
         'id'    => (int) $c['id'],
-        'title' => $c['pac_ape'] . ', ' . $c['pac_nombre'],
+        'title' => $c['pac_ape'] . ', ' . $c['pac_nombre'] . (!empty($c['recurso_id']) ? ' · ' . recurso_nombre((int) $c['recurso_id']) : ''),
         'start' => $inicio,
         'end'   => $fin_ev,
         'color' => $colores[$c['estado']] ?? '#6c757d',

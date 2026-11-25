@@ -18,6 +18,11 @@ if ($estado !== '' && array_key_exists($estado, ['programada'=>1,'confirmada'=>1
     $where[] = 'c.estado = ?'; $params[] = $estado;
 }
 if ($medico !== '' && ctype_digit($medico)) { $where[] = 'c.medico_id = ?'; $params[] = (int) $medico; }
+require_once __DIR__ . '/../includes/sucursales.php';
+asegurar_sucursales();
+$aSucs = sucursales();
+$aSuc = $aSucs ? sucursal_actual() : 0;
+if ($aSuc) { $where[] = '(c.sucursal_id = ? OR c.sucursal_id IS NULL)'; $params[] = $aSuc; }
 
 $sql = "SELECT c.*, p.nombre AS pac_nombre, p.apellidos AS pac_ape, p.telefono AS pac_tel, COALESCE(p.foto_mime, p.foto) AS pac_foto, u.nombre AS med_nombre
         FROM citas c
@@ -43,7 +48,14 @@ $activo = 'citas';
 include __DIR__ . '/../includes/header.php';
 ?>
 <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex align-items-center gap-2 flex-wrap">
     <h1 class="h3 mb-0"><i class="bi bi-calendar-check text-brand"></i> <?= et('Agenda de citas') ?></h1>
+    <?php if (count($aSucs) > 1): ?>
+    <form class="d-inline"><?php foreach (['desde', 'hasta', 'estado', 'medico'] as $k) if (isset($_GET[$k])) echo '<input type="hidden" name="' . $k . '" value="' . e((string) $_GET[$k]) . '">'; ?>
+        <select name="sucursal" class="form-select form-select-sm" onchange="this.form.submit()"><option value="0"><?= et('Todas las sucursales') ?></option>
+        <?php foreach ($aSucs as $s): ?><option value="<?= (int) $s['id'] ?>" <?= $aSuc === (int) $s['id'] ? 'selected' : '' ?>><?= e($s['nombre']) ?></option><?php endforeach; ?></select></form>
+    <?php endif; ?>
+    </div>
     <div class="d-flex gap-2">
         <a href="<?= BASE_URL ?>/citas/sala" class="btn btn-outline-secondary"><i class="bi bi-hourglass-split"></i> <?= et('Sala') ?></a>
         <a href="<?= BASE_URL ?>/citas/calendario" class="btn btn-outline-secondary"><i class="bi bi-calendar3"></i> <?= et('Calendario') ?></a>
@@ -144,7 +156,7 @@ echo ui_stats([
                             </div>
                         </div>
                     </td>
-                    <td class="small"><?= e($c['med_nombre']) ?></td>
+                    <td class="small"><?= e($c['med_nombre']) ?><?php if (!empty($c['recurso_id'])): ?><br><span class="badge text-bg-light border"><i class="bi bi-door-open"></i> <?= e(recurso_nombre((int) $c['recurso_id'])) ?></span><?php endif; ?></td>
                     <?php if ($usaTipo): ?><td><span class="badge bg-<?= $c['tipo']==='dental'?'info':'primary' ?>"><?= $c['tipo']==='dental'?et('Dental'):et('Médica') ?></span></td><?php endif; ?>
                     <td><?= e($c['motivo'] ?: '—') ?></td>
                     <td><span class="badge bg-<?= estado_badge($c['estado']) ?>"><?= estado_label($c['estado']) ?></span>

@@ -14,6 +14,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($c['medico_id'])   || !pertenece_al_tenant('usuarios', (int) $c['medico_id']))    $errores[] = 'Selecciona un médico.';
     if (empty($c['fecha']))       $errores[] = 'Indica la fecha.';
     if (empty($c['hora']))        $errores[] = 'Indica la hora.';
+    if (!$errores) {
+        require_once __DIR__ . '/../includes/sucursales.php';
+        [$cSuc, $cRec, $errRec] = cita_resolver_recurso($c);
+        if ($errRec) $errores[] = $errRec;
+    }
 
     if (!$errores) {
         // Citas recurrentes: genera una serie a partir de la primera fecha.
@@ -38,7 +43,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 trim($c['notas'] ?? '') ?: null,
                 ($c['modalidad'] ?? '') === 'en_linea' ? 'en_linea' : 'presencial',
             ]);
-            if ($i === 0) { $primera = (int) db()->lastInsertId(); }
+            $nueva = (int) db()->lastInsertId();
+            if ($i === 0) { $primera = $nueva; }
+            if ($cSuc || $cRec) {
+                // Repeticiones: el mismo recurso si está libre ese día; si no, el primero libre.
+                $r = $cRec;
+                if ($i > 0 && $r && !recurso_libre($r, $fecha, substr($c['hora'], 0, 5), (int) ($c['duracion'] ?: 30), $nueva)) $r = recurso_asignar($cSuc, $fecha, substr($c['hora'], 0, 5), (int) ($c['duracion'] ?: 30)) ?: null;
+                db()->prepare('UPDATE citas SET sucursal_id = ?, recurso_id = ? WHERE id = ?')->execute([$cSuc, $r, $nueva]);
+            }
             $creadas++;
             $fecha = date('Y-m-d', strtotime($fecha . ' ' . $intervalos[$repetir]));
         }

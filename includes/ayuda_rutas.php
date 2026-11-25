@@ -144,6 +144,13 @@ function ayuda_textos_rutas(): array
         'Da clic en <b>Imprimir / PDF</b>; en el diálogo puedes guardarlo como PDF.',
         'Cada nota muestra su sello de integridad y, si se firmó, los datos de la e.firma.',
     ], ['Cada impresión queda registrada en la Bitácora.']);
+    $T['ruta:sucursales/index'] = $g('Sucursales y recursos', 'Agenda por sede y por consultorio, cuarto, sillón o equipo.', [
+        'Da de alta tus <b>sucursales</b> (nombre, dirección, teléfono).',
+        'Agrega los <b>recursos</b> de cada una: Consultorio 1, Sillón 2, Cuarto de infusión, Ultrasonido…',
+        'En <b>Horarios</b> indica en qué sucursal atiende cada médico en cada rango.',
+        'Al agendar eliges el recurso (o se asigna el primero libre). Nadie puede ocupar el mismo recurso dos veces a la misma hora, ni al arrastrar en el calendario.',
+        'En la agenda en línea el paciente elige la sucursal y solo ve horarios con un recurso libre.',
+    ], ['Si no das de alta sucursales ni recursos, la agenda funciona igual que siempre.']);
     $T['ruta:dispositivos/index'] = $g('Impresoras y escáneres', 'Conecta la impresora de tickets y el lector de esta computadora.', [
         '<b>Agregar impresora</b>: elige USB, Bluetooth o puerto serie y el navegador te muestra las que están conectadas.',
         'Si tu impresora ya está instalada en Windows o Mac, agrégala como <b>Impresora instalada en la PC</b>.',

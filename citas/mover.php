@@ -30,10 +30,18 @@ if (!$id || !$df || $df->format('Y-m-d') !== $fecha || !$th) {
 if (strlen($hora) === 5) { $hora .= ':00'; }
 
 // Solo citas del consultorio activo.
-$st = db()->prepare('SELECT id FROM citas WHERE id = ? AND consultorio_id = ?');
+$st = db()->prepare('SELECT * FROM citas WHERE id = ? AND consultorio_id = ?');
 $st->execute([$id, tenant_id()]);
-if (!$st->fetchColumn()) {
+$cita = $st->fetch();
+if (!$cita) {
     http_response_code(404); echo json_encode(['ok' => false, 'error' => 'Cita no encontrada']); exit;
+}
+// El recurso (consultorio, sillón…) no puede quedar empalmado con otra cita.
+if (!empty($cita['recurso_id'])) {
+    require_once __DIR__ . '/../includes/sucursales.php';
+    if (!recurso_libre((int) $cita['recurso_id'], $fecha, substr($hora, 0, 5), (int) ($cita['duracion'] ?: 30), $id)) {
+        http_response_code(409); echo json_encode(['ok' => false, 'error' => recurso_nombre((int) $cita['recurso_id']) . ' ya está ocupado a esa hora.']); exit;
+    }
 }
 
 db()->prepare('UPDATE citas SET fecha = ?, hora = ? WHERE id = ? AND consultorio_id = ?')

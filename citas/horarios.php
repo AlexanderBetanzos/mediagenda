@@ -8,6 +8,9 @@ require_once __DIR__ . '/../includes/functions.php';
 require_login();
 require_modulo('citas');
 if (!has_role('admin', 'medico')) { http_response_code(403); die('Solo admin o médico.'); }
+require_once __DIR__ . '/../includes/sucursales.php';
+asegurar_sucursales();
+$hSucs = sucursales();
 
 $u      = current_user();
 $esAdmin = has_role('admin');
@@ -30,18 +33,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         db()->prepare('DELETE FROM medico_horarios WHERE medico_id = ? AND consultorio_id = ?')
             ->execute([$medicoId, tenant_id()]);
         $ins = db()->prepare(
-            'INSERT INTO medico_horarios (consultorio_id, medico_id, dia_semana, hora_inicio, hora_fin) VALUES (?,?,?,?,?)'
+            'INSERT INTO medico_horarios (consultorio_id, medico_id, dia_semana, hora_inicio, hora_fin, sucursal_id) VALUES (?,?,?,?,?,?)'
         );
+        $sucOk = array_map(fn ($x) => (int) $x['id'], $hSucs);
         // Cada día puede tener VARIOS rangos (mañana/tarde), y distintos por día.
         // Llegan como dia[<d>][inicio][] y dia[<d>][fin][] (arreglos paralelos).
         foreach (($_POST['dia'] ?? []) as $d => $r) {
             if (!isset($dias[(int) $d])) continue;
             $inis = (array) ($r['inicio'] ?? []);
             $fins = (array) ($r['fin'] ?? []);
+            $sucsP = (array) ($r['suc'] ?? []);
             foreach ($inis as $i => $ini) {
                 $fin = $fins[$i] ?? '';
+                $su = (int) ($sucsP[$i] ?? 0);
                 if ($ini !== '' && $fin !== '' && $fin > $ini) {
-                    $ins->execute([tenant_id(), $medicoId, (int) $d, $ini, $fin]);
+                    $ins->execute([tenant_id(), $medicoId, (int) $d, $ini, $fin, in_array($su, $sucOk, true) ? $su : null]);
                 }
             }
         }
@@ -82,7 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // $hor[$dia] = lista de franjas [ ['hora_inicio'=>, 'hora_fin'=>], ... ]
 $hor = [];
 if ($medicoId) {
-    $st = db()->prepare('SELECT dia_semana, hora_inicio, hora_fin FROM medico_horarios
+    $st = db()->prepare('SELECT dia_semana, hora_inicio, hora_fin, sucursal_id FROM medico_horarios
                          WHERE medico_id = ? AND consultorio_id = ? ORDER BY dia_semana, hora_inicio');
     $st->execute([$medicoId, tenant_id()]);
     foreach ($st as $r) { $hor[(int) $r['dia_semana']][] = $r; }
@@ -149,6 +155,7 @@ include __DIR__ . '/../includes/header.php';
                                 <div class="col"><input type="time" name="dia[<?= $d ?>][inicio][]" class="form-control form-control-sm" value="<?= e(substr($h['hora_inicio'], 0, 5)) ?>"></div>
                                 <div class="col-auto text-muted small">a</div>
                                 <div class="col"><input type="time" name="dia[<?= $d ?>][fin][]" class="form-control form-control-sm" value="<?= e(substr($h['hora_fin'], 0, 5)) ?>"></div>
+                                <?php if ($hSucs): ?><div class="col-4"><select name="dia[<?= $d ?>][suc][]" class="form-select form-select-sm hor-suc"><option value=""><?= et('Sucursal…') ?></option><?php foreach ($hSucs as $s): ?><option value="<?= (int) $s['id'] ?>" <?= (int) ($h['sucursal_id'] ?? 0) === (int) $s['id'] ? 'selected' : '' ?>><?= e($s['nombre']) ?></option><?php endforeach; ?></select></div><?php endif; ?>
                                 <div class="col-auto"><button type="button" class="btn btn-sm btn-outline-danger py-0 hor-del"><i class="bi bi-x"></i></button></div>
                             </div>
                             <?php endforeach; endif; ?>
@@ -164,6 +171,7 @@ include __DIR__ . '/../includes/header.php';
                             <div class="col"><input type="time" class="form-control form-control-sm hor-ini" value="09:00"></div>
                             <div class="col-auto text-muted small">a</div>
                             <div class="col"><input type="time" class="form-control form-control-sm hor-fin" value="14:00"></div>
+                            <?php if ($hSucs): ?><div class="col-4"><select class="form-select form-select-sm hor-suc"><option value=""><?= et('Sucursal…') ?></option><?php foreach ($hSucs as $s): ?><option value="<?= (int) $s['id'] ?>"><?= e($s['nombre']) ?></option><?php endforeach; ?></select></div><?php endif; ?>
                             <div class="col-auto"><button type="button" class="btn btn-sm btn-outline-danger py-0 hor-del"><i class="bi bi-x"></i></button></div>
                         </div>
                     </template>
@@ -237,6 +245,7 @@ include __DIR__ . '/../includes/header.php';
             var d = dia.getAttribute('data-dia');
             fila.querySelector('.hor-ini').name = 'dia[' + d + '][inicio][]';
             fila.querySelector('.hor-fin').name = 'dia[' + d + '][fin][]';
+            var hs = fila.querySelector('.hor-suc'); if (hs) hs.name = 'dia[' + d + '][suc][]';
             cont.appendChild(fila);
             return;
         }

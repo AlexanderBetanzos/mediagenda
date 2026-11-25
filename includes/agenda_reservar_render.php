@@ -64,7 +64,18 @@ $agAccion = $agAccion ?? '';
             <div class="alert alert-info py-2 small"><i class="bi bi-info-circle"></i> <?= e(cfg('agenda_online_aviso')) ?></div>
         <?php endif; ?>
 
-        <?php if (!$agMedicos): ?>
+        <?php if (!empty($agElegirSucursal)): ?>
+            <label class="form-label small fw-semibold"><?= et('¿En qué sucursal quieres tu cita?') ?></label>
+            <div class="ag-meds">
+                <?php foreach ($agSucs as $s): ?>
+                <a class="ag-med text-decoration-none" href="?<?= e(http_build_query(['c' => $agSlug, 's' => (int) $s['id']])) ?>">
+                    <span class="ini"><i class="bi bi-geo-alt"></i></span>
+                    <span class="txt"><b><?= e($s['nombre']) ?></b><?php if ($s['direccion']): ?><small><?= e($s['direccion']) ?></small><?php endif; ?></span>
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+                <?php endforeach; ?>
+            </div>
+        <?php elseif (!$agMedicos): ?>
             <div class="alert alert-warning mb-0">
                 <?= et('Por ahora no hay horarios publicados. Comunícate con el consultorio.') ?>
             </div>
@@ -74,6 +85,11 @@ $agAccion = $agAccion ?? '';
         <form method="get" action="<?= e($agAccion) ?>" class="mb-4" id="agForm">
             <input type="hidden" name="c" value="<?= e($agSlug) ?>">
             <input type="hidden" name="f" id="agFechaHidden" value="<?= e($agFecha) ?>">
+            <?php if (!empty($agSucId)): ?><input type="hidden" name="s" value="<?= (int) $agSucId ?>"><?php endif; ?>
+            <?php if ($agMedId && count($agMedicos) <= 8): ?><input type="hidden" name="m" value="<?= (int) $agMedId ?>"><?php endif; ?>
+            <?php if (count($agSucs ?? []) > 1): $sn = ''; foreach ($agSucs as $s) if ((int) $s['id'] === (int) $agSucId) $sn = $s['nombre']; ?>
+            <div class="small mb-2"><i class="bi bi-geo-alt"></i> <?= e($sn) ?> · <a href="?<?= e(http_build_query(['c' => $agSlug])) ?>"><?= et('cambiar sucursal') ?></a></div>
+            <?php endif; ?>
             <label class="form-label small fw-semibold"><?= et('Selecciona con quién deseas agendar tu cita') ?></label>
             <?php if (count($agMedicos) <= 8): ?>
             <div class="ag-meds">
@@ -122,6 +138,7 @@ $agAccion = $agAccion ?? '';
             <input type="hidden" name="c" value="<?= e($agSlug) ?>">
             <input type="hidden" name="accion" value="reservar">
             <input type="hidden" name="medico_id" value="<?= $agMedId ?>">
+            <?php if (!empty($agSucId)): ?><input type="hidden" name="sucursal_id" value="<?= (int) $agSucId ?>"><?php endif; ?>
             <input type="hidden" name="fecha" value="<?= e($agFecha) ?>">
             <?php /* Trampa para robots: invisible para una persona. */ ?>
             <input type="text" name="website" tabindex="-1" autocomplete="off"
