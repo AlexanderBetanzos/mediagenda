@@ -111,8 +111,62 @@ function totp_generar_respaldo(int $uid): array
 function login_bloqueado(): bool
 {
     try {
-        $st = db()->prepare("SELECT COUNT(*) FROM auditoria WHERE ip = ? AND accion IN ('login_fallido','2fa_fallido') AND creado_en > NOW() - INTERVAL 15 MINUTE");
+        $st = db()->prepare("SELECT COUNT(*) FROM auditoria WHERE ip = ? AND accion IN ('login_fallido','2fa_fallido','plataforma_login_fallido') AND creado_en > NOW() - INTERVAL 15 MINUTE");
         $st->execute([client_ip()]);
         return (int) $st->fetchColumn() >= 8;
     } catch (Throwable $e) { return false; }
+}
+
+/* ------------------------------------------------------------------ *
+ *  2FA de la consola de plataforma (tabla plataforma_admins)
+ * ------------------------------------------------------------------ */
+function asegurar_totp_plataforma(): void
+{
+    static $hecho = false;
+    if ($hecho) return;
+    $hecho = true;
+    try {
+        if (!db()->query("SHOW COLUMNS FROM plataforma_admins LIKE 'totp_secret'")->fetch()) {
+            db()->exec('ALTER TABLE plataforma_admins ADD COLUMN totp_secret TEXT NULL, ADD COLUMN totp_activo TINYINT(1) NOT NULL DEFAULT 0, ADD COLUMN totp_respaldo TEXT NULL');
+        }
+    } catch (Throwable $e) {}
+}
+
+function totp_plataforma(int $id): ?array
+{
+    asegurar_totp_plataforma();
+    $st = db()->prepare('SELECT id, nombre, email, totp_secret, totp_activo, totp_respaldo FROM plataforma_admins WHERE id = ?');
+    $st->execute([$id]);
+    return $st->fetch() ?: null;
+}
+
+function totp_verificar_plataforma(int $id, string $codigo): bool
+{
+    $u = totp_plataforma($id);
+    if (!$u || !$u['totp_activo']) return false;
+    $sec = cfdi_descifrar((string) $u['totp_secret']);
+    if ($sec && totp_valido($sec, $codigo)) return true;
+    $c = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $codigo));
+    if (strlen($c) !== 8) return false;
+    $lista = json_decode((string) $u['totp_respaldo'], true) ?: [];
+    foreach ($lista as $i => $h) {
+        if (password_verify($c, $h)) {
+            unset($lista[$i]);
+            db()->prepare('UPDATE plataforma_admins SET totp_respaldo = ? WHERE id = ?')->execute([json_encode(array_values($lista)), $id]);
+            return true;
+        }
+    }
+    return false;
+}
+
+function totp_respaldo_plataforma(int $id): array
+{
+    $vis = []; $hash = [];
+    for ($i = 0; $i < 8; $i++) {
+        $c = strtoupper(substr(b32_encode(random_bytes(5)), 0, 8));
+        $vis[] = substr($c, 0, 4) . '-' . substr($c, 4);
+        $hash[] = password_hash($c, PASSWORD_DEFAULT);
+    }
+    db()->prepare('UPDATE plataforma_admins SET totp_respaldo = ? WHERE id = ?')->execute([json_encode($hash), $id]);
+    return $vis;
 }

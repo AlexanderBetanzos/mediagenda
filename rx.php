@@ -12,6 +12,7 @@
  */
 require_once __DIR__ . '/includes/functions.php';
 require_once __DIR__ . '/includes/comprobante.php';
+require_once __DIR__ . '/includes/ece.php';
 asegurar_recetas();
 header('X-Robots-Tag: noindex, nofollow');
 header('Referrer-Policy: no-referrer');

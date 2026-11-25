@@ -127,6 +127,12 @@ function receta_documento(array $r, array $items, bool $conNotas = true): string
                 <div style="border-top:1px solid #334155;width:260px;max-width:100%;margin:0 auto"></div>
                 <div class="small mt-1"><b><?= e($r['med_nombre']) ?></b><?= $extra['cedula'] !== '' ? ' · ' . et('Céd. Prof.') . ' ' . e($extra['cedula']) : '' ?></div>
                 <div class="small text-muted"><?= et('Firma') ?></div>
+                <?php if (!empty($r['firma']) && function_exists('ece_estado_firma_receta')):
+                    $fe = ece_estado_firma_receta($r, $items); ?>
+                <div class="small mt-1" style="color:<?= $fe === 'valida' ? '#15803d' : '#dc2626' ?>">
+                    <?= $fe === 'valida' ? '<i class="bi bi-pen"></i> ' . et('Firmada electrónicamente con e.firma') . ' · ' . et('certificado') . ' ' . e($r['firma_cert']) . ' · ' . e(fmt_fecha($r['firma_en'])) : et('Firma electrónica no válida') ?>
+                </div>
+                <?php endif; ?>
             </div>
         </div>
         <div class="pie-doc"><?= e(marca_nombre()) ?><?= cfg('telefono') ? ' · ' . e(cfg('telefono')) : '' ?> · <?= $folio ?></div>

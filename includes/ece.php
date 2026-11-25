@@ -31,6 +31,11 @@ function asegurar_ece(): void
         if (!in_array('firma', $cols, true))      $add[] = 'ADD COLUMN firma TEXT NULL, ADD COLUMN firma_cert VARCHAR(24) NULL, ADD COLUMN firma_en DATETIME NULL, ADD COLUMN firma_por INT NULL';
         if ($add) $pdo->exec('ALTER TABLE consultas ' . implode(', ', $add));
     } catch (Throwable $e) { /* sin permisos de DDL: todo sigue funcionando sin sello */ }
+    try {
+        if (!$pdo->query("SHOW COLUMNS FROM recetas LIKE 'firma'")->fetch()) {
+            $pdo->exec('ALTER TABLE recetas ADD COLUMN firma TEXT NULL, ADD COLUMN firma_cert VARCHAR(24) NULL, ADD COLUMN firma_en DATETIME NULL, ADD COLUMN firma_por INT NULL');
+        }
+    } catch (Throwable $e) {}
     $pdo->exec("CREATE TABLE IF NOT EXISTS consulta_aclaraciones (
         id INT AUTO_INCREMENT PRIMARY KEY,
         consultorio_id INT NOT NULL,
@@ -239,4 +244,62 @@ function ece_insignias(array $c): string
     if ($f === 'valida') $h .= '<span class="badge text-bg-success" title="' . e(t('Firmada con e.firma, certificado') . ' ' . $c['firma_cert'] . ' · ' . fmt_fecha($c['firma_en'])) . '"><i class="bi bi-pen"></i> ' . et('Firmada') . '</span>';
     elseif ($f === 'invalida') $h .= '<span class="badge text-bg-danger"><i class="bi bi-pen"></i> ' . et('Firma no válida') . '</span>';
     return $h;
+}
+
+/* ------------------------------------------------------------------ *
+ *  Firma de recetas con e.firma
+ * ------------------------------------------------------------------ */
+
+/** Contenido canónico de la receta: encabezado + medicamentos (lo que la firma protege). */
+function ece_receta_canon(array $r, array $items): string
+{
+    usort($items, fn ($a, $b) => (int) $a['id'] <=> (int) $b['id']);
+    $meds = array_map(function ($i) {
+        $o = $i; unset($o['id'], $o['receta_id']); ksort($o);
+        return array_map(fn ($v) => $v === null ? null : (string) $v, $o);
+    }, $items);
+    return json_encode([
+        'id' => (string) $r['id'], 'consultorio_id' => (string) $r['consultorio_id'], 'paciente_id' => (string) $r['paciente_id'],
+        'medico_id' => (string) $r['medico_id'], 'fecha' => (string) $r['fecha'], 'diagnostico' => $r['diagnostico'] ?? null,
+        'indicaciones' => $r['indicaciones'] ?? null, 'items' => $meds,
+    ], JSON_UNESCAPED_UNICODE);
+}
+
+function ece_receta_items(int $recetaId): array
+{
+    $st = db()->prepare('SELECT * FROM receta_items WHERE receta_id = ? ORDER BY id');
+    $st->execute([$recetaId]);
+    return $st->fetchAll();
+}
+
+function ece_firmar_receta(int $recetaId, int $usuarioId, string $pass): void
+{
+    asegurar_ece();
+    $ef = ece_efirma($usuarioId);
+    if (!$ef) throw new RuntimeException('Primero sube tu e.firma en "Mi firma electrónica".');
+    if (!empty($ef['hasta']) && $ef['hasta'] < date('Y-m-d')) throw new RuntimeException('Tu e.firma está vencida.');
+    $st = db()->prepare('SELECT * FROM recetas WHERE id = ? AND consultorio_id = ?');
+    $st->execute([$recetaId, tenant_id()]);
+    $r = $st->fetch();
+    if (!$r) throw new RuntimeException('Receta no encontrada.');
+    if ((int) $r['medico_id'] !== $usuarioId) throw new RuntimeException('Solo el médico que emitió la receta puede firmarla.');
+    if (!empty($r['firma'])) throw new RuntimeException('Esta receta ya está firmada.');
+    $key = cfdi_descifrar((string) $ef['key_enc']);
+    $pk = $key !== null ? @openssl_pkey_get_private(cfdi_pem($key, 'ENCRYPTED PRIVATE KEY'), $pass) : false;
+    if (!$pk) throw new RuntimeException('Contraseña de la e.firma incorrecta.');
+    $sig = '';
+    if (!openssl_sign(ece_receta_canon($r, ece_receta_items($recetaId)), $sig, $pk, OPENSSL_ALGO_SHA256)) throw new RuntimeException('No se pudo firmar.');
+    db()->prepare('UPDATE recetas SET firma = ?, firma_cert = ?, firma_en = NOW(), firma_por = ? WHERE id = ? AND consultorio_id = ? AND firma IS NULL')
+        ->execute([base64_encode($sig), $ef['no_cert'], $usuarioId, $recetaId, tenant_id()]);
+}
+
+/** 'valida' | 'invalida' | 'sin_firma' */
+function ece_estado_firma_receta(array $r, array $items): string
+{
+    if (empty($r['firma'])) return 'sin_firma';
+    $st = db()->prepare('SELECT cer FROM medico_efirma WHERE usuario_id = ?');
+    $st->execute([(int) $r['firma_por']]);
+    $cer = $st->fetchColumn();
+    if (!$cer) return 'invalida';
+    return openssl_verify(ece_receta_canon($r, $items), (string) base64_decode($r['firma']), cfdi_pem((string) base64_decode($cer), 'CERTIFICATE'), OPENSSL_ALGO_SHA256) === 1 ? 'valida' : 'invalida';
 }

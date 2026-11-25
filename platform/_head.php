@@ -97,6 +97,7 @@ if ($esSuper) {
             <ul class="dropdown-menu dropdown-menu-end">
                 <li class="dropdown-header"><?= e($pa['nombre'] ?? '') ?><br><small class="text-muted"><?= $esSuper ? et('Dueño del sistema') : et('Socio') ?></small></li>
                 <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="<?= BASE_URL ?>/platform/cuenta"><i class="bi bi-shield-lock me-2"></i><?= et('Mi cuenta y 2FA') ?></a></li>
                 <li><a class="dropdown-item" href="<?= BASE_URL ?>/platform/logout"><i class="bi bi-box-arrow-right me-2"></i><?= et('Cerrar sesión') ?></a></li>
             </ul>
         </div>

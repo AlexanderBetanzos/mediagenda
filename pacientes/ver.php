@@ -513,7 +513,13 @@ echo ui_stats($__est); ?>
 
 <?php /* Resumen clínico: lo primero son las ALERGIAS, a propósito. Es el dato
          que, si se pasa por alto, hace daño de verdad. */ ?>
-<?php asegurar_identificacion(); if (!es_veterinaria() && ($faltaId = paciente_faltantes_nom024($p))): ?>
+<?php asegurar_identificacion(); if (!es_veterinaria() && array_key_exists('consent_datos_en', $p) && empty($p['consent_datos_en'])): ?>
+<div class="alert alert-light border small py-2 d-flex flex-wrap gap-2 align-items-center">
+    <i class="bi bi-file-earmark-x text-danger"></i> <?= et('Falta registrar el consentimiento del paciente para el tratamiento de sus datos.') ?>
+    <a href="<?= BASE_URL ?>/pacientes/edit?id=<?= $id ?>" class="ms-auto"><?= et('Registrar') ?></a>
+</div>
+<?php endif; ?>
+<?php if (!es_veterinaria() && ($faltaId = paciente_faltantes_nom024($p))): ?>
 <div class="alert alert-light border small py-2 d-flex flex-wrap gap-2 align-items-center">
     <i class="bi bi-person-vcard text-warning"></i> <?= et('Datos de identificación incompletos') ?>: <?= e(implode(', ', $faltaId)) ?>.
     <a href="<?= BASE_URL ?>/pacientes/edit?id=<?= $id ?>" class="ms-auto"><?= et('Completar') ?></a>

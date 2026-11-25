@@ -1629,7 +1629,8 @@ function asegurar_identificacion(): void
         $cols = array_column(db()->query('SHOW COLUMNS FROM pacientes')->fetchAll(), 'Field');
         $add = [];
         foreach (['primer_apellido' => 'VARCHAR(100) NULL', 'segundo_apellido' => 'VARCHAR(100) NULL', 'entidad_nacimiento' => 'VARCHAR(2) NULL',
-                  'nacionalidad' => "VARCHAR(3) NULL", 'curp_motivo' => 'VARCHAR(20) NULL'] as $c => $def) {
+                  'nacionalidad' => "VARCHAR(3) NULL", 'curp_motivo' => 'VARCHAR(20) NULL',
+                  'consent_datos_en' => 'DATETIME NULL', 'consent_datos_por' => 'INT NULL', 'consent_compartir' => 'TINYINT(1) NOT NULL DEFAULT 0'] as $c => $def) {
             if (!in_array($c, $cols, true)) $add[] = "ADD COLUMN $c $def";
         }
         if ($add) db()->exec('ALTER TABLE pacientes ' . implode(', ', $add));
@@ -1720,6 +1721,17 @@ function paciente_campos_identificacion(array $post): array
         'curp_motivo'        => isset(curp_motivos()[$post['curp_motivo'] ?? '']) && trim((string) ($post['curp'] ?? '')) === '' ? $post['curp_motivo'] : null,
     ];
     if ($pa !== '') $out['apellidos'] = trim($pa . ' ' . $sa);
+    // Consentimiento informado para el tratamiento de datos (se guarda la fecha
+    // en que se marcó por primera vez y quién lo registró).
+    if (in_array('consent_datos_en', $cols, true) && array_key_exists('consent_form', $post)) {
+        if (!empty($post['consent_datos'])) {
+            $out['consent_datos_en']  = !empty($post['consent_datos_en']) ? $post['consent_datos_en'] : date('Y-m-d H:i:s');
+            $out['consent_datos_por'] = !empty($post['consent_datos_por']) ? (int) $post['consent_datos_por'] : (int) (current_user()['id'] ?? 0);
+        } else {
+            $out['consent_datos_en'] = null; $out['consent_datos_por'] = null;
+        }
+        $out['consent_compartir'] = !empty($post['consent_compartir']) ? 1 : 0;
+    }
     return $out;
 }
 

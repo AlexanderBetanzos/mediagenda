@@ -5,7 +5,21 @@
  * arranque solo lo puede hacer quien ya es súper-admin del sistema (seguridad).
  */
 require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/totp.php';
 ensure_plataforma_admins_table();
+asegurar_totp_plataforma();
+$pend2 = $_SESSION['plat_2fa_pend'] ?? null;
+if ($pend2 && ($pend2['exp'] ?? 0) < time()) { unset($_SESSION['plat_2fa_pend']); $pend2 = null; }
+if (isset($_GET['cancelar2fa'])) { unset($_SESSION['plat_2fa_pend']); redirect('/platform/login'); }
+/** Abre la sesión de plataforma ya verificada. */
+$entrarPlat = function (array $a) {
+    session_regenerate_id(true);
+    unset($_SESSION['plat_2fa_pend']);
+    $_SESSION['plataforma_admin'] = ['id' => (int) $a['id'], 'nombre' => $a['nombre'], 'email' => $a['email'], 'rol' => $a['rol'] ?? 'super'];
+    db()->prepare("UPDATE plataforma_admins SET ultimo_acceso = NOW() WHERE id = ?")->execute([(int) $a['id']]);
+    auditar('plataforma_login', 'plataforma_admin', (int) $a['id'], $a['email']);
+    redirect('/platform/index');
+};
 
 if (platform_admin()) redirect('/platform/index');
 
@@ -44,6 +58,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 redirect('/platform/index');
             }
         }
+    } elseif (login_bloqueado()) {
+        $error = t('Demasiados intentos fallidos desde esta conexión. Espera 15 minutos.');
+    } elseif ($pend2 && isset($_POST['codigo'])) {
+        if (totp_verificar_plataforma((int) $pend2['a']['id'], (string) $_POST['codigo'])) $entrarPlat($pend2['a']);
+        auditar('plataforma_login_fallido', 'plataforma_admin', (int) $pend2['a']['id'], '2FA');
+        $error = t('El código no es correcto.');
     } else { // login
         $email = trim($_POST['email'] ?? '');
         $pass  = $_POST['password'] ?? '';
@@ -54,14 +74,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!$a['activo']) {
                 // Socio registrado pero aún no aprobado por el dueño.
                 $error = t('Tu cuenta está pendiente de aprobación. El dueño del sistema debe activarla.');
+            } elseif (!empty($a['totp_activo'])) {
+                $_SESSION['plat_2fa_pend'] = ['a' => ['id' => $a['id'], 'nombre' => $a['nombre'], 'email' => $a['email'], 'rol' => $a['rol'] ?? 'super'], 'exp' => time() + 300];
+                $pend2 = $_SESSION['plat_2fa_pend'];
             } else {
-                session_regenerate_id(true);
-                $_SESSION['plataforma_admin'] = ['id' => (int) $a['id'], 'nombre' => $a['nombre'], 'email' => $a['email'], 'rol' => $a['rol'] ?? 'super'];
-                $pdo->prepare("UPDATE plataforma_admins SET ultimo_acceso = NOW() WHERE id = ?")->execute([(int) $a['id']]);
-                auditar('plataforma_login', 'plataforma_admin', (int) $a['id'], $email);
-                redirect('/platform/index');
+                $entrarPlat($a);
             }
         } else {
+            auditar('plataforma_login_fallido', 'plataforma_admin', $a ? (int) $a['id'] : null, mb_substr($email, 0, 120), null, ['nombre' => $email]);
             $error = t('Correo o contraseña incorrectos.');
         }
     }
@@ -102,6 +122,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             <a href="<?= BASE_URL ?>/auth/login" class="btn btn-primary w-100"><i class="bi bi-box-arrow-in-right"></i> <?= et('Iniciar sesión en el sistema') ?></a>
         <?php else: ?>
+        <?php if ($pend2): ?>
+        <form method="post" autocomplete="off">
+            <?= csrf_field() ?>
+            <div class="text-center mb-3"><i class="bi bi-shield-lock" style="font-size:2rem"></i><div class="fw-semibold"><?= et('Verificación en dos pasos') ?></div>
+                <div class="small text-muted"><?= et('Código de 6 dígitos de tu app o un código de respaldo.') ?></div></div>
+            <input type="text" name="codigo" class="form-control form-control-lg text-center mb-3" inputmode="numeric" autocomplete="one-time-code" maxlength="9" required autofocus>
+            <button class="btn btn-primary w-100"><?= et('Verificar y entrar') ?></button>
+            <div class="text-center mt-2"><a href="?cancelar2fa=1" class="small text-muted"><?= et('Cancelar') ?></a></div>
+        </form>
+        <?php else: ?>
         <form method="post">
             <?= csrf_field() ?>
             <?php if ($modo === 'setup'): ?>
@@ -135,6 +165,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <?php else: ?><i class="bi bi-box-arrow-in-right"></i> <?= et('Entrar') ?><?php endif; ?>
             </button>
         </form>
+        <?php endif; ?>
         <?php endif; ?>
 
         <?php if ($modo === 'login'): ?>

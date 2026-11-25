@@ -147,6 +147,9 @@ echo comprobante_estilos();
     <?php if ($modo !== 'nota'): $u = current_user(); ?>
     <div class="firma-linea"><div class="l"></div><?= e($u['nombre']) ?><br><span class="text-muted"><?= et('Nombre y firma de quien expide') ?></span></div>
     <?php endif; ?>
+    <?php if ($modo !== 'nota' && array_key_exists('consent_compartir', $p) && empty($p['consent_compartir'])): ?>
+    <div class="alert alert-warning small no-print mt-3"><i class="bi bi-exclamation-triangle"></i> <?= et('El paciente no ha autorizado compartir su información con terceros. Entrégalo solo al paciente o con su autorización por escrito.') ?></div>
+    <?php endif; ?>
     <div class="pie-doc"><?= et('Documento confidencial. Contiene datos personales sensibles protegidos por la ley; su uso está limitado al fin para el que se entrega.') ?>
         <?= et('Expedido el') ?> <?= e(fmt_fecha(date('Y-m-d'))) ?> <?= date('H:i') ?>.</div>
 </div></div>

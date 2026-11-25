@@ -228,6 +228,19 @@ $v = fn(string $k) => e($p[$k] ?? '');
             <?php foreach (entidades_inegi() as $k => [$l, $r]): ?><option value="<?= $k ?>" data-renapo="<?= $r ?>" <?= ($p['entidad_nacimiento'] ?? '') === (string) $k ? 'selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?>
         </select>
     </div>
+    <?php if (!es_veterinaria()): ?>
+    <div class="col-12">
+        <input type="hidden" name="consent_form" value="1">
+        <div class="border rounded-3 p-3 small" style="background:color-mix(in srgb,var(--brand) 5%,transparent)">
+            <div class="fw-semibold mb-2"><i class="bi bi-file-earmark-check"></i> <?= et('Consentimiento del paciente') ?></div>
+            <div class="form-check"><input class="form-check-input" type="checkbox" name="consent_datos" value="1" id="cDatos" <?= !empty($p['consent_datos_en']) ? 'checked' : '' ?>>
+                <label class="form-check-label" for="cDatos"><?= et('Conoce el aviso de privacidad y autoriza el tratamiento de sus datos personales y de salud para su atención.') ?>
+                <?php if (!empty($p['consent_datos_en'])): ?><span class="text-muted">(<?= et('registrado el') ?> <?= e(fmt_fecha($p['consent_datos_en'])) ?>)</span><?php endif; ?></label></div>
+            <div class="form-check mt-1"><input class="form-check-input" type="checkbox" name="consent_compartir" value="1" id="cComp" <?= !empty($p['consent_compartir']) ? 'checked' : '' ?>>
+                <label class="form-check-label" for="cComp"><?= et('Autoriza compartir o exportar su información clínica a otros médicos, laboratorios o aseguradoras cuando sea necesario.') ?></label></div>
+        </div>
+    </div>
+    <?php endif; ?>
     <div class="col-md-3">
         <label class="form-label"><?= et('Nacionalidad') ?></label>
         <select name="nacionalidad" class="form-select">
