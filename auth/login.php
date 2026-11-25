@@ -153,6 +153,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             <div class="text-center mt-3">
                 <a href="<?= BASE_URL ?>/portal/login" class="small text-decoration-none"><i class="bi bi-person-heart"></i> <?= et('¿Eres paciente? Entra al portal') ?></a>
+                <span class="text-muted small mx-1">·</span>
+                <a href="<?= BASE_URL ?>/ayuda" class="small text-decoration-none"><i class="bi bi-book"></i> <?= et('Centro de ayuda') ?></a>
                 <div class="mt-2">
                     <a href="<?= BASE_URL ?>/index" class="small text-muted">&larr; <?= et('Volver al sitio') ?></a>
                     <span class="text-muted small mx-1">·</span>

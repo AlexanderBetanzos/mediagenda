@@ -105,6 +105,11 @@ $desc = $art ? $art['desc'] : 'Guías paso a paso para usar MediAgenda: paciente
     .ca-hero h1{font-size:2.4rem;font-weight:800;letter-spacing:-.035em;margin:0 0 8px}
     .ca-hero .ca-buscar{max-width:560px;padding:13px 16px;font-size:1rem;margin:20px 0 0}
     .ca-h2{font-size:1.2rem;font-weight:750;margin:34px 0 4px}
+    .ca-fig{margin:18px 0 22px;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--bg2)}
+    .ca-fig img{display:block;width:100%;height:auto;cursor:zoom-in}
+    .ca-fig figcaption{font-size:.84rem;color:var(--mut);padding:8px 14px;border-top:1px solid var(--line)}
+    .ca-zoom{position:fixed;inset:0;background:rgba(5,12,20,.85);display:none;align-items:center;justify-content:center;z-index:60;padding:3vh 3vw;cursor:zoom-out}
+    .ca-zoom.on{display:flex}.ca-zoom img{max-width:100%;max-height:100%;border-radius:10px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
     .ca-pie{color:var(--mut);font-size:.82rem;margin-top:60px;border-top:1px solid var(--line);padding-top:16px}
     /* búsqueda */
     .ca-modal{position:fixed;inset:0;background:rgba(5,12,20,.55);display:none;align-items:flex-start;justify-content:center;padding:10vh 16px;z-index:50}
@@ -238,6 +243,7 @@ $desc = $art ? $art['desc'] : 'Guías paso a paso para usar MediAgenda: paciente
 </div>
 </div>
 
+<div class="ca-zoom" id="caZoom"><img alt=""></div>
 <div class="ca-modal" id="caModal" role="dialog" aria-modal="true" aria-label="Buscar">
     <div class="ca-mbox">
         <input type="search" id="caQ" placeholder="Buscar en la ayuda…" autocomplete="off">
@@ -318,6 +324,11 @@ $desc = $art ? $art['desc'] : 'Guías paso a paso para usar MediAgenda: paciente
         var io = new IntersectionObserver(function (en) { en.forEach(function (x) { if (x.isIntersecting) { toc.querySelectorAll('a').forEach(function (a) { a.classList.remove('on'); }); var l = links[x.target.id]; if (l) l.classList.add('on'); } }); }, { rootMargin: '0px 0px -70% 0px' });
         document.querySelectorAll('article h2[id]').forEach(function (h) { io.observe(h); });
     }
+
+    /* Capturas: clic para ampliar */
+    var zoom = document.getElementById('caZoom');
+    document.querySelectorAll('img[data-zoom]').forEach(function (im) { im.addEventListener('click', function () { zoom.querySelector('img').src = im.src; zoom.classList.add('on'); }); });
+    zoom.addEventListener('click', function () { zoom.classList.remove('on'); });
 
     /* ¿Te fue útil? */
     var util = document.getElementById('caUtil');

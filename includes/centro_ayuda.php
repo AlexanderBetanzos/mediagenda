@@ -163,15 +163,52 @@ function ca_cuerpo_guias(array $claves): string
     return $h;
 }
 
+/**
+ * Capturas de pantalla de un artículo: assets/img/ayuda/capturas.json
+ * { "slug": [["archivo.webp", "Pie de foto"], …] }. Se muestran en orden:
+ * la primera bajo la introducción y el resto al final de cada sección.
+ */
+function ca_capturas(string $slug): array
+{
+    static $mapa = null;
+    if ($mapa === null) {
+        $f = __DIR__ . '/../assets/img/ayuda/capturas.json';
+        $mapa = is_file($f) ? (json_decode((string) file_get_contents($f), true) ?: []) : [];
+    }
+    $out = [];
+    foreach ($mapa[$slug] ?? [] as [$archivo, $pie]) {
+        if (is_file(__DIR__ . '/../assets/img/ayuda/' . basename($archivo))) $out[] = [BASE_URL . '/assets/img/ayuda/' . rawurlencode(basename($archivo)), $pie];
+    }
+    return $out;
+}
+
+function ca_figura(array $c): string
+{
+    return '<figure class="ca-fig"><img src="' . e($c[0]) . '" alt="' . e($c[1]) . '" loading="lazy" data-zoom><figcaption>' . e($c[1]) . '</figcaption></figure>';
+}
+
 /** Cuerpo de cualquier artículo. */
 function ca_cuerpo(string $slug): string
 {
     $a = ca_articulos()[$slug] ?? null;
     if (!$a) return '';
-    if ($a['claves'] !== 'custom') return ca_cuerpo_guias($a['claves']);
-    ob_start();
-    include __DIR__ . '/../ayuda/_contenido/' . $slug . '.php';
-    return (string) ob_get_clean();
+    if ($a['claves'] !== 'custom') {
+        $html = ca_cuerpo_guias($a['claves']);
+    } else {
+        ob_start();
+        include __DIR__ . '/../ayuda/_contenido/' . $slug . '.php';
+        $html = (string) ob_get_clean();
+    }
+    $caps = ca_capturas($slug);
+    if (!$caps) return $html;
+    // Primera captura después del primer párrafo; las demás, antes de cada <h2> siguiente y al final.
+    $primera = array_shift($caps);
+    $pos = strpos($html, '</p>');
+    $html = $pos !== false ? substr($html, 0, $pos + 4) . ca_figura($primera) . substr($html, $pos + 4) : ca_figura($primera) . $html;
+    $partes = preg_split('/(?=<h2 )/', $html);
+    foreach ($partes as $i => &$p) { if ($i > 1 && $caps) $p = ca_figura(array_shift($caps)) . $p; }
+    unset($p);
+    return implode('', $partes) . implode('', array_map('ca_figura', $caps));
 }
 
 /** Índice de búsqueda: [{t, s, u, x}] con el texto plano de cada artículo. */
