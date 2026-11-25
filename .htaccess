@@ -25,6 +25,12 @@ Options -MultiViews
     # 2b) Páginas por especialidad (contenido en includes/landing/especialidades.php).
     RewriteRule ^(dentistas|psicologos|nutriologos|pediatras|fisioterapeutas|oftalmologos|dermatologos|medicos|clinicas)/?$ especialidad.php?e=$1 [L,QSA]
 
+    # 2c) Centro de ayuda: /ayuda/<articulo> -> ayuda/index.php?a=<articulo>
+    #     (salvo archivos reales de esa carpeta, como ayuda/util.php).
+    RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI}.php !-f
+    RewriteCond %{REQUEST_FILENAME}.php !-f
+    RewriteRule ^ayuda/([a-z0-9-]+)/?$ ayuda/index.php?a=$1 [L,QSA]
+
     # 3) Sirve internamente la URL limpia desde el archivo .php real.
     #    Ej: /pacientes/index  ->  /pacientes/index.php
     RewriteCond %{REQUEST_FILENAME} !-f

@@ -316,6 +316,7 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
 
                     <?= $sec('Ayuda') ?>
                     <li class="nav-item"><a class="nav-link" href="#" data-ayuda-centro><i class="bi bi-question-circle"></i> <?= et('Centro de ayuda') ?></a></li>
+                    <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>/ayuda" target="_blank" rel="noopener"><i class="bi bi-book"></i> <?= et('Guías paso a paso') ?> <i class="bi bi-box-arrow-up-right ms-auto small opacity-50"></i></a></li>
                     <?= $li('soporte', BASE_URL . '/soporte/index', 'bi-life-preserver', t('Ayuda y soporte')) ?>
                     <?= $li('feedback', BASE_URL . '/feedback/index', 'bi-chat-left-dots', t('Enviar comentario')) ?>
                 </ul>

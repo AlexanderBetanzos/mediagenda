@@ -840,7 +840,7 @@ track_pageview('publico');
                 <a class="lp-foot-link" href="<?= BASE_URL ?>/auth/login">Iniciar sesión</a>
                 <a class="lp-foot-link" href="<?= BASE_URL ?>/privacidad">Aviso de privacidad</a>
                 <a class="lp-foot-link" href="<?= BASE_URL ?>/seguridad">Seguridad</a>
-                <a class="lp-foot-link" href="<?= BASE_URL ?>/ayuda/expediente-clinico">Guía del expediente clínico</a>
+                <a class="lp-foot-link" href="<?= BASE_URL ?>/ayuda">Centro de ayuda</a>
             </div>
             <div class="col-lg-3">
                 <div class="fw-semibold mb-2">¿Listo para empezar?</div>
