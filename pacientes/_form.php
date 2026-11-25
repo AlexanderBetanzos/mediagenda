@@ -1,6 +1,12 @@
 <?php
 /** Campos del formulario de paciente. Espera $p (array) y $errores (array). */
 $p = $p ?? [];
+asegurar_identificacion();
+// Pacientes anteriores: si aún no hay apellidos por separado, se proponen partiendo "apellidos".
+if (empty($p['primer_apellido']) && !empty($p['apellidos']) && $p['apellidos'] !== '—') {
+    $pz = preg_split('/\s+/', trim($p['apellidos']), 2);
+    $p['primer_apellido'] = $pz[0]; $p['segundo_apellido'] = $p['segundo_apellido'] ?? ($pz[1] ?? '');
+}
 $v = fn(string $k) => e($p[$k] ?? '');
 ?>
 <div class="pf-grid">
@@ -149,9 +155,13 @@ $v = fn(string $k) => e($p[$k] ?? '');
         <label class="form-label"><?= et('Nombre(s)') ?> *</label>
         <input type="text" name="nombre" class="form-control" required value="<?= $v('nombre') ?>">
     </div>
-    <div class="col-md-6">
-        <label class="form-label"><?= et('Apellidos') ?> *</label>
-        <input type="text" name="apellidos" class="form-control" required value="<?= $v('apellidos') ?>">
+    <div class="col-md-3">
+        <label class="form-label"><?= et('Primer apellido') ?> *</label>
+        <input type="text" name="primer_apellido" class="form-control" required value="<?= $v('primer_apellido') ?>">
+    </div>
+    <div class="col-md-3">
+        <label class="form-label"><?= et('Segundo apellido') ?></label>
+        <input type="text" name="segundo_apellido" class="form-control" value="<?= $v('segundo_apellido') ?>">
     </div>
     <div class="col-md-4">
         <label class="form-label"><?= et('Fecha de nacimiento') ?></label>
@@ -203,6 +213,27 @@ $v = fn(string $k) => e($p[$k] ?? '');
         <input type="text" name="curp" id="curpIn" class="form-control text-uppercase" maxlength="18" value="<?= $v('curp') ?>" placeholder="<?= et('18 caracteres') ?>"
                autocomplete="off" data-id="<?= (int) ($p['id'] ?? 0) ?>">
         <div class="small mt-1" id="curpMsg"></div>
+    </div>
+    <div class="col-md-3" id="curpMotivoBox" <?= ($p['curp'] ?? '') !== '' ? 'hidden' : '' ?>>
+        <label class="form-label"><?= et('Si no tiene CURP') ?></label>
+        <select name="curp_motivo" class="form-select">
+            <option value=""><?= et('Elige el motivo…') ?></option>
+            <?php foreach (curp_motivos() as $k => $l): ?><option value="<?= $k ?>" <?= ($p['curp_motivo'] ?? '') === $k ? 'selected' : '' ?>><?= et($l) ?></option><?php endforeach; ?>
+        </select>
+    </div>
+    <div class="col-md-3">
+        <label class="form-label"><?= et('Entidad de nacimiento') ?></label>
+        <select name="entidad_nacimiento" class="form-select">
+            <option value="">—</option>
+            <?php foreach (entidades_inegi() as $k => [$l, $r]): ?><option value="<?= $k ?>" data-renapo="<?= $r ?>" <?= ($p['entidad_nacimiento'] ?? '') === (string) $k ? 'selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?>
+        </select>
+    </div>
+    <div class="col-md-3">
+        <label class="form-label"><?= et('Nacionalidad') ?></label>
+        <select name="nacionalidad" class="form-select">
+            <option value="">—</option>
+            <?php $nac = $p['nacionalidad'] ?? (empty($p['id']) ? 'MEX' : ''); foreach (nacionalidades() as $k => $l): ?><option value="<?= $k ?>" <?= $nac === $k ? 'selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?>
+        </select>
     </div>
     <div class="col-md-3">
         <label class="form-label">RFC</label>
@@ -330,6 +361,11 @@ $v = fn(string $k) => e($p[$k] ?? '');
             var sx = document.querySelector('select[name="sexo"]');
             var val = m[4] === 'H' ? 'M' : m[4] === 'M' ? 'F' : 'O';
             if (sx && !sx.value && sx.querySelector('option[value="' + val + '"]')) { sx.value = val; sx.dispatchEvent(new Event('change', { bubbles: true })); partes.push('sexo'); }
+            var en = document.querySelector('select[name="entidad_nacimiento"]');
+            var op = en && en.querySelector('option[data-renapo="' + m[5] + '"]');
+            if (en && op && !en.value) { en.value = op.value; partes.push('entidad'); }
+            var na = document.querySelector('select[name="nacionalidad"]');
+            if (na && m[5] !== 'NE' && (!na.value || na.value === 'MEX')) na.value = 'MEX';
         }
         pinta('text-success', '<i class="bi bi-check-circle"></i> CURP válida · ' + (m[5] === 'NE' ? 'Nacido en el extranjero' : 'Nació en ' + EDOS[m[5]])
             + (partes.length ? ' · llené ' + partes.join(' y ') : ''));
@@ -346,7 +382,8 @@ $v = fn(string $k) => e($p[$k] ?? '');
                 msg.appendChild(a);
             }).catch(function () {});
     }
-    inp.addEventListener('input', function () { revisar(true); });
+    var motivo = document.getElementById('curpMotivoBox');
+    inp.addEventListener('input', function () { revisar(true); if (motivo) motivo.hidden = inp.value.trim() !== ''; });
     if (inp.value) revisar(false);
 })();
 

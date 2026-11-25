@@ -165,6 +165,7 @@ if (($_POST['accion'] ?? '') === 'importar' && $ruta) {
         foreach ($filas as $n => $r) {
             $v = [];
             foreach ($map as $i => $c) if (($r[$i] ?? '') !== '') $v[$c] = isset($v[$c]) ? $v[$c] . ' ' . $r[$i] : $r[$i];
+            if (isset($v['apellido_paterno'])) { $v['primer_apellido'] = $v['apellido_paterno']; $v['segundo_apellido'] = $v['apellido_materno'] ?? ''; }
             if (isset($v['apellido_paterno']) || isset($v['apellido_materno'])) {
                 $v['apellidos'] = trim(($v['apellidos'] ?? '') . ' ' . ($v['apellido_paterno'] ?? '') . ' ' . ($v['apellido_materno'] ?? ''));
             }

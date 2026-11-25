@@ -1500,6 +1500,71 @@ function guardar_archivo_expediente(?array $f, int $paciente_id, int $usuario_id
  * Devuelve un mapa columna => valor (listo para INSERT/UPDATE), compartido
  * por pacientes/create.php y edit.php para no duplicar la lista.
  */
+/* --------------------------------------------------------------------
+ *  Identificación del paciente (NOM-024, Tabla 1: datos mínimos)
+ * ------------------------------------------------------------------ */
+
+/** Entidades federativas: clave INEGI => [nombre, clave RENAPO usada en la CURP]. */
+function entidades_inegi(): array
+{
+    return [
+        '01' => ['Aguascalientes', 'AS'], '02' => ['Baja California', 'BC'], '03' => ['Baja California Sur', 'BS'], '04' => ['Campeche', 'CC'],
+        '05' => ['Coahuila de Zaragoza', 'CL'], '06' => ['Colima', 'CM'], '07' => ['Chiapas', 'CS'], '08' => ['Chihuahua', 'CH'],
+        '09' => ['Ciudad de México', 'DF'], '10' => ['Durango', 'DG'], '11' => ['Guanajuato', 'GT'], '12' => ['Guerrero', 'GR'],
+        '13' => ['Hidalgo', 'HG'], '14' => ['Jalisco', 'JC'], '15' => ['México', 'MC'], '16' => ['Michoacán de Ocampo', 'MN'],
+        '17' => ['Morelos', 'MS'], '18' => ['Nayarit', 'NT'], '19' => ['Nuevo León', 'NL'], '20' => ['Oaxaca', 'OC'],
+        '21' => ['Puebla', 'PL'], '22' => ['Querétaro', 'QT'], '23' => ['Quintana Roo', 'QR'], '24' => ['San Luis Potosí', 'SP'],
+        '25' => ['Sinaloa', 'SL'], '26' => ['Sonora', 'SR'], '27' => ['Tabasco', 'TC'], '28' => ['Tamaulipas', 'TS'],
+        '29' => ['Tlaxcala', 'TL'], '30' => ['Veracruz de Ignacio de la Llave', 'VZ'], '31' => ['Yucatán', 'YN'], '32' => ['Zacatecas', 'ZS'],
+        'NE' => ['Nacido en el extranjero', 'NE'],
+    ];
+}
+
+/** Motivos válidos para registrar a un paciente sin CURP (el sistema nunca la genera). */
+function curp_motivos(): array
+{
+    return ['extranjero' => 'Extranjero sin CURP', 'recien_nacido' => 'Recién nacido sin registro', 'no_la_tiene' => 'No tiene o no la proporcionó', 'urgencia' => 'Atención de urgencia, se obtendrá después'];
+}
+
+/** Nacionalidades frecuentes (ISO 3166 alfa-3). */
+function nacionalidades(): array
+{
+    return ['MEX' => 'Mexicana', 'USA' => 'Estadounidense', 'GTM' => 'Guatemalteca', 'HND' => 'Hondureña', 'SLV' => 'Salvadoreña', 'NIC' => 'Nicaragüense',
+            'CUB' => 'Cubana', 'VEN' => 'Venezolana', 'COL' => 'Colombiana', 'HTI' => 'Haitiana', 'ARG' => 'Argentina', 'PER' => 'Peruana', 'ECU' => 'Ecuatoriana',
+            'CHL' => 'Chilena', 'ESP' => 'Española', 'CAN' => 'Canadiense', 'BRA' => 'Brasileña', 'OTR' => 'Otra'];
+}
+
+/** Columnas de identificación NOM-024 en pacientes (migración perezosa). */
+function asegurar_identificacion(): void
+{
+    static $hecho = false;
+    if ($hecho) return;
+    $hecho = true;
+    try {
+        $cols = array_column(db()->query('SHOW COLUMNS FROM pacientes')->fetchAll(), 'Field');
+        $add = [];
+        foreach (['primer_apellido' => 'VARCHAR(100) NULL', 'segundo_apellido' => 'VARCHAR(100) NULL', 'entidad_nacimiento' => 'VARCHAR(2) NULL',
+                  'nacionalidad' => "VARCHAR(3) NULL", 'curp_motivo' => 'VARCHAR(20) NULL'] as $c => $def) {
+            if (!in_array($c, $cols, true)) $add[] = "ADD COLUMN $c $def";
+        }
+        if ($add) db()->exec('ALTER TABLE pacientes ' . implode(', ', $add));
+    } catch (Throwable $e) { /* sin permisos de DDL */ }
+}
+
+/** Lo que le falta a un paciente para cumplir los datos mínimos de identificación. */
+function paciente_faltantes_nom024(array $p): array
+{
+    $f = [];
+    if (trim((string) ($p['nombre'] ?? '')) === '') $f[] = 'nombre';
+    if (trim((string) ($p['primer_apellido'] ?? '')) === '') $f[] = 'primer apellido';
+    if (empty($p['fecha_nacimiento'])) $f[] = 'fecha de nacimiento';
+    if (empty($p['sexo'])) $f[] = 'sexo';
+    if (empty($p['entidad_nacimiento'])) $f[] = 'entidad de nacimiento';
+    if (empty($p['nacionalidad'])) $f[] = 'nacionalidad';
+    if (empty($p['curp']) && empty($p['curp_motivo'])) $f[] = 'CURP (o el motivo por el que no tiene)';
+    return $f;
+}
+
 function paciente_post_campos(array $post): array
 {
     $t = fn(string $k) => (($v = trim((string) ($post[$k] ?? ''))) !== '' ? $v : null);
@@ -1520,7 +1585,7 @@ function paciente_post_campos(array $post): array
     }
     // Tipo de paciente: el que se eligió, o el del giro (dental → dental).
     $tipoDef = giro()['tipo'] ?? 'medico';
-    return $vet + [
+    return array_merge($vet + [
         'nombre'                  => trim((string) ($post['nombre'] ?? '')),
         'apellidos'               => trim((string) ($post['apellidos'] ?? '')),
         'fecha_nacimiento'        => ($post['fecha_nacimiento'] ?? '') ?: null,
@@ -1544,7 +1609,33 @@ function paciente_post_campos(array $post): array
         'enf_cronicas'            => $t('enf_cronicas'),
         'habitos'                 => $t('habitos'),
         'notas'                   => $t('notas'),
+    ], paciente_campos_identificacion($post));
+}
+
+/**
+ * Campos de identificación NOM-024 desde el formulario. Si vienen el primer y
+ * segundo apellido por separado, "apellidos" (lo que usa todo el sistema para
+ * mostrar y buscar) se arma con ellos. Solo se devuelven las columnas que
+ * existen, para no romper el guardado si la migración no pudo correr.
+ */
+function paciente_campos_identificacion(array $post): array
+{
+    if (es_veterinaria()) return [];
+    asegurar_identificacion();
+    static $cols = null;
+    if ($cols === null) { try { $cols = array_column(db()->query('SHOW COLUMNS FROM pacientes')->fetchAll(), 'Field'); } catch (Throwable $e) { $cols = []; } }
+    if (!in_array('primer_apellido', $cols, true)) return [];
+    $pa = trim((string) ($post['primer_apellido'] ?? ''));
+    $sa = trim((string) ($post['segundo_apellido'] ?? ''));
+    $out = [
+        'primer_apellido'    => $pa !== '' ? $pa : null,
+        'segundo_apellido'   => $sa !== '' ? $sa : null,
+        'entidad_nacimiento' => isset(entidades_inegi()[$post['entidad_nacimiento'] ?? '']) ? $post['entidad_nacimiento'] : null,
+        'nacionalidad'       => isset(nacionalidades()[$post['nacionalidad'] ?? '']) ? $post['nacionalidad'] : null,
+        'curp_motivo'        => isset(curp_motivos()[$post['curp_motivo'] ?? '']) && trim((string) ($post['curp'] ?? '')) === '' ? $post['curp_motivo'] : null,
     ];
+    if ($pa !== '') $out['apellidos'] = trim($pa . ' ' . $sa);
+    return $out;
 }
 
 /* --------------------------------------------------------------------

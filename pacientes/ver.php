@@ -513,6 +513,12 @@ echo ui_stats($__est); ?>
 
 <?php /* Resumen clínico: lo primero son las ALERGIAS, a propósito. Es el dato
          que, si se pasa por alto, hace daño de verdad. */ ?>
+<?php asegurar_identificacion(); if (!es_veterinaria() && ($faltaId = paciente_faltantes_nom024($p))): ?>
+<div class="alert alert-light border small py-2 d-flex flex-wrap gap-2 align-items-center">
+    <i class="bi bi-person-vcard text-warning"></i> <?= et('Datos de identificación incompletos') ?>: <?= e(implode(', ', $faltaId)) ?>.
+    <a href="<?= BASE_URL ?>/pacientes/edit?id=<?= $id ?>" class="ms-auto"><?= et('Completar') ?></a>
+</div>
+<?php endif; ?>
 <div class="card mb-3 border-<?= $resumen['alergias'] ? 'danger' : '' ?>">
     <div class="card-body py-2">
         <?php if ($resumen['alergias']): ?>

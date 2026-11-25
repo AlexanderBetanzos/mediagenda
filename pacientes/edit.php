@@ -15,6 +15,8 @@ $errores = [];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
     $p = array_merge($p, $_POST);
+    // Primer y segundo apellido por separado (NOM-024); "apellidos" se arma con ellos.
+    if (isset($p['primer_apellido'])) $p['apellidos'] = trim($p['primer_apellido'] . ' ' . ($p['segundo_apellido'] ?? ''));
 
     if (trim($p['nombre']) === '')    $errores[] = t('El nombre es obligatorio.');
     if (trim($p['apellidos']) === '') $errores[] = t('Los apellidos son obligatorios.');
