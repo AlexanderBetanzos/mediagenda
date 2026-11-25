@@ -1,6 +1,6 @@
 </main>
 <footer class="text-center text-muted py-3 small border-top">
-    <?= e(APP_NAME) ?> · <?= et('Consola de plataforma') ?> · <?= date('Y') ?>
+    <?= e(APP_NAME) ?> <?= e(APP_VERSION) ?> · <?= et('Consola de plataforma') ?> · <?= date('Y') ?>
 </footer>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="<?= asset('assets/js/app.js') ?>"></script>

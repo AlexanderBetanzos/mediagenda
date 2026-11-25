@@ -2,7 +2,7 @@
 
 Sistema de Gestión de Seguridad de la Información de BETASYD Consultoría para el
 SIRES MediAgenda, preparado para la certificación NOM-024-SSA3-2012 ante la DGIS.
-Guía de referencia: GIIS del SGSI en Salud (DGIS). ISO/IEC 27001 se usa como apoyo,
+Guía de referencia: **GIIS-A004-01-07** SGSI en Salud (DGIS), publicada en su sitio; en la verificación se revisa la documentación y la evidencia de implementación. ISO/IEC 27001 se usa como apoyo,
 sin certificarse en ISO.
 
 | # | Documento | Revisión |
@@ -20,7 +20,7 @@ sin certificarse en ISO.
 | 11 | Control de cambios y desarrollo seguro | Anual |
 
 **Evidencias** (con fecha, en /platform/sgsi y /platform/respaldos):
-minutas mensuales, incidentes (aunque no haya), revisiones trimestrales de accesos,
+minutas mensuales, incidentes (aunque no haya), revisiones trimestrales de accesos, cargas de prueba en SINBA,
 revisiones de proveedores, pruebas de restauración diarias y la bitácora sellada.
 
 **Regla de oro:** los documentos sin evidencia de uso no demuestran madurez.

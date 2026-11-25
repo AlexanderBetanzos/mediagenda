@@ -34,6 +34,7 @@ $TIPOS = [
     'riesgos'     => ['Revisión de riesgos', 'bi-clipboard-data'],
     'capacitacion'=> ['Capacitación / concientización', 'bi-mortarboard'],
     'cambio'      => ['Cambio relevante al sistema', 'bi-git'],
+    'sinba'       => ['Carga de prueba en SINBA (GIIS-B015)', 'bi-cloud-check'],
 ];
 $DOCS = __DIR__ . '/../docs/sgsi';
 
@@ -75,7 +76,7 @@ $platNav = 'sgsi';
 include __DIR__ . '/_head.php';
 ?>
 <h1 class="h3 mb-1"><i class="bi bi-shield-lock"></i> SGSI en Salud</h1>
-<p class="text-muted">Evidencias con fecha del sistema de gestión de seguridad de la información. La DGIS pide <b>mínimo 6 meses</b> operando antes de la verificación.</p>
+<p class="text-muted">Evidencias con fecha del SGSI (guía <b>GIIS-A004-01-07</b>). La DGIS pide <b>mínimo 6 meses</b> operando antes de la verificación. Versión del SIRES: <b><?= e(APP_NAME . ' ' . APP_VERSION) ?></b>.</p>
 <?php foreach (get_flash() as $f): ?><div class="alert alert-<?= e($f['tipo']) ?>"><?= e($f['msg']) ?></div><?php endforeach; ?>
 
 <?php if ($verDoc !== '' && in_array($verDoc, $docs, true)): ?>

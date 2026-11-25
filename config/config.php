@@ -65,6 +65,9 @@ defined('META_PIXEL_ID')    || define('META_PIXEL_ID',    getenv('META_PIXEL_ID'
 
 // 3) Configuración de la aplicación (no secreta).
 define('APP_NAME', 'MediOS');
+// Versión del SIRES (NOM-024): el certificado de la DGIS cubre solo la versión MAYOR
+// certificada (1.x). Cambiar a 2.0 implica recertificar: no subir el mayor sin decidirlo.
+define('APP_VERSION', '1.0');
 define('MONEDA', 'MXN');
 date_default_timezone_set('America/Mexico_City');
 

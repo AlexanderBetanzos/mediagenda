@@ -40,12 +40,13 @@ $platNav = 'giis';
 include __DIR__ . '/_head.php';
 ?>
 <h1 class="h3 mb-1"><i class="bi bi-diagram-3"></i> Reporte de Consulta Externa (GIIS-B015)</h1>
-<p class="text-muted">Sube el diccionario de datos de la guía vigente (DGIS) y asigna a cada variable el campo de MediAgenda que le corresponde. Con eso cada consultorio genera su reporte.</p>
+<p class="text-muted">Sube el diccionario de datos de la guía vigente (hoy <b>GIIS-B015-04-11</b>, 106 variables) y asigna a cada variable el campo de MediAgenda que le corresponde. No hace falta asignar todas (SaludTotal se certificó con 76 de 106), pero las que se asignen deben pasar las validaciones de la guía.</p>
+<div class="alert alert-light border small"><i class="bi bi-cloud-check"></i> Cada consultorio genera el archivo de intercambio en <b>TXT</b> (Expediente → Reporte DGIS). La guía también pide el formato <b>CIF</b>: su especificación viene en la guía; en cuanto la tengamos se agrega aquí. Los archivos se validan en el <b>Módulo de Carga Masiva (SINBA)</b> de la DGIS (usuario a dgis@salud.gob.mx o soporte.sinba@salud.gob.mx) y cada carga exitosa se registra en <a href="<?= BASE_URL ?>/platform/sgsi">SGSI</a> como evidencia.</div>
 <?php foreach (get_flash() as $f): ?><div class="alert alert-<?= e($f['tipo']) ?>"><?= e($f['msg']) ?></div><?php endforeach; ?>
 <form method="post" enctype="multipart/form-data" class="card mb-3"><div class="card-body row g-2 align-items-end">
     <?= csrf_field() ?><input type="hidden" name="accion" value="diccionario">
     <div class="col-md-5"><label class="form-label small">Diccionario de datos (CSV exportado del Excel de la guía)</label><input type="file" name="archivo" accept=".csv,.txt" class="form-control" required></div>
-    <div class="col-md-4"><label class="form-label small">Versión de la guía</label><input name="version" class="form-control" value="<?= e(plataforma_cfg('giis_b015_version')) ?>" placeholder="GIIS-B015 versión …"></div>
+    <div class="col-md-4"><label class="form-label small">Versión de la guía</label><input name="version" class="form-control" value="<?= e(plataforma_cfg('giis_b015_version')) ?>" placeholder="GIIS-B015-04-11"></div>
     <div class="col-md-3"><button class="btn btn-outline-primary w-100"><i class="bi bi-upload"></i> Cargar diccionario</button></div>
     <div class="col-12 small text-muted">Columnas que se reconocen: variable/campo, descripción, tipo, longitud, obligatoriedad y catálogo.</div>
 </div></form>
