@@ -12,6 +12,21 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+/*
+ * En producción display_errors está apagado y un error fatal deja la página en
+ * blanco (500). Al dueño de la plataforma (sesión de /platform, también cuando
+ * entra a un consultorio) se le muestra el mensaje para poder diagnosticarlo;
+ * los consultorios y pacientes nunca lo ven.
+ */
+register_shutdown_function(function () {
+    $err = error_get_last();
+    if (!$err || !in_array($err['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR], true)) return;
+    if (empty($_SESSION['plataforma_admin']) || ini_get('display_errors') === '1') return;
+    echo '<pre style="white-space:pre-wrap;background:#fff3cd;color:#000;padding:12px;margin:12px;border:1px solid #e0b000;font:13px monospace">'
+        . htmlspecialchars('Error (visible solo para la plataforma): ' . $err['message'] . "\n" . $err['file'] . ':' . $err['line'], ENT_QUOTES, 'UTF-8')
+        . '</pre>';
+});
+
 /* --------------------------------------------------------------------
  *  Multi-tenant: contexto del consultorio (tenant) activo
  * ------------------------------------------------------------------ */
