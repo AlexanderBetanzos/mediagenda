@@ -206,6 +206,15 @@ function correo_bienvenida_trial(string $email, string $nombre, int $dias): bool
     return enviar_correo($email, '¡Bienvenido a ' . marca_nombre() . '! Tu prueba de ' . $dias . ' días está activa', $html);
 }
 
+/** Invitación al cuestionario previo (includes/cuestionarios.php); nunca rompe el correo. */
+function cuest_bloque_correo_seguro(?string $enlace): string
+{
+    try {
+        require_once __DIR__ . '/cuestionarios.php';
+        return cuest_bloque_correo($enlace);
+    } catch (Throwable $e) { return ''; }
+}
+
 /** Recordatorio de cita próxima. */
 function correo_recordatorio_cita(string $email, string $nombre, string $fecha, string $hora,
                                  ?string $medico, ?string $enlace = null, string $folio = ''): bool
@@ -235,7 +244,7 @@ function correo_recordatorio_cita(string $email, string $nombre, string $fecha, 
         . ($folio !== '' ? '<span style="color:#8a97a8;font-size:13px">Folio ' . e($folio) . '</span><br>' : '')
         . '📅 <strong>' . e($fecha) . '</strong><br>🕐 <strong>' . e($hora) . '</strong>'
         . ($medico ? '<br>👩‍⚕️ ' . e($medico) : '')
-        . '</div>' . $botones;
+        . '</div>' . $botones . cuest_bloque_correo_seguro($enlace);
 
     $html = correo_layout('Recordatorio de tu cita', $cuerpo);
     return enviar_correo($email, 'Recordatorio de tu cita en ' . marca_nombre() . ' · ' . $fecha, $html);
@@ -331,6 +340,7 @@ function correo_cita_agendada(string $email, string $nombre, string $fecha, stri
             : 'Hola <strong>' . e($nom1) . '</strong>, tu cita en <strong>' . e(marca_nombre())
               . '</strong> quedó agendada. Aquí están los detalles:')
         . $ticket
+        . cuest_bloque_correo_seguro($enlace)
         . $portalBloque
         . $verCancelar;
 

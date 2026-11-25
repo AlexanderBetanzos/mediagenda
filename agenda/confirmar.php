@@ -190,6 +190,7 @@ $badgeCls = $cancelada ? 'ag-badge-off' : 'ag-badge-ok';
                 </form>
             <?php endif; ?>
 
+            <?php if ($abierta) { require_once __DIR__ . '/../includes/cuestionarios.php'; echo cuest_cta($c); } ?>
             <?php if (!$cancelada): ?><?= cita_botones_extra($c) ?><?php endif; ?>
 
             <?php if ($c['estado'] === 'cancelada' && $reservar): ?>

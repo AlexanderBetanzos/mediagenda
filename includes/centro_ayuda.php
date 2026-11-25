@@ -42,6 +42,7 @@ function ca_secciones(): array
             ['calendario', 'Calendario', ['ruta:citas/calendario'], 'Vista por día, semana y mes.'],
             ['horarios', 'Horarios de atención', ['page:horarios', 'ruta:citas/horarios'], 'Cuándo atiende cada médico.'],
             ['sala-de-espera', 'Sala de espera', ['ruta:citas/sala'], 'Quién llegó y quién sigue.'],
+            ['cuestionarios-previos', 'Cuestionarios previos', ['ruta:cuestionarios/index'], 'El paciente responde antes de llegar.'],
             ['recordatorios', 'Recordatorios por WhatsApp', ['ruta:citas/recordar', 'ruta:mensajes/index'], 'Manuales desde tu número o automáticos con WhatsApp incluido.'],
         ]],
         ['expediente', 'Expedientes clínicos', 'bi-folder2-open', [

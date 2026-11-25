@@ -511,6 +511,16 @@ $__est = [
 if (modulo_activo('facturacion')) $__est[] = [t('Por cobrar'), fmt_money($__saldo), 'bi-wallet2', $__saldo > 0 ? '#f59e0b' : '#16a34a', null, $__saldo > 0];
 echo ui_stats($__est); ?>
 
+<?php /* Cuestionarios previos que respondió el paciente (los sin revisar, destacados). */
+require_once __DIR__ . '/../includes/cuestionarios.php';
+foreach (cuest_pendientes_paciente($id) as $__cr): ?>
+<div class="alert <?= $__cr['revisado_en'] ? 'alert-light border' : 'alert-info' ?> small py-2 d-flex flex-wrap gap-2 align-items-center">
+    <i class="bi bi-clipboard2-pulse"></i>
+    <span><b><?= e($__cr['nombre']) ?></b> · <?= et('respondido antes de su cita del') ?> <?= e(fmt_fecha($__cr['fecha'])) ?> <?= fmt_hora($__cr['hora']) ?><?= $__cr['revisado_en'] ? '' : ' · <b>' . et('por revisar') . '</b>' ?></span>
+    <a href="<?= BASE_URL ?>/cuestionarios/ver?id=<?= (int) $__cr['id'] ?>" class="ms-auto"><?= $__cr['revisado_en'] ? et('Ver respuestas') : et('Revisar') ?></a>
+</div>
+<?php if ($__cr['revisado_en']) break; endforeach; ?>
+
 <?php /* Resumen clínico: lo primero son las ALERGIAS, a propósito. Es el dato
          que, si se pasa por alto, hace daño de verdad. */ ?>
 <?php asegurar_identificacion(); if (!es_veterinaria() && array_key_exists('consent_datos_en', $p) && empty($p['consent_datos_en'])): ?>

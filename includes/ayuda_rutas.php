@@ -151,6 +151,15 @@ function ayuda_textos_rutas(): array
         'Al agendar eliges el recurso (o se asigna el primero libre). Nadie puede ocupar el mismo recurso dos veces a la misma hora, ni al arrastrar en el calendario.',
         'En la agenda en línea el paciente elige la sucursal y solo ve horarios con un recurso libre.',
     ], ['Si no das de alta sucursales ni recursos, la agenda funciona igual que siempre.']);
+    $T['ruta:cuestionarios/index'] = $g('Cuestionarios previos', 'Tus pacientes responden antes de llegar; tú llegas a la consulta sabiendo a qué vienen.', [
+        'Crea un cuestionario desde una <b>plantilla</b> (historia clínica de primera vez o seguimiento) o en blanco.',
+        'Elige a quién se le pide: todas las citas, solo <b>primera vez</b> o solo quienes ya vinieron, y si es de un médico o de todos.',
+        'El paciente recibe el enlace solo: en el <b>correo de su cita</b>, en el <b>recordatorio</b> y en la página de su cita. No necesita cuenta.',
+        'Las respuestas llegan a <b>Por revisar</b> y aparecen en la ficha del paciente.',
+        'En cada pregunta puedes elegir a qué campo del expediente va (alergias, antecedentes…). Al revisar, <b>Pasar al expediente</b> las agrega con la fecha, sin borrar lo que ya había.',
+    ], ['Nada de lo que escribe el paciente entra solo al expediente: tú lo validas primero.', 'Si el paciente no usa correo, en "Citas próximas sin responder" le mandas el enlace por WhatsApp.']);
+    $T['ruta:cuestionarios/editar'] = $T['ruta:cuestionarios/index'];
+    $T['ruta:cuestionarios/ver'] = $T['ruta:cuestionarios/index'];
     $T['ruta:dispositivos/index'] = $g('Impresoras y escáneres', 'Conecta la impresora de tickets y el lector de esta computadora.', [
         '<b>Agregar impresora</b>: elige USB, Bluetooth o puerto serie y el navegador te muestra las que están conectadas.',
         'Si tu impresora ya está instalada en Windows o Mac, agrégala como <b>Impresora instalada en la PC</b>.',

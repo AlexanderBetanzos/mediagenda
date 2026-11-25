@@ -94,6 +94,7 @@ if ($okToken !== '') {
                     <?php endif; ?>
                 </div>
 
+                <?php if (($cita['pago_estado'] ?? '') !== 'vencido') { require_once __DIR__ . '/../includes/cuestionarios.php'; echo cuest_cta($cita); } ?>
                 <div class="d-grid gap-2">
                     <?php if (!empty($cita['pago_requerido']) && ($cita['pago_estado'] ?? '') === 'pendiente' && $pago): ?>
                         <div class="alert alert-warning text-center mb-1">

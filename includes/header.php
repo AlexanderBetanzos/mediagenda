@@ -239,6 +239,7 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
                 }
                 if ($esClin && modulo_activo('plantillas')) $clinico[] = $li('plantillas', BASE_URL . '/plantillas/index', 'bi-file-earmark-text', t('Plantillas de consulta'));
                 if ($esClin && modulo_activo('documentos')) $clinico[] = $li('documentos', BASE_URL . '/documentos/index', 'bi-file-earmark-medical', t('Documentos'));
+                if (modulo_activo('agenda_online')) $clinico[] = $li('cuestionarios', BASE_URL . '/cuestionarios/index', 'bi-clipboard2-pulse', t('Cuestionarios previos'));
                 if (modulo_activo('expediente')) $clinico[] = $li('vacunacion', BASE_URL . '/vacunacion/index', 'bi-shield-plus', t('Vacunación'));
                 if (modulo_activo('expediente') && giro_aplica('hospitalizacion')) {
                     $it = $li('hospitalizacion', BASE_URL . '/hospitalizacion/index', 'bi-hospital', t('Hospitalización'));
