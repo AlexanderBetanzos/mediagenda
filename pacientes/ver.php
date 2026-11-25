@@ -482,8 +482,8 @@ include __DIR__ . '/../includes/header.php';
                 <?php $primero = true; foreach ($grupos as $tit => $items): ?>
                     <?php if (!$primero): ?><li><hr class="dropdown-divider"></li><?php endif; $primero = false; ?>
                     <li><h6 class="dropdown-header"><?= e($tit) ?></h6></li>
-                    <?php foreach ($items as [$u, $ic, $lbl]): ?>
-                    <li><a class="dropdown-item" href="<?= e($u) ?>"><i class="bi <?= $ic ?> me-2"></i><?= e($lbl) ?></a></li>
+                    <?php foreach ($items as [$mUrl, $ic, $lbl]): ?>
+                    <li><a class="dropdown-item" href="<?= e($mUrl) ?>"><i class="bi <?= $ic ?> me-2"></i><?= e($lbl) ?></a></li>
                     <?php endforeach; ?>
                 <?php endforeach; ?>
             </ul>
