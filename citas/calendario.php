@@ -29,7 +29,7 @@ include __DIR__ . '/../includes/header.php';
         </select>
         <?php endif; ?>
         <?php require_once __DIR__ . '/../includes/sucursales.php'; $calRecs = recursos(sucursal_actual() ?: null); if ($calRecs): ?>
-        <select id="filtroRecurso" class="form-select form-select-sm" style="width:auto">
+        <select id="filtroRecurso" class="form-select form-select-sm" style="width:auto;min-width:11rem">
             <option value=""><?= et('Todos los recursos') ?></option>
             <?php foreach ($calRecs as $r): ?><option value="<?= (int) $r['id'] ?>"><?= e($r['nombre']) ?></option><?php endforeach; ?>
         </select>

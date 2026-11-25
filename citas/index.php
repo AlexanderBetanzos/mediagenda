@@ -52,7 +52,7 @@ include __DIR__ . '/../includes/header.php';
     <h1 class="h3 mb-0"><i class="bi bi-calendar-check text-brand"></i> <?= et('Agenda de citas') ?></h1>
     <?php if (count($aSucs) > 1): ?>
     <form class="d-inline"><?php foreach (['desde', 'hasta', 'estado', 'medico'] as $k) if (isset($_GET[$k])) echo '<input type="hidden" name="' . $k . '" value="' . e((string) $_GET[$k]) . '">'; ?>
-        <select name="sucursal" class="form-select form-select-sm" onchange="this.form.submit()"><option value="0"><?= et('Todas las sucursales') ?></option>
+        <select name="sucursal" class="form-select form-select-sm" style="width:auto;min-width:12rem" onchange="this.form.submit()"><option value="0"><?= et('Todas las sucursales') ?></option>
         <?php foreach ($aSucs as $s): ?><option value="<?= (int) $s['id'] ?>" <?= $aSuc === (int) $s['id'] ? 'selected' : '' ?>><?= e($s['nombre']) ?></option><?php endforeach; ?></select></form>
     <?php endif; ?>
     </div>
