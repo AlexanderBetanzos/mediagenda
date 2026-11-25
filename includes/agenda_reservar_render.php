@@ -165,11 +165,17 @@ $agAccion = $agAccion ?? '';
                 </div>
             </div>
 
-            <?php if (!empty($agCobra)): ?>
+            <?php if (!empty($agCobra) && !empty($agPagoInfo)): ?>
             <div class="alert alert-info py-2 small mt-3 mb-0 text-center">
                 <i class="bi bi-credit-card"></i>
                 <?= et('La cita tiene un costo de') ?> <strong><?= fmt_money($agPrecio) ?></strong>.
-                <?= et('Podrás pagarla en línea al terminar, o en el consultorio.') ?>
+                <?php if ($agPagoInfo['obligatorio']): ?>
+                    <?= $agPagoInfo['monto'] < $agPrecio ? sprintf(et('Para asegurar tu lugar pagas un anticipo de %s en línea; el resto, en el consultorio.'), '<strong>' . fmt_money($agPagoInfo['monto']) . '</strong>')
+                        : et('Para asegurar tu lugar se paga en línea al agendar.') ?>
+                    <?= sprintf(et('Tendrás %d minutos para pagar.'), agenda_pago_minutos()) ?>
+                <?php else: ?>
+                    <?= et('Podrás pagarla en línea al terminar, o en el consultorio.') ?>
+                <?php endif; ?>
             </div>
             <?php endif; ?>
 

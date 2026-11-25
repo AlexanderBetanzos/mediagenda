@@ -41,6 +41,10 @@ if ($cadaHora) {
     echo "2 horas antes: {$r2['procesadas']} citas, {$r2['correos']} correos, {$r2['whatsapp']} WhatsApp\n";
 }
 
+// --- Horarios apartados sin pago: se liberan ---
+try { require_once __DIR__ . '/../includes/agenda_pago.php'; $lib = agenda_liberar_vencidas(); if ($lib) echo "Citas liberadas sin pago: $lib\n"; }
+catch (Throwable $e) { echo 'Liberar citas: ' . $e->getMessage() . "\n"; }
+
 // --- Encuestas de satisfacción (X horas después de cada consulta atendida) ---
 if (!$cadaHora || ($hora >= 9 && $hora < 21)) {
     try {

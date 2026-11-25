@@ -100,6 +100,10 @@ function cobro_marcar_pagado(array $cobro, string $payment_id): bool
         }
 
         $pdo->commit();
+        // Cita con anticipo: marcar el pago (y resolver pagos que llegaron tarde).
+        if (!empty($cobro['cita_id'])) {
+            try { require_once __DIR__ . '/agenda_pago.php'; agenda_pago_recibido($cobro); } catch (Throwable $e) {}
+        }
         return true;
     } catch (Throwable $e) {
         $pdo->rollBack();

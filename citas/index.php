@@ -147,7 +147,10 @@ echo ui_stats([
                     <td class="small"><?= e($c['med_nombre']) ?></td>
                     <?php if ($usaTipo): ?><td><span class="badge bg-<?= $c['tipo']==='dental'?'info':'primary' ?>"><?= $c['tipo']==='dental'?et('Dental'):et('Médica') ?></span></td><?php endif; ?>
                     <td><?= e($c['motivo'] ?: '—') ?></td>
-                    <td><span class="badge bg-<?= estado_badge($c['estado']) ?>"><?= estado_label($c['estado']) ?></span></td>
+                    <td><span class="badge bg-<?= estado_badge($c['estado']) ?>"><?= estado_label($c['estado']) ?></span>
+                        <?php $pe = $c['pago_estado'] ?? null; if ($pe === 'pagado'): ?><span class="badge text-bg-success-subtle text-success border" title="<?= e(t('Pagado en línea')) ?>"><i class="bi bi-credit-card"></i> <?= fmt_money((float) ($c['pago_monto'] ?? 0)) ?></span>
+                        <?php elseif ($pe === 'pendiente'): ?><span class="badge text-bg-warning" title="<?= e(t('Apartada, esperando pago')) ?>"><i class="bi bi-hourglass-split"></i> <?= et('Pago hasta') ?> <?= e(date('H:i', strtotime((string) $c['pago_vence']))) ?></span>
+                        <?php elseif ($pe === 'reembolsado'): ?><span class="badge text-bg-secondary"><?= et('Reembolsada') ?></span><?php endif; ?></td>
                     <td class="text-end text-nowrap">
                         <!-- Cambio rápido de estado -->
                         <div class="btn-group">

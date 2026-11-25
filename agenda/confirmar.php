@@ -30,6 +30,17 @@ if (!$c) { http_response_code(404); die('Esta cita ya no existe.'); }
 // El tenant sale de la cita: así cfg(), la marca y el logo son los del
 // consultorio correcto, aunque no haya sesión.
 tenant_forzar((int) $c['consultorio_id']);
+require_once __DIR__ . '/../includes/agenda_pago.php';
+asegurar_agenda_pago();
+if (agenda_liberar_vencidas((int) $c['consultorio_id'])) { $st->execute([$token]); $c = $st->fetch() ?: $c; }
+// Cobro ligado a la cita (anticipo o pago de la reserva).
+$cobroCita = null;
+try {
+    $q = db()->prepare('SELECT * FROM cobros WHERE cita_id = ? AND consultorio_id = ? ORDER BY id DESC LIMIT 1');
+    $q->execute([(int) $c['id'], (int) $c['consultorio_id']]);
+    $cobroCita = $q->fetch() ?: null;
+} catch (Throwable $e) {}
+$reembolso = '';
 
 $hecho = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -54,6 +65,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ->execute([(int) $c['id'], (int) $c['consultorio_id']]);
         auditar('cita_cancelada_paciente', 'cita', (int) $c['id'], null, (int) $c['consultorio_id'],
                 ['nombre' => $c['pac_nombre'] . ' ' . $c['pac_ape']]);
+        // Pago de la cita: reembolso automático si cancela con la anticipación de la política.
+        if ($cobroCita && $cobroCita['estado'] === 'pagado') {
+            $h = (int) cfg('agenda_reembolso_horas', '24');
+            $faltan = (strtotime($c['fecha'] . ' ' . $c['hora']) - time()) / 3600;
+            if ($h > 0 && $faltan >= $h) $reembolso = cobro_reembolsar($cobroCita, 'Cancelación del paciente con ' . round($faltan) . ' h de anticipación') ? 'ok' : 'error';
+            else $reembolso = 'no';
+        } elseif ($cobroCita && $cobroCita['estado'] === 'pendiente') {
+            db()->prepare("UPDATE cobros SET estado = 'cancelado' WHERE id = ?")->execute([$cobroCita['id']]);
+        }
         $hecho = 'cancelada';
         $c['estado'] = 'cancelada';
     }
@@ -138,7 +158,17 @@ $badgeCls = $cancelada ? 'ag-badge-off' : 'ag-badge-ok';
                 <?php endif; ?>
             <?php endif; ?>
 
-            <?php if ($abierta && $c['estado'] === 'programada'): ?>
+            <?php if ($reembolso === 'ok'): ?><div class="alert alert-success small"><i class="bi bi-arrow-counterclockwise"></i> <?= et('Te devolvimos tu pago por Mercado Pago. Puede tardar unos días en reflejarse según tu banco.') ?></div>
+            <?php elseif ($reembolso === 'error'): ?><div class="alert alert-warning small"><?= et('No pudimos devolver tu pago automáticamente; el consultorio lo revisará y te contactará.') ?></div>
+            <?php elseif ($reembolso === 'no'): ?><div class="alert alert-light border small"><?= e(agenda_pago_politica()) ?></div><?php endif; ?>
+            <?php if ($abierta && !empty($c['pago_requerido']) && ($c['pago_estado'] ?? '') === 'pendiente' && $cobroCita && $cobroCita['estado'] === 'pendiente'): ?>
+                <div class="alert alert-warning text-center small mb-2"><i class="bi bi-hourglass-split"></i> <?= et('Tu lugar está apartado hasta las') ?> <b><?= e(date('H:i', strtotime($c['pago_vence']))) ?></b>.
+                    <?= et('Paga para confirmarlo.') ?></div>
+                <a href="<?= e(cobro_url($cobroCita)) ?>" class="btn btn-primary btn-lg w-100 py-3 fw-semibold mb-2"><i class="bi bi-credit-card"></i> <?= et('Pagar') ?> <?= fmt_money((float) $cobroCita['monto']) ?></a>
+            <?php elseif (($c['pago_estado'] ?? '') === 'pagado' && !$cancelada): ?>
+                <div class="alert alert-success small text-center mb-2"><i class="bi bi-check-circle"></i> <?= et('Pago recibido') ?>: <?= fmt_money((float) $c['pago_monto']) ?></div>
+            <?php endif; ?>
+            <?php if ($abierta && $c['estado'] === 'programada' && empty($c['pago_requerido'])): ?>
                 <form method="post" class="d-grid gap-2">
                     <input type="hidden" name="t" value="<?= e($token) ?>">
                     <button name="accion" value="confirmar" class="btn btn-success btn-lg py-3 fw-semibold">
@@ -149,7 +179,8 @@ $badgeCls = $cancelada ? 'ag-badge-off' : 'ag-badge-ok';
                         <?= et('No puedo asistir') ?>
                     </button>
                 </form>
-            <?php elseif ($abierta && $c['estado'] === 'confirmada'): ?>
+            <?php elseif ($abierta && ($c['estado'] === 'confirmada' || ($c['estado'] === 'programada' && !empty($c['pago_requerido'])))): ?>
+                <?php if (($c['pago_estado'] ?? '') === 'pagado'): ?><div class="small text-muted text-center mb-2"><?= e(agenda_pago_politica()) ?></div><?php endif; ?>
                 <form method="post" class="d-grid">
                     <input type="hidden" name="t" value="<?= e($token) ?>">
                     <button name="accion" value="cancelar" class="btn btn-outline-secondary"

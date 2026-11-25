@@ -84,6 +84,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'agenda_online_duracion' => (string) max(10, min(180, (int) ($_POST['agenda_online_duracion'] ?? 30))),
         'agenda_online_aviso'    => trim($_POST['agenda_online_aviso'] ?? ''),
         'agenda_online_precio'   => (string) max(0, round((float) ($_POST['agenda_online_precio'] ?? 0), 2)),
+        'agenda_pago_modo'       => in_array($_POST['agenda_pago_modo'] ?? '', ['opcional', 'anticipo', 'total'], true) ? $_POST['agenda_pago_modo'] : 'opcional',
+        'agenda_anticipo_tipo'   => ($_POST['agenda_anticipo_tipo'] ?? '') === 'monto' ? 'monto' : 'porcentaje',
+        'agenda_anticipo_valor'  => (string) max(1, round((float) ($_POST['agenda_anticipo_valor'] ?? 30), 2)),
+        'agenda_pago_aplica'     => ($_POST['agenda_pago_aplica'] ?? '') === 'nuevos' ? 'nuevos' : 'todos',
+        'agenda_pago_minutos'    => (string) max(10, min(1440, (int) ($_POST['agenda_pago_minutos'] ?? 30))),
+        'agenda_reembolso_horas' => (string) max(0, min(168, (int) ($_POST['agenda_reembolso_horas'] ?? 24))),
+        'agenda_pago_politica'   => mb_substr(trim((string) ($_POST['agenda_pago_politica'] ?? '')), 0, 300),
         // Servidor de video. Vacío = instancia pública (jitsi_dominio() decide).
         'jitsi_dominio'          => trim($_POST['jitsi_dominio'] ?? ''),
         'wa_auto'                => !empty($_POST['wa_auto']) ? '1' : '0',
@@ -478,6 +485,29 @@ include __DIR__ . '/../includes/header.php';
                         <?php endif; ?>
                     </div>
                 </div>
+                <div class="col-12"><div class="border rounded-3 p-3" style="background:color-mix(in srgb,var(--brand) 4%,transparent)">
+                    <div class="fw-semibold small mb-2"><i class="bi bi-shield-check"></i> <?= et('Pago para asegurar el lugar (reduce las faltas)') ?></div>
+                    <div class="row g-2">
+                        <div class="col-md-4"><label class="form-label small"><?= et('Al agendar en línea') ?></label>
+                            <select name="agenda_pago_modo" class="form-select form-select-sm">
+                                <?php foreach (['opcional' => t('Pago opcional (en línea o en el consultorio)'), 'anticipo' => t('Anticipo obligatorio'), 'total' => t('Pago total obligatorio')] as $k => $l): ?>
+                                <option value="<?= $k ?>" <?= cfg('agenda_pago_modo', 'opcional') === $k ? 'selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?>
+                            </select></div>
+                        <div class="col-md-4"><label class="form-label small"><?= et('Anticipo') ?></label>
+                            <div class="input-group input-group-sm"><input type="number" min="1" step="0.01" name="agenda_anticipo_valor" class="form-control" value="<?= e(cfg('agenda_anticipo_valor', '30')) ?>">
+                                <select name="agenda_anticipo_tipo" class="form-select" style="max-width:120px"><option value="porcentaje" <?= cfg('agenda_anticipo_tipo', 'porcentaje') === 'porcentaje' ? 'selected' : '' ?>>% <?= et('del costo') ?></option><option value="monto" <?= cfg('agenda_anticipo_tipo') === 'monto' ? 'selected' : '' ?>>$ MXN</option></select></div></div>
+                        <div class="col-md-4"><label class="form-label small"><?= et('Se pide a') ?></label>
+                            <select name="agenda_pago_aplica" class="form-select form-select-sm"><option value="todos"><?= et('Todos los pacientes') ?></option><option value="nuevos" <?= cfg('agenda_pago_aplica') === 'nuevos' ? 'selected' : '' ?>><?= et('Solo pacientes nuevos') ?></option></select></div>
+                        <div class="col-md-4"><label class="form-label small"><?= et('Tiempo para pagar') ?></label>
+                            <div class="input-group input-group-sm"><input type="number" min="10" max="1440" name="agenda_pago_minutos" class="form-control" value="<?= e(cfg('agenda_pago_minutos', '30')) ?>"><span class="input-group-text">min</span></div>
+                            <div class="form-text"><?= et('Si no paga, el horario se libera solo.') ?></div></div>
+                        <div class="col-md-4"><label class="form-label small"><?= et('Reembolso automático si cancela con') ?></label>
+                            <div class="input-group input-group-sm"><input type="number" min="0" max="168" name="agenda_reembolso_horas" class="form-control" value="<?= e(cfg('agenda_reembolso_horas', '24')) ?>"><span class="input-group-text"><?= et('h o más') ?></span></div>
+                            <div class="form-text"><?= et('0 = nunca automático.') ?></div></div>
+                        <div class="col-md-4"><label class="form-label small"><?= et('Política (opcional)') ?></label>
+                            <input name="agenda_pago_politica" class="form-control form-control-sm" maxlength="300" value="<?= e(cfg('agenda_pago_politica')) ?>" placeholder="<?= e(t('Se arma sola si la dejas vacía')) ?>"></div>
+                    </div>
+                </div></div>
                 <div class="col-md-8">
                     <label class="form-label"><?= et('Aviso al paciente') ?></label>
                     <input name="agenda_online_aviso" class="form-control" maxlength="255"

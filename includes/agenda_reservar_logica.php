@@ -14,6 +14,9 @@
  */
 
 require_once __DIR__ . '/mercadopago.php';   // para saber si se puede cobrar
+require_once __DIR__ . '/agenda_pago.php';
+// Los horarios apartados que no se pagaron a tiempo se liberan antes de calcular huecos.
+agenda_liberar_vencidas((int) $con['id']);
 
 $agSlug   = $con['slug'];
 $duracion = max(10, (int) cfg('agenda_online_duracion', '30'));
@@ -23,6 +26,8 @@ $agMaxDias = max(1, (int) cfg('agenda_online_dias', '30'));
 // si además el consultorio tiene Mercado Pago configurado.
 $agPrecio = round((float) cfg('agenda_online_precio', '0'), 2);
 $agCobra  = $agPrecio > 0 && mp_tenant_habilitado();
+// Para el aviso del formulario: lo que pagaría un paciente nuevo.
+$agPagoInfo = agenda_pago_calcular($agPrecio, null);
 
 /* Médicos con horario configurado: sin horario no hay huecos que ofrecer.
    Solo rol 'medico' (el catálogo de /medicos), NO el admin/personal: el paciente
@@ -128,10 +133,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'reser
             // deshacerla — el paciente pagará en el consultorio.
             if ($agCobra) {
                 try {
-                    require_once __DIR__ . '/cobros.php';
-                    cobro_crear((int) $pac, $agPrecio,
-                                t('Reserva de cita') . ' · ' . fmt_fecha($agFecha) . ' ' . fmt_hora($hora),
-                                null, $citaId);
+                    $pinfo = agenda_pago_calcular($agPrecio, (int) $pac);
+                    if ($pinfo) {
+                        $concepto = ($pinfo['obligatorio'] && $pinfo['monto'] < $pinfo['precio'] ? t('Anticipo de cita') : t('Reserva de cita'))
+                            . ' · ' . fmt_fecha($agFecha) . ' ' . fmt_hora($hora);
+                        cobro_crear((int) $pac, $pinfo['monto'], $concepto, null, $citaId);
+                        // Obligatorio: la cita queda apartada N minutos esperando el pago.
+                        if ($pinfo['obligatorio']) agenda_pago_apartar($citaId, $pinfo['monto']);
+                    }
                 } catch (Throwable $e) { /* pago no disponible: la cita queda igual */ }
             }
 

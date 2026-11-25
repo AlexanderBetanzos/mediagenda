@@ -37,6 +37,11 @@ if ($okToken !== '') {
     $cita = $st->fetch();
     if (!$cita) { redirect('/agenda/reservar?c=' . rawurlencode($slug)); }
 
+    require_once __DIR__ . '/../includes/agenda_pago.php';
+    asegurar_agenda_pago();
+    agenda_liberar_vencidas((int) $con['id']);
+    $st->execute([$okToken, (int) $con['id']]);
+    $cita = $st->fetch() ?: $cita;
     // ¿Hay un cobro pendiente ligado a esta cita? -> ofrecer pago en línea.
     $pago = null;
     try {
@@ -90,7 +95,20 @@ if ($okToken !== '') {
                 </div>
 
                 <div class="d-grid gap-2">
-                    <?php if ($pago): ?>
+                    <?php if (!empty($cita['pago_requerido']) && ($cita['pago_estado'] ?? '') === 'pendiente' && $pago): ?>
+                        <div class="alert alert-warning text-center mb-1">
+                            <div class="fw-semibold"><i class="bi bi-hourglass-split"></i> <?= et('Tu lugar está apartado hasta las') ?> <?= e(date('H:i', strtotime($cita['pago_vence']))) ?></div>
+                            <div class="small"><?= sprintf(et('Paga %s para confirmarlo. Si no se paga a tiempo, el horario se libera para otro paciente.'), '<strong>' . fmt_money($pago['monto']) . '</strong>') ?></div>
+                        </div>
+                        <a href="<?= e($pago['url']) ?>" class="btn btn-primary btn-lg py-3 fw-semibold"><i class="bi bi-credit-card"></i> <?= et('Pagar y confirmar mi cita') ?></a>
+                        <div class="small text-muted text-center"><i class="bi bi-info-circle"></i> <?= e(agenda_pago_politica()) ?></div>
+                    <?php elseif (($cita['pago_estado'] ?? '') === 'pagado'): ?>
+                        <div class="alert alert-success text-center mb-1"><i class="bi bi-check-circle"></i> <?= et('Pago recibido: tu cita está confirmada.') ?></div>
+                        <a href="<?= BASE_URL ?>/agenda/confirmar?t=<?= e($cita['token']) ?>" class="btn btn-outline-secondary"><i class="bi bi-calendar-check"></i> <?= et('Ver o cancelar mi cita') ?></a>
+                    <?php elseif (($cita['pago_estado'] ?? '') === 'vencido'): ?>
+                        <div class="alert alert-danger text-center mb-1"><?= et('El tiempo para pagar terminó y el horario se liberó. Puedes agendar de nuevo.') ?></div>
+                        <a href="<?= BASE_URL ?>/agenda/reservar?c=<?= e(rawurlencode($slug)) ?>" class="btn btn-primary"><?= et('Agendar otra vez') ?></a>
+                    <?php elseif ($pago): ?>
                         <div class="alert alert-info py-2 mb-1 text-center"><?= et('Costo de la cita') ?>: <strong><?= fmt_money($pago['monto']) ?></strong>. <?= et('¿Cómo prefieres pagar?') ?></div>
                         <a href="<?= e($pago['url']) ?>" class="btn btn-primary btn-lg py-3 fw-semibold"><i class="bi bi-credit-card"></i> <?= et('Pagar en línea ahora') ?></a>
                         <a href="<?= BASE_URL ?>/agenda/confirmar?t=<?= e($cita['token']) ?>" class="btn btn-outline-secondary"><i class="bi bi-cash-coin"></i> <?= et('Pagar en el consultorio') ?></a>
