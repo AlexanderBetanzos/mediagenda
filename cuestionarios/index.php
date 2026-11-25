@@ -6,6 +6,7 @@
  */
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/cuestionarios.php';
+require_once __DIR__ . '/../includes/ui.php';
 require_login();
 require_modulo('agenda_online');
 asegurar_cuestionarios();
