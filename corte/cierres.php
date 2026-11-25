@@ -17,8 +17,12 @@ $tid     = (int) tenant_id();
 $mes = preg_match('/^\d{4}-\d{2}$/', $_GET['mes'] ?? '') ? $_GET['mes'] : date('Y-m');
 $quien = $esAdmin ? (int) ($_GET['u'] ?? 0) : (int) $u['id'];
 
-$sql = "SELECT * FROM cortes_caja WHERE consultorio_id = ? AND DATE_FORMAT(cerrado_en,'%Y-%m') = ?";
-$p = [$tid, $mes];
+// Rango de fechas y no DATE_FORMAT(...) = ?: comparar texto chocaba de
+// collation en producción (unicode_ci vs general_ci) y así usa el índice.
+$ini = $mes . '-01 00:00:00';
+$fin = date('Y-m-d H:i:s', strtotime($ini . ' +1 month'));
+$sql = "SELECT * FROM cortes_caja WHERE consultorio_id = ? AND cerrado_en >= ? AND cerrado_en < ?";
+$p = [$tid, $ini, $fin];
 if ($quien) { $sql .= ' AND usuario_id = ?'; $p[] = $quien; }
 $st = $pdo->prepare($sql . ' ORDER BY cerrado_en DESC, id DESC');
 $st->execute($p);
