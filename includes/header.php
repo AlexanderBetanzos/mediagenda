@@ -270,6 +270,7 @@ $bsAttr   = $tema === 'light' ? ' data-bs-theme="light"' : '';
                     $admin[] = $li('usuarios', BASE_URL . '/usuarios/index', 'bi-person-badge', t('Personal'));
                     if (modulo_activo('presupuestos')) $admin[] = $li('servicios', BASE_URL . '/servicios/index', 'bi-tags', t('Catálogo de servicios'));
                     $admin[] = $li('configuracion', BASE_URL . '/configuracion/index', 'bi-gear', t('Configuración'));
+                    $admin[] = $li('mensajes', BASE_URL . '/mensajes/index', 'bi-whatsapp', t('Mensajes de WhatsApp'));
                     $admin[] = $li('auditoria', BASE_URL . '/auditoria/index', 'bi-journal-text', t('Bitácora'));
                     $admin[] = $li('suscripcion', BASE_URL . '/pagos/index', 'bi-stars', t('Mi suscripción'));
                 }

@@ -58,7 +58,7 @@ $platLinks = [
 ];
 if ($esSuper) {
     $platLinks[] = ['socios',  'socios',  'bi-people', et('Socios')];
-    $platLinks[] = ['timbres', 'timbres', 'bi-patch-check', et('Timbres')];
+    $platLinks[] = ['timbres', 'timbres', 'bi-wallet2', et('Créditos')];
     $platLinks[] = ['ajustes', 'ajustes', 'bi-gear',   et('Ajustes')];
 }
 ?>

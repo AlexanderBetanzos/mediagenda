@@ -74,7 +74,7 @@ function recordatorios_enviar(?string $fecha = null, ?callable $echo = null): ar
             }
             if ($porWhats && !empty($c['telefono'])) {
                 $r = wa_recordatorio_cita($c['telefono'], $c['nombre'] . ' ' . $c['apellidos'],
-                        fmt_fecha($c['fecha']), fmt_hora($c['hora']), $c['med_nombre']);
+                        fmt_fecha($c['fecha']), fmt_hora($c['hora']), $c['med_nombre'], cita_enlace((int) $c['id']));
                 if ($r['ok']) { $wa++; }
             }
             $marca->execute([$c['id'], $cid]);
@@ -142,7 +142,7 @@ function recordatorios_2h(?callable $echo = null): array
                 $mail++;
             }
             if ($porWhats && !empty($c['telefono'])) {
-                $r = wa_recordatorio_cita($c['telefono'], $nombre, t('hoy'), fmt_hora($c['hora']), $c['med_nombre']);
+                $r = wa_recordatorio_cita($c['telefono'], $nombre, t('hoy'), fmt_hora($c['hora']), $c['med_nombre'], cita_enlace((int) $c['id']));
                 if ($r['ok']) $wa++;
             }
             $marca->execute([$c['id'], $cid]);

@@ -546,6 +546,10 @@ include __DIR__ . '/../includes/header.php';
                     <?php endif; ?>
                 </div>
             </div>
+            <div class="col-12"><div class="alert alert-light border small mb-0">
+                <i class="bi bi-lightbulb"></i> <?= et('Esto es opcional y solo si quieres usar TU propio número de WhatsApp Business API.') ?>
+                <?= et('Sin trámites con Meta, usa') ?> <a href="<?= BASE_URL ?>/mensajes/index"><?= et('WhatsApp incluido') ?></a>.
+            </div></div>
             <div class="col-12">
                 <div class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" role="switch" id="wa_auto" name="wa_auto" value="1"

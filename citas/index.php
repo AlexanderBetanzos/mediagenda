@@ -47,6 +47,7 @@ include __DIR__ . '/../includes/header.php';
     <div class="d-flex gap-2">
         <a href="<?= BASE_URL ?>/citas/sala" class="btn btn-outline-secondary"><i class="bi bi-hourglass-split"></i> <?= et('Sala') ?></a>
         <a href="<?= BASE_URL ?>/citas/calendario" class="btn btn-outline-secondary"><i class="bi bi-calendar3"></i> <?= et('Calendario') ?></a>
+        <?php if (modulo_activo('whatsapp')): ?><a href="<?= BASE_URL ?>/citas/recordar" class="btn btn-outline-success"><i class="bi bi-whatsapp"></i> <?= et('Recordar por WhatsApp') ?></a><?php endif; ?>
         <?php if (has_role('admin', 'medico')): ?>
         <a href="<?= BASE_URL ?>/citas/horarios" class="btn btn-outline-secondary"><i class="bi bi-clock-history"></i> <?= et('Horarios') ?></a>
         <?php endif; ?>

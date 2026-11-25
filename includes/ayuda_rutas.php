@@ -113,6 +113,16 @@ function ayuda_textos_rutas(): array
         'En <b>Tus datos fiscales</b> captura RFC, razón social, régimen y código postal como en tu Constancia de Situación Fiscal.',
         'Sube tu <b>CSD</b> (.cer, .key y contraseña). No es la e.firma: se tramita gratis en el portal del SAT.',
     ], ['Cada factura timbrada usa 1 timbre. Si el SAT la rechaza, el timbre regresa a tu saldo.']);
+    $T['ruta:mensajes/index'] = $g('Mensajes de WhatsApp', 'Recordatorios automáticos por WhatsApp sin trámites con Meta.', [
+        'Arriba ves cuántos mensajes te quedan: los incluidos en tu plan este mes y los de tus paquetes.',
+        'Con el interruptor prendido, los recordatorios de cita salen solos con el nombre de tu consultorio y un enlace para confirmar.',
+        'Si se te acaban, compra un paquete; mientras tanto los recordatorios siguen saliendo por correo.',
+    ], ['Para mandarlos tú desde tu propio celular (gratis), usa Agenda → Recordar por WhatsApp.']);
+    $T['ruta:citas/recordar'] = $g('Recordar por WhatsApp', 'Manda los recordatorios desde tu propio WhatsApp, uno por uno.', [
+        'Elige el día (por omisión, mañana).',
+        'Da clic en <b>Enviar la siguiente</b>: se abre WhatsApp con el mensaje listo y solo le das enviar.',
+        'Cada cita queda marcada como enviada para que sepas por dónde vas.',
+    ], ['Usa el WhatsApp abierto en esa computadora o celular. No gasta saldo.']);
     $T['ruta:dispositivos/index'] = $g('Impresoras y escáneres', 'Conecta la impresora de tickets y el lector de esta computadora.', [
         '<b>Agregar impresora</b>: elige USB, Bluetooth o puerto serie y el navegador te muestra las que están conectadas.',
         'Si tu impresora ya está instalada en Windows o Mac, agrégala como <b>Impresora instalada en la PC</b>.',
