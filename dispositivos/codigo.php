@@ -36,8 +36,8 @@ if ($c === '') { echo json_encode(['tipo' => null]); exit; }
 if (modulo_activo('farmacia')) {
     $st = db()->prepare(
         "SELECT p.id, p.nombre, p.precio,
-                COALESCE((SELECT SUM(CASE WHEN m.tipo='salida' THEN -m.cantidad ELSE m.cantidad END)
-                          FROM inventario_movimientos m WHERE m.producto_id = p.id), 0) AS stock
+                COALESCE((SELECT SUM(l.cantidad) FROM inventario_lotes l
+                          WHERE l.producto_id = p.id AND l.consultorio_id = p.consultorio_id), 0) AS stock
          FROM productos p WHERE p.consultorio_id = ? AND p.sku = ? LIMIT 1"
     );
     $st->execute([$tid, $c]);

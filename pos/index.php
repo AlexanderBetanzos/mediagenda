@@ -5,12 +5,19 @@
  * al instante y descuenta el stock de los productos vendidos.
  */
 require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/inventario.php';
 require_login();
 require_modulo('farmacia');
+inv_asegurar();
 
 $u   = current_user();
 $pdo = db();
 $tid = (int) tenant_id();
+
+// Con sucursales, la venta sale de una sede: la que se está viendo o la primera.
+$porSuc = inv_por_sucursal();
+$sucs   = $porSuc ? sucursales() : [];
+$sucPos = $porSuc ? (sucursal_actual() ?: (int) $sucs[0]['id']) : null;
 
 /** Paciente genérico para ventas de mostrador (se crea una vez). */
 function pos_paciente_general(PDO $pdo, int $tid): int
@@ -64,13 +71,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $folio = 'F-' . date('Y') . '-' . str_pad((string) $fid, 4, '0', STR_PAD_LEFT);
     $pdo->prepare('UPDATE facturas SET folio = ? WHERE id = ? AND consultorio_id = ?')->execute([$folio, $fid, $tid]);
 
+    $suc = $porSuc ? (inv_sucursal_valida($_POST['sucursal_id'] ?? 0) ?: $sucPos) : null;
     $it  = $pdo->prepare('INSERT INTO factura_items (factura_id, descripcion, cantidad, precio, importe) VALUES (?,?,?,?,?)');
-    $mov = $pdo->prepare('INSERT INTO inventario_movimientos (consultorio_id, producto_id, tipo, cantidad, motivo, usuario_id) VALUES (?,?,?,?,?,?)');
+    $faltan = [];
     foreach ($items as [$desc, $cant, $precio, $importe, $pid]) {
         $it->execute([$fid, $desc, $cant, $precio, $importe]);
-        // Descuenta stock solo si la línea es un producto del inventario.
+        // Descuenta stock (lotes por FEFO) solo si la línea es un producto del inventario.
+        // No frena la venta: lo que ya se entregó en mostrador se vende; si no
+        // alcanzaba la existencia registrada, se avisa para corregir el inventario.
         if ($pid && pertenece_al_tenant('productos', $pid)) {
-            $mov->execute([$tid, $pid, 'salida', $cant, 'Venta POS ' . $folio, $u['id']]);
+            if (inv_stock($pid, $suc) < $cant) $faltan[] = $desc;
+            inv_salida($pid, $cant, $suc, 'Venta POS ' . $folio, false);
         }
     }
     $pdo->commit();
@@ -78,6 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     registrar_cobro($fid);   // entra en el cierre de caja de quien vendió
     auditar('crear', 'venta_pos', $fid, $folio . ' · ' . fmt_money($subtotal));
     flash('Venta cobrada · ' . $folio . ' · ' . fmt_money($subtotal));
+    if ($faltan) flash(sprintf(t('Se vendió más de lo que había registrado en inventario: %s. Registra la entrada que falta para que cuadre.'), implode(', ', $faltan)), 'warning');
     redirect('/facturacion/ver?id=' . $fid . '&ticket=1');   // ticket y cajón, si esta PC los tiene
 }
 
@@ -85,12 +97,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $verInv = modulo_activo('farmacia');
 $productos = [];
 if ($verInv) {
-    $st = $pdo->prepare(
-        "SELECT p.id, p.nombre, p.precio, p.categoria, p.sku,
-                COALESCE((SELECT SUM(CASE WHEN m.tipo='salida' THEN -m.cantidad ELSE m.cantidad END)
-                          FROM inventario_movimientos m WHERE m.producto_id = p.id), 0) AS stock
-         FROM productos p WHERE p.consultorio_id = ? AND p.activo = 1 ORDER BY p.nombre"
-    );
+    $st = $pdo->prepare('SELECT p.id, p.nombre, p.precio, p.categoria, p.sku,
+                                COALESCE((SELECT SUM(l.cantidad) FROM inventario_lotes l WHERE l.producto_id = p.id AND l.consultorio_id = p.consultorio_id'
+                                . ($sucPos ? ' AND l.sucursal_id = ' . (int) $sucPos : '') . '), 0) AS stock
+                         FROM productos p WHERE p.consultorio_id = ? AND p.activo = 1 ORDER BY p.nombre');
     $st->execute([$tid]);
     $productos = $st->fetchAll();
 }
@@ -103,10 +113,20 @@ $titulo = t('Punto de venta');
 $activo = 'pos';
 include __DIR__ . '/../includes/header.php';
 ?>
-<h1 class="h3 mb-3"><i class="bi bi-shop text-brand"></i> <?= et('Punto de venta') ?></h1>
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+    <h1 class="h3 mb-0"><i class="bi bi-shop text-brand"></i> <?= et('Punto de venta') ?></h1>
+    <?php if ($porSuc): ?>
+    <form class="d-inline-flex align-items-center gap-1"><span class="small text-muted"><i class="bi bi-geo-alt"></i> <?= et('Vendes desde') ?></span>
+        <select name="sucursal" class="form-select form-select-sm" style="width:auto;min-width:11rem" onchange="this.form.submit()">
+            <?php foreach ($sucs as $s): ?><option value="<?= (int) $s['id'] ?>" <?= $sucPos === (int) $s['id'] ? 'selected' : '' ?>><?= e($s['nombre']) ?></option><?php endforeach; ?>
+        </select>
+    </form>
+    <?php endif; ?>
+</div>
 
 <form method="post" id="posForm">
 <?= csrf_field() ?>
+<?php if ($sucPos): ?><input type="hidden" name="sucursal_id" value="<?= (int) $sucPos ?>"><?php endif; ?>
 <div class="row g-3">
     <!-- Catálogo -->
     <div class="col-lg-7">

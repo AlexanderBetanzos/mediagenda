@@ -43,17 +43,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // El armazón sale del aparador cuando el trabajo se manda a tallar: ese
         // es el momento real en que la pieza deja la tienda, no cuando se cotiza.
-        // El movimiento se registra igual que en el POS (inventario_movimientos).
+        // Baja el lote y deja el movimiento, igual que el POS (includes/inventario.php).
         if ($nuevo === 'en_laboratorio' && $t['estado'] === 'pedido'
             && $t['armazon_producto_id'] && pertenece_al_tenant('productos', (int) $t['armazon_producto_id'])) {
-            db()->prepare(
-                'INSERT INTO inventario_movimientos
-                 (consultorio_id, producto_id, tipo, cantidad, motivo, usuario_id)
-                 VALUES (?,?,?,?,?,?)'
-            )->execute([
-                tenant_id(), (int) $t['armazon_producto_id'], 'salida', 1,
-                'Orden de óptica ' . $t['folio'], (int) $u['id'],
-            ]);
+            require_once __DIR__ . '/../includes/inventario.php';
+            inv_asegurar();
+            // Sale de la sucursal que se está viendo; si no hay, de donde haya existencia.
+            inv_salida((int) $t['armazon_producto_id'], 1, inv_por_sucursal() ? (sucursal_actual() ?: null) : null,
+                       'Orden de óptica ' . $t['folio'], false);
         }
 
         db()->prepare(

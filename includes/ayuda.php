@@ -175,11 +175,17 @@ function ayuda_textos(): array
             'titulo' => 'Punto de venta',
             'intro'  => 'Vende productos de tu inventario y servicios de mostrador.',
             'pasos'  => ['Agrega productos al ticket.', 'Elige método de pago y cobra.', 'El inventario se descuenta solo.'],
+            'tips'   => ['Con varias sucursales, arriba eliges <b>desde qué sucursal vendes</b>: se ven y se descuentan las existencias de esa sede.'],
         ],
         'page:inventario' => [
             'titulo' => 'Inventario',
             'intro'  => 'Tus productos con su existencia; te avisa cuando algo se está acabando.',
             'pasos'  => ['Da de alta el producto con su precio.', 'Registra entradas cuando llegue mercancía.', 'Las ventas del punto de venta lo descuentan solas.'],
+            'tips'   => [
+                'Con varias sucursales, el catálogo y los precios son uno solo, pero <b>cada sede tiene sus existencias</b>. Filtra por sucursal arriba o ve el desglose con "Todas las sucursales".',
+                'Para mover mercancía de una sede a otra usa <b>Traspaso</b>: sale de una y llega a la otra con su lote y caducidad.',
+                'Si ya tenías inventario antes de dar de alta sucursales, el sistema te pregunta una vez en qué sede está.',
+            ],
         ],
 
         'page:medicos' => [
